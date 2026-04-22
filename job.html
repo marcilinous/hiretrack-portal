@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post a Job — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><a href="index.html">Hire<span>Track</span></a></div>
+  <div class="nav-links">
+    <a href="jobs.html">Browse Jobs</a>
+    <a href="post-job.html" class="btn-post">Post a Job</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>Post a Job on HireTrack</h1>
+  <p>Reach thousands of qualified MIS & Data professionals across Karnataka</p>
+</div>
+
+<div class="form-card" style="padding: 0 1rem;">
+  <div style="background:#fff; border-radius:14px; padding:2rem; border:1px solid #e8edf5; max-width:700px; margin: 2rem auto;">
+
+    <div class="ai-box" style="margin-bottom:1.5rem;">
+      <div class="ai-header">
+        <div class="ai-dot"></div>
+        <h3>AI Job Description Writer</h3>
+        <span>Powered by Gemini</span>
+      </div>
+      <p style="font-size:0.85rem; color:#5a6a8a; margin-bottom:0.8rem;">Tell me the role and I'll write the job description for you!</p>
+      <div class="ai-input-row">
+        <input type="text" id="ai-jd-input" placeholder="e.g. MIS Executive with Excel and SQL skills, 2–4 years exp" />
+        <button onclick="generateJD()">Generate</button>
+      </div>
+      <div class="ai-response" id="ai-jd-response"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Job Title *</label>
+        <input type="text" id="job-title" placeholder="e.g. MIS Executive" />
+      </div>
+      <div class="form-group">
+        <label>Company Name *</label>
+        <input type="text" id="company" placeholder="Your company name" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Location *</label>
+        <select id="location">
+          <option value="">Select city</option>
+          <option>Bengaluru</option>
+          <option>Mysuru</option>
+          <option>Mangaluru</option>
+          <option>Hubballi</option>
+          <option>Remote</option>
+          <option>Other Karnataka</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Job Type *</label>
+        <select id="job-type">
+          <option>Full Time</option>
+          <option>Contract</option>
+          <option>Remote</option>
+          <option>Part Time</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Salary Range</label>
+        <input type="text" id="salary" placeholder="e.g. ₹4–6 LPA" />
+      </div>
+      <div class="form-group">
+        <label>Experience Required</label>
+        <select id="experience">
+          <option>0–1 years (Fresher)</option>
+          <option>1–3 years</option>
+          <option>3–5 years</option>
+          <option>5+ years</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Required Skills (comma separated)</label>
+      <input type="text" id="skills" placeholder="e.g. Excel, SQL, Power BI, MIS Reporting" />
+    </div>
+
+    <div class="form-group">
+      <label>Job Description *</label>
+      <textarea id="description" rows="6" placeholder="Describe the role, responsibilities, and requirements..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Contact Email *</label>
+      <input type="email" id="email" placeholder="hr@yourcompany.com" />
+    </div>
+
+    <button class="btn-submit" onclick="submitJob()">Post Job for Free</button>
+    <div class="success-msg" id="success-msg">
+      ✅ Job posted successfully! It will go live within 24 hours after review.
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  async function generateJD() {
+    const input = document.getElementById('ai-jd-input').value.trim();
+    if (!input) return;
+    const responseBox = document.getElementById('ai-jd-response');
+    responseBox.style.display = 'block';
+    responseBox.textContent = 'Writing job description...';
+    const prompt = `Write a professional job description for: "${input}". Include: Role Summary (2 lines), Key Responsibilities (4 bullet points), Required Skills (3-4 items). Keep it concise and suitable for a Karnataka-based company.`;
+    const answer = await callGemini(prompt);
+    responseBox.textContent = answer;
+    document.getElementById('description').value = answer;
+  }
+
+  function submitJob() {
+    const title = document.getElementById('job-title').value.trim();
+    const company = document.getElementById('company').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const description = document.getElementById('description').value.trim();
+    if (!title || !company || !email || !description) {
+      alert('Please fill in all required fields.');
+      return;
+   ...

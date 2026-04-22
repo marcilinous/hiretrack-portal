@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HireTrack — MIS & Data Jobs in Karnataka</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Hire<span>Track</span></div>
+  <div class="nav-links">
+    <a href="jobs.html">Browse Jobs</a>
+    <a href="post-job.html" class="btn-post">Post a Job</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Find <span>MIS & Data Jobs</span><br>Across Karnataka</h1>
+  <p>Connecting talented professionals with the best opportunities in analytics, MIS, Excel & office tech roles.</p>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Job title, skill, or company..." />
+    <button onclick="searchJobs()">Search Jobs</button>
+  </div>
+  <div class="hero-stats">
+    <div><strong>240+</strong><span>Live Jobs</span></div>
+    <div><strong>180+</strong><span>Companies</span></div>
+    <div><strong>5,000+</strong><span>Candidates</span></div>
+  </div>
+</section>
+
+<div class="ai-section">
+  <div class="ai-box">
+    <div class="ai-header">
+      <div class="ai-dot"></div>
+      <h3>AI Career Assistant</h3>
+      <span>Powered by Gemini</span>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" id="ai-input" placeholder="Ask me anything — e.g. 'What jobs suit an MIS executive?'" />
+      <button onclick="askAI()">Ask</button>
+    </div>
+    <div class="ai-chips">
+      <span class="chip" onclick="quickAsk('What jobs suit an MIS executive with 4 years experience?')">MIS careers</span>
+      <span class="chip" onclick="quickAsk('What skills should I learn to become a data analyst?')">Upskill tips</span>
+      <span class="chip" onclick="quickAsk('What is the average salary for MIS jobs in Bangalore?')">Salary info</span>
+      <span class="chip" onclick="quickAsk('How do I write a good resume for a data analyst role?')">Resume tips</span>
+    </div>
+    <div class="ai-response" id="ai-response"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Latest Job Openings</h2>
+    <a href="jobs.html">View all jobs →</a>
+  </div>
+  <div class="jobs-grid" id="jobs-container"></div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Browse by Category</h2>
+  </div>
+  <div class="cats-grid">
+    <div class="cat-card" onclick="window.location='jobs.html?cat=MIS'">
+      <div class="cat-icon">📊</div>
+      <h4>MIS Executive</h4>
+      <span>68 jobs</span>
+    </div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Data+Analyst'">
+      <div class="cat-icon">📈</div>
+      <h4>Data Analyst</h4>
+      <span>52 jobs</span>
+    </div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Excel'">
+      <div class="cat-icon">📋</div>
+      <h4>Excel & Reporting</h4>
+      <span>44 jobs</span>
+    </div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=SQL'">
+      <div class="cat-icon">🗄️</div>
+      <h4>SQL & Database</h4>
+      <span>38 jobs</span>
+    </div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=BI'">
+      <div class="cat-icon">🔍</div>
+      <h4>Business Intelligence</h4>
+      <span>29 jobs</span>
+    </div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Automation'">
+      <div class="cat-icon">⚙️</div>
+      <h4>Automation & AI</h4>
+      <span>21 jobs</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka. Built with ❤️ in Bengaluru.</p>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  renderJobs(getJobs().slice(0, 6), 'jobs-container');
+</script>
+</body>
+</html>
