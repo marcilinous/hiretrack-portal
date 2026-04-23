@@ -74,7 +74,7 @@
         <option value="Automation">Automation & AI</option>
       </select>
     </div>
-    <button class="btn-filter" style="background:var(--gray3);color:var(--navy);margin-top:0.5rem;" onclick="clearFilters()">Clear Filters</button>
+    <button id="clear-btn" class="btn-filter" style="background:var(--gray3);color:var(--navy);margin-top:0.5rem;" onclick="clearFilters()">Clear Filters</button>
   </aside>
 
   <main>
@@ -138,13 +138,25 @@
       el.tagName === 'INPUT' ? el.value = '' : el.selectedIndex = 0;
     });
     applyFilters();
+    updateClearBtn();
   }
 
   // Auto filter on any input change
-  document.getElementById('f-keyword').addEventListener('input', applyFilters);
-  document.getElementById('f-location').addEventListener('change', applyFilters);
-  document.getElementById('f-type').addEventListener('change', applyFilters);
-  document.getElementById('f-category').addEventListener('change', applyFilters);
+  document.getElementById('f-keyword').addEventListener('input', () => { applyFilters(); updateClearBtn(); });
+  document.getElementById('f-location').addEventListener('change', () => { applyFilters(); updateClearBtn(); });
+  document.getElementById('f-type').addEventListener('change', () => { applyFilters(); updateClearBtn(); });
+  document.getElementById('f-category').addEventListener('change', () => { applyFilters(); updateClearBtn(); });
+
+  function updateClearBtn() {
+    const btn = document.getElementById('clear-btn');
+    const isActive = document.getElementById('f-keyword').value
+      || document.getElementById('f-location').value
+      || document.getElementById('f-type').value
+      || document.getElementById('f-category').value;
+    btn.style.background = isActive ? 'var(--blue)' : 'var(--gray3)';
+    btn.style.color = isActive ? '#fff' : 'var(--navy)';
+    btn.textContent = isActive ? '✕ Clear Filters' : 'Clear Filters';
+  }
 
   // Render jobs with clickable cards opening modal
   function renderJobsWithModal(jobs, containerId) {
