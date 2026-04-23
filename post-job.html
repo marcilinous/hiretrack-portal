@@ -130,7 +130,7 @@
     box.style.display = 'block';
     box.innerHTML = '<span class="ai-loading">Writing job description...</span>';
     const prompt = `Write a professional job description for: "${input}". Format: Role Summary (2 lines), Key Responsibilities (4 bullet points), Required Skills (4 items), Nice to have (2 items). Keep it professional and suitable for a Karnataka-based company. Plain text only, no markdown.`;
-    const answer = await callGemini(prompt);
+    const answer = await callGroq(prompt);
     box.textContent = answer;
     document.getElementById('description').value = answer;
   }

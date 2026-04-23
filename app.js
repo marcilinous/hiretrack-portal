@@ -1,5 +1,5 @@
 // ── CONFIG ──
-const GEMINI_API_KEY = 'AIzaSyBifOCm37o1lAsNvy00FG2EjWkzOlcM4OI';
+const GROQ_API_KEY = 'YOUR_GROQ_API_KEY_HERE'; // Replace with your Groq key from console.groq.com
 
 // ── JOB DATA ──
 const JOBS = [
@@ -212,17 +212,34 @@ function renderJobs(jobs, containerId) {
 }
 
 // ── AI ASSISTANT ──
-async function callGemini(prompt) {
+async function callGroq(prompt) {
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ contents:[{ parts:[{ text: `You are a helpful career assistant for HireTrack, a job portal for MIS, Data, Excel, SQL and analytics roles in Karnataka, India. Give concise, practical advice in 3-5 sentences. Be encouraging and specific to the Indian job market.\n\nUser question: ${prompt}` }] }] })
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful career assistant for HireTrack, a job portal for MIS, Data, Excel, SQL and analytics roles in Karnataka, India. Give concise, practical advice in 3-5 sentences. Be encouraging and specific to the Indian job market.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      })
     });
     const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Could not get a response. Please try again.';
+    return data.choices?.[0]?.message?.content || 'Could not get a response. Please try again.';
   } catch(e) {
-    return 'Please add your Gemini API key in app.js to enable the AI assistant.';
+    return 'AI assistant error. Please check your Groq API key in app.js.';
   }
 }
 
@@ -233,8 +250,7 @@ async function askAI() {
   if (!q) return;
   box.style.display = 'block';
   box.innerHTML = '<span class="ai-loading">Thinking...</span>';
-  box.style.display = 'block';
-  const answer = await callGemini(q);
+  const answer = await callGroq(q);
   box.textContent = answer;
   input.value = '';
 }
