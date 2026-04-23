@@ -3,6 +3,8 @@
 const SUPABASE_URL = 'https://jljnhklhglskkqjlqeke.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impsam5oa2xoZ2xza2txamxxZWtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTUwMzMsImV4cCI6MjA5MjUzMTAzM30.hcEj9xsprY4fDImtN--0cKxgQ0NFxU7ErUa_1Wj5ZNQ';
 
+const supabaseClient = supabase.createClient('https://jljnhklhglskkqjlqeke.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impsam5oa2xoZ2xza2txamxxZWtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTUwMzMsImV4cCI6MjA5MjUzMTAzM30.hcEj9xsprY4fDImtN--0cKxgQ0NFxU7ErUa_1Wj5ZNQ');
+
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── JOB DATA ──
