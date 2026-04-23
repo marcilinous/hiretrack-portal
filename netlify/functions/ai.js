@@ -8,21 +8,25 @@ exports.handler = async function(event) {
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
     if (!GROQ_API_KEY) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'API key not configured' }) };
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ answer: 'API key not configured in Netlify environment variables.' })
+      };
     }
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-8b-instant',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful career assistant for HireTrack, a job portal for MIS, Data, Excel, SQL and analytics roles in Karnataka, India. Give concise, practical advice in 3-5 sentences. Be encouraging and specific to the Indian job market.'
+            content: 'You are a career assistant for HireTrack, a Karnataka job portal for MIS, Data, Excel and SQL roles. Give practical advice in 3-4 sentences for the Indian job market.'
           },
           { role: 'user', content: prompt }
         ],
@@ -31,8 +35,19 @@ exports.handler = async function(event) {
       })
     });
 
-    const data = await res.json();
-    const answer = data.choices?.[0]?.message?.content || 'Could not get a response.';
+    const rawText = await groqRes.text();
+    console.log('Groq raw response:', rawText);
+
+    if (!groqRes.ok) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ answer: `Groq API error ${groqRes.status}: ${rawText}` })
+      };
+    }
+
+    const data = JSON.parse(rawText);
+    const answer = data.choices?.[0]?.message?.content || 'No response from AI. Please try again.';
 
     return {
       statusCode: 200,
@@ -41,9 +56,11 @@ exports.handler = async function(event) {
     };
 
   } catch(e) {
+    console.log('Function error:', e.message);
     return {
-      statusCode: 500,
-      body: JSON.stringify({ error: e.message })
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ answer: `Error: ${e.message}` })
     };
   }
 };
