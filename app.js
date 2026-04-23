@@ -1,5 +1,5 @@
 // ── CONFIG ──
-const GEMINI_API_KEY = 'AIzaSyA8M0q--3U9U8VHGU3Sb3Bwa7wfgOdKCzw';
+const GEMINI_API_KEY = 'AIzaSyBifOCm37o1lAsNvy00FG2EjWkzOlcM4OI';
 
 // ── JOB DATA ──
 const JOBS = [
