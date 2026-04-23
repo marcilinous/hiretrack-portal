@@ -1,7 +1,9 @@
 [build]
   functions = "netlify/functions"
+  publish = "."
 
 [[redirects]]
   from = "/api/ai"
   to = "/.netlify/functions/ai"
   status = 200
+  force = true
