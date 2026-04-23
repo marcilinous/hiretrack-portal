@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign Up — HireTrack</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.skill-chip { background:var(--gray2); border:1.5px solid var(--gray3); color:var(--gray5); font-size:0.82rem; padding:6px 14px; border-radius:20px; cursor:pointer; transition:all 0.18s; user-select:none; display:inline-flex; align-items:center; gap:4px; }
+.skill-chip:hover { border-color:var(--blue); color:var(--blue); background:#eff6ff; }
+.skill-chip.selected { background:var(--blue); color:#fff; border-color:var(--blue); }
+.skill-chip.custom { background:var(--navy); color:#fff; border-color:var(--navy); }
+.skill-chip.custom .remove-skill { opacity:0.7; font-size:0.9rem; cursor:pointer; }
+.skill-chip.custom .remove-skill:hover { opacity:1; }
+</style>
 </head>
 <body>
 
@@ -14,7 +22,6 @@
   <div class="form-card">
     <h2>Create Your Account</h2>
     <p class="sub">Join thousands of MIS & Data professionals on HireTrack</p>
-
     <div class="alert alert-error" id="err-msg"></div>
 
     <div class="form-row">
@@ -64,17 +71,26 @@
     </div>
 
     <div class="fg-form">
-      <label>Key Skills (select all that apply)</label>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="skills-select">
-        <label class="skill-opt" data-skill="Excel"><input type="checkbox" value="Excel" hidden> Excel</label>
-        <label class="skill-opt" data-skill="SQL"><input type="checkbox" value="SQL" hidden> SQL</label>
-        <label class="skill-opt" data-skill="Power BI"><input type="checkbox" value="Power BI" hidden> Power BI</label>
-        <label class="skill-opt" data-skill="Python"><input type="checkbox" value="Python" hidden> Python</label>
-        <label class="skill-opt" data-skill="MIS Reporting"><input type="checkbox" value="MIS Reporting" hidden> MIS Reporting</label>
-        <label class="skill-opt" data-skill="Tableau"><input type="checkbox" value="Tableau" hidden> Tableau</label>
-        <label class="skill-opt" data-skill="SAP"><input type="checkbox" value="SAP" hidden> SAP</label>
-        <label class="skill-opt" data-skill="Automation"><input type="checkbox" value="Automation" hidden> Automation</label>
+      <label>Key Skills <span style="color:var(--gray4);font-weight:400;">(click to select, or type your own)</span></label>
+      <div id="skills-select" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+        <span class="skill-chip" data-skill="Excel" onclick="toggleSkill(this)">Excel</span>
+        <span class="skill-chip" data-skill="SQL" onclick="toggleSkill(this)">SQL</span>
+        <span class="skill-chip" data-skill="Power BI" onclick="toggleSkill(this)">Power BI</span>
+        <span class="skill-chip" data-skill="Python" onclick="toggleSkill(this)">Python</span>
+        <span class="skill-chip" data-skill="MIS Reporting" onclick="toggleSkill(this)">MIS Reporting</span>
+        <span class="skill-chip" data-skill="Tableau" onclick="toggleSkill(this)">Tableau</span>
+        <span class="skill-chip" data-skill="SAP" onclick="toggleSkill(this)">SAP</span>
+        <span class="skill-chip" data-skill="Automation" onclick="toggleSkill(this)">Automation</span>
+        <span class="skill-chip" data-skill="VBA" onclick="toggleSkill(this)">VBA</span>
+        <span class="skill-chip" data-skill="MS Access" onclick="toggleSkill(this)">MS Access</span>
+        <span class="skill-chip" data-skill="Google Sheets" onclick="toggleSkill(this)">Google Sheets</span>
+        <span class="skill-chip" data-skill="Tally" onclick="toggleSkill(this)">Tally</span>
       </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <input type="text" id="custom-skill" placeholder="Add a custom skill e.g. Zoho, QuickBooks, Power Query..." style="flex:1;border:1.5px solid var(--gray3);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.88rem;outline:none;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--gray3)'" />
+        <button type="button" onclick="addCustomSkill()" style="background:var(--navy);color:#fff;border:none;padding:0.6rem 1.1rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.85rem;white-space:nowrap;font-family:inherit;">+ Add Skill</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--gray4);margin-top:6px;">💡 Click chips to select · Blue = selected · Click custom skill to remove</p>
     </div>
 
     <div class="fg-form">
@@ -100,25 +116,37 @@
 
 <footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
 
-<style>
-.skill-opt { background:var(--gray2); border:1.5px solid var(--gray3); color:var(--gray5); font-size:0.8rem; padding:5px 14px; border-radius:20px; cursor:pointer; transition:all 0.2s; user-select:none; }
-.skill-opt.selected { background:var(--blue); color:#fff; border-color:var(--blue); }
-</style>
-
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
-
-  // Redirect if already logged in
   if (Auth.getCurrentCandidate()) window.location.href = 'profile.html';
 
-  // Skill chips toggle
-  document.querySelectorAll('.skill-opt').forEach(el => {
-    el.addEventListener('click', () => {
-      el.classList.toggle('selected');
-      el.querySelector('input').checked = el.classList.contains('selected');
-    });
+  function toggleSkill(el) {
+    el.classList.toggle('selected');
+  }
+
+  function addCustomSkill() {
+    const input = document.getElementById('custom-skill');
+    const val = input.value.trim();
+    if (!val) return;
+    const existing = [...document.querySelectorAll('.skill-chip')].find(c => c.dataset.skill && c.dataset.skill.toLowerCase() === val.toLowerCase());
+    if (existing) { existing.classList.add('selected'); input.value = ''; return; }
+    const chip = document.createElement('span');
+    chip.className = 'skill-chip custom selected';
+    chip.dataset.skill = val;
+    chip.innerHTML = `${val} <span class="remove-skill" onclick="this.parentElement.remove()">×</span>`;
+    document.getElementById('skills-select').appendChild(chip);
+    input.value = '';
+    input.focus();
+  }
+
+  document.getElementById('custom-skill').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addCustomSkill(); }
   });
+
+  function getSelectedSkills() {
+    return [...document.querySelectorAll('.skill-chip.selected')].map(el => (el.dataset.skill || el.childNodes[0]?.textContent || el.textContent).trim()).filter(Boolean);
+  }
 
   async function doSignup() {
     const name = document.getElementById('name').value.trim();
@@ -131,11 +159,9 @@
     const confirm = document.getElementById('confirm-password').value;
     const resumeFile = document.getElementById('resume').files[0];
     const errEl = document.getElementById('err-msg');
-
-    const skills = [...document.querySelectorAll('.skill-opt.selected')].map(el => el.dataset.skill);
+    const skills = getSelectedSkills();
 
     errEl.style.display = 'none';
-
     if (!name || !mobile || !email || !experience || !city || !password) {
       errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return;
     }
@@ -149,8 +175,7 @@
       errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
     }
 
-    let resumeName = '';
-    let resumeData = '';
+    let resumeName = '', resumeData = '';
     if (resumeFile) {
       if (resumeFile.size > 5 * 1024 * 1024) {
         errEl.textContent = 'Resume file size must be under 5MB.'; errEl.style.display = 'block'; return;
@@ -165,7 +190,6 @@
 
     const result = Auth.registerCandidate({ name, mobile, email, jobtitle, experience, city, skills, password, resumeName, resumeData });
     if (!result.ok) { errEl.textContent = result.msg; errEl.style.display = 'block'; return; }
-
     const redirect = sessionStorage.getItem('redirect_after_login') || 'profile.html';
     sessionStorage.removeItem('redirect_after_login');
     window.location.href = redirect;
