@@ -1,5 +1,5 @@
 // ── CONFIG ──
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; // Replace with your key
+const GEMINI_API_KEY = 'AIzaSyA8M0q--3U9U8VHGU3Sb3Bwa7wfgOdKCzw';
 
 // ── JOB DATA ──
 const JOBS = [
