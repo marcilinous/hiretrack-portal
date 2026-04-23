@@ -1,5 +1,5 @@
 // ── CONFIG ──
-const GROQ_API_KEY = 'YOUR_GROQ_API_KEY_HERE'; // Replace with your Groq key from console.groq.com
+const GROQ_API_KEY = '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'; // Replace with your Groq key from console.groq.com
 
 // ── JOB DATA ──
 const JOBS = [
