@@ -6,7 +6,6 @@
 <title>Login — HireTrack</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
 </head>
 <body>
 
@@ -28,33 +27,69 @@
       <input type="password" id="password" placeholder="Your password" />
     </div>
 
-    <button class="btn-primary" onclick="doLogin()">Login</button>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Login</button>
     <p class="form-switch">Don't have an account? <a href="signup.html">Sign up free</a></p>
     <div class="form-divider"><hr><span>Are you an employer?</span><hr></div>
     <a href="employer-auth.html" style="display:block;text-align:center;background:var(--gray2);color:var(--navy);padding:0.75rem;border-radius:10px;font-weight:600;font-size:0.9rem;">Login as Employer →</a>
   </div>
 </div>
 
-<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+<footer><p>© 2026 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
 
 <script src="app.js"></script>
 <script>
-  document.getElementById('navbar').innerHTML = renderNavbar('');
-  if (Auth.getCurrentCandidate()) window.location.href = 'profile.html';
+  // STEP 2: Initialize Supabase (Use same keys as signup.html)
+  const SB_URL = 'YOUR_SUPABASE_URL';
+  const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-  function doLogin() {
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+
+  async function doLogin() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const errEl = document.getElementById('err-msg');
+    const btn = document.getElementById('login-btn');
+
     errEl.style.display = 'none';
-    if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display='block'; return; }
-    const result = Auth.loginCandidate(email, password);
-    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display='block'; return; }
-    const redirect = sessionStorage.getItem('redirect_after_login') || 'profile.html';
-    sessionStorage.removeItem('redirect_after_login');
-    window.location.href = redirect;
+
+    if (!email || !password) {
+      errEl.textContent = 'Please enter email and password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Authenticating...";
+
+    try {
+      // STEP 3: Query Supabase for the user
+      const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password) // Matching plain text for now
+        .single();
+
+      if (error || !data) {
+        throw new Error("Invalid email or password.");
+      }
+
+      // STEP 4: Store session locally so profile.html knows who is logged in
+      // We still use localStorage here just to keep the "Session" alive
+      localStorage.setItem('currentUser', JSON.stringify(data));
+
+      window.location.href = 'profile.html';
+
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = "Login";
+    }
   }
 
+  // Allow "Enter" key to submit
   document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 </script>
 </body>
