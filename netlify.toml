@@ -7,3 +7,9 @@
   to = "/.netlify/functions/ai"
   status = 200
   force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.groq.com https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://api.groq.com https://*.netlify.app /.netlify/functions/ai"
+
