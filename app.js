@@ -182,7 +182,16 @@ function renderJobCard(job) {
 }
 
 function whatsappApply(phone, msg) {
-  window.open(`https://wa.me/91${phone}?text=${msg}`, '_blank');
+  const candidate = Auth.getCurrentCandidate();
+  if (!candidate) {
+    sessionStorage.setItem('redirect_after_login', window.location.href);
+    showToast('Please login or sign up to apply via WhatsApp!');
+    setTimeout(() => window.location.href = 'login.html', 1500);
+    return;
+  }
+  // Add candidate name to WhatsApp message
+  const fullMsg = msg + ` My name is ${candidate.name} and I have ${candidate.experience} of experience.`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(fullMsg)}`, '_blank');
 }
 
 function applyJob(jobId, btn) {
