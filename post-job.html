@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post a Job — HireTrack</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -20,7 +19,6 @@
 <div class="form-wrap">
   <div class="form-card">
 
-    <!-- AI JD Writer -->
     <div class="ai-card" style="margin-bottom:1.5rem;">
       <div class="ai-card-header">
         <div class="ai-pulse"></div>
@@ -103,41 +101,55 @@
       <input type="email" id="email" placeholder="hr@yourcompany.com" />
     </div>
 
-    <button class="btn-primary" onclick="submitJob()">Post Job for Free</button>
+    <button class="btn-primary" id="btn-submit" onclick="submitJob()">Post Job for Free</button>
   </div>
 </div>
 
-<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+<footer><p>© 2026 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
 
 <script src="app.js"></script>
+
 <script>
+  // STEP 2: Initialize Supabase (Replace with your actual keys)
+  const SUPABASE_URL = 'https://jljnhklhglskkqjlqeke.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impsam5oa2xoZ2xza2txamxxZWtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTUwMzMsImV4cCI6MjA5MjUzMTAzM30.hcEj9xsprY4fDImtN--0cKxgQ0NFxU7ErUa_1Wj5ZNQ';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
   document.getElementById('navbar').innerHTML = renderNavbar('');
 
-  // Check if employer is logged in
+  // Check if employer is logged in using your existing app.js Auth logic
   const employer = Auth.getCurrentEmployer();
   if (!employer) {
     sessionStorage.setItem('redirect_after_employer_login', 'post-job.html');
     window.location.href = 'employer-auth.html';
   } else {
-    // Pre-fill company name
     document.getElementById('company').value = employer.company;
     document.getElementById('email').value = employer.email;
     document.getElementById('phone').value = employer.mobile || '';
   }
 
+  // AI JD Generation Logic
   async function generateJD() {
     const input = document.getElementById('ai-jd-input').value.trim();
     if (!input) return;
     const box = document.getElementById('ai-jd-response');
     box.style.display = 'block';
     box.innerHTML = '<span class="ai-loading">Writing job description...</span>';
+    
     const prompt = `Write a professional job description for: "${input}". Format: Role Summary (2 lines), Key Responsibilities (4 bullet points), Required Skills (4 items), Nice to have (2 items). Keep it professional and suitable for a Karnataka-based company. Plain text only, no markdown.`;
-    const answer = await callGroq(prompt);
-    box.textContent = answer;
-    document.getElementById('description').value = answer;
+    
+    try {
+      // Assuming callGroq or similar is defined in your app.js
+      const answer = await callGroq(prompt); 
+      box.textContent = answer;
+      document.getElementById('description').value = answer;
+    } catch (err) {
+      box.textContent = "Error generating description. Please try again.";
+    }
   }
 
-  function submitJob() {
+  // STEP 3: Updated Submit Job to save to Supabase
+  async function submitJob() {
     const title = document.getElementById('job-title').value.trim();
     const company = document.getElementById('company').value.trim();
     const location = document.getElementById('location').value;
@@ -150,22 +162,66 @@
     const email = document.getElementById('email').value.trim();
     const errEl = document.getElementById('err-msg');
     const successEl = document.getElementById('success-msg');
+    const submitBtn = document.getElementById('btn-submit');
 
-    errEl.style.display = 'none'; successEl.style.display = 'none';
+    errEl.style.display = 'none'; 
+    successEl.style.display = 'none';
 
+    // Validation
     if (!title || !company || !location || !description || !email || !phone) {
-      errEl.textContent = 'Please fill in all required fields.'; errEl.style.display='block'; return;
+      errEl.textContent = 'Please fill in all required fields.'; 
+      errEl.style.display='block'; 
+      return;
     }
     if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-      errEl.textContent = 'Please enter a valid 10-digit WhatsApp number.'; errEl.style.display='block'; return;
+      errEl.textContent = 'Please enter a valid 10-digit WhatsApp number.'; 
+      errEl.style.display='block'; 
+      return;
     }
 
-    Auth.saveEmployerJob({ title, company, location, jobType, salary, experience, skills, phone, description, email, employerId: employer.id, employer: company });
-    successEl.textContent = '✅ Job posted successfully! It is now live on HireTrack.';
-    successEl.style.display = 'block';
-    document.querySelector('.btn-primary').textContent = 'Posted ✓';
-    document.querySelector('.btn-primary').disabled = true;
-    setTimeout(() => window.location.href = 'employer-dashboard.html', 1500);
+    submitBtn.textContent = 'Posting...';
+    submitBtn.disabled = true;
+
+    // Prepare Data Object for Cloud Storage
+    const jobPost = {
+      title,
+      company,
+      location,
+      job_type: jobType,
+      salary,
+      experience,
+      skills,
+      whatsapp_phone: phone,
+      description,
+      contact_email: email,
+      employer_id: employer.id,
+      posted_at: new Date().toISOString()
+    };
+
+    // Save to Supabase Table 'jobs'
+    const { data, error } = await _supabase
+      .from('jobs')
+      .insert([jobPost]);
+
+    if (error) {
+      errEl.textContent = 'Database Error: ' + error.message;
+      errEl.style.display = 'block';
+      submitBtn.textContent = 'Post Job for Free';
+      submitBtn.disabled = false;
+    } else {
+      // Logic for backward compatibility with your app.js local storage if needed
+      if(typeof Auth.saveEmployerJob === 'function'){
+        Auth.saveEmployerJob(jobPost); 
+      }
+
+      successEl.textContent = '✅ Job posted successfully! It is now live on HireTrack.';
+      successEl.style.display = 'block';
+      submitBtn.textContent = 'Posted ✓';
+      
+      setTimeout(() => {
+        window.location.href = 'employer-dashboard.html';
+      }, 1500);
+    }
   }
 </script>
 </body>
