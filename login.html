@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="form-wrap" style="max-width:440px;">
+  <div class="form-card">
+    <h2>Welcome Back</h2>
+    <p class="sub">Login to your HireTrack candidate account</p>
+
+    <div class="alert alert-error" id="err-msg"></div>
+
+    <div class="fg-form">
+      <label>Email Address *</label>
+      <input type="email" id="email" placeholder="you@example.com" />
+    </div>
+    <div class="fg-form">
+      <label>Password *</label>
+      <input type="password" id="password" placeholder="Your password" />
+    </div>
+
+    <button class="btn-primary" onclick="doLogin()">Login</button>
+    <p class="form-switch">Don't have an account? <a href="signup.html">Sign up free</a></p>
+    <div class="form-divider"><hr><span>Are you an employer?</span><hr></div>
+    <a href="employer-auth.html" style="display:block;text-align:center;background:var(--gray2);color:var(--navy);padding:0.75rem;border-radius:10px;font-weight:600;font-size:0.9rem;">Login as Employer →</a>
+  </div>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+  if (Auth.getCurrentCandidate()) window.location.href = 'profile.html';
+
+  function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('err-msg');
+    errEl.style.display = 'none';
+    if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display='block'; return; }
+    const result = Auth.loginCandidate(email, password);
+    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display='block'; return; }
+    const redirect = sessionStorage.getItem('redirect_after_login') || 'profile.html';
+    sessionStorage.removeItem('redirect_after_login');
+    window.location.href = redirect;
+  }
+
+  document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>

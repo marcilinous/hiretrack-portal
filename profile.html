@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="navbar"></div>
+<div class="page-hd"><h1>My Profile</h1><p>Manage your career profile and applications</p></div>
+
+<div class="profile-wrap" id="profile-wrap">
+  <aside class="profile-card">
+    <div class="profile-avatar" id="avatar-initials">?</div>
+    <div class="profile-name" id="p-name">—</div>
+    <div class="profile-title" id="p-title">—</div>
+    <div class="profile-info">
+      <div class="pi-row"><span>📍 City</span><span id="p-city">—</span></div>
+      <div class="pi-row"><span>📞 Mobile</span><span id="p-mobile">—</span></div>
+      <div class="pi-row"><span>✉️ Email</span><span id="p-email" style="font-size:0.78rem;">—</span></div>
+      <div class="pi-row"><span>🎓 Experience</span><span id="p-exp">—</span></div>
+    </div>
+    <div id="p-skills" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;"></div>
+    <button class="btn-resume" id="resume-btn" onclick="downloadResume()" style="display:none;">📄 Download Resume</button>
+    <button class="btn-resume" style="margin-top:0.5rem;background:#fee2e2;color:#b91c1c;" onclick="logoutCandidate()">Logout</button>
+  </aside>
+
+  <div>
+    <div class="apps-card">
+      <h2>My Applications (<span id="apps-count">0</span>)</h2>
+      <div id="apps-list"><div class="empty-state"><div class="es-icon">📋</div><p>You haven't applied to any jobs yet.<br><a href="jobs.html" style="color:var(--blue);font-weight:600;">Browse jobs →</a></p></div></div>
+    </div>
+  </div>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+
+  const candidate = Auth.getCurrentCandidate();
+  if (!candidate) { window.location.href = 'login.html'; }
+
+  function loadProfile() {
+    // Refresh from storage
+    const candidates = Auth.getCandidates();
+    const c = candidates.find(x => x.id === candidate.id) || candidate;
+
+    const initials = c.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('avatar-initials').textContent = initials;
+    document.getElementById('p-name').textContent = c.name;
+    document.getElementById('p-title').textContent = c.jobtitle || 'Job Seeker';
+    document.getElementById('p-city').textContent = c.city || '—';
+    document.getElementById('p-mobile').textContent = c.mobile || '—';
+    document.getElementById('p-email').textContent = c.email || '—';
+    document.getElementById('p-exp').textContent = c.experience || '—';
+
+    if (c.skills && c.skills.length) {
+      document.getElementById('p-skills').innerHTML = c.skills.map(s=>`<span class="tag">${s}</span>`).join('');
+    }
+
+    if (c.resumeData) {
+      document.getElementById('resume-btn').style.display = 'block';
+    }
+
+    // Applications
+    const apps = Auth.getCandidateApplications(c.id);
+    document.getElementById('apps-count').textContent = apps.length;
+    if (apps.length) {
+      const allJobs = [...JOBS, ...Auth.getEmployerJobs()];
+      document.getElementById('apps-list').innerHTML = apps.map(a => {
+        const job = allJobs.find(j => j.id === a.jobId);
+        if (!job) return '';
+        const statusClass = { Applied:'status-applied', Viewed:'status-viewed', Shortlisted:'status-shortlisted', Rejected:'status-rejected' };
+        const date = new Date(a.appliedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+        return `<div class="app-row">
+          <div class="app-info">
+            <h4>${job.title || job.title}</h4>
+            <p>${job.company} · ${job.location} · Applied on ${date}</p>
+          </div>
+          <span class="status-badge ${statusClass[a.status]||'status-applied'}">${a.status}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  function downloadResume() {
+    const candidates = Auth.getCandidates();
+    const c = candidates.find(x => x.id === candidate.id) || candidate;
+    if (!c.resumeData) return;
+    const a = document.createElement('a');
+    a.href = c.resumeData;
+    a.download = c.resumeName || 'resume.pdf';
+    a.click();
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

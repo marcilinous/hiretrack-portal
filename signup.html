@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="form-wrap">
+  <div class="form-card">
+    <h2>Create Your Account</h2>
+    <p class="sub">Join thousands of MIS & Data professionals on HireTrack</p>
+
+    <div class="alert alert-error" id="err-msg"></div>
+
+    <div class="form-row">
+      <div class="fg-form">
+        <label>Full Name *</label>
+        <input type="text" id="name" placeholder="Sachin Kumar" />
+      </div>
+      <div class="fg-form">
+        <label>Mobile Number *</label>
+        <input type="tel" id="mobile" placeholder="9XXXXXXXXX" maxlength="10" />
+      </div>
+    </div>
+
+    <div class="fg-form">
+      <label>Email Address *</label>
+      <input type="email" id="email" placeholder="you@example.com" />
+    </div>
+
+    <div class="form-row">
+      <div class="fg-form">
+        <label>Current Job Title</label>
+        <input type="text" id="jobtitle" placeholder="MIS Executive" />
+      </div>
+      <div class="fg-form">
+        <label>Years of Experience *</label>
+        <select id="experience">
+          <option value="">Select</option>
+          <option>Fresher (0–1 years)</option>
+          <option>1–3 years</option>
+          <option>3–5 years</option>
+          <option>5+ years</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="fg-form">
+      <label>City *</label>
+      <select id="city">
+        <option value="">Select city</option>
+        <option>Bengaluru</option>
+        <option>Mysuru</option>
+        <option>Mangaluru</option>
+        <option>Hubballi</option>
+        <option>Manipal</option>
+        <option>Other Karnataka</option>
+      </select>
+    </div>
+
+    <div class="fg-form">
+      <label>Key Skills (select all that apply)</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="skills-select">
+        <label class="skill-opt" data-skill="Excel"><input type="checkbox" value="Excel" hidden> Excel</label>
+        <label class="skill-opt" data-skill="SQL"><input type="checkbox" value="SQL" hidden> SQL</label>
+        <label class="skill-opt" data-skill="Power BI"><input type="checkbox" value="Power BI" hidden> Power BI</label>
+        <label class="skill-opt" data-skill="Python"><input type="checkbox" value="Python" hidden> Python</label>
+        <label class="skill-opt" data-skill="MIS Reporting"><input type="checkbox" value="MIS Reporting" hidden> MIS Reporting</label>
+        <label class="skill-opt" data-skill="Tableau"><input type="checkbox" value="Tableau" hidden> Tableau</label>
+        <label class="skill-opt" data-skill="SAP"><input type="checkbox" value="SAP" hidden> SAP</label>
+        <label class="skill-opt" data-skill="Automation"><input type="checkbox" value="Automation" hidden> Automation</label>
+      </div>
+    </div>
+
+    <div class="fg-form">
+      <label>Upload Resume (PDF, max 5MB)</label>
+      <input type="file" id="resume" accept=".pdf" />
+    </div>
+
+    <div class="form-row">
+      <div class="fg-form">
+        <label>Password *</label>
+        <input type="password" id="password" placeholder="Minimum 6 characters" />
+      </div>
+      <div class="fg-form">
+        <label>Confirm Password *</label>
+        <input type="password" id="confirm-password" placeholder="Repeat password" />
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="doSignup()">Create Account</button>
+    <p class="form-switch">Already have an account? <a href="login.html">Login here</a></p>
+  </div>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<style>
+.skill-opt { background:var(--gray2); border:1.5px solid var(--gray3); color:var(--gray5); font-size:0.8rem; padding:5px 14px; border-radius:20px; cursor:pointer; transition:all 0.2s; user-select:none; }
+.skill-opt.selected { background:var(--blue); color:#fff; border-color:var(--blue); }
+</style>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+
+  // Redirect if already logged in
+  if (Auth.getCurrentCandidate()) window.location.href = 'profile.html';
+
+  // Skill chips toggle
+  document.querySelectorAll('.skill-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      el.classList.toggle('selected');
+      el.querySelector('input').checked = el.classList.contains('selected');
+    });
+  });
+
+  async function doSignup() {
+    const name = document.getElementById('name').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const jobtitle = document.getElementById('jobtitle').value.trim();
+    const experience = document.getElementById('experience').value;
+    const city = document.getElementById('city').value;
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm-password').value;
+    const resumeFile = document.getElementById('resume').files[0];
+    const errEl = document.getElementById('err-msg');
+
+    const skills = [...document.querySelectorAll('.skill-opt.selected')].map(el => el.dataset.skill);
+
+    errEl.style.display = 'none';
+
+    if (!name || !mobile || !email || !experience || !city || !password) {
+      errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return;
+    }
+    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+      errEl.textContent = 'Please enter a valid 10-digit mobile number.'; errEl.style.display = 'block'; return;
+    }
+    if (password.length < 6) {
+      errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return;
+    }
+    if (password !== confirm) {
+      errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
+    }
+
+    let resumeName = '';
+    let resumeData = '';
+    if (resumeFile) {
+      if (resumeFile.size > 5 * 1024 * 1024) {
+        errEl.textContent = 'Resume file size must be under 5MB.'; errEl.style.display = 'block'; return;
+      }
+      resumeName = resumeFile.name;
+      resumeData = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.readAsDataURL(resumeFile);
+      });
+    }
+
+    const result = Auth.registerCandidate({ name, mobile, email, jobtitle, experience, city, skills, password, resumeName, resumeData });
+    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display = 'block'; return; }
+
+    const redirect = sessionStorage.getItem('redirect_after_login') || 'profile.html';
+    sessionStorage.removeItem('redirect_after_login');
+    window.location.href = redirect;
+  }
+</script>
+</body>
+</html>

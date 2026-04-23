@@ -8,10 +8,112 @@
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo"><a href="index.html">Hire<span>Track</span></a></div>
-  <div class="nav-links">
-    <a href="jobs.html">Browse Jobs</a>
-    <a href="post-job.html" class="btn-post">Post a Job</a>
-  </div>
-</nav>
+<div id="navbar"></div>
+
+<div class="page-hd">
+  <h1>Browse All Jobs</h1>
+  <p>MIS, Data, Excel & Office Tech roles across Karnataka</p>
+</div>
+
+<div class="jobs-layout">
+  <aside class="filter-panel">
+    <h3>Filter Jobs</h3>
+    <div class="fg">
+      <label>Keyword</label>
+      <input type="text" id="f-keyword" placeholder="Title or skill..." />
+    </div>
+    <div class="fg">
+      <label>Location</label>
+      <select id="f-location">
+        <option value="">All Karnataka</option>
+        <option>Bengaluru</option>
+        <option>Mysuru</option>
+        <option>Mangaluru</option>
+        <option>Hubballi</option>
+        <option>Manipal</option>
+        <option>Remote</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Job Type</label>
+      <select id="f-type">
+        <option value="">All Types</option>
+        <option>Full Time</option>
+        <option>Contract</option>
+        <option>Remote</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Category</label>
+      <select id="f-category">
+        <option value="">All Categories</option>
+        <option value="MIS">MIS</option>
+        <option value="Data Analyst">Data Analyst</option>
+        <option value="Excel">Excel</option>
+        <option value="SQL">SQL</option>
+        <option value="BI">Business Intelligence</option>
+        <option value="Automation">Automation & AI</option>
+      </select>
+    </div>
+    <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+    <button class="btn-filter" style="background:var(--gray3);color:var(--navy);margin-top:0.5rem;" onclick="clearFilters()">Clear Filters</button>
+  </aside>
+
+  <main>
+    <div class="results-hd">
+      <span id="results-count">Loading...</span>
+    </div>
+    <div class="jobs-grid" id="jobs-container"></div>
+  </main>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('jobs');
+
+  // Combine static + employer jobs
+  function getAllJobs() {
+    const empJobs = Auth.getEmployerJobs().map(j => ({
+      id: j.id, title: j.title, company: j.employer || j.company, location: j.location,
+      salary: j.salary || 'Negotiable', type: j.jobType || 'Full Time',
+      tags: (j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3),
+      posted: 'Recently', phone: j.phone || '9000000000'
+    }));
+    return [...JOBS, ...empJobs];
+  }
+
+  function applyFilters() {
+    const keyword = document.getElementById('f-keyword').value.toLowerCase();
+    const location = document.getElementById('f-location').value;
+    const type = document.getElementById('f-type').value;
+    const category = document.getElementById('f-category').value.toLowerCase();
+    const all = getAllJobs();
+    const filtered = all.filter(j => {
+      const haystack = (j.title + j.company + j.tags.join(' ')).toLowerCase();
+      return (!keyword || haystack.includes(keyword))
+          && (!location || j.location === location)
+          && (!type || j.type === type)
+          && (!category || haystack.includes(category));
+    });
+    document.getElementById('results-count').textContent = `${filtered.length} job${filtered.length!==1?'s':''} found`;
+    renderJobs(filtered, 'jobs-container');
+  }
+
+  function clearFilters() {
+    ['f-keyword','f-location','f-type','f-category'].forEach(id => {
+      const el = document.getElementById(id);
+      el.tagName === 'INPUT' ? el.value = '' : el.selectedIndex = 0;
+    });
+    applyFilters();
+  }
+
+  // Read URL params
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('search')) document.getElementById('f-keyword').value = p.get('search');
+  if (p.get('cat')) { const sel = document.getElementById('f-category'); for(let o of sel.options) if(o.value.toLowerCase()===p.get('cat').toLowerCase()) { sel.value=o.value; break; } }
+  applyFilters();
+</script>
+</body>
+</html>
