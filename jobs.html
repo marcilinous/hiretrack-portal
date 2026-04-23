@@ -5,6 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Browse Jobs — HireTrack</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.filter-panel .fg select, .filter-panel .fg input { transition: border 0.2s; }
+.job-card { cursor:pointer; }
+
+/* Job Detail Modal */
+.jd-modal { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:300; display:none; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto; }
+.jd-modal.show { display:flex; }
+.jd-box { background:#fff; border-radius:16px; width:100%; max-width:660px; padding:2rem; position:relative; margin:auto; }
+.jd-close { position:absolute; top:1rem; right:1rem; background:var(--gray2); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; }
+.jd-title { font-size:1.3rem; font-weight:800; margin-bottom:0.3rem; }
+.jd-company { color:var(--gray5); font-size:0.92rem; margin-bottom:1rem; }
+.jd-meta-row { display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem; }
+.jd-meta-item { background:var(--gray2); padding:0.35rem 0.9rem; border-radius:20px; font-size:0.8rem; color:var(--gray5); font-weight:500; }
+.jd-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:1.2rem; }
+.jd-desc { font-size:0.92rem; line-height:1.75; color:var(--navy2); white-space:pre-wrap; border-top:1px solid var(--gray3); padding-top:1rem; margin-bottom:1.2rem; }
+.jd-actions { display:flex; gap:10px; }
+.jd-actions .btn-apply { flex:1; padding:0.8rem; font-size:0.95rem; }
+.jd-actions .btn-whatsapp { padding:0.8rem 1.2rem; font-size:0.88rem; }
+</style>
 </head>
 <body>
 
@@ -55,7 +74,6 @@
         <option value="Automation">Automation & AI</option>
       </select>
     </div>
-    <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
     <button class="btn-filter" style="background:var(--gray3);color:var(--navy);margin-top:0.5rem;" onclick="clearFilters()">Clear Filters</button>
   </aside>
 
@@ -67,19 +85,32 @@
   </main>
 </div>
 
+<!-- Job Detail Modal -->
+<div class="jd-modal" id="jd-modal" onclick="closeJobModal(event)">
+  <div class="jd-box" id="jd-box">
+    <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show')">✕</button>
+    <div class="jd-title" id="jd-title"></div>
+    <div class="jd-company" id="jd-company"></div>
+    <div class="jd-meta-row" id="jd-meta"></div>
+    <div class="jd-tags" id="jd-tags"></div>
+    <div class="jd-desc" id="jd-desc">No description provided.</div>
+    <div class="jd-actions" id="jd-actions"></div>
+  </div>
+</div>
+
 <footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
 
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
-  // Combine static + employer jobs
   function getAllJobs() {
     const empJobs = Auth.getEmployerJobs().map(j => ({
       id: j.id, title: j.title, company: j.employer || j.company, location: j.location,
       salary: j.salary || 'Negotiable', type: j.jobType || 'Full Time',
       tags: (j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3),
-      posted: 'Recently', phone: j.phone || '9000000000'
+      posted: 'Recently', phone: j.phone || '9000000000',
+      description: j.description || ''
     }));
     return [...JOBS, ...empJobs];
   }
@@ -98,7 +129,7 @@
           && (!category || haystack.includes(category));
     });
     document.getElementById('results-count').textContent = `${filtered.length} job${filtered.length!==1?'s':''} found`;
-    renderJobs(filtered, 'jobs-container');
+    renderJobsWithModal(filtered, 'jobs-container');
   }
 
   function clearFilters() {
@@ -109,11 +140,103 @@
     applyFilters();
   }
 
+  // Auto filter on any input change
+  document.getElementById('f-keyword').addEventListener('input', applyFilters);
+  document.getElementById('f-location').addEventListener('change', applyFilters);
+  document.getElementById('f-type').addEventListener('change', applyFilters);
+  document.getElementById('f-category').addEventListener('change', applyFilters);
+
+  // Render jobs with clickable cards opening modal
+  function renderJobsWithModal(jobs, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!jobs.length) {
+      container.innerHTML = '<div class="empty-state"><div class="es-icon">🔍</div><p>No jobs found matching your filters.</p></div>';
+      return;
+    }
+    const candidate = Auth.getCurrentCandidate();
+    const apps = Auth.getApplications();
+    const typeClass = { 'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote' };
+
+    container.innerHTML = jobs.map(job => {
+      const alreadyApplied = candidate && apps.find(a => a.candidateId === candidate.id && a.jobId === job.id);
+      const waMsg = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply for this position.`);
+      return `<div class="job-card" onclick="openJobModal(${job.id})">
+        <div class="jc-top">
+          <div class="jc-title">${job.title}</div>
+          <span class="badge ${typeClass[job.type]||'badge-full'}">${job.type}</span>
+        </div>
+        <div class="jc-company">🏢 ${job.company}</div>
+        <div class="jc-meta">
+          <span>📍 ${job.location}</span>
+          <span>💰 ${job.salary}</span>
+          <span>🕒 ${job.posted}</span>
+        </div>
+        <div class="jc-tags">${job.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="jc-footer" onclick="event.stopPropagation()">
+          <button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${waMsg}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.122 1.532 5.857L.057 23.925l6.235-1.635A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.494-5.193-1.355l-.372-.22-3.7.971 1.008-3.573-.242-.383A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            WhatsApp
+          </button>
+          <button class="btn-apply ${alreadyApplied?'applied':''}" onclick="applyJob(${job.id},this)">
+            ${alreadyApplied?'✓ Applied':'Apply Now'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Open job detail modal
+  function openJobModal(jobId) {
+    const all = getAllJobs();
+    const job = all.find(j => j.id === jobId);
+    if (!job) return;
+
+    const candidate = Auth.getCurrentCandidate();
+    const apps = Auth.getApplications();
+    const alreadyApplied = candidate && apps.find(a => a.candidateId === candidate.id && a.jobId === job.id);
+    const waMsg = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply for this position.`);
+    const typeClass = { 'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote' };
+
+    document.getElementById('jd-title').textContent = job.title;
+    document.getElementById('jd-company').textContent = `🏢 ${job.company}`;
+    document.getElementById('jd-meta').innerHTML = `
+      <span class="jd-meta-item">📍 ${job.location}</span>
+      <span class="jd-meta-item">💰 ${job.salary}</span>
+      <span class="jd-meta-item badge ${typeClass[job.type]||'badge-full'}">${job.type}</span>
+      <span class="jd-meta-item">🕒 ${job.posted}</span>
+    `;
+    document.getElementById('jd-tags').innerHTML = job.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+    document.getElementById('jd-desc').textContent = job.description || 'Contact employer for full job description.';
+    document.getElementById('jd-actions').innerHTML = `
+      <button class="btn-whatsapp jd-actions" onclick="whatsappApply('${job.phone}','${waMsg}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.122 1.532 5.857L.057 23.925l6.235-1.635A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.494-5.193-1.355l-.372-.22-3.7.971 1.008-3.573-.242-.383A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        WhatsApp Apply
+      </button>
+      <button class="btn-apply ${alreadyApplied?'applied':''}" style="flex:1;padding:0.8rem;font-size:0.92rem;" onclick="applyJob(${job.id},this)">
+        ${alreadyApplied?'✓ Already Applied':'Apply Now'}
+      </button>
+    `;
+    document.getElementById('jd-modal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeJobModal(e) {
+    if (e.target === document.getElementById('jd-modal')) {
+      document.getElementById('jd-modal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
+
   // Read URL params
   const p = new URLSearchParams(window.location.search);
   if (p.get('search')) document.getElementById('f-keyword').value = p.get('search');
-  if (p.get('cat')) { const sel = document.getElementById('f-category'); for(let o of sel.options) if(o.value.toLowerCase()===p.get('cat').toLowerCase()) { sel.value=o.value; break; } }
+  if (p.get('cat')) {
+    const sel = document.getElementById('f-category');
+    for(let o of sel.options) if(o.value.toLowerCase()===p.get('cat').toLowerCase()) { sel.value=o.value; break; }
+  }
   applyFilters();
 </script>
 </body>
 </html>
+
