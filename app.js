@@ -1,5 +1,4 @@
-// ── CONFIG ──
-const GROQ_API_KEY = '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'; // Replace with your Groq key from console.groq.com
+// ── CONFIG — Key stored securely in Netlify Environment Variables ──
 
 // ── JOB DATA ──
 const JOBS = [
@@ -214,32 +213,21 @@ function renderJobs(jobs, containerId) {
 // ── AI ASSISTANT ──
 async function callGroq(prompt) {
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch('/api/ai', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-8b-8192',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful career assistant for HireTrack, a job portal for MIS, Data, Excel, SQL and analytics roles in Karnataka, India. Give concise, practical advice in 3-5 sentences. Be encouraging and specific to the Indian job market.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        max_tokens: 300,
-        temperature: 0.7
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
     });
+    if (!res.ok) {
+      const err = await res.json();
+      console.error('AI proxy error:', err);
+      return `Error: ${err.error || 'Could not get a response. Please try again.'}`;
+    }
     const data = await res.json();
-    return data.choices?.[0]?.message?.content || 'Could not get a response. Please try again.';
+    return data.answer || 'No response received.';
   } catch(e) {
-    return 'AI assistant error. Please check your Groq API key in app.js.';
+    console.error('Fetch error:', e);
+    return `Connection error: ${e.message}`;
   }
 }
 
