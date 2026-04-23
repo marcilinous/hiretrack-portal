@@ -88,7 +88,7 @@
 <!-- Job Detail Modal -->
 <div class="jd-modal" id="jd-modal" onclick="closeJobModal(event)">
   <div class="jd-box" id="jd-box">
-    <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show')">✕</button>
+    <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';">✕</button>
     <div class="jd-title" id="jd-title"></div>
     <div class="jd-company" id="jd-company"></div>
     <div class="jd-meta-row" id="jd-meta"></div>
@@ -239,6 +239,14 @@
       document.body.style.overflow = '';
     }
   }
+
+  // Escape key closes modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('jd-modal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  });
 
   // Read URL params
   const p = new URLSearchParams(window.location.search);
