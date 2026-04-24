@@ -97,6 +97,8 @@
     <a onclick="showSection('candidates')"><span class="icon">👤</span> Candidates</a>
     <a onclick="showSection('employers')"><span class="icon">🏢</span> Employers</a>
     <a onclick="showSection('applications')"><span class="icon">📋</span> Applications</a>
+    <a onclick="showSection('callbacks')"><span class="icon">📞</span> Callbacks</a>
+    <a onclick="showSection('executives')"><span class="icon">🎯</span> Executives</a>
   </nav>
   <hr class="s-divider">
   <button class="btn-logout" onclick="doLogout()">🚪 Logout</button>
@@ -178,10 +180,36 @@
     </div>
   </div>
 
+  <!-- CALLBACKS -->
+  <div class="section" id="sec-callbacks">
+    <div class="main-hd"><h1>All Callback Requests</h1></div>
+    <div class="table-card">
+      <div class="table-search">
+        <input type="text" id="cb-search" placeholder="Search callbacks..." oninput="renderCallbacksTable()" />
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th>Company</th><th>Mobile</th><th>Preferred Time</th><th>Assigned To</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="callbacks-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXECUTIVES -->
+  <div class="section" id="sec-executives">
+    <div class="main-hd"><h1>Executives</h1></div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Referrals</th><th>Callbacks</th><th>Jobs Posted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="exec-table"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // Auth check
   if (!sessionStorage.getItem('ht_admin')) window.location.href = '/admin/index.html';
@@ -225,6 +253,80 @@
     if (name === 'candidates') renderCandidatesTable();
     if (name === 'employers') renderEmployersTable();
     if (name === 'applications') renderAppsTable();
+    if (name === 'callbacks') renderCallbacksTable();
+    if (name === 'executives') renderExecutivesTable();
+  }
+
+  // ── SUPABASE for callbacks & executives ──
+  const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function renderCallbacksTable() {
+    const q = document.getElementById('cb-search')?.value.toLowerCase() || '';
+    const { data: callbacks } = await sb.from('callback_requests').select('*, executives(name)').order('created_at', { ascending: false });
+    const filtered = (callbacks||[]).filter(c => !q || (c.name+c.company+c.mobile).toLowerCase().includes(q));
+    const statusClass = { Pending:'badge-orange', Called:'badge-blue', Converted:'badge-green' };
+    const tbody = document.getElementById('callbacks-table');
+    tbody.innerHTML = filtered.length ? filtered.map(c => `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.company}</td>
+      <td>📞 <a href="tel:${c.mobile}" style="color:#3b82f6;">${c.mobile}</a></td>
+      <td>${c.preferred_time}</td>
+      <td>${c.executives?.name || '<span style="color:#94a3b8;">Unassigned</span>'}</td>
+      <td><span class="badge ${statusClass[c.status]||'badge-gray'}">${c.status}</span></td>
+      <td>${new Date(c.created_at).toLocaleDateString('en-IN')}</td>
+      <td>
+        <select onchange="updateCbStatus('${c.id}',this.value)" style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78rem;outline:none;font-family:inherit;">
+          <option ${c.status==='Pending'?'selected':''}>Pending</option>
+          <option ${c.status==='Called'?'selected':''}>Called</option>
+          <option ${c.status==='Converted'?'selected':''}>Converted</option>
+        </select>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="8" class="empty">No callback requests yet</td></tr>`;
+  }
+
+  async function updateCbStatus(id, status) {
+    await sb.from('callback_requests').update({ status }).eq('id', id);
+    toast(`Status updated to ${status}`); renderCallbacksTable();
+  }
+
+  async function renderExecutivesTable() {
+    const { data: executives } = await sb.from('executives').select('*').order('created_at', { ascending: false });
+    const tbody = document.getElementById('exec-table');
+    if (!executives?.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No executives registered yet</td></tr>`; return; }
+
+    // Get stats for each executive
+    const rows = await Promise.all(executives.map(async e => {
+      const { data: referrals } = await sb.from('employers').select('id').eq('referred_by', e.id);
+      const { data: callbacks } = await sb.from('callback_requests').select('id').eq('assigned_to', e.id);
+      const { data: jobs } = await sb.from('jobs').select('id').eq('posted_by_executive', e.id);
+      return `<tr>
+        <td><strong>${e.name}</strong></td>
+        <td>${e.email}</td>
+        <td>${e.mobile}</td>
+        <td><span class="badge badge-blue">${referrals?.length||0} referrals</span></td>
+        <td><span class="badge badge-orange">${callbacks?.length||0} callbacks</span></td>
+        <td><span class="badge badge-green">${jobs?.length||0} jobs</span></td>
+        <td><span class="badge ${e.is_active!==false?'badge-green':'badge-red'}">${e.is_active!==false?'Active':'Inactive'}</span></td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn-sm ${e.is_active!==false?'btn-reject':'btn-approve'}" onclick="toggleExecStatus('${e.id}',${e.is_active===false})">${e.is_active!==false?'Deactivate':'Activate'}</button>
+          <button class="btn-sm btn-delete" onclick="deleteExec('${e.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }));
+    tbody.innerHTML = rows.join('');
+  }
+
+  async function toggleExecStatus(id, activate) {
+    await sb.from('executives').update({ is_active: activate }).eq('id', id);
+    toast(activate ? 'Executive activated!' : 'Executive deactivated!'); renderExecutivesTable();
+  }
+
+  async function deleteExec(id) {
+    if (!confirm('Delete this executive? This cannot be undone.')) return;
+    await sb.from('executives').delete().eq('id', id);
+    toast('Executive deleted!'); renderExecutivesTable();
   }
 
   // ── OVERVIEW ──
