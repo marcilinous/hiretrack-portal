@@ -85,6 +85,7 @@
     .stats-grid { grid-template-columns:1fr 1fr; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -209,10 +210,14 @@
 
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // Auth check
   if (!sessionStorage.getItem('ht_admin')) window.location.href = '/admin/index.html';
+
+  // ── SUPABASE ──
+  const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ── DATA HELPERS ──
   const STATIC_JOBS = [
@@ -257,11 +262,7 @@
     if (name === 'executives') renderExecutivesTable();
   }
 
-  // ── SUPABASE for callbacks & executives ──
-  const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+  // ── SUPABASE CALLBACKS & EXECUTIVES ──
   async function renderCallbacksTable() {
     const q = document.getElementById('cb-search')?.value.toLowerCase() || '';
     const { data: callbacks } = await sb.from('callback_requests')
