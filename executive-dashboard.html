@@ -153,8 +153,8 @@
   }
 
   async function loadStats() {
-    const { data: referrals } = await sb.from('employers').select('id').eq('referred_by', executive.id);
-    const { data: callbacks } = await sb.from('callback_requests').select('id').eq('executive_id', executive.id);
+    const { data: referrals } = await sb.from('employers').select('id,plan').eq('referred_by', executive.id);
+    const { data: callbacks } = await sb.from('callback_requests').select('id,status').eq('assigned_to', executive.id);
     const { data: jobs } = await sb.from('jobs').select('id').eq('posted_by_executive', executive.id);
     const conversions = referrals?.filter(r => r.plan !== 'free')?.length || 0;
     document.getElementById('stat-referrals').textContent = referrals?.length || 0;
@@ -164,15 +164,21 @@
   }
 
   async function loadCallbacks() {
-    const { data: callbacks } = await sb.from('callback_requests').select('*').order('created_at', { ascending: false });
+    // Executive only sees callbacks assigned to them
+    const { data: callbacks } = await sb.from('callback_requests')
+      .select('*').eq('assigned_to', executive.id)
+      .order('created_at', { ascending: false });
     const list = document.getElementById('callbacks-list');
-    if (!callbacks?.length) { list.innerHTML = '<div class="empty-state"><div class="es-icon">📞</div><p>No callback requests yet.</p></div>'; return; }
+    if (!callbacks?.length) {
+      list.innerHTML = '<div class="empty-state"><div class="es-icon">📞</div><p>No callbacks assigned to you yet.<br><small style="color:var(--gray4);">Callbacks are auto-assigned via round robin.</small></p></div>';
+      return;
+    }
     list.innerHTML = callbacks.map(c => `
       <div class="cb-row">
         <div class="cb-info">
           <h4>${c.name} — ${c.company}</h4>
-          <p>📞 ${c.mobile} · ⏰ ${c.preferred_time} · ${new Date(c.created_at).toLocaleDateString('en-IN')}</p>
-          ${c.message ? `<p style="margin-top:4px;font-style:italic;">"${c.message}"</p>` : ''}
+          <p>📞 ${c.mobile} · ⏰ ${c.preferred_time} · 📅 ${new Date(c.created_at).toLocaleDateString('en-IN')}</p>
+          ${c.message ? `<p style="margin-top:4px;color:var(--gray5);font-style:italic;">"${c.message}"</p>` : ''}
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
           <span class="status-${c.status.toLowerCase()}">${c.status}</span>
@@ -181,6 +187,7 @@
             <option ${c.status==='Called'?'selected':''}>Called</option>
             <option ${c.status==='Converted'?'selected':''}>Converted</option>
           </select>
+          <a href="tel:${c.mobile}" style="background:#dcfce7;color:#15803d;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;">📞 Call Now</a>
         </div>
       </div>`).join('');
   }

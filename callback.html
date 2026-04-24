@@ -116,9 +116,39 @@
     const btn = document.querySelector('.btn-primary');
     btn.textContent = 'Submitting...'; btn.disabled = true;
 
-    // Save to Supabase
+    // Round robin assignment — find next executive in line
+    async function getNextExecutive() {
+      // Get all active executives ordered by created_at
+      const { data: executives } = await sb.from('executives')
+        .select('id, name').eq('is_active', true).order('created_at', { ascending: true });
+      if (!executives || !executives.length) return null;
+
+      // Get the last assigned callback
+      const { data: lastCallback } = await sb.from('callback_requests')
+        .select('assigned_to').not('assigned_to', 'is', null)
+        .order('assigned_at', { ascending: false }).limit(1).maybeSingle();
+
+      if (!lastCallback || !lastCallback.assigned_to) {
+        // No previous assignments — assign to first executive
+        return executives[0];
+      }
+
+      // Find current executive index
+      const currentIdx = executives.findIndex(e => e.id === lastCallback.assigned_to);
+      // Move to next executive (cycle back to 0 if at end)
+      const nextIdx = (currentIdx + 1) % executives.length;
+      return executives[nextIdx];
+    }
+
+    const assignedExec = await getNextExecutive();
+
+    // Save to Supabase with assignment
     const { error } = await sb.from('callback_requests').insert([{
-      name, company, mobile, preferred_time: selectedTime, message: message || null
+      name, company, mobile,
+      preferred_time: selectedTime,
+      message: message || null,
+      assigned_to: assignedExec?.id || null,
+      assigned_at: new Date().toISOString()
     }]);
 
     if (error) { errEl.textContent = 'Failed to submit. Please try again.'; errEl.style.display = 'block'; btn.textContent = '📞 Request Callback'; btn.disabled = false; return; }
@@ -130,13 +160,13 @@
       body: JSON.stringify({
         access_key: '30483d95-3da0-4a00-a262-944b2e82b3b2',
         subject: `📞 New Callback Request — ${company} | HireTrack`,
-        message: `New callback request!\n\nName: ${name}\nCompany: ${company}\nMobile: ${mobile}\nPreferred Time: ${selectedTime}\nMessage: ${message || 'No message'}\n\nView in admin: https://hiretrack-portal.vercel.app/admin/dashboard.html`,
+        message: `New callback request!\n\nName: ${name}\nCompany: ${company}\nMobile: ${mobile}\nPreferred Time: ${selectedTime}\nMessage: ${message || 'No message'}\n\nAssigned to: ${assignedExec ? assignedExec.name : 'Unassigned'}\n\nView in admin: https://hiretrack-portal.vercel.app/admin/dashboard.html`,
         from_name: 'HireTrack Callbacks',
         email: 'anchansachinv99@gmail.com'
       })
     });
 
-    successEl.textContent = '✅ Callback request submitted! Our team will call you during your preferred time slot.';
+    successEl.textContent = `✅ Callback request submitted! Our team will call you during your preferred time slot.${assignedExec ? ` Your assigned executive is ${assignedExec.name}.` : ''}`;
     successEl.style.display = 'block';
     btn.textContent = 'Submitted ✓';
   }
