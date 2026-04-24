@@ -1,199 +1,257 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign Up — HireTrack</title>
-<link rel="stylesheet" href="style.css">
-<style>
-.skill-chip { background:var(--gray2); border:1.5px solid var(--gray3); color:var(--gray5); font-size:0.82rem; padding:6px 14px; border-radius:20px; cursor:pointer; transition:all 0.18s; user-select:none; display:inline-flex; align-items:center; gap:4px; }
-.skill-chip:hover { border-color:var(--blue); color:var(--blue); background:#eff6ff; }
-.skill-chip.selected { background:var(--blue); color:#fff; border-color:var(--blue); }
-.skill-chip.custom { background:var(--navy); color:#fff; border-color:var(--navy); }
-.skill-chip.custom .remove-skill { opacity:0.7; font-size:0.9rem; cursor:pointer; }
-.skill-chip.custom .remove-skill:hover { opacity:1; }
-</style>
-</head>
-<body>
+/* System fonts — no external dependencies */
 
-<div id="navbar"></div>
+:root {
+  --navy: #0f172a;
+  --navy2: #1e293b;
+  --blue: #3b82f6;
+  --blue2: #2563eb;
+  --cyan: #06b6d4;
+  --green: #22c55e;
+  --orange: #f97316;
+  --red: #ef4444;
+  --gray1: #f8fafc;
+  --gray2: #f1f5f9;
+  --gray3: #e2e8f0;
+  --gray4: #94a3b8;
+  --gray5: #64748b;
+  --text: #0f172a;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow2: 0 8px 40px rgba(0,0,0,0.12);
+}
 
-<div class="form-wrap">
-  <div class="form-card">
-    <h2>Create Your Account</h2>
-    <p class="sub">Join thousands of MIS & Data professionals on HireTrack</p>
-    <div class="alert alert-error" id="err-msg"></div>
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray1); color: var(--text); line-height:1.6; }
+.nav-logo, .section-hd h2, .hero h1, .page-hd h1, .form-card h2, .jc-title, .profile-name, .apps-card h2, .dash-jobs h2, .modal h3, .cat-card h4, .dash-stat strong { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+a { text-decoration:none; color:inherit; }
+img { max-width:100%; }
 
-    <div class="form-row">
-      <div class="fg-form">
-        <label>Full Name *</label>
-        <input type="text" id="name" placeholder="Sachin Kumar" />
-      </div>
-      <div class="fg-form">
-        <label>Mobile Number *</label>
-        <input type="tel" id="mobile" placeholder="9XXXXXXXXX" maxlength="10" />
-      </div>
-    </div>
+/* ── NAVBAR ── */
+.navbar {
+  position: sticky; top:0; z-index:100;
+  background: rgba(15,23,42,0.97);
+  backdrop-filter: blur(12px);
+  padding: 0 2rem;
+  display: flex; align-items:center; justify-content:space-between;
+  height: 64px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.nav-logo { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.4rem; font-weight:800; color:#fff; letter-spacing:-0.5px; }
+.nav-logo span { color: var(--blue); }
+.nav-center { display:flex; gap:0.25rem; }
+.nav-center a { color:#94a3b8; padding:0.4rem 0.9rem; border-radius:8px; font-size:0.88rem; font-weight:500; transition:all 0.2s; }
+.nav-center a:hover { color:#fff; background:rgba(255,255,255,0.07); }
+.nav-center a.active { color:#fff; }
+.nav-right { display:flex; align-items:center; gap:0.75rem; }
+.nav-right .btn-login { color:#94a3b8; font-size:0.88rem; font-weight:500; padding:0.4rem 0.9rem; border-radius:8px; transition:all 0.2s; }
+.nav-right .btn-login:hover { color:#fff; }
+.nav-right .btn-signup { background:var(--blue); color:#fff; padding:0.45rem 1.1rem; border-radius:8px; font-size:0.88rem; font-weight:600; transition:all 0.2s; }
+.nav-right .btn-signup:hover { background:var(--blue2); }
+.nav-right .btn-employer { color:#94a3b8; font-size:0.88rem; font-weight:500; padding:0.4rem 0.9rem; border-radius:8px; border:1px solid rgba(255,255,255,0.12); transition:all 0.2s; }
+.nav-right .btn-employer:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+.nav-user { display:flex; align-items:center; gap:0.75rem; }
+.nav-user-name { color:#fff; font-size:0.88rem; font-weight:600; }
+.nav-user-name span { color:var(--blue); }
+.btn-logout { color:#94a3b8; font-size:0.82rem; cursor:pointer; padding:0.3rem 0.7rem; border-radius:6px; border:1px solid rgba(255,255,255,0.1); transition:all 0.2s; }
+.btn-logout:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
 
-    <div class="fg-form">
-      <label>Email Address *</label>
-      <input type="email" id="email" placeholder="you@example.com" />
-    </div>
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2744 100%);
+  padding: 5rem 2rem 4rem;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.15) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:var(--blue); padding:0.35rem 1rem; border-radius:20px; font-size:0.8rem; font-weight:600; margin-bottom:1.5rem; letter-spacing:0.5px; }
+.hero h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:800; color:#fff; line-height:1.15; margin-bottom:1rem; }
+.hero h1 span { color:var(--blue); }
+.hero p { color:#94a3b8; font-size:1.05rem; max-width:520px; margin:0 auto 2.5rem; }
+.search-wrap { max-width:600px; margin:0 auto 2.5rem; }
+.search-box { display:flex; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.25); }
+.search-box input { flex:1; border:none; outline:none; padding:1rem 1.2rem; font-size:0.95rem; font-family:inherit; color:var(--text); }
+.search-box button { background:var(--blue); color:#fff; border:none; padding:1rem 1.6rem; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.2s; white-space:nowrap; }
+.search-box button:hover { background:var(--blue2); }
+.hero-stats { display:flex; justify-content:center; gap:3rem; flex-wrap:wrap; }
+.stat strong { display:block; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.8rem; font-weight:800; color:#fff; }
+.stat span { font-size:0.8rem; color:#64748b; }
 
-    <div class="form-row">
-      <div class="fg-form">
-        <label>Current Job Title</label>
-        <input type="text" id="jobtitle" placeholder="MIS Executive" />
-      </div>
-      <div class="fg-form">
-        <label>Years of Experience *</label>
-        <select id="experience">
-          <option value="">Select</option>
-          <option>Fresher (0–1 years)</option>
-          <option>1–3 years</option>
-          <option>3–5 years</option>
-          <option>5+ years</option>
-        </select>
-      </div>
-    </div>
+/* ── AI ASSISTANT ── */
+.ai-section { max-width:700px; margin:2rem auto; padding:0 1rem; }
+.ai-card { background:#fff; border-radius:16px; border:1.5px solid #dbeafe; padding:1.5rem; box-shadow:var(--shadow); }
+.ai-card-header { display:flex; align-items:center; gap:10px; margin-bottom:1rem; }
+.ai-pulse { width:9px; height:9px; background:var(--blue); border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.85)} }
+.ai-card-header h3 { font-family:'Plus Jakarta Sans',sans-serif; font-size:0.95rem; font-weight:700; }
+.ai-badge { background:#dbeafe; color:var(--blue2); font-size:0.73rem; font-weight:600; padding:2px 10px; border-radius:20px; }
+.ai-row { display:flex; gap:10px; }
+.ai-row input { flex:1; border:1.5px solid var(--gray3); border-radius:9px; padding:0.7rem 1rem; font-size:0.92rem; outline:none; font-family:inherit; transition:border 0.2s; }
+.ai-row input:focus { border-color:var(--blue); }
+.ai-row button { background:var(--blue); color:#fff; border:none; padding:0.7rem 1.2rem; border-radius:9px; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.2s; }
+.ai-row button:hover { background:var(--blue2); }
+.ai-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:0.75rem; }
+.chip { background:var(--gray2); border:1px solid var(--gray3); color:var(--gray5); font-size:0.78rem; padding:4px 12px; border-radius:20px; cursor:pointer; transition:all 0.2s; font-family:inherit; }
+.chip:hover { background:var(--blue); color:#fff; border-color:var(--blue); }
+.ai-response { margin-top:1rem; padding:1rem; background:#f0f7ff; border-radius:9px; font-size:0.9rem; line-height:1.65; color:#1e40af; display:none; border-left:3px solid var(--blue); }
+.ai-loading { color:var(--gray4); font-style:italic; }
 
-    <div class="fg-form">
-      <label>City *</label>
-      <select id="city">
-        <option value="">Select city</option>
-        <option>Bengaluru</option>
-        <option>Mysuru</option>
-        <option>Mangaluru</option>
-        <option>Hubballi</option>
-        <option>Manipal</option>
-        <option>Other Karnataka</option>
-      </select>
-    </div>
+/* ── SECTIONS ── */
+.section { max-width:1100px; margin:0 auto; padding:2.5rem 1rem; }
+.section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; }
+.section-hd h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.35rem; font-weight:700; }
+.section-hd a { color:var(--blue); font-size:0.85rem; font-weight:600; }
 
-    <div class="fg-form">
-      <label>Key Skills <span style="color:var(--gray4);font-weight:400;">(click to select, or type your own)</span></label>
-      <div id="skills-select" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-        <span class="skill-chip" data-skill="Excel" onclick="toggleSkill(this)">Excel</span>
-        <span class="skill-chip" data-skill="SQL" onclick="toggleSkill(this)">SQL</span>
-        <span class="skill-chip" data-skill="Power BI" onclick="toggleSkill(this)">Power BI</span>
-        <span class="skill-chip" data-skill="Python" onclick="toggleSkill(this)">Python</span>
-        <span class="skill-chip" data-skill="MIS Reporting" onclick="toggleSkill(this)">MIS Reporting</span>
-        <span class="skill-chip" data-skill="Tableau" onclick="toggleSkill(this)">Tableau</span>
-        <span class="skill-chip" data-skill="SAP" onclick="toggleSkill(this)">SAP</span>
-        <span class="skill-chip" data-skill="Automation" onclick="toggleSkill(this)">Automation</span>
-        <span class="skill-chip" data-skill="VBA" onclick="toggleSkill(this)">VBA</span>
-        <span class="skill-chip" data-skill="MS Access" onclick="toggleSkill(this)">MS Access</span>
-        <span class="skill-chip" data-skill="Google Sheets" onclick="toggleSkill(this)">Google Sheets</span>
-        <span class="skill-chip" data-skill="Tally" onclick="toggleSkill(this)">Tally</span>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <input type="text" id="custom-skill" placeholder="Add a custom skill e.g. Zoho, QuickBooks, Power Query..." style="flex:1;border:1.5px solid var(--gray3);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.88rem;outline:none;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--gray3)'" />
-        <button type="button" onclick="addCustomSkill()" style="background:var(--navy);color:#fff;border:none;padding:0.6rem 1.1rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.85rem;white-space:nowrap;font-family:inherit;">+ Add Skill</button>
-      </div>
-      <p style="font-size:0.75rem;color:var(--gray4);margin-top:6px;">💡 Click chips to select · Blue = selected · Click custom skill to remove</p>
-    </div>
+/* ── JOB CARDS ── */
+.jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:1rem; }
+.job-card { background:#fff; border-radius:var(--radius); padding:1.3rem; border:1.5px solid var(--gray3); transition:all 0.22s; cursor:pointer; }
+.job-card:hover { border-color:var(--blue); box-shadow:0 6px 24px rgba(59,130,246,0.12); transform:translateY(-2px); }
+.jc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem; }
+.jc-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; font-weight:700; color:var(--navy); }
+.badge { font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.badge-full { background:#dcfce7; color:#15803d; }
+.badge-contract { background:#ffedd5; color:#c2410c; }
+.badge-remote { background:#dbeafe; color:#1d4ed8; }
+.jc-company { font-size:0.85rem; color:var(--gray5); margin-bottom:0.4rem; font-weight:500; }
+.jc-meta { display:flex; flex-wrap:wrap; gap:0.75rem; font-size:0.78rem; color:var(--gray4); margin-top:0.6rem; }
+.jc-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:0.75rem; }
+.tag { background:var(--gray2); color:var(--gray5); font-size:0.73rem; padding:3px 10px; border-radius:20px; }
+.jc-footer { display:flex; justify-content:space-between; align-items:center; margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--gray3); }
+.btn-apply { background:var(--blue); color:#fff; border:none; padding:0.45rem 1.1rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.btn-apply:hover { background:var(--blue2); }
+.btn-apply.applied { background:var(--green); cursor:default; }
+.btn-whatsapp { background:#25d366; color:#fff; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; display:flex; align-items:center; gap:5px; }
+.btn-whatsapp:hover { background:#1db954; }
 
-    <div class="fg-form">
-      <label>Upload Resume (PDF, max 5MB)</label>
-      <input type="file" id="resume" accept=".pdf" />
-    </div>
+/* ── CATEGORIES ── */
+.cats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:1rem; }
+.cat-card { background:#fff; border-radius:var(--radius); padding:1.3rem; text-align:center; border:1.5px solid var(--gray3); cursor:pointer; transition:all 0.22s; }
+.cat-card:hover { border-color:var(--blue); background:#f0f7ff; transform:translateY(-2px); }
+.cat-icon { font-size:2rem; margin-bottom:0.6rem; }
+.cat-card h4 { font-family:'Plus Jakarta Sans',sans-serif; font-size:0.88rem; font-weight:700; margin-bottom:0.2rem; }
+.cat-card span { font-size:0.75rem; color:var(--gray4); }
 
-    <div class="form-row">
-      <div class="fg-form">
-        <label>Password *</label>
-        <input type="password" id="password" placeholder="Minimum 6 characters" />
-      </div>
-      <div class="fg-form">
-        <label>Confirm Password *</label>
-        <input type="password" id="confirm-password" placeholder="Repeat password" />
-      </div>
-    </div>
+/* ── PAGE HEADER ── */
+.page-hd { background:linear-gradient(135deg,#0f172a,#1e293b); color:#fff; padding:2.5rem 2rem; text-align:center; }
+.page-hd h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.9rem; font-weight:800; }
+.page-hd p { color:#94a3b8; margin-top:0.5rem; }
 
-    <button class="btn-primary" onclick="doSignup()">Create Account</button>
-    <p class="form-switch">Already have an account? <a href="login.html">Login here</a></p>
-  </div>
-</div>
+/* ── JOBS PAGE ── */
+.jobs-layout { display:grid; grid-template-columns:270px 1fr; gap:1.5rem; max-width:1100px; margin:2rem auto; padding:0 1rem; }
+.filter-panel { background:#fff; border-radius:var(--radius); padding:1.4rem; border:1.5px solid var(--gray3); height:fit-content; position:sticky; top:80px; }
+.filter-panel h3 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; font-weight:700; margin-bottom:1.2rem; }
+.fg { margin-bottom:1.1rem; }
+.fg label { display:block; font-size:0.78rem; font-weight:700; color:var(--gray5); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.4rem; }
+.fg select, .fg input { width:100%; border:1.5px solid var(--gray3); border-radius:8px; padding:0.55rem 0.8rem; font-size:0.88rem; outline:none; font-family:inherit; transition:border 0.2s; }
+.fg select:focus, .fg input:focus { border-color:var(--blue); }
+.btn-filter { width:100%; background:var(--navy); color:#fff; border:none; padding:0.75rem; border-radius:9px; cursor:pointer; font-weight:700; font-size:0.9rem; font-family:inherit; transition:background 0.2s; margin-top:0.5rem; }
+.btn-filter:hover { background:var(--navy2); }
+.results-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+.results-hd span { font-size:0.88rem; color:var(--gray5); font-weight:500; }
 
-<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+/* ── FORMS ── */
+.form-wrap { max-width:680px; margin:2rem auto; padding:0 1rem; }
+.form-card { background:#fff; border-radius:16px; padding:2rem; border:1.5px solid var(--gray3); box-shadow:var(--shadow); }
+.form-card h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:0.3rem; }
+.form-card .sub { color:var(--gray5); font-size:0.88rem; margin-bottom:1.5rem; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.fg-form { margin-bottom:1.1rem; }
+.fg-form label { display:block; font-size:0.83rem; font-weight:600; color:var(--navy2); margin-bottom:0.4rem; }
+.fg-form input, .fg-form select, .fg-form textarea { width:100%; border:1.5px solid var(--gray3); border-radius:9px; padding:0.7rem 1rem; font-size:0.93rem; outline:none; font-family:inherit; transition:border 0.2s; color:var(--text); }
+.fg-form input:focus, .fg-form select:focus, .fg-form textarea:focus { border-color:var(--blue); }
+.fg-form textarea { resize:vertical; min-height:100px; }
+.btn-primary { width:100%; background:var(--blue); color:#fff; border:none; padding:0.9rem; font-size:1rem; font-weight:700; border-radius:10px; cursor:pointer; font-family:inherit; transition:background 0.2s; margin-top:0.5rem; }
+.btn-primary:hover { background:var(--blue2); }
+.form-switch { text-align:center; margin-top:1.2rem; font-size:0.88rem; color:var(--gray5); }
+.form-switch a { color:var(--blue); font-weight:600; }
+.form-divider { display:flex; align-items:center; gap:1rem; margin:1.2rem 0; }
+.form-divider hr { flex:1; border:none; border-top:1px solid var(--gray3); }
+.form-divider span { font-size:0.8rem; color:var(--gray4); }
+.alert { padding:0.85rem 1rem; border-radius:9px; font-size:0.88rem; margin-bottom:1rem; display:none; }
+.alert-error { background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+.alert-success { background:#dcfce7; color:#15803d; border:1px solid #86efac; }
 
-<script src="app.js"></script>
-<script>
-  document.getElementById('navbar').innerHTML = renderNavbar('');
-  if (Auth.getCurrentCandidate()) window.location.href = 'profile.html';
+/* ── PROFILE PAGE ── */
+.profile-wrap { max-width:900px; margin:2rem auto; padding:0 1rem; display:grid; grid-template-columns:280px 1fr; gap:1.5rem; }
+.profile-card { background:#fff; border-radius:16px; padding:1.8rem; border:1.5px solid var(--gray3); height:fit-content; text-align:center; }
+.profile-avatar { width:80px; height:80px; background:linear-gradient(135deg,var(--blue),var(--cyan)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Plus Jakarta Sans',sans-serif; font-size:2rem; font-weight:800; color:#fff; margin:0 auto 1rem; }
+.profile-name { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.1rem; font-weight:800; }
+.profile-title { color:var(--gray5); font-size:0.85rem; margin-bottom:1rem; }
+.profile-info { text-align:left; border-top:1px solid var(--gray3); padding-top:1rem; }
+.pi-row { display:flex; justify-content:space-between; font-size:0.83rem; padding:0.35rem 0; border-bottom:1px solid var(--gray2); }
+.pi-row span:first-child { color:var(--gray5); }
+.pi-row span:last-child { font-weight:600; }
+.btn-resume { display:block; background:var(--gray2); color:var(--navy); border:none; padding:0.6rem; border-radius:8px; font-size:0.83rem; font-weight:600; cursor:pointer; width:100%; margin-top:1rem; font-family:inherit; transition:all 0.2s; text-align:center; }
+.btn-resume:hover { background:var(--gray3); }
+.apps-card { background:#fff; border-radius:16px; padding:1.8rem; border:1.5px solid var(--gray3); }
+.apps-card h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:1.2rem; }
+.app-row { display:flex; justify-content:space-between; align-items:center; padding:0.85rem; border-radius:10px; border:1px solid var(--gray3); margin-bottom:0.7rem; transition:border 0.2s; }
+.app-row:hover { border-color:var(--blue); }
+.app-info h4 { font-size:0.92rem; font-weight:700; }
+.app-info p { font-size:0.8rem; color:var(--gray5); }
+.status-badge { font-size:0.72rem; font-weight:700; padding:4px 12px; border-radius:20px; }
+.status-applied { background:#dbeafe; color:#1d4ed8; }
+.status-viewed { background:#fef3c7; color:#d97706; }
+.status-shortlisted { background:#dcfce7; color:#15803d; }
+.status-rejected { background:#fee2e2; color:#b91c1c; }
+.empty-state { text-align:center; padding:3rem 1rem; color:var(--gray4); }
+.empty-state .es-icon { font-size:2.5rem; margin-bottom:0.75rem; }
 
-  function toggleSkill(el) {
-    el.classList.toggle('selected');
-  }
+/* ── EMPLOYER DASHBOARD ── */
+.dash-wrap { max-width:1000px; margin:2rem auto; padding:0 1rem; }
+.dash-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+.dash-stat { background:#fff; border-radius:var(--radius); padding:1.3rem; border:1.5px solid var(--gray3); }
+.dash-stat strong { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.8rem; font-weight:800; color:var(--navy); display:block; }
+.dash-stat span { font-size:0.82rem; color:var(--gray5); }
+.dash-jobs { background:#fff; border-radius:16px; padding:1.5rem; border:1.5px solid var(--gray3); }
+.dash-jobs h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:1.2rem; }
+.dash-job-row { display:flex; justify-content:space-between; align-items:center; padding:1rem; border-radius:10px; border:1px solid var(--gray3); margin-bottom:0.75rem; }
+.djr-info h4 { font-size:0.95rem; font-weight:700; }
+.djr-info p { font-size:0.8rem; color:var(--gray5); }
+.djr-actions { display:flex; gap:8px; align-items:center; }
+.btn-view-apps { background:var(--blue); color:#fff; border:none; padding:0.4rem 1rem; border-radius:7px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-delete { background:var(--gray2); color:var(--gray5); border:none; padding:0.4rem 0.8rem; border-radius:7px; font-size:0.8rem; cursor:pointer; font-family:inherit; }
+.applicants-panel { background:var(--gray2); border-radius:12px; padding:1rem; margin-top:0.5rem; display:none; }
+.applicant-row { background:#fff; border-radius:9px; padding:0.85rem 1rem; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--gray3); }
+.ar-info h5 { font-size:0.88rem; font-weight:700; }
+.ar-info p { font-size:0.78rem; color:var(--gray5); }
+.btn-dl-resume { background:var(--navy); color:#fff; border:none; padding:0.35rem 0.9rem; border-radius:7px; font-size:0.77rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
-  function addCustomSkill() {
-    const input = document.getElementById('custom-skill');
-    const val = input.value.trim();
-    if (!val) return;
-    const existing = [...document.querySelectorAll('.skill-chip')].find(c => c.dataset.skill && c.dataset.skill.toLowerCase() === val.toLowerCase());
-    if (existing) { existing.classList.add('selected'); input.value = ''; return; }
-    const chip = document.createElement('span');
-    chip.className = 'skill-chip custom selected';
-    chip.dataset.skill = val;
-    chip.innerHTML = `${val} <span class="remove-skill" onclick="this.parentElement.remove()">×</span>`;
-    document.getElementById('skills-select').appendChild(chip);
-    input.value = '';
-    input.focus();
-  }
+/* ── EMPLOYER AUTH ── */
+.auth-check { max-width:480px; margin:3rem auto; padding:0 1rem; }
+.auth-check .form-card { text-align:center; }
+.auth-check .form-card .icon { font-size:2.5rem; margin-bottom:1rem; }
 
-  document.getElementById('custom-skill').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); addCustomSkill(); }
-  });
+/* ── MODAL ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; display:none; align-items:center; justify-content:center; padding:1rem; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:16px; padding:2rem; width:100%; max-width:440px; }
+.modal h3 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:0.3rem; }
+.modal .sub { color:var(--gray5); font-size:0.85rem; margin-bottom:1.2rem; }
+.modal-close { float:right; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--gray4); margin-top:-4px; }
 
-  function getSelectedSkills() {
-    return [...document.querySelectorAll('.skill-chip.selected')].map(el => (el.dataset.skill || el.childNodes[0]?.textContent || el.textContent).trim()).filter(Boolean);
-  }
+/* ── FOOTER ── */
+footer { background:var(--navy); color:#94a3b8; text-align:center; padding:1.5rem; font-size:0.83rem; margin-top:3rem; }
+footer span { color:var(--blue); }
 
-  async function doSignup() {
-    const name = document.getElementById('name').value.trim();
-    const mobile = document.getElementById('mobile').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const jobtitle = document.getElementById('jobtitle').value.trim();
-    const experience = document.getElementById('experience').value;
-    const city = document.getElementById('city').value;
-    const password = document.getElementById('password').value;
-    const confirm = document.getElementById('confirm-password').value;
-    const resumeFile = document.getElementById('resume').files[0];
-    const errEl = document.getElementById('err-msg');
-    const skills = getSelectedSkills();
+/* ── UTILS ── */
+.mt1 { margin-top:1rem; }
+.hidden { display:none !important; }
+.loading-spinner { text-align:center; padding:2rem; color:var(--gray4); font-size:0.9rem; }
 
-    errEl.style.display = 'none';
-    if (!name || !mobile || !email || !experience || !city || !password) {
-      errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return;
-    }
-    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      errEl.textContent = 'Please enter a valid 10-digit mobile number.'; errEl.style.display = 'block'; return;
-    }
-    if (password.length < 6) {
-      errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return;
-    }
-    if (password !== confirm) {
-      errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
-    }
-
-    let resumeName = '', resumeData = '';
-    if (resumeFile) {
-      if (resumeFile.size > 5 * 1024 * 1024) {
-        errEl.textContent = 'Resume file size must be under 5MB.'; errEl.style.display = 'block'; return;
-      }
-      resumeName = resumeFile.name;
-      resumeData = await new Promise(res => {
-        const r = new FileReader();
-        r.onload = () => res(r.result);
-        r.readAsDataURL(resumeFile);
-      });
-    }
-
-    const result = Auth.registerCandidate({ name, mobile, email, jobtitle, experience, city, skills, password, resumeName, resumeData });
-    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display = 'block'; return; }
-    const redirect = sessionStorage.getItem('redirect_after_login') || 'profile.html';
-    sessionStorage.removeItem('redirect_after_login');
-    window.location.href = redirect;
-  }
-</script>
-</body>
-</html>
+@media(max-width:768px) {
+  .jobs-layout { grid-template-columns:1fr; }
+  .filter-panel { position:static; }
+  .profile-wrap { grid-template-columns:1fr; }
+  .dash-stats { grid-template-columns:1fr 1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .hero h1 { font-size:1.8rem; }
+  .hero-stats { gap:1.5rem; }
+  .nav-center { display:none; }
+}
