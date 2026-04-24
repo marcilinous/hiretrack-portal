@@ -217,26 +217,31 @@ Current Role: ${candidate.jobtitle || 'Not specified'}
 Skills: ${(candidate.skills || []).join(', ') || 'Not specified'}
 ━━━━━━━━━━━━━━━━━━
 
-View their profile and resume on your HireTrack dashboard:
+View dashboard:
 https://hiretrack-portal.vercel.app/employer-dashboard.html
 
 — HireTrack Team
     `.trim();
 
-    await fetch('https://api.web3forms.com/submit', {
+    const res = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         access_key: WEB3FORMS_KEY,
-        to: employerEmail,
         subject: `New Application — ${job.title} at ${job.company} | HireTrack`,
         message: body,
         from_name: 'HireTrack Notifications',
-        replyto: candidate.email
+        replyto: candidate.email,
+        // Always notify admin + employer if available
+        email: employerEmail || 'anchansachinv99@gmail.com'
       })
     });
+    const data = await res.json();
+    console.log('Web3Forms response:', data);
+    return data.success;
   } catch(e) {
     console.log('Email notification error:', e);
+    return false;
   }
 }
 
@@ -267,12 +272,10 @@ async function applyJob(jobId, btn) {
     const employers = Auth.getEmployers();
     const employer = employers.find(e => e.id === job.employerId);
 
-    // Send email to employer
-    const employerEmail = employer?.email || job.email || null;
-    if (employerEmail) {
-      await sendEmailNotification(candidate, job, employerEmail);
-      showToast('✅ Applied! Employer notified by email.');
-    }
+    // Always send email — to employer if exists, else to admin
+    const employerEmail = employer?.email || job.email || 'anchansachinv99@gmail.com';
+    const sent = await sendEmailNotification(candidate, job, employerEmail);
+    showToast(sent ? '✅ Applied! Employer notified by email.' : '✅ Applied successfully!');
 
     // Send WhatsApp to employer
     const phone = job.phone;
