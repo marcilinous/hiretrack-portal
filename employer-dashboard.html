@@ -64,10 +64,12 @@
 
     if (!myJobs.length) return;
 
-            const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
-            const planData = plans[employer.id];
-            const currentPlan = (!planData || new Date() > new Date(planData.expiresAt)) ? 'free' : planData.plan;
-            const extendLabel = currentPlan === 'free' ? '⏳ Extend 15d 🔒' : '⏳ Extend 15d';
+    const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+    const planData = plans[employer.id];
+    const currentPlan = (!planData || new Date() > new Date(planData.expiresAt)) ? 'free' : planData.plan;
+    const extendLabel = currentPlan === 'free' ? '⏳ Extend 15d 🔒' : '⏳ Extend 15d';
+
+    document.getElementById('dash-jobs-list').innerHTML = myJobs.map(job => {
       const apps = Auth.getJobApplications(job.id);
       const isExpired = job.expiresAt && new Date() > new Date(job.expiresAt);
       const isDelisted = job.delisted === true;
