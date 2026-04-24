@@ -194,7 +194,58 @@ function whatsappApply(phone, msg) {
   window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(fullMsg)}`, '_blank');
 }
 
-function applyJob(jobId, btn) {
+// ── NOTIFICATIONS ──
+const WEB3FORMS_KEY = '30483d95-3da0-4a00-a262-944b2e82b3b2';
+
+async function sendEmailNotification(candidate, job, employerEmail) {
+  try {
+    const body = `
+New Job Application on HireTrack!
+
+Job: ${job.title}
+Company: ${job.company}
+Location: ${job.location}
+
+Candidate Details:
+━━━━━━━━━━━━━━━━━━
+Name: ${candidate.name}
+Email: ${candidate.email}
+Mobile: ${candidate.mobile}
+City: ${candidate.city}
+Experience: ${candidate.experience}
+Current Role: ${candidate.jobtitle || 'Not specified'}
+Skills: ${(candidate.skills || []).join(', ') || 'Not specified'}
+━━━━━━━━━━━━━━━━━━
+
+View their profile and resume on your HireTrack dashboard:
+https://hiretrack-portal.vercel.app/employer-dashboard.html
+
+— HireTrack Team
+    `.trim();
+
+    await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        to: employerEmail,
+        subject: `New Application — ${job.title} at ${job.company} | HireTrack`,
+        message: body,
+        from_name: 'HireTrack Notifications',
+        replyto: candidate.email
+      })
+    });
+  } catch(e) {
+    console.log('Email notification error:', e);
+  }
+}
+
+function sendWhatsAppNotification(phone, candidate, job) {
+  const msg = `🔔 *New Application on HireTrack!*\n\nJob: *${job.title}*\nCompany: ${job.company}\n\n👤 *Candidate:* ${candidate.name}\n📍 City: ${candidate.city}\n💼 Exp: ${candidate.experience}\n🛠 Skills: ${(candidate.skills||[]).slice(0,3).join(', ')}\n📞 Mobile: ${candidate.mobile}\n✉️ Email: ${candidate.email}\n\nView dashboard: https://hiretrack-portal.vercel.app/employer-dashboard.html`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+async function applyJob(jobId, btn) {
   const candidate = Auth.getCurrentCandidate();
   if (!candidate) {
     sessionStorage.setItem('redirect_after_login', window.location.href);
@@ -205,7 +256,34 @@ function applyJob(jobId, btn) {
   if (result.ok) {
     btn.textContent = '✓ Applied';
     btn.classList.add('applied');
-    showToast('Application submitted successfully!');
+    showToast('Application submitted! Notifying employer...');
+
+    // Find job details
+    const allJobs = [...JOBS, ...Auth.getEmployerJobs()];
+    const job = allJobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    // Find employer details
+    const employers = Auth.getEmployers();
+    const employer = employers.find(e => e.id === job.employerId);
+
+    // Send email to employer
+    const employerEmail = employer?.email || job.email || null;
+    if (employerEmail) {
+      await sendEmailNotification(candidate, job, employerEmail);
+      showToast('✅ Applied! Employer notified by email.');
+    }
+
+    // Send WhatsApp to employer
+    const phone = job.phone;
+    if (phone && phone !== '9000000000') {
+      setTimeout(() => {
+        if (confirm(`Would you like to also notify the employer on WhatsApp?`)) {
+          sendWhatsAppNotification(phone, candidate, job);
+        }
+      }, 1000);
+    }
+
   } else {
     showToast('You have already applied to this job.');
   }
