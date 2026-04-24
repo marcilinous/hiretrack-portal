@@ -118,24 +118,22 @@
 
     // Round robin assignment — find next executive in line
     async function getNextExecutive() {
-      // Get all active executives ordered by created_at
       const { data: executives } = await sb.from('executives')
         .select('id, name').eq('is_active', true).order('created_at', { ascending: true });
       if (!executives || !executives.length) return null;
+      if (executives.length === 1) return executives[0]; // Only 1 executive — assign all to them
 
-      // Get the last assigned callback
+      // Get the last assigned callback (only ones that have been assigned)
       const { data: lastCallback } = await sb.from('callback_requests')
         .select('assigned_to').not('assigned_to', 'is', null)
         .order('assigned_at', { ascending: false }).limit(1).maybeSingle();
 
-      if (!lastCallback || !lastCallback.assigned_to) {
-        // No previous assignments — assign to first executive
-        return executives[0];
+      if (!lastCallback?.assigned_to) {
+        return executives[0]; // No assignments yet — start with first
       }
 
-      // Find current executive index
       const currentIdx = executives.findIndex(e => e.id === lastCallback.assigned_to);
-      // Move to next executive (cycle back to 0 if at end)
+      if (currentIdx === -1) return executives[0]; // Executive not found — start fresh
       const nextIdx = (currentIdx + 1) % executives.length;
       return executives[nextIdx];
     }
