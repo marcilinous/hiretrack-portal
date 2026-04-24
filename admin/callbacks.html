@@ -88,12 +88,25 @@ select { border:1px solid #e2e8f0; border-radius:6px; padding:4px 8px; font-size
   let allCallbacks = [], allExecs = [];
 
   async function loadData() {
-    [allCallbacks, allExecs] = await Promise.all([
-      dbGet('callback_requests', 'order=created_at.desc'),
-      dbGet('executives', 'is_active=eq.true&order=created_at.asc&select=id,name')
-    ]);
-    document.getElementById('cb-count').textContent = `${allCallbacks.length} total requests`;
-    renderTable(allCallbacks);
+    try {
+      allCallbacks = await dbGet('callback_requests', 'order=created_at.desc');
+      // Try to get executives, fall back if column doesn't exist
+      try {
+        allExecs = await dbGet('executives', 'order=created_at.asc&select=id,name');
+      } catch(e) {
+        allExecs = [];
+      }
+      // Handle case where allCallbacks might be an error object
+      if (!Array.isArray(allCallbacks)) {
+        console.error('Callbacks error:', allCallbacks);
+        allCallbacks = [];
+      }
+      if (!Array.isArray(allExecs)) allExecs = [];
+      document.getElementById('cb-count').textContent = `${allCallbacks.length} total requests`;
+      renderTable(allCallbacks);
+    } catch(e) {
+      document.getElementById('table-wrap').innerHTML = `<div class="empty">Error loading data: ${e.message}</div>`;
+    }
   }
 
   function renderTable(callbacks) {
