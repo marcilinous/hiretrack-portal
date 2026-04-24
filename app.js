@@ -148,8 +148,7 @@ function renderNavbar(activePage) {
   } else if (employer) {
     rightHTML = `<div class="nav-user">
       <span class="nav-user-name">Hi, <span>${employer.contactName.split(' ')[0]}</span></span>
-      <a href="${pages.dashboard}" class="btn-employer">Dashboard</a>
-      <span class="btn-logout" onclick="logoutEmployer()">Logout</span>
+      <a href="${pages.postjob}" class="btn-signup">+ Post Job</a>
     </div>`;
   } else {
     rightHTML = `
@@ -162,8 +161,13 @@ function renderNavbar(activePage) {
   return `<nav class="navbar">
     <a href="${pages.home}" class="nav-logo">Hire<span>Track</span></a>
     <div class="nav-center">
-      <a href="${pages.home}" ${activePage==='home'?'class="active"':''}>Home</a>
-      <a href="${pages.jobs}" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
+      ${employer ? `
+        <a href="${pages.dashboard}" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>
+        <a href="${pages.postjob}" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
+      ` : `
+        <a href="${pages.home}" ${activePage==='home'?'class="active"':''}>Home</a>
+        <a href="${pages.jobs}" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
+      `}
     </div>
     <div class="nav-right">${rightHTML}</div>
   </nav>`;
