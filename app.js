@@ -99,7 +99,9 @@ const Auth = {
   getEmployerJobs() { return JSON.parse(localStorage.getItem('ht_employer_jobs') || '[]'); },
   saveEmployerJob(job) {
     const jobs = this.getEmployerJobs();
-    jobs.push({ ...job, id: Date.now(), postedAt: new Date().toISOString(), applicants: 0 });
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 15); // 15 days expiry
+    jobs.push({ ...job, id: Date.now(), postedAt: new Date().toISOString(), expiresAt: expiryDate.toISOString(), applicants: 0 });
     localStorage.setItem('ht_employer_jobs', JSON.stringify(jobs));
   },
   deleteEmployerJob(jobId) {
@@ -107,6 +109,27 @@ const Auth = {
     localStorage.setItem('ht_employer_jobs', JSON.stringify(jobs));
   }
 };
+
+// ── EXPIRY HELPERS ──
+function isJobExpired(job) {
+  if (!job.expiresAt) return false;
+  return new Date() > new Date(job.expiresAt);
+}
+
+function getDaysLeft(job) {
+  if (!job.expiresAt) return null;
+  const diff = new Date(job.expiresAt) - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function getExpiryLabel(job) {
+  if (!job.expiresAt) return null;
+  const days = getDaysLeft(job);
+  if (days < 0) return { text: 'Expired', class: 'expiry-expired' };
+  if (days === 0) return { text: 'Expires today', class: 'expiry-urgent' };
+  if (days <= 3) return { text: `Expires in ${days}d`, class: 'expiry-urgent' };
+  return { text: `${days}d left`, class: 'expiry-ok' };
+}
 
 // ── NAVBAR RENDERER ──
 function renderNavbar(activePage) {
@@ -155,12 +178,17 @@ function renderJobCard(job) {
   const apps = Auth.getApplications();
   const alreadyApplied = candidate && apps.find(a => a.candidateId === candidate.id && a.jobId === job.id);
   const typeClass = { 'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote' };
-  const waMsg = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply for this position. Please find my details attached.`);
+  const waMsg = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply for this position.`);
+  const expired = isJobExpired(job);
+  const expiry = getExpiryLabel(job);
 
-  return `<div class="job-card">
+  return `<div class="job-card ${expired ? 'job-expired' : ''}">
     <div class="jc-top">
       <div class="jc-title">${job.title}</div>
-      <span class="badge ${typeClass[job.type]||'badge-full'}">${job.type}</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        ${expiry ? `<span class="expiry-badge ${expiry.class}">${expiry.text}</span>` : ''}
+        <span class="badge ${typeClass[job.type]||'badge-full'}">${job.type}</span>
+      </div>
     </div>
     <div class="jc-company">🏢 ${job.company}</div>
     <div class="jc-meta">
@@ -174,8 +202,9 @@ function renderJobCard(job) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.122 1.532 5.857L.057 23.925l6.235-1.635A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.494-5.193-1.355l-.372-.22-3.7.971 1.008-3.573-.242-.383A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
         WhatsApp
       </button>
-      <button class="btn-apply ${alreadyApplied?'applied':''}" onclick="applyJob(${job.id},this)">
-        ${alreadyApplied?'✓ Applied':'Apply Now'}
+      <button class="btn-apply ${alreadyApplied?'applied':''} ${expired?'expired-btn':''}"
+        onclick="${expired ? `showToast('This job listing has expired.')` : `applyJob(${job.id},this)`}">
+        ${expired ? '⚠ Expired' : alreadyApplied ? '✓ Applied' : 'Apply Now'}
       </button>
     </div>
   </div>`;
