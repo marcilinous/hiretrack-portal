@@ -28,7 +28,8 @@ const Auth = {
   registerCandidate(data) {
     const list = this.getCandidates();
     if (list.find(c => c.email === data.email)) return { ok:false, msg:'Email already registered' };
-    const candidate = { ...data, id: Date.now(), applications: [], resumeName: data.resumeName || '' };
+    const stableId = data.email.split('').reduce((a,c) => ((a<<5)-a)+c.charCodeAt(0), 0) >>> 0;
+    const candidate = { ...data, id: stableId, applications: [], resumeName: data.resumeName || '' };
     list.push(candidate);
     this.saveCandidates(list);
     this.setCurrentCandidate(candidate);
@@ -58,7 +59,9 @@ const Auth = {
   registerEmployer(data) {
     const list = this.getEmployers();
     if (list.find(e => e.email === data.email)) return { ok:false, msg:'Email already registered' };
-    const employer = { ...data, id: Date.now(), postedJobs: [] };
+    // Use stable ID based on email so jobs persist across sessions
+    const stableId = data.email.split('').reduce((a,c) => ((a<<5)-a)+c.charCodeAt(0), 0) >>> 0;
+    const employer = { ...data, id: stableId, postedJobs: [] };
     list.push(employer);
     this.saveEmployers(list);
     this.setCurrentEmployer(employer);
