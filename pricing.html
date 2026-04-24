@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.pricing-hero { background:linear-gradient(135deg,#0f172a,#1e293b); padding:3rem 2rem; text-align:center; color:#fff; }
+.pricing-hero h1 { font-size:2rem; font-weight:800; margin-bottom:0.5rem; }
+.pricing-hero p { color:#94a3b8; }
+.pricing-wrap { max-width:1000px; margin:3rem auto; padding:0 1rem; display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+.plan-card { background:#fff; border-radius:16px; padding:2rem; border:2px solid #e2e8f0; position:relative; transition:all 0.2s; }
+.plan-card:hover { border-color:#3b82f6; box-shadow:0 8px 32px rgba(59,130,246,0.12); transform:translateY(-4px); }
+.plan-card.popular { border-color:#3b82f6; }
+.popular-badge { position:absolute; top:-14px; left:50%; transform:translateX(-50%); background:#3b82f6; color:#fff; padding:4px 18px; border-radius:20px; font-size:0.75rem; font-weight:700; white-space:nowrap; }
+.plan-name { font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:0.3rem; }
+.plan-price { font-size:2.5rem; font-weight:800; color:#0f172a; margin:1rem 0 0.2rem; }
+.plan-price span { font-size:1rem; font-weight:500; color:#64748b; }
+.plan-desc { font-size:0.85rem; color:#64748b; margin-bottom:1.5rem; }
+.plan-features { list-style:none; margin-bottom:2rem; }
+.plan-features li { font-size:0.88rem; padding:0.4rem 0; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px; }
+.plan-features li:last-child { border-bottom:none; }
+.feat-yes { color:#22c55e; font-weight:700; }
+.feat-no { color:#94a3b8; }
+.btn-plan { width:100%; padding:0.85rem; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; border:none; transition:all 0.2s; }
+.btn-plan-free { background:#f1f5f9; color:#0f172a; }
+.btn-plan-free:hover { background:#e2e8f0; }
+.btn-plan-starter { background:#3b82f6; color:#fff; }
+.btn-plan-starter:hover { background:#2563eb; }
+.btn-plan-pro { background:#0f172a; color:#fff; }
+.btn-plan-pro:hover { background:#1e293b; }
+.btn-plan:disabled { opacity:0.6; cursor:default; transform:none !important; }
+.current-badge { display:inline-block; background:#dcfce7; color:#15803d; padding:3px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; margin-bottom:1rem; }
+.faq-wrap { max-width:700px; margin:0 auto 3rem; padding:0 1rem; }
+.faq-wrap h2 { font-size:1.3rem; font-weight:800; margin-bottom:1.2rem; text-align:center; }
+.faq-item { background:#fff; border-radius:12px; padding:1.2rem; border:1px solid #e2e8f0; margin-bottom:0.75rem; }
+.faq-item h4 { font-size:0.92rem; font-weight:700; margin-bottom:0.4rem; }
+.faq-item p { font-size:0.85rem; color:#64748b; line-height:1.6; }
+@media(max-width:768px) { .pricing-wrap { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="pricing-hero">
+  <h1>Simple, Transparent Pricing</h1>
+  <p>Start free. Upgrade when your hiring needs grow.</p>
+</div>
+
+<div class="pricing-wrap">
+
+  <!-- FREE -->
+  <div class="plan-card">
+    <div class="plan-name">Free</div>
+    <div id="free-badge"></div>
+    <div class="plan-price">₹0 <span>/ forever</span></div>
+    <div class="plan-desc">Perfect to get started</div>
+    <ul class="plan-features">
+      <li><span class="feat-yes">✓</span> 1 active job posting</li>
+      <li><span class="feat-yes">✓</span> 15 days duration</li>
+      <li><span class="feat-yes">✓</span> Candidate applications</li>
+      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
+      <li><span class="feat-no">✗</span> Multiple job postings</li>
+      <li><span class="feat-no">✗</span> Extended duration</li>
+      <li><span class="feat-no">✗</span> Priority support</li>
+    </ul>
+    <button class="btn-plan btn-plan-free" id="btn-free" onclick="selectFree()">Get Started Free</button>
+  </div>
+
+  <!-- STARTER -->
+  <div class="plan-card popular">
+    <div class="popular-badge">⭐ Most Popular</div>
+    <div class="plan-name">Starter</div>
+    <div id="starter-badge"></div>
+    <div class="plan-price">₹299 <span>/ month</span></div>
+    <div class="plan-desc">For growing businesses</div>
+    <ul class="plan-features">
+      <li><span class="feat-yes">✓</span> 3 active job postings</li>
+      <li><span class="feat-yes">✓</span> 30 days duration</li>
+      <li><span class="feat-yes">✓</span> Candidate applications</li>
+      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
+      <li><span class="feat-yes">✓</span> Email notifications</li>
+      <li><span class="feat-yes">✓</span> Resume downloads</li>
+      <li><span class="feat-no">✗</span> Priority support</li>
+    </ul>
+    <button class="btn-plan btn-plan-starter" id="btn-starter" onclick="buyPlan('starter',299)">Upgrade to Starter</button>
+  </div>
+
+  <!-- PRO -->
+  <div class="plan-card">
+    <div class="plan-name">Pro</div>
+    <div id="pro-badge"></div>
+    <div class="plan-price">₹699 <span>/ month</span></div>
+    <div class="plan-desc">For high-volume hiring</div>
+    <ul class="plan-features">
+      <li><span class="feat-yes">✓</span> 10 active job postings</li>
+      <li><span class="feat-yes">✓</span> 60 days duration</li>
+      <li><span class="feat-yes">✓</span> Candidate applications</li>
+      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
+      <li><span class="feat-yes">✓</span> Email notifications</li>
+      <li><span class="feat-yes">✓</span> Resume downloads</li>
+      <li><span class="feat-yes">✓</span> Priority support</li>
+    </ul>
+    <button class="btn-plan btn-plan-pro" id="btn-pro" onclick="buyPlan('pro',699)">Upgrade to Pro</button>
+  </div>
+
+</div>
+
+<div class="faq-wrap">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-item">
+    <h4>Can I upgrade anytime?</h4>
+    <p>Yes! Upgrade anytime and your new plan activates immediately after payment.</p>
+  </div>
+  <div class="faq-item">
+    <h4>What happens when plan expires?</h4>
+    <p>Jobs are marked expired and hidden from candidates. Renew to relist them instantly.</p>
+  </div>
+  <div class="faq-item">
+    <h4>Is payment secure?</h4>
+    <p>All payments processed by Razorpay — India's most trusted gateway. We never store card details.</p>
+  </div>
+  <div class="faq-item">
+    <h4>Do you offer refunds?</h4>
+    <p>7-day refund policy if you're not satisfied. Contact support@hiretrack.in</p>
+  </div>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="app.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+
+  const RAZORPAY_KEY = 'rzp_test_ShI2u0ijEmSUD1';
+  const PLANS = {
+    free:    { name:'Free',    jobs:1,  days:15, price:0   },
+    starter: { name:'Starter', jobs:3,  days:30, price:299 },
+    pro:     { name:'Pro',     jobs:10, days:60, price:699 }
+  };
+
+  function getEmployerPlan() {
+    const employer = Auth.getCurrentEmployer();
+    if (!employer) return 'free';
+    const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+    const p = plans[employer.id];
+    if (!p || new Date() > new Date(p.expiresAt)) return 'free';
+    return p.plan;
+  }
+
+  function updateUI() {
+    const employer = Auth.getCurrentEmployer();
+    const currentPlan = getEmployerPlan();
+    ['free','starter','pro'].forEach(plan => {
+      const badge = document.getElementById(`${plan}-badge`);
+      const btn = document.getElementById(`btn-${plan}`);
+      if (plan === currentPlan) {
+        badge.innerHTML = '<span class="current-badge">✓ Current Plan</span>';
+        btn.textContent = 'Current Plan';
+        btn.disabled = true;
+      } else {
+        badge.innerHTML = '';
+        btn.disabled = false;
+        if (plan === 'free') btn.textContent = 'Downgrade to Free';
+        else if (plan === 'starter') btn.textContent = currentPlan==='pro' ? 'Downgrade to Starter' : 'Upgrade to Starter ₹299';
+        else btn.textContent = 'Upgrade to Pro ₹699';
+      }
+    });
+    if (!employer) {
+      document.getElementById('btn-free').textContent = 'Get Started Free';
+      document.getElementById('btn-starter').textContent = 'Login to Upgrade';
+      document.getElementById('btn-pro').textContent = 'Login to Upgrade';
+    }
+  }
+
+  function selectFree() {
+    const employer = Auth.getCurrentEmployer();
+    if (!employer) { window.location.href = 'employer-auth.html'; return; }
+    if (confirm('Downgrade to Free? Limited to 1 job for 15 days.')) {
+      const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+      delete plans[employer.id];
+      localStorage.setItem('ht_employer_plans', JSON.stringify(plans));
+      showToast('Downgraded to Free plan.');
+      updateUI();
+    }
+  }
+
+  function buyPlan(planName, amount) {
+    const employer = Auth.getCurrentEmployer();
+    if (!employer) { window.location.href = 'employer-auth.html'; return; }
+    const plan = PLANS[planName];
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: amount * 100,
+      currency: 'INR',
+      name: 'HireTrack',
+      description: `${plan.name} Plan — ${plan.jobs} jobs, ${plan.days} days`,
+      image: 'https://hiretrack-portal.vercel.app/favicon.ico',
+      prefill: { name: employer.contactName, email: employer.email, contact: employer.mobile },
+      theme: { color: '#3b82f6' },
+      handler: function(response) { activatePlan(employer, planName, response.razorpay_payment_id); },
+      modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', () => showToast('Payment failed. Please try again.'));
+    rzp.open();
+  }
+
+  function activatePlan(employer, planName, paymentId) {
+    const plan = PLANS[planName];
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+    const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+    plans[employer.id] = { plan: planName, paymentId, activatedAt: new Date().toISOString(), expiresAt: expiresAt.toISOString(), jobLimit: plan.jobs, dayLimit: plan.days };
+    localStorage.setItem('ht_employer_plans', JSON.stringify(plans));
+
+    // Update existing job expiries
+    const jobs = Auth.getEmployerJobs();
+    jobs.filter(j => j.employerId === employer.id).forEach(j => {
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + plan.days);
+      j.expiresAt = newExpiry.toISOString();
+    });
+    localStorage.setItem('ht_employer_jobs', JSON.stringify(jobs));
+
+    showToast(`✅ ${plan.name} plan activated! Redirecting to dashboard...`);
+    updateUI();
+    setTimeout(() => window.location.href = 'employer-dashboard.html', 2000);
+  }
+
+  updateUI();
+</script>
+</body>
+</html>
