@@ -99,8 +99,9 @@ const Auth = {
   getEmployerJobs() { return JSON.parse(localStorage.getItem('ht_employer_jobs') || '[]'); },
   saveEmployerJob(job) {
     const jobs = this.getEmployerJobs();
+    const days = getEmployerDayLimit();
     const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 15); // 15 days expiry
+    expiryDate.setDate(expiryDate.getDate() + days);
     jobs.push({ ...job, id: Date.now(), postedAt: new Date().toISOString(), expiresAt: expiryDate.toISOString(), applicants: 0 });
     localStorage.setItem('ht_employer_jobs', JSON.stringify(jobs));
   },
@@ -110,7 +111,43 @@ const Auth = {
   }
 };
 
-// ── EXPIRY HELPERS ──
+// ── PLAN HELPERS ──
+const PLAN_LIMITS = {
+  free:    { jobs:1,  days:15 },
+  starter: { jobs:3,  days:30 },
+  pro:     { jobs:10, days:60 }
+};
+
+function getEmployerPlan() {
+  const employer = Auth.getCurrentEmployer();
+  if (!employer) return 'free';
+  const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+  const p = plans[employer.id];
+  if (!p || new Date() > new Date(p.expiresAt)) return 'free';
+  return p.plan;
+}
+
+function getEmployerJobLimit() {
+  return PLAN_LIMITS[getEmployerPlan()].jobs;
+}
+
+function getEmployerDayLimit() {
+  return PLAN_LIMITS[getEmployerPlan()].days;
+}
+
+function checkJobPostLimit() {
+  const employer = Auth.getCurrentEmployer();
+  if (!employer) return true;
+  const myJobs = Auth.getEmployerJobs().filter(j => j.employerId === employer.id && !j.delisted);
+  const limit = getEmployerJobLimit();
+  if (myJobs.length >= limit) {
+    if (confirm(`Your ${getEmployerPlan()} plan allows only ${limit} active job posting${limit>1?'s':''}. Upgrade to post more?`)) {
+      window.location.href = 'pricing.html';
+    }
+    return false;
+  }
+  return true;
+}
 function isJobExpired(job) {
   if (!job.expiresAt) return false;
   return new Date() > new Date(job.expiresAt);
@@ -162,8 +199,9 @@ function renderNavbar(activePage) {
     <a href="${pages.home}" class="nav-logo">Hire<span>Track</span></a>
     <div class="nav-center">
       ${employer ? `
-        <a href="${pages.dashboard}" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>
-        <a href="${pages.postjob}" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
+        <a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>
+        <a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
+        <a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>
       ` : `
         <a href="${pages.home}" ${activePage==='home'?'class="active"':''}>Home</a>
         <a href="${pages.jobs}" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
