@@ -105,12 +105,15 @@
   document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
   function getAllJobs() {
-    const empJobs = Auth.getEmployerJobs().map(j => ({
+    const empJobs = Auth.getEmployerJobs()
+      .filter(j => !j.delisted) // hide delisted jobs from candidates
+      .map(j => ({
       id: j.id, title: j.title, company: j.employer || j.company, location: j.location,
       salary: j.salary || 'Negotiable', type: j.jobType || 'Full Time',
       tags: (j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3),
       posted: 'Recently', phone: j.phone || '9000000000',
-      description: j.description || ''
+      description: j.description || '',
+      expiresAt: j.expiresAt || null
     }));
     return [...JOBS, ...empJobs];
   }
