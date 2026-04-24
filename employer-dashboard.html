@@ -64,7 +64,10 @@
 
     if (!myJobs.length) return;
 
-    document.getElementById('dash-jobs-list').innerHTML = myJobs.map(job => {
+            const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+            const planData = plans[employer.id];
+            const currentPlan = (!planData || new Date() > new Date(planData.expiresAt)) ? 'free' : planData.plan;
+            const extendLabel = currentPlan === 'free' ? '⏳ Extend 15d 🔒' : '⏳ Extend 15d';
       const apps = Auth.getJobApplications(job.id);
       const isExpired = job.expiresAt && new Date() > new Date(job.expiresAt);
       const isDelisted = job.delisted === true;
@@ -83,7 +86,7 @@
           <div class="djr-actions" style="flex-wrap:wrap;gap:6px;">
             <span style="font-size:0.8rem;color:var(--gray5);">${apps.length} applicant${apps.length!==1?'s':''}</span>
             <button class="btn-view-apps" onclick="toggleApplicants('apps-${job.id}', this)">${apps.length?'View':'No Applicants'}</button>
-            <button class="btn-extend" onclick="extendJob(${job.id})" title="Extend by 15 more days">⏳ Extend 15d</button>
+            <button class="btn-extend" onclick="extendJob(${job.id})" title="${currentPlan === 'free' ? 'Upgrade to paid plan to extend' : 'Extend by 15 more days'}">${extendLabel}</button>
             <button class="btn-delist ${isDelisted?'btn-relist':''}" onclick="toggleDelist(${job.id})">${isDelisted?'🔁 Relist':'⛔ Delist'}</button>
             <button class="btn-delete" onclick="deleteJob(${job.id})">🗑 Delete</button>
           </div>
@@ -121,11 +124,23 @@
   }
 
   function extendJob(jobId) {
+    const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
+    const planData = plans[employer.id];
+    const currentPlan = (!planData || new Date() > new Date(planData.expiresAt)) ? 'free' : planData.plan;
+
+    // Free plan — redirect to pricing
+    if (currentPlan === 'free') {
+      if (confirm('Extending beyond 15 days requires a paid plan. Would you like to view our pricing?')) {
+        window.location.href = 'pricing.html';
+      }
+      return;
+    }
+
+    // Paid plan — allow extension
     if (!confirm('Extend this job listing by 15 more days?')) return;
     const jobs = Auth.getEmployerJobs();
     const job = jobs.find(j => j.id === jobId);
     if (!job) return;
-    // Extend from today or from current expiry, whichever is later
     const base = job.expiresAt && new Date(job.expiresAt) > new Date() ? new Date(job.expiresAt) : new Date();
     base.setDate(base.getDate() + 15);
     job.expiresAt = base.toISOString();
