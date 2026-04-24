@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request a Callback — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.callback-hero { background:linear-gradient(135deg,#0f172a,#1e293b); padding:3rem 2rem; text-align:center; color:#fff; }
+.callback-hero h1 { font-size:1.9rem; font-weight:800; margin-bottom:0.5rem; }
+.callback-hero p { color:#94a3b8; }
+.time-slots { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.2rem; }
+.time-slot { border:2px solid var(--gray3); border-radius:10px; padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; }
+.time-slot:hover { border-color:var(--blue); background:#f0f7ff; }
+.time-slot.selected { border-color:var(--blue); background:var(--blue); color:#fff; }
+.time-slot .slot-icon { font-size:1.5rem; margin-bottom:0.3rem; }
+.time-slot .slot-name { font-size:0.88rem; font-weight:700; }
+.time-slot .slot-time { font-size:0.75rem; opacity:0.8; }
+.why-call { background:#fff; border-radius:16px; border:1.5px solid var(--gray3); padding:1.5rem; margin-top:1.5rem; }
+.why-call h3 { font-size:1rem; font-weight:700; margin-bottom:1rem; }
+.why-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:0.8rem; font-size:0.88rem; }
+.why-item .icon { font-size:1.2rem; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="callback-hero">
+  <h1>📞 Request a Callback</h1>
+  <p>Our team will call you to help set up your hiring on HireTrack — completely free!</p>
+</div>
+
+<div style="max-width:680px;margin:2rem auto;padding:0 1rem;display:grid;grid-template-columns:1fr;gap:1.5rem;">
+
+  <div class="form-card">
+    <h2>Schedule Your Call</h2>
+    <p class="sub">Fill in your details and we'll call you at your preferred time</p>
+
+    <div class="alert alert-error" id="err-msg"></div>
+    <div class="alert alert-success" id="success-msg"></div>
+
+    <div class="form-row">
+      <div class="fg-form"><label>Your Name *</label><input type="text" id="cb-name" placeholder="Your full name" /></div>
+      <div class="fg-form"><label>Company Name *</label><input type="text" id="cb-company" placeholder="Your company name" /></div>
+    </div>
+
+    <div class="fg-form"><label>Mobile Number *</label><input type="tel" id="cb-mobile" placeholder="10-digit mobile number" maxlength="10" /></div>
+
+    <div class="fg-form">
+      <label>Preferred Callback Time *</label>
+      <div class="time-slots" id="time-slots">
+        <div class="time-slot" data-time="Morning (9AM-12PM)" onclick="selectTime(this)">
+          <div class="slot-icon">🌅</div>
+          <div class="slot-name">Morning</div>
+          <div class="slot-time">9AM – 12PM</div>
+        </div>
+        <div class="time-slot" data-time="Afternoon (12PM-4PM)" onclick="selectTime(this)">
+          <div class="slot-icon">☀️</div>
+          <div class="slot-name">Afternoon</div>
+          <div class="slot-time">12PM – 4PM</div>
+        </div>
+        <div class="time-slot" data-time="Evening (4PM-7PM)" onclick="selectTime(this)">
+          <div class="slot-icon">🌆</div>
+          <div class="slot-name">Evening</div>
+          <div class="slot-time">4PM – 7PM</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg-form">
+      <label>What do you need help with?</label>
+      <textarea id="cb-message" rows="3" placeholder="e.g. I want to hire 2 MIS executives for my Bengaluru office..."></textarea>
+    </div>
+
+    <button class="btn-primary" onclick="submitCallback()">📞 Request Callback</button>
+  </div>
+
+  <div class="why-call">
+    <h3>Why talk to us?</h3>
+    <div class="why-item"><span class="icon">🎯</span><div><strong>Free setup assistance</strong> — We'll help you post your first job perfectly targeted to the right candidates.</div></div>
+    <div class="why-item"><span class="icon">⚡</span><div><strong>Fast hiring</strong> — Our team knows the Karnataka MIS & Data talent pool deeply.</div></div>
+    <div class="why-item"><span class="icon">💰</span><div><strong>Free trial available</strong> — Our executives can activate a free trial for your account.</div></div>
+    <div class="why-item"><span class="icon">📊</span><div><strong>Expert guidance</strong> — Get tips on writing job descriptions that attract the best candidates.</div></div>
+  </div>
+
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+  let selectedTime = '';
+
+  function selectTime(el) {
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTime = el.dataset.time;
+  }
+
+  async function submitCallback() {
+    const name = document.getElementById('cb-name').value.trim();
+    const company = document.getElementById('cb-company').value.trim();
+    const mobile = document.getElementById('cb-mobile').value.trim();
+    const message = document.getElementById('cb-message').value.trim();
+    const errEl = document.getElementById('err-msg');
+    const successEl = document.getElementById('success-msg');
+    errEl.style.display = 'none'; successEl.style.display = 'none';
+
+    if (!name || !company || !mobile) { errEl.textContent = 'Please fill in all required fields.'; errEl.style.display = 'block'; return; }
+    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) { errEl.textContent = 'Please enter a valid 10-digit mobile number.'; errEl.style.display = 'block'; return; }
+    if (!selectedTime) { errEl.textContent = 'Please select a preferred callback time.'; errEl.style.display = 'block'; return; }
+
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = 'Submitting...'; btn.disabled = true;
+
+    // Save to Supabase
+    const { error } = await sb.from('callback_requests').insert([{
+      name, company, mobile, preferred_time: selectedTime, message: message || null
+    }]);
+
+    if (error) { errEl.textContent = 'Failed to submit. Please try again.'; errEl.style.display = 'block'; btn.textContent = '📞 Request Callback'; btn.disabled = false; return; }
+
+    // Send email notification to admin
+    await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: '30483d95-3da0-4a00-a262-944b2e82b3b2',
+        subject: `📞 New Callback Request — ${company} | HireTrack`,
+        message: `New callback request!\n\nName: ${name}\nCompany: ${company}\nMobile: ${mobile}\nPreferred Time: ${selectedTime}\nMessage: ${message || 'No message'}\n\nView in admin: https://hiretrack-portal.vercel.app/admin/dashboard.html`,
+        from_name: 'HireTrack Callbacks',
+        email: 'anchansachinv99@gmail.com'
+      })
+    });
+
+    successEl.textContent = '✅ Callback request submitted! Our team will call you during your preferred time slot.';
+    successEl.style.display = 'block';
+    btn.textContent = 'Submitted ✓';
+  }
+</script>
+</body>
+</html>

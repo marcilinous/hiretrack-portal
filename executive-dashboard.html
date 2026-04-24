@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Executive Dashboard — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.exec-wrap { max-width:1000px; margin:2rem auto; padding:0 1rem; }
+.exec-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+.exec-stat { background:#fff; border-radius:12px; padding:1.2rem; border:1.5px solid var(--gray3); text-align:center; }
+.exec-stat strong { font-size:1.8rem; font-weight:800; color:var(--navy); display:block; }
+.exec-stat span { font-size:0.78rem; color:var(--gray5); }
+.exec-card { background:#fff; border-radius:16px; padding:1.5rem; border:1.5px solid var(--gray3); margin-bottom:1.5rem; }
+.exec-card h2 { font-size:1.1rem; font-weight:800; margin-bottom:1.2rem; }
+.ref-row { display:flex; justify-content:space-between; align-items:center; padding:0.85rem; border-radius:10px; border:1px solid var(--gray3); margin-bottom:0.7rem; }
+.ref-info h4 { font-size:0.92rem; font-weight:700; }
+.ref-info p { font-size:0.78rem; color:var(--gray5); }
+.tab-btns { display:flex; gap:0.5rem; margin-bottom:1.5rem; }
+.tab-btn { padding:0.5rem 1.2rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; border:none; font-family:inherit; background:var(--gray2); color:var(--gray5); transition:all 0.2s; }
+.tab-btn.active { background:var(--blue); color:#fff; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+.cb-row { display:flex; justify-content:space-between; align-items:center; padding:0.85rem; border-radius:10px; border:1px solid var(--gray3); margin-bottom:0.6rem; }
+.cb-info h4 { font-size:0.88rem; font-weight:700; }
+.cb-info p { font-size:0.78rem; color:var(--gray5); }
+.status-pending { background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.status-called { background:#dbeafe; color:#1d4ed8; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.status-converted { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+@media(max-width:768px) { .exec-stats { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="navbar-exec" style="position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.97);backdrop-filter:blur(12px);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;border-bottom:1px solid rgba(255,255,255,0.06);">
+  <a href="index.html" style="font-family:system-ui;font-size:1.4rem;font-weight:800;color:#fff;text-decoration:none;">Hire<span style="color:#3b82f6;">Track</span></a>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span id="exec-name-nav" style="color:#94a3b8;font-size:0.88rem;"></span>
+    <button onclick="doLogout()" style="background:#fee2e2;color:#b91c1c;border:none;padding:0.4rem 0.9rem;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Logout</button>
+  </div>
+</div>
+
+<div class="page-hd" style="background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;padding:2rem 2rem;text-align:center;">
+  <h1 id="exec-company">Executive Dashboard</h1>
+  <p id="exec-subtitle" style="color:#94a3b8;">Manage referrals and post jobs on behalf of employers</p>
+</div>
+
+<div class="exec-wrap">
+
+  <div class="exec-stats">
+    <div class="exec-stat"><strong id="stat-referrals">0</strong><span>Total Referrals</span></div>
+    <div class="exec-stat"><strong id="stat-conversions">0</strong><span>Conversions</span></div>
+    <div class="exec-stat"><strong id="stat-callbacks">0</strong><span>Callbacks</span></div>
+    <div class="exec-stat"><strong id="stat-jobs">0</strong><span>Jobs Posted</span></div>
+  </div>
+
+  <div class="tab-btns">
+    <button class="tab-btn active" onclick="switchTab('post-job')">📝 Post Job for Employer</button>
+    <button class="tab-btn" onclick="switchTab('callbacks')">📞 Callback Requests</button>
+    <button class="tab-btn" onclick="switchTab('referrals')">🎯 My Referrals</button>
+  </div>
+
+  <!-- POST JOB TAB -->
+  <div class="tab-content active" id="tab-post-job">
+    <div class="exec-card">
+      <h2>Post a Job on Behalf of Employer</h2>
+      <p style="font-size:0.85rem;color:var(--gray5);margin-bottom:1.2rem;">Fill in the employer's details. This job will be tagged with your referral and the employer will get a <strong>7-day free trial</strong>.</p>
+
+      <div class="alert alert-error" id="job-err"></div>
+      <div class="alert alert-success" id="job-success"></div>
+
+      <div style="background:#dbeafe;border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:#1d4ed8;">
+        🎁 <strong>Free Trial:</strong> This job post will be live for <strong>7 days free</strong>. The employer will be registered automatically and can login later to manage their posting.
+      </div>
+
+      <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;color:var(--gray5);">EMPLOYER DETAILS</h3>
+      <div class="form-row">
+        <div class="fg-form"><label>Company Name *</label><input type="text" id="emp-company" placeholder="Company name" /></div>
+        <div class="fg-form"><label>Contact Person *</label><input type="text" id="emp-contact" placeholder="HR Manager name" /></div>
+      </div>
+      <div class="form-row">
+        <div class="fg-form"><label>Employer Email *</label><input type="email" id="emp-email" placeholder="hr@company.com" /></div>
+        <div class="fg-form"><label>Employer Mobile *</label><input type="tel" id="emp-mobile" placeholder="9XXXXXXXXX" maxlength="10" /></div>
+      </div>
+      <div class="fg-form"><label>City *</label>
+        <select id="emp-city"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Other Karnataka</option></select>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--gray3);margin:1.2rem 0;">
+      <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;color:var(--gray5);">JOB DETAILS</h3>
+
+      <div class="form-row">
+        <div class="fg-form"><label>Job Title *</label><input type="text" id="job-title" placeholder="e.g. MIS Executive" /></div>
+        <div class="fg-form"><label>Location *</label>
+          <select id="job-location"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Remote</option><option>Other Karnataka</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg-form"><label>Job Type</label>
+          <select id="job-type"><option>Full Time</option><option>Contract</option><option>Remote</option></select>
+        </div>
+        <div class="fg-form"><label>Salary Range</label><input type="text" id="job-salary" placeholder="e.g. ₹4–6 LPA" /></div>
+      </div>
+      <div class="fg-form"><label>Required Skills</label><input type="text" id="job-skills" placeholder="Excel, SQL, Power BI" /></div>
+      <div class="fg-form"><label>WhatsApp Number for Applications *</label><input type="tel" id="job-phone" placeholder="10-digit mobile" maxlength="10" /></div>
+      <div class="fg-form"><label>Job Description *</label><textarea id="job-desc" rows="5" placeholder="Describe the role and requirements..."></textarea></div>
+
+      <button class="btn-primary" onclick="postJobForEmployer()">🚀 Post Job (7-Day Free Trial)</button>
+    </div>
+  </div>
+
+  <!-- CALLBACKS TAB -->
+  <div class="tab-content" id="tab-callbacks">
+    <div class="exec-card">
+      <h2>Callback Requests</h2>
+      <div id="callbacks-list"><div class="loading-spinner">Loading callbacks...</div></div>
+    </div>
+  </div>
+
+  <!-- REFERRALS TAB -->
+  <div class="tab-content" id="tab-referrals">
+    <div class="exec-card">
+      <h2>My Referrals</h2>
+      <div id="referrals-list"><div class="loading-spinner">Loading referrals...</div></div>
+    </div>
+  </div>
+
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — Executive Portal</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  const executive = JSON.parse(sessionStorage.getItem('ht_executive') || 'null');
+  if (!executive) window.location.href = 'executive.html';
+
+  document.getElementById('exec-name-nav').textContent = `Hi, ${executive.name.split(' ')[0]} 👋`;
+  document.getElementById('exec-company').textContent = `${executive.name}'s Dashboard`;
+  document.getElementById('exec-subtitle').textContent = `Executive ID: ${executive.id.slice(0,8)}... | Referral Code: ${executive.id.slice(0,8).toUpperCase()}`;
+
+  function doLogout() { sessionStorage.removeItem('ht_executive'); window.location.href = 'executive.html'; }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b,i) => { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const tabs = ['post-job','callbacks','referrals'];
+    const idx = tabs.indexOf(tab);
+    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    if (tab === 'callbacks') loadCallbacks();
+    if (tab === 'referrals') loadReferrals();
+  }
+
+  async function loadStats() {
+    const { data: referrals } = await sb.from('employers').select('id').eq('referred_by', executive.id);
+    const { data: callbacks } = await sb.from('callback_requests').select('id').eq('executive_id', executive.id);
+    const { data: jobs } = await sb.from('jobs').select('id').eq('posted_by_executive', executive.id);
+    const conversions = referrals?.filter(r => r.plan !== 'free')?.length || 0;
+    document.getElementById('stat-referrals').textContent = referrals?.length || 0;
+    document.getElementById('stat-conversions').textContent = conversions;
+    document.getElementById('stat-callbacks').textContent = callbacks?.length || 0;
+    document.getElementById('stat-jobs').textContent = jobs?.length || 0;
+  }
+
+  async function loadCallbacks() {
+    const { data: callbacks } = await sb.from('callback_requests').select('*').order('created_at', { ascending: false });
+    const list = document.getElementById('callbacks-list');
+    if (!callbacks?.length) { list.innerHTML = '<div class="empty-state"><div class="es-icon">📞</div><p>No callback requests yet.</p></div>'; return; }
+    list.innerHTML = callbacks.map(c => `
+      <div class="cb-row">
+        <div class="cb-info">
+          <h4>${c.name} — ${c.company}</h4>
+          <p>📞 ${c.mobile} · ⏰ ${c.preferred_time} · ${new Date(c.created_at).toLocaleDateString('en-IN')}</p>
+          ${c.message ? `<p style="margin-top:4px;font-style:italic;">"${c.message}"</p>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <span class="status-${c.status.toLowerCase()}">${c.status}</span>
+          <select onchange="updateCallbackStatus('${c.id}',this.value)" style="border:1px solid var(--gray3);border-radius:6px;padding:3px 6px;font-size:0.75rem;outline:none;font-family:inherit;">
+            <option ${c.status==='Pending'?'selected':''}>Pending</option>
+            <option ${c.status==='Called'?'selected':''}>Called</option>
+            <option ${c.status==='Converted'?'selected':''}>Converted</option>
+          </select>
+        </div>
+      </div>`).join('');
+  }
+
+  async function updateCallbackStatus(id, status) {
+    await sb.from('callback_requests').update({ status }).eq('id', id);
+    showToast(`Status updated to ${status}`);
+    loadCallbacks();
+  }
+
+  async function loadReferrals() {
+    const { data: referrals } = await sb.from('employers').select('*').eq('referred_by', executive.id).order('created_at', { ascending: false });
+    const list = document.getElementById('referrals-list');
+    if (!referrals?.length) { list.innerHTML = '<div class="empty-state"><div class="es-icon">🎯</div><p>No referrals yet. Post a job for an employer to add them!</p></div>'; return; }
+    list.innerHTML = referrals.map(e => `
+      <div class="ref-row">
+        <div class="ref-info">
+          <h4>${e.company}</h4>
+          <p>📞 ${e.mobile} · ✉️ ${e.email} · 📍 ${e.city} · Referred ${new Date(e.created_at).toLocaleDateString('en-IN')}</p>
+        </div>
+        <span class="badge ${e.plan==='free'?'badge-gray':e.plan==='starter'?'badge-blue':'badge-green'}" style="font-size:0.72rem;padding:4px 12px;">
+          ${e.is_free_trial?'🎁 Free Trial':e.plan.charAt(0).toUpperCase()+e.plan.slice(1)}
+        </span>
+      </div>`).join('');
+  }
+
+  async function postJobForEmployer() {
+    const empCompany = document.getElementById('emp-company').value.trim();
+    const empContact = document.getElementById('emp-contact').value.trim();
+    const empEmail = document.getElementById('emp-email').value.trim();
+    const empMobile = document.getElementById('emp-mobile').value.trim();
+    const empCity = document.getElementById('emp-city').value;
+    const jobTitle = document.getElementById('job-title').value.trim();
+    const jobLocation = document.getElementById('job-location').value;
+    const jobType = document.getElementById('job-type').value;
+    const jobSalary = document.getElementById('job-salary').value.trim();
+    const jobSkills = document.getElementById('job-skills').value.trim();
+    const jobPhone = document.getElementById('job-phone').value.trim();
+    const jobDesc = document.getElementById('job-desc').value.trim();
+    const errEl = document.getElementById('job-err'); const successEl = document.getElementById('job-success');
+    errEl.style.display='none'; successEl.style.display='none';
+
+    if (!empCompany||!empContact||!empEmail||!empMobile||!empCity||!jobTitle||!jobLocation||!jobPhone||!jobDesc) {
+      errEl.textContent='Please fill all required fields.'; errEl.style.display='block'; return;
+    }
+    if (empMobile.length!==10||jobPhone.length!==10) { errEl.textContent='Enter valid 10-digit mobile numbers.'; errEl.style.display='block'; return; }
+
+    const btn = document.querySelector('#tab-post-job .btn-primary'); btn.textContent='Posting...'; btn.disabled=true;
+
+    // Check if employer already exists
+    let { data: employer } = await sb.from('employers').select('*').eq('email', empEmail).maybeSingle();
+
+    if (!employer) {
+      // Create new employer with free trial
+      const trialExpiry = new Date(); trialExpiry.setDate(trialExpiry.getDate() + 7);
+      const { data: newEmp, error } = await sb.from('employers').insert([{
+        company: empCompany, contact_name: empContact, email: empEmail, mobile: empMobile,
+        password: empMobile, // Default password is their mobile number
+        city: empCity, industry: 'Other', plan: 'free',
+        job_limit: 1, day_limit: 7,
+        referred_by: executive.id, is_free_trial: true, free_trial_expires_at: trialExpiry.toISOString()
+      }]).select().single();
+      if (error) { errEl.textContent=error.message; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
+      employer = newEmp;
+    }
+
+    // Post the job
+    const expiryDate = new Date(); expiryDate.setDate(expiryDate.getDate() + 7);
+    const { error: jobError } = await sb.from('jobs').insert([{
+      employer_id: employer.id, title: jobTitle, company: empCompany,
+      location: jobLocation, job_type: jobType, salary: jobSalary,
+      skills: jobSkills, phone: jobPhone, description: jobDesc,
+      email: empEmail, expires_at: expiryDate.toISOString(),
+      posted_by_executive: executive.id, is_free_trial: true
+    }]);
+
+    if (jobError) { errEl.textContent=jobError.message; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
+
+    // Send email to employer with login details
+    await fetch('https://api.web3forms.com/submit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        access_key:'30483d95-3da0-4a00-a262-944b2e82b3b2',
+        subject:`Your job "${jobTitle}" is live on HireTrack! 🎉`,
+        message:`Hi ${empContact},\n\nGreat news! Your job posting is now live on HireTrack!\n\nJob: ${jobTitle}\nLocation: ${jobLocation}\nFree Trial: 7 days\n\nYour login details:\nEmail: ${empEmail}\nPassword: ${empMobile} (your mobile number)\n\nLogin to manage your posting:\nhttps://hiretrack-portal.vercel.app/employer-auth.html\n\nBest regards,\nHireTrack Team`,
+        from_name:'HireTrack Team', email:empEmail, replyto:'anchansachinv99@gmail.com'
+      })
+    });
+
+    successEl.innerHTML=`✅ Job posted successfully! <strong>${empCompany}</strong> has been registered with a 7-day free trial. Login credentials sent to ${empEmail}.`;
+    successEl.style.display='block'; btn.textContent='Posted ✓';
+    loadStats();
+
+    // Clear form
+    ['emp-company','emp-contact','emp-email','emp-mobile','job-title','job-salary','job-skills','job-phone','job-desc'].forEach(id=>document.getElementById(id).value='');
+    ['emp-city','job-location'].forEach(id=>document.getElementById(id).selectedIndex=0);
+    setTimeout(()=>{btn.textContent='🚀 Post Job (7-Day Free Trial)';btn.disabled=false;},2000);
+  }
+
+  loadStats();
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Executive Portal — HireTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<!-- STEP 1: Choose login or register -->
+<div class="form-wrap" style="max-width:460px;" id="step-choose">
+  <div class="form-card" style="text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">🎯</div>
+    <h2>Executive Portal</h2>
+    <p class="sub">HireTrack Sales Team — Post jobs on behalf of employers and track your referrals</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;">
+      <button class="btn-primary" onclick="showStep('step-login')" style="background:var(--navy);">Login</button>
+      <button class="btn-primary" onclick="showStep('step-register')">Register</button>
+    </div>
+    <p class="form-switch" style="margin-top:1rem;"><a href="index.html">← Back to HireTrack</a></p>
+  </div>
+</div>
+
+<!-- STEP 2A: Login -->
+<div class="form-wrap" style="max-width:440px;display:none;" id="step-login">
+  <div class="form-card">
+    <h2>Executive Login</h2>
+    <p class="sub">Login to your executive account</p>
+    <div class="alert alert-error" id="err-login"></div>
+    <div class="fg-form"><label>Email *</label><input type="email" id="login-email" placeholder="your@email.com" /></div>
+    <div class="fg-form"><label>Password *</label><input type="password" id="login-password" placeholder="Your password" /></div>
+    <button class="btn-primary" onclick="doLogin()">Login</button>
+    <p class="form-switch"><a href="#" onclick="showStep('step-choose')">← Back</a></p>
+  </div>
+</div>
+
+<!-- STEP 2B: Register -->
+<div class="form-wrap" style="max-width:500px;display:none;" id="step-register">
+  <div class="form-card">
+    <h2>Executive Registration</h2>
+    <p class="sub">Register with your secret code provided by admin</p>
+    <div class="alert alert-error" id="err-register"></div>
+    <div class="form-row">
+      <div class="fg-form"><label>Full Name *</label><input type="text" id="reg-name" placeholder="Your name" /></div>
+      <div class="fg-form"><label>Mobile *</label><input type="tel" id="reg-mobile" placeholder="9XXXXXXXXX" maxlength="10" /></div>
+    </div>
+    <div class="fg-form"><label>Email *</label><input type="email" id="reg-email" placeholder="your@email.com" /></div>
+    <div class="form-row">
+      <div class="fg-form"><label>Password *</label><input type="password" id="reg-password" placeholder="Min 6 characters" /></div>
+      <div class="fg-form"><label>Confirm Password *</label><input type="password" id="reg-confirm" placeholder="Repeat password" /></div>
+    </div>
+    <div class="fg-form">
+      <label>Secret Registration Code *</label>
+      <input type="text" id="reg-secret" placeholder="Enter code provided by admin" />
+      <small style="color:var(--gray5);font-size:0.78rem;">Contact admin to get your registration code</small>
+    </div>
+    <button class="btn-primary" onclick="doRegister()">Register as Executive</button>
+    <p class="form-switch"><a href="#" onclick="showStep('step-choose')">← Back</a></p>
+  </div>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — Executive Portal</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+  // Redirect if already logged in
+  if (sessionStorage.getItem('ht_executive')) window.location.href = 'executive-dashboard.html';
+
+  function showStep(id) {
+    ['step-choose','step-login','step-register'].forEach(s => document.getElementById(s).style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('err-login'); errEl.style.display = 'none';
+    if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
+    const btn = document.querySelector('#step-login .btn-primary'); btn.textContent = 'Logging in...'; btn.disabled = true;
+    const { data: exec } = await sb.from('executives').select('*').eq('email', email).eq('password', password).maybeSingle();
+    if (!exec) { errEl.textContent = 'Invalid email or password.'; errEl.style.display = 'block'; btn.textContent = 'Login'; btn.disabled = false; return; }
+    sessionStorage.setItem('ht_executive', JSON.stringify(exec));
+    window.location.href = 'executive-dashboard.html';
+  }
+
+  async function doRegister() {
+    const name = document.getElementById('reg-name').value.trim();
+    const mobile = document.getElementById('reg-mobile').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm = document.getElementById('reg-confirm').value;
+    const secret = document.getElementById('reg-secret').value.trim();
+    const errEl = document.getElementById('err-register'); errEl.style.display = 'none';
+
+    if (!name || !mobile || !email || !password || !secret) { errEl.textContent = 'Please fill all fields.'; errEl.style.display = 'block'; return; }
+    if (mobile.length !== 10) { errEl.textContent = 'Enter valid 10-digit mobile.'; errEl.style.display = 'block'; return; }
+    if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+    if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+
+    // Verify secret code
+    const VALID_SECRET = 'HIRETRACK2025'; // Change this in admin panel later
+    if (secret.toUpperCase() !== VALID_SECRET) { errEl.textContent = 'Invalid secret code. Contact admin.'; errEl.style.display = 'block'; return; }
+
+    const btn = document.querySelector('#step-register .btn-primary'); btn.textContent = 'Registering...'; btn.disabled = true;
+    const { data: existing } = await sb.from('executives').select('id').eq('email', email).maybeSingle();
+    if (existing) { errEl.textContent = 'Email already registered.'; errEl.style.display = 'block'; btn.textContent = 'Register as Executive'; btn.disabled = false; return; }
+
+    const { data: exec, error } = await sb.from('executives').insert([{ name, email, mobile, password, secret_code: secret }]).select().single();
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; btn.textContent = 'Register as Executive'; btn.disabled = false; return; }
+    sessionStorage.setItem('ht_executive', JSON.stringify(exec));
+    window.location.href = 'executive-dashboard.html';
+  }
+</script>
+</body>
+</html>
