@@ -248,6 +248,12 @@ body { padding-top: 64px; }
 .job-expired:hover { border-color:#f87171 !important; box-shadow:0 4px 16px rgba(239,68,68,0.1) !important; }
 .expired-btn { background:#94a3b8 !important; cursor:not-allowed !important; }
 .expired-btn:hover { background:#94a3b8 !important; }
+.btn-extend { background:#dbeafe; color:#1d4ed8; border:none; padding:0.4rem 0.8rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.btn-extend:hover { background:#bfdbfe; }
+.btn-delist { background:#ffedd5; color:#c2410c; border:none; padding:0.4rem 0.8rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.btn-delist:hover { background:#fed7aa; }
+.btn-relist { background:#dcfce7 !important; color:#15803d !important; border:none; padding:0.4rem 0.8rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-relist:hover { background:#bbf7d0 !important; }
 footer { background:var(--navy); color:#94a3b8; text-align:center; padding:1.5rem; font-size:0.83rem; margin-top:3rem; }
 footer span { color:var(--blue); }
 
