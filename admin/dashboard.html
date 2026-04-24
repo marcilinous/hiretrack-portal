@@ -264,16 +264,24 @@
 
   async function renderCallbacksTable() {
     const q = document.getElementById('cb-search')?.value.toLowerCase() || '';
-    const { data: callbacks } = await sb.from('callback_requests').select('*, executives(name)').order('created_at', { ascending: false });
+    const { data: callbacks } = await sb.from('callback_requests')
+      .select('*, executives(name)').order('created_at', { ascending: false });
+    const { data: executives } = await sb.from('executives').select('id,name').eq('is_active', true);
     const filtered = (callbacks||[]).filter(c => !q || (c.name+c.company+c.mobile).toLowerCase().includes(q));
     const statusClass = { Pending:'badge-orange', Called:'badge-blue', Converted:'badge-green' };
     const tbody = document.getElementById('callbacks-table');
+    const execOptions = (executives||[]).map(e => `<option value="${e.id}">${e.name}</option>`).join('');
     tbody.innerHTML = filtered.length ? filtered.map(c => `<tr>
       <td><strong>${c.name}</strong></td>
       <td>${c.company}</td>
       <td>📞 <a href="tel:${c.mobile}" style="color:#3b82f6;">${c.mobile}</a></td>
       <td>${c.preferred_time}</td>
-      <td>${c.executives?.name || '<span style="color:#94a3b8;">Unassigned</span>'}</td>
+      <td>
+        <select onchange="reassignCallback('${c.id}',this.value)" style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78rem;outline:none;font-family:inherit;min-width:120px;">
+          <option value="">Unassigned</option>
+          ${(executives||[]).map(e=>`<option value="${e.id}" ${c.assigned_to===e.id?'selected':''}>${e.name}</option>`).join('')}
+        </select>
+      </td>
       <td><span class="badge ${statusClass[c.status]||'badge-gray'}">${c.status}</span></td>
       <td>${new Date(c.created_at).toLocaleDateString('en-IN')}</td>
       <td>
@@ -284,6 +292,14 @@
         </select>
       </td>
     </tr>`).join('') : `<tr><td colspan="8" class="empty">No callback requests yet</td></tr>`;
+  }
+
+  async function reassignCallback(id, executiveId) {
+    await sb.from('callback_requests').update({
+      assigned_to: executiveId || null,
+      assigned_at: new Date().toISOString()
+    }).eq('id', id);
+    toast('Callback reassigned!');
   }
 
   async function updateCbStatus(id, status) {
