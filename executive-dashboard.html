@@ -164,11 +164,18 @@
   }
 
   async function loadCallbacks() {
-    // Executive only sees callbacks assigned to them
-    const { data: callbacks } = await sb.from('callback_requests')
-      .select('*').eq('assigned_to', executive.id)
-      .order('created_at', { ascending: false });
+    // Get total executive count
+    const { data: allExecs } = await sb.from('executives').select('id').eq('is_active', true);
+    const isSoloExec = allExecs?.length === 1;
+
+    // If only 1 executive — show all callbacks (assigned + unassigned)
+    // If multiple executives — show only assigned to this executive
+    let query = sb.from('callback_requests').select('*').order('created_at', { ascending: false });
+    if (!isSoloExec) query = query.eq('assigned_to', executive.id);
+
+    const { data: callbacks } = await query;
     const list = document.getElementById('callbacks-list');
+
     if (!callbacks?.length) {
       list.innerHTML = '<div class="empty-state"><div class="es-icon">📞</div><p>No callbacks assigned to you yet.<br><small style="color:var(--gray4);">Callbacks are auto-assigned via round robin.</small></p></div>';
       return;
