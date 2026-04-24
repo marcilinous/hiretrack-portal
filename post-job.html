@@ -3,33 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login — HireTrack</title>
+<title>Post a Job — HireTrack</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div id="navbar"></div>
 
-<div class="form-wrap" style="max-width:440px;">
+<div class="page-hd">
+  <h1>Post a Job on HireTrack</h1>
+  <p>Reach thousands of qualified MIS & Data professionals across Karnataka</p>
+</div>
+
+<div class="form-wrap">
   <div class="form-card">
-    <h2>Welcome Back</h2>
-    <p class="sub">Login to your HireTrack candidate account</p>
+
+    <!-- AI JD Writer -->
+    <div class="ai-card" style="margin-bottom:1.5rem;">
+      <div class="ai-card-header">
+        <div class="ai-pulse"></div>
+        <h3>AI Job Description Writer</h3>
+        <span class="ai-badge">Powered by Gemini</span>
+      </div>
+      <p style="font-size:0.83rem;color:var(--gray5);margin-bottom:0.8rem;">Describe the role briefly and AI will write the job description for you!</p>
+      <div class="ai-row">
+        <input type="text" id="ai-jd-input" placeholder="e.g. MIS Executive with Excel and SQL, 2–4 years exp" />
+        <button onclick="generateJD()">Generate</button>
+      </div>
+      <div class="ai-response" id="ai-jd-response"></div>
+    </div>
 
     <div class="alert alert-error" id="err-msg"></div>
+    <div class="alert alert-success" id="success-msg"></div>
 
-    <div class="fg-form">
-      <label>Email Address *</label>
-      <input type="email" id="email" placeholder="you@example.com" />
+    <div class="form-row">
+      <div class="fg-form">
+        <label>Job Title *</label>
+        <input type="text" id="job-title" placeholder="e.g. MIS Executive" />
+      </div>
+      <div class="fg-form">
+        <label>Company Name *</label>
+        <input type="text" id="company" placeholder="Your company name" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="fg-form">
+        <label>Location *</label>
+        <select id="location">
+          <option value="">Select city</option>
+          <option>Bengaluru</option>
+          <option>Mysuru</option>
+          <option>Mangaluru</option>
+          <option>Hubballi</option>
+          <option>Remote</option>
+          <option>Other Karnataka</option>
+        </select>
+      </div>
+      <div class="fg-form">
+        <label>Job Type *</label>
+        <select id="job-type">
+          <option>Full Time</option>
+          <option>Contract</option>
+          <option>Remote</option>
+          <option>Part Time</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="fg-form">
+        <label>Salary Range</label>
+        <input type="text" id="salary" placeholder="e.g. ₹4–6 LPA" />
+      </div>
+      <div class="fg-form">
+        <label>Experience Required</label>
+        <select id="experience">
+          <option>0–1 years (Fresher)</option>
+          <option>1–3 years</option>
+          <option>3–5 years</option>
+          <option>5+ years</option>
+        </select>
+      </div>
     </div>
     <div class="fg-form">
-      <label>Password *</label>
-      <input type="password" id="password" placeholder="Your password" />
+      <label>Required Skills (comma separated)</label>
+      <input type="text" id="skills" placeholder="e.g. Excel, SQL, Power BI, MIS Reporting" />
+    </div>
+    <div class="fg-form">
+      <label>WhatsApp Contact Number *</label>
+      <input type="tel" id="phone" placeholder="10-digit mobile for WhatsApp applications" maxlength="10" />
+    </div>
+    <div class="fg-form">
+      <label>Job Description *</label>
+      <textarea id="description" rows="6" placeholder="Describe the role, responsibilities and requirements..."></textarea>
+    </div>
+    <div class="fg-form">
+      <label>Contact Email *</label>
+      <input type="email" id="email" placeholder="hr@yourcompany.com" />
     </div>
 
-    <button class="btn-primary" onclick="doLogin()">Login</button>
-    <p class="form-switch">Don't have an account? <a href="signup.html">Sign up free</a></p>
-    <div class="form-divider"><hr><span>Are you an employer?</span><hr></div>
-    <a href="employer-auth.html" style="display:block;text-align:center;background:var(--gray2);color:var(--navy);padding:0.75rem;border-radius:10px;font-weight:600;font-size:0.9rem;">Login as Employer →</a>
+    <button class="btn-primary" onclick="submitJob()">Post Job for Free</button>
   </div>
 </div>
 
@@ -38,22 +110,61 @@
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
-  if (Auth.getCurrentCandidate()) window.location.href = 'profile.html';
 
-  function doLogin() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const errEl = document.getElementById('err-msg');
-    errEl.style.display = 'none';
-    if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display='block'; return; }
-    const result = Auth.loginCandidate(email, password);
-    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display='block'; return; }
-    const redirect = sessionStorage.getItem('redirect_after_login') || 'profile.html';
-    sessionStorage.removeItem('redirect_after_login');
-    window.location.href = redirect;
+  // Check if employer is logged in
+  const employer = Auth.getCurrentEmployer();
+  if (!employer) {
+    sessionStorage.setItem('redirect_after_employer_login', 'post-job.html');
+    window.location.href = 'employer-auth.html';
+  } else {
+    // Pre-fill company name
+    document.getElementById('company').value = employer.company;
+    document.getElementById('email').value = employer.email;
+    document.getElementById('phone').value = employer.mobile || '';
   }
 
-  document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  async function generateJD() {
+    const input = document.getElementById('ai-jd-input').value.trim();
+    if (!input) return;
+    const box = document.getElementById('ai-jd-response');
+    box.style.display = 'block';
+    box.innerHTML = '<span class="ai-loading">Writing job description...</span>';
+    const prompt = `Write a professional job description for: "${input}". Format: Role Summary (2 lines), Key Responsibilities (4 bullet points), Required Skills (4 items), Nice to have (2 items). Keep it professional and suitable for a Karnataka-based company. Plain text only, no markdown.`;
+    const answer = await callGroq(prompt);
+    box.textContent = answer;
+    document.getElementById('description').value = answer;
+  }
+
+  function submitJob() {
+    const title = document.getElementById('job-title').value.trim();
+    const company = document.getElementById('company').value.trim();
+    const location = document.getElementById('location').value;
+    const jobType = document.getElementById('job-type').value;
+    const salary = document.getElementById('salary').value.trim();
+    const experience = document.getElementById('experience').value;
+    const skills = document.getElementById('skills').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const errEl = document.getElementById('err-msg');
+    const successEl = document.getElementById('success-msg');
+
+    errEl.style.display = 'none'; successEl.style.display = 'none';
+
+    if (!title || !company || !location || !description || !email || !phone) {
+      errEl.textContent = 'Please fill in all required fields.'; errEl.style.display='block'; return;
+    }
+    if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+      errEl.textContent = 'Please enter a valid 10-digit WhatsApp number.'; errEl.style.display='block'; return;
+    }
+
+    Auth.saveEmployerJob({ title, company, location, jobType, salary, experience, skills, phone, description, email, employerId: employer.id, employer: company });
+    successEl.textContent = '✅ Job posted successfully! It is now live on HireTrack.';
+    successEl.style.display = 'block';
+    document.querySelector('.btn-primary').textContent = 'Posted ✓';
+    document.querySelector('.btn-primary').disabled = true;
+    setTimeout(() => window.location.href = 'employer-dashboard.html', 1500);
+  }
 </script>
 </body>
 </html>
