@@ -9,12 +9,15 @@
 <body>
 
 <div id="navbar"></div>
+<div class="page-hd">
+  <h1 id="dash-company-name">Employer Dashboard</h1>
+  <p>Manage your job postings and review applicants</p>
+</div>
 
 <div class="dash-wrap">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
     <div>
       <h2 id="dash-welcome" style="font-size:1rem;color:var(--gray5);font-weight:500;">Welcome back 👋</h2>
-      <h1 id="dash-company-name" style="font-size:1.6rem;font-weight:800;color:var(--navy);">Loading...</h1>
     </div>
     <button onclick="logoutEmployer()" style="background:#fee2e2;color:#b91c1c;border:none;padding:0.6rem 1.2rem;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">🚪 Logout</button>
   </div>
@@ -143,6 +146,8 @@
     loadDashboard();
     showToast(job.delisted ? '⛔ Job delisted successfully.' : '✅ Job relisted successfully!');
   }
+
+  function deleteJob(jobId) {
     if (!confirm('Are you sure you want to delete this job posting?')) return;
     Auth.deleteEmployerJob(jobId);
     loadDashboard();
