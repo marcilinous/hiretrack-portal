@@ -4,8 +4,8 @@
       "source": "/(.*)",
       "headers": [
         {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.groq.com https://api.web3forms.com https://generativelanguage.googleapis.com https://*.vercel.app; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://checkout.razorpay.com; frame-src https://api.razorpay.com https://checkout.razorpay.com"
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
         }
       ]
     }
