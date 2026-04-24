@@ -169,6 +169,8 @@
     successEl.textContent = `✅ Callback request submitted! Our team will call you during your preferred time slot.${assignedExec ? ` Your assigned executive is ${assignedExec.name}.` : ''}`;
     successEl.style.display = 'block';
     btn.textContent = 'Submitted ✓';
+    // Redirect to homepage after 2 seconds
+    setTimeout(() => window.location.href = 'index.html', 2000);
   }
 </script>
 </body>
