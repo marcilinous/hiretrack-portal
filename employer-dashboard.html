@@ -15,6 +15,13 @@
 </div>
 
 <div class="dash-wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+    <div>
+      <h2 id="dash-welcome" style="font-size:1.1rem;color:var(--gray5);font-weight:500;">Welcome back,</h2>
+      <h1 id="dash-company-name" style="font-size:1.6rem;font-weight:800;">Employer Dashboard</h1>
+    </div>
+    <button onclick="logoutEmployer()" style="background:#fee2e2;color:#b91c1c;border:none;padding:0.6rem 1.2rem;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">🚪 Logout</button>
+  </div>
   <div class="dash-stats">
     <div class="dash-stat"><strong id="stat-jobs">0</strong><span>Jobs Posted</span></div>
     <div class="dash-stat"><strong id="stat-apps">0</strong><span>Total Applicants</span></div>
@@ -38,11 +45,13 @@
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
 
+  const employer = Auth.getCurrentEmployer();
   Auth.saveEmployerJobs = function(jobs) { localStorage.setItem('ht_employer_jobs', JSON.stringify(jobs)); };
   if (!employer) { window.location.href = 'employer-auth.html'; }
 
   function loadDashboard() {
-    document.getElementById('dash-company-name').textContent = employer.company + ' — Dashboard';
+    document.getElementById('dash-company-name').textContent = employer.company;
+    document.getElementById('dash-welcome').textContent = `Welcome back, ${employer.contactName.split(' ')[0]}!`;
 
     const allEmpJobs = Auth.getEmployerJobs();
     const myJobs = allEmpJobs.filter(j => j.employerId === employer.id);
