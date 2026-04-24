@@ -7,188 +7,112 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div id="navbar"></div>
-
-<!-- STEP 1: Check if new or existing -->
 <div class="form-wrap" style="max-width:460px;" id="step-check">
   <div class="form-card" style="text-align:center;">
     <div style="font-size:2.5rem;margin-bottom:1rem;">🏢</div>
     <h2>Employer Portal</h2>
-    <p class="sub">Enter your email or mobile number to continue</p>
+    <p class="sub">Enter your email or mobile to continue</p>
     <div class="alert alert-error" id="err-check"></div>
-    <div class="fg-form" style="text-align:left;">
-      <label>Email or Mobile Number *</label>
-      <input type="text" id="identifier" placeholder="email@company.com or 9XXXXXXXXX" />
-    </div>
+    <div class="fg-form" style="text-align:left;"><label>Email or Mobile *</label><input type="text" id="identifier" placeholder="email@company.com or 9XXXXXXXXX" /></div>
     <button class="btn-primary" onclick="checkIdentifier()">Continue →</button>
     <p class="form-switch" style="margin-top:1rem;">Looking for a job? <a href="login.html">Candidate login</a></p>
   </div>
 </div>
-
-<!-- STEP 2A: Existing employer — Login -->
 <div class="form-wrap" style="max-width:460px;display:none;" id="step-login">
   <div class="form-card">
-    <div style="font-size:2rem;margin-bottom:0.5rem;">👋</div>
     <h2>Welcome Back!</h2>
-    <p class="sub">We found your account. Please login to continue.</p>
+    <p class="sub">We found your account. Please login.</p>
     <div class="alert alert-error" id="err-login"></div>
-    <div class="fg-form">
-      <label>Email / Mobile</label>
-      <input type="text" id="login-id" readonly style="background:var(--gray2);" />
-    </div>
-    <div class="fg-form">
-      <label>Password *</label>
-      <input type="password" id="login-password" placeholder="Your password" />
-    </div>
+    <div class="fg-form"><label>Email / Mobile</label><input type="text" id="login-id" readonly style="background:var(--gray2);" /></div>
+    <div class="fg-form"><label>Password *</label><input type="password" id="login-password" placeholder="Your password" /></div>
     <button class="btn-primary" onclick="doEmployerLogin()">Login & Continue</button>
     <p class="form-switch"><a href="#" onclick="goBack()">← Use different email/mobile</a></p>
   </div>
 </div>
-
-<!-- STEP 2B: New employer — Register -->
 <div class="form-wrap" style="max-width:560px;display:none;" id="step-register">
   <div class="form-card">
-    <div style="font-size:2rem;margin-bottom:0.5rem;">✨</div>
     <h2>Create Employer Account</h2>
-    <p class="sub">New here! Fill in your company details to get started — it's free.</p>
+    <p class="sub">New here! Fill in your company details — it's free.</p>
     <div class="alert alert-error" id="err-register"></div>
     <div class="form-row">
-      <div class="fg-form">
-        <label>Company Name *</label>
-        <input type="text" id="r-company" placeholder="Your company name" />
-      </div>
-      <div class="fg-form">
-        <label>Contact Person Name *</label>
-        <input type="text" id="r-contact" placeholder="HR Manager name" />
-      </div>
+      <div class="fg-form"><label>Company Name *</label><input type="text" id="r-company" placeholder="Your company name" /></div>
+      <div class="fg-form"><label>Contact Person *</label><input type="text" id="r-contact" placeholder="HR Manager name" /></div>
     </div>
     <div class="form-row">
-      <div class="fg-form">
-        <label>Email Address *</label>
-        <input type="email" id="r-email" placeholder="hr@company.com" />
-      </div>
-      <div class="fg-form">
-        <label>Mobile Number *</label>
-        <input type="tel" id="r-mobile" placeholder="9XXXXXXXXX" maxlength="10" />
-      </div>
+      <div class="fg-form"><label>Email *</label><input type="email" id="r-email" placeholder="hr@company.com" /></div>
+      <div class="fg-form"><label>Mobile *</label><input type="tel" id="r-mobile" placeholder="9XXXXXXXXX" maxlength="10" /></div>
     </div>
-    <div class="fg-form">
-      <label>City *</label>
-      <select id="r-city">
-        <option value="">Select city</option>
-        <option>Bengaluru</option>
-        <option>Mysuru</option>
-        <option>Mangaluru</option>
-        <option>Hubballi</option>
-        <option>Other Karnataka</option>
-      </select>
+    <div class="fg-form"><label>City *</label>
+      <select id="r-city"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Other Karnataka</option></select>
     </div>
-    <div class="fg-form">
-      <label>Industry</label>
-      <select id="r-industry">
-        <option>IT & Software</option>
-        <option>Healthcare</option>
-        <option>Manufacturing</option>
-        <option>Retail & E-commerce</option>
-        <option>Banking & Finance</option>
-        <option>Logistics</option>
-        <option>Other</option>
-      </select>
+    <div class="fg-form"><label>Industry</label>
+      <select id="r-industry"><option>IT & Software</option><option>Healthcare</option><option>Manufacturing</option><option>Retail & E-commerce</option><option>Banking & Finance</option><option>Logistics</option><option>Other</option></select>
     </div>
     <div class="form-row">
-      <div class="fg-form">
-        <label>Password *</label>
-        <input type="password" id="r-password" placeholder="Min 6 characters" />
-      </div>
-      <div class="fg-form">
-        <label>Confirm Password *</label>
-        <input type="password" id="r-confirm" placeholder="Repeat password" />
-      </div>
+      <div class="fg-form"><label>Password *</label><input type="password" id="r-password" placeholder="Min 6 characters" /></div>
+      <div class="fg-form"><label>Confirm Password *</label><input type="password" id="r-confirm" placeholder="Repeat password" /></div>
     </div>
     <button class="btn-primary" onclick="doEmployerRegister()">Create Account & Continue</button>
     <p class="form-switch"><a href="#" onclick="goBack()">← Use different email/mobile</a></p>
   </div>
 </div>
-
 <footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
-  if (Auth.getCurrentEmployer()) window.location.href = 'employer-dashboard.html';
+  if (Session.getEmployer()) window.location.href = 'employer-dashboard.html';
 
-  function checkIdentifier() {
-    const id = document.getElementById('identifier').value.trim();
-    const errEl = document.getElementById('err-check');
-    errEl.style.display = 'none';
-    if (!id) { errEl.textContent = 'Please enter your email or mobile number.'; errEl.style.display='block'; return; }
-    const existing = Auth.checkEmployerExists(id);
-    document.getElementById('step-check').style.display = 'none';
-    if (existing) {
-      // Show login
-      document.getElementById('login-id').value = id;
-      document.getElementById('step-login').style.display = 'block';
-    } else {
-      // Pre-fill and show registration
-      const isEmail = id.includes('@');
-      if (isEmail) document.getElementById('r-email').value = id;
-      else { document.getElementById('r-mobile').value = id; }
-      document.getElementById('step-register').style.display = 'block';
-    }
+  async function checkIdentifier() {
+    const id=document.getElementById('identifier').value.trim();
+    const errEl=document.getElementById('err-check'); errEl.style.display='none';
+    if(!id){errEl.textContent='Please enter your email or mobile.';errEl.style.display='block';return;}
+    const btn=document.querySelector('#step-check .btn-primary');
+    btn.textContent='Checking...'; btn.disabled=true;
+    const existing=await EmployerAuth.checkExists(id);
+    btn.textContent='Continue →'; btn.disabled=false;
+    document.getElementById('step-check').style.display='none';
+    if(existing){document.getElementById('login-id').value=id;document.getElementById('step-login').style.display='block';}
+    else{const isEmail=id.includes('@');if(isEmail)document.getElementById('r-email').value=id;else document.getElementById('r-mobile').value=id;document.getElementById('step-register').style.display='block';}
   }
 
-  function goBack() {
-    document.getElementById('step-login').style.display = 'none';
-    document.getElementById('step-register').style.display = 'none';
-    document.getElementById('step-check').style.display = 'block';
-    document.getElementById('err-check').style.display = 'none';
-  }
+  function goBack(){document.getElementById('step-login').style.display='none';document.getElementById('step-register').style.display='none';document.getElementById('step-check').style.display='block';}
 
-  function doEmployerLogin() {
-    const id = document.getElementById('login-id').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errEl = document.getElementById('err-login');
-    errEl.style.display = 'none';
-    if (!password) { errEl.textContent = 'Please enter your password.'; errEl.style.display='block'; return; }
-    const result = Auth.loginEmployer(id, password);
-    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display='block'; return; }
-    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'post-job.html';
+  async function doEmployerLogin() {
+    const id=document.getElementById('login-id').value.trim();
+    const password=document.getElementById('login-password').value;
+    const errEl=document.getElementById('err-login'); errEl.style.display='none';
+    if(!password){errEl.textContent='Please enter your password.';errEl.style.display='block';return;}
+    const btn=document.querySelector('#step-login .btn-primary');
+    btn.textContent='Logging in...'; btn.disabled=true;
+    const result=await EmployerAuth.login(id,password);
+    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Login & Continue';btn.disabled=false;return;}
+    const redirect=sessionStorage.getItem('redirect_after_employer_login')||'post-job.html';
     sessionStorage.removeItem('redirect_after_employer_login');
-    window.location.href = redirect;
+    window.location.href=redirect;
   }
 
-  function doEmployerRegister() {
-    const company = document.getElementById('r-company').value.trim();
-    const contactName = document.getElementById('r-contact').value.trim();
-    const email = document.getElementById('r-email').value.trim();
-    const mobile = document.getElementById('r-mobile').value.trim();
-    const city = document.getElementById('r-city').value;
-    const industry = document.getElementById('r-industry').value;
-    const password = document.getElementById('r-password').value;
-    const confirm = document.getElementById('r-confirm').value;
-    const errEl = document.getElementById('err-register');
-    errEl.style.display = 'none';
-
-    if (!company || !contactName || !email || !mobile || !city || !password) {
-      errEl.textContent = 'Please fill in all required fields.'; errEl.style.display='block'; return;
-    }
-    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      errEl.textContent = 'Enter a valid 10-digit mobile number.'; errEl.style.display='block'; return;
-    }
-    if (password.length < 6) {
-      errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display='block'; return;
-    }
-    if (password !== confirm) {
-      errEl.textContent = 'Passwords do not match.'; errEl.style.display='block'; return;
-    }
-
-    const result = Auth.registerEmployer({ company, contactName, email, mobile, city, industry, password });
-    if (!result.ok) { errEl.textContent = result.msg; errEl.style.display='block'; return; }
-    window.location.href = 'post-job.html';
+  async function doEmployerRegister() {
+    const company=document.getElementById('r-company').value.trim();
+    const contactName=document.getElementById('r-contact').value.trim();
+    const email=document.getElementById('r-email').value.trim();
+    const mobile=document.getElementById('r-mobile').value.trim();
+    const city=document.getElementById('r-city').value;
+    const industry=document.getElementById('r-industry').value;
+    const password=document.getElementById('r-password').value;
+    const confirm=document.getElementById('r-confirm').value;
+    const errEl=document.getElementById('err-register'); errEl.style.display='none';
+    if(!company||!contactName||!email||!mobile||!city||!password){errEl.textContent='Please fill all required fields.';errEl.style.display='block';return;}
+    if(mobile.length!==10||!/^\d+$/.test(mobile)){errEl.textContent='Enter a valid 10-digit mobile.';errEl.style.display='block';return;}
+    if(password.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='block';return;}
+    if(password!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='block';return;}
+    const btn=document.querySelector('#step-register .btn-primary');
+    btn.textContent='Creating...'; btn.disabled=true;
+    const result=await EmployerAuth.register({company,contactName,email,mobile,city,industry,password});
+    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account & Continue';btn.disabled=false;return;}
+    window.location.href='post-job.html';
   }
-
-  document.addEventListener('keydown', e => { if(e.key==='Enter') { if(document.getElementById('step-check').style.display!=='none') checkIdentifier(); else if(document.getElementById('step-login').style.display!=='none') doEmployerLogin(); } });
 </script>
 </body>
 </html>

@@ -7,9 +7,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div id="navbar"></div>
-
 <section class="hero">
   <div class="hero-badge">🎯 Karnataka's #1 MIS & Data Job Portal</div>
   <h1>Find <span>MIS & Data Jobs</span><br>Across Karnataka</h1>
@@ -21,23 +19,16 @@
     </div>
   </div>
   <div class="hero-stats">
-    <div class="stat"><strong>240+</strong><span>Live Jobs</span></div>
+    <div class="stat"><strong id="stat-jobs">240+</strong><span>Live Jobs</span></div>
     <div class="stat"><strong>180+</strong><span>Companies</span></div>
-    <div class="stat"><strong>5,000+</strong><span>Candidates</span></div>
+    <div class="stat"><strong id="stat-cands">5,000+</strong><span>Candidates</span></div>
   </div>
 </section>
 
 <div class="ai-section">
   <div class="ai-card">
-    <div class="ai-card-header">
-      <div class="ai-pulse"></div>
-      <h3>AI Career Assistant</h3>
-      <span class="ai-badge">Powered by Gemini</span>
-    </div>
-    <div class="ai-row">
-      <input type="text" id="ai-input" placeholder="Ask me anything — e.g. What jobs suit an MIS executive?" />
-      <button onclick="askAI()">Ask</button>
-    </div>
+    <div class="ai-card-header"><div class="ai-pulse"></div><h3>AI Career Assistant</h3><span class="ai-badge">Powered by Groq</span></div>
+    <div class="ai-row"><input type="text" id="ai-input" placeholder="Ask me anything — e.g. What jobs suit an MIS executive?" /><button onclick="askAI()">Ask</button></div>
     <div class="ai-chips">
       <span class="chip" onclick="quickAsk('What jobs suit an MIS executive with 4 years experience in Bengaluru?')">MIS careers</span>
       <span class="chip" onclick="quickAsk('What skills should I learn to become a data analyst in India?')">Upskill tips</span>
@@ -49,11 +40,8 @@
 </div>
 
 <div class="section">
-  <div class="section-hd">
-    <h2>Latest Job Openings</h2>
-    <a href="jobs.html">View all jobs →</a>
-  </div>
-  <div class="jobs-grid" id="jobs-container"></div>
+  <div class="section-hd"><h2>Latest Job Openings</h2><a href="jobs.html">View all jobs →</a></div>
+  <div class="jobs-grid" id="jobs-container"><div class="loading-spinner">Loading jobs...</div></div>
 </div>
 
 <div class="section">
@@ -70,14 +58,71 @@
 
 <footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka. Built with ❤️ in Bengaluru.</p></footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('home');
-  renderJobs(JOBS.slice(0,6), 'jobs-container');
-  function doSearch() {
-    const q = document.getElementById('search-input').value.trim();
-    window.location.href = q ? `jobs.html?search=${encodeURIComponent(q)}` : 'jobs.html';
+
+  async function loadHome() {
+    const dbJobs = await JobsDB.getAllPublicJobs();
+    window._employerJobs = dbJobs;
+    const allJobs = [...JOBS, ...dbJobs.map(j=>({...j,type:j.job_type}))];
+    // Update stats
+    document.getElementById('stat-jobs').textContent = allJobs.length + '+';
+    // Get candidate apps if logged in
+    const candidate = Session.getCandidate();
+    let apps = [];
+    if (candidate) apps = await ApplicationsDB.getCandidateApplications(candidate.id);
+    renderJobs(allJobs.slice(0,6), 'jobs-container', apps);
+    // Setup job modal
+    window._allJobs = allJobs;
+    window._apps = apps;
   }
+
+  function openJobModal(jobId) {
+    const job = (window._allJobs||[...JOBS]).find(j=>String(j.id)===String(jobId));
+    if(!job) return;
+    const candidate = Session.getCandidate();
+    const alreadyApplied = candidate && (window._apps||[]).find(a=>a.job_id===String(jobId));
+    const typeClass={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
+    const waMsg=encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`);
+    const tags=Array.isArray(job.tags)?job.tags:(job.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
+    const expired=isJobExpired(job);
+    document.getElementById('jd-title').textContent=job.title;
+    document.getElementById('jd-company').textContent=`🏢 ${job.company}`;
+    document.getElementById('jd-meta').innerHTML=`<span class="jd-meta-item">📍 ${job.location}</span><span class="jd-meta-item">💰 ${job.salary||'Negotiable'}</span><span class="jd-meta-item badge ${typeClass[job.type||job.job_type]||'badge-full'}">${job.type||job.job_type}</span>`;
+    document.getElementById('jd-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
+    document.getElementById('jd-desc').textContent=job.description||'Contact employer for full job description.';
+    document.getElementById('jd-actions').innerHTML=`
+      <button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${waMsg}')">WhatsApp Apply</button>
+      <button class="btn-apply ${alreadyApplied?'applied':''} ${expired?'expired-btn':''}" style="flex:1;padding:0.8rem;" onclick="${expired?`showToast('This job has expired.')`:`applyJob('${job.id}',this)`}">${expired?'⚠ Expired':alreadyApplied?'✓ Applied':'Apply Now'}</button>`;
+    document.getElementById('jd-modal').classList.add('show');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeJobModal(e) {
+    if(e.target===document.getElementById('jd-modal')){document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';}
+  }
+
+  function doSearch() {
+    const q=document.getElementById('search-input').value.trim();
+    window.location.href=q?`jobs.html?search=${encodeURIComponent(q)}`:'jobs.html';
+  }
+
+  loadHome();
 </script>
+
+<!-- Job Modal -->
+<div class="jd-modal" id="jd-modal" onclick="closeJobModal(event)">
+  <div class="jd-box" id="jd-box">
+    <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';">✕</button>
+    <div class="jd-title" id="jd-title"></div>
+    <div class="jd-company" id="jd-company"></div>
+    <div class="jd-meta-row" id="jd-meta"></div>
+    <div class="jd-tags" id="jd-tags"></div>
+    <div class="jd-desc" id="jd-desc"></div>
+    <div class="jd-actions" id="jd-actions"></div>
+  </div>
+</div>
 </body>
 </html>
