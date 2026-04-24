@@ -238,7 +238,16 @@ body { padding-top: 64px; }
 .modal .sub { color:var(--gray5); font-size:0.85rem; margin-bottom:1.2rem; }
 .modal-close { float:right; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--gray4); margin-top:-4px; }
 
-/* ── FOOTER ── */
+/* ── JOB EXPIRY ── */
+.expiry-badge { font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:20px; }
+.expiry-ok { background:#dcfce7; color:#15803d; }
+.expiry-urgent { background:#ffedd5; color:#c2410c; animation: pulse-expiry 1.5s infinite; }
+.expiry-expired { background:#fee2e2; color:#b91c1c; }
+@keyframes pulse-expiry { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.job-expired { opacity:0.75; border-color:#fca5a5 !important; }
+.job-expired:hover { border-color:#f87171 !important; box-shadow:0 4px 16px rgba(239,68,68,0.1) !important; }
+.expired-btn { background:#94a3b8 !important; cursor:not-allowed !important; }
+.expired-btn:hover { background:#94a3b8 !important; }
 footer { background:var(--navy); color:#94a3b8; text-align:center; padding:1.5rem; font-size:0.83rem; margin-top:3rem; }
 footer span { color:var(--blue); }
 
