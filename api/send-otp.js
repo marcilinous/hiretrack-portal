@@ -14,8 +14,24 @@ export default async function handler(req, res) {
     const RESEND_KEY = process.env.RESEND_API_KEY || 're_Gv372zee_4dn4Rzb1h1G8YPaFEqSkZR55';
 
     if (!destination || !otp) {
-      return res.status(200).json({ ok: false, error: 'Missing destination or otp' });
+      return res.status(200).json({ ok: false, error: 'Missing fields' });
     }
+
+    const resendBody = {
+      from: 'onboarding@resend.dev',
+      to: [destination],
+      subject: `Your HireTrack OTP: ${otp}`,
+      html: `<div style="font-family:sans-serif;padding:2rem;text-align:center;">
+        <h2>Your HireTrack OTP</h2>
+        <div style="background:#f0f7ff;border-radius:12px;padding:2rem;margin:1rem 0;">
+          <span style="font-size:2.5rem;font-weight:800;letter-spacing:12px;color:#3b82f6;">${otp}</span>
+        </div>
+        <p>Valid for 2 minutes. Do not share.</p>
+        <p style="color:#94a3b8;font-size:0.75rem;">— HireTrack Team</p>
+      </div>`
+    };
+
+    console.log('Sending to:', destination, 'with key:', RESEND_KEY.slice(0,10)+'...');
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -23,30 +39,20 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${RESEND_KEY}`
       },
-      body: JSON.stringify({
-        from: 'HireTrack <onboarding@resend.dev>',
-        to: [destination],
-        subject: `Your HireTrack OTP: ${otp}`,
-        html: `<div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:2rem;border:1px solid #e2e8f0;border-radius:12px;text-align:center;">
-          <h2 style="color:#0f172a;margin-bottom:0.5rem;">Your HireTrack OTP</h2>
-          <p style="color:#64748b;margin-bottom:1.5rem;">Use this code to verify your employer account</p>
-          <div style="background:#f0f7ff;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
-            <span style="font-size:2.5rem;font-weight:800;letter-spacing:12px;color:#3b82f6;">${otp}</span>
-          </div>
-          <p style="color:#64748b;font-size:0.85rem;">⏱ Valid for 2 minutes only.</p>
-          <p style="color:#64748b;font-size:0.85rem;">🔒 Do not share this with anyone.</p>
-          <p style="color:#94a3b8;font-size:0.75rem;margin-top:1.5rem;">— HireTrack Team | hiretrack-portal.vercel.app</p>
-        </div>`
-      })
+      body: JSON.stringify(resendBody)
     });
 
-    const resendData = await resendResponse.json();
-    console.log('Resend response:', JSON.stringify(resendData));
+    const resendText = await resendResponse.text();
+    console.log('Resend status:', resendResponse.status, 'body:', resendText);
+
+    let resendData;
+    try { resendData = JSON.parse(resendText); } catch(e) { resendData = { error: resendText }; }
 
     if (resendResponse.ok && resendData.id) {
       return res.status(200).json({ ok: true });
     } else {
-      return res.status(200).json({ ok: false, error: JSON.stringify(resendData) });
+      // If Resend fails, return the actual error
+      return res.status(200).json({ ok: false, error: resendData.message || resendData.error || resendText });
     }
 
   } catch(e) {
