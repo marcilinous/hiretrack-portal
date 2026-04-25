@@ -11,56 +11,42 @@ export default async function handler(req, res) {
     const { destination, otp } = body;
     const WEB3FORMS_KEY = '30483d95-3da0-4a00-a262-944b2e82b3b2';
 
+    const RESEND_KEY = process.env.RESEND_API_KEY || 're_Gv372zee_4dn4Rzb1h1G8YPaFEqSkZR55';
+
     if (!destination || !otp) {
       return res.status(200).json({ ok: false, error: 'Missing destination or otp' });
     }
 
-    // Send to employer email using Web3Forms
-    // Web3Forms sends to the account email by default
-    // We include the OTP and employer email in the message
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_key: WEB3FORMS_KEY,
-        subject: `HireTrack OTP for ${destination}: ${otp}`,
-        message: `EMPLOYER OTP REQUEST\n\nSend this OTP to: ${destination}\n\nOTP: ${otp}\n\nValid for 2 minutes.`,
-        from_name: 'HireTrack OTP System',
-        replyto: destination
-      })
-    });
-    const data = await response.json();
-
-    // Also use EmailJS or similar to send directly to employer
-    // For now use Resend free tier
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY || 're_free'}`
+        'Authorization': `Bearer ${RESEND_KEY}`
       },
       body: JSON.stringify({
         from: 'HireTrack <onboarding@resend.dev>',
         to: [destination],
         subject: `Your HireTrack OTP: ${otp}`,
-        html: `<div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:2rem;border:1px solid #e2e8f0;border-radius:12px;">
-          <h2 style="color:#0f172a;">Your HireTrack OTP</h2>
-          <p style="color:#64748b;">Use this OTP to verify your employer account:</p>
-          <div style="background:#f0f7ff;border-radius:8px;padding:1.5rem;text-align:center;margin:1.5rem 0;">
-            <span style="font-size:2.5rem;font-weight:800;letter-spacing:8px;color:#3b82f6;">${otp}</span>
+        html: `<div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:2rem;border:1px solid #e2e8f0;border-radius:12px;text-align:center;">
+          <h2 style="color:#0f172a;margin-bottom:0.5rem;">Your HireTrack OTP</h2>
+          <p style="color:#64748b;margin-bottom:1.5rem;">Use this code to verify your employer account</p>
+          <div style="background:#f0f7ff;border-radius:12px;padding:2rem;margin-bottom:1.5rem;">
+            <span style="font-size:2.5rem;font-weight:800;letter-spacing:12px;color:#3b82f6;">${otp}</span>
           </div>
-          <p style="color:#64748b;font-size:0.85rem;">⏱ Valid for 2 minutes. Do not share with anyone.</p>
-          <p style="color:#94a3b8;font-size:0.75rem;margin-top:1rem;">— HireTrack Team</p>
+          <p style="color:#64748b;font-size:0.85rem;">⏱ Valid for 2 minutes only.</p>
+          <p style="color:#64748b;font-size:0.85rem;">🔒 Do not share this with anyone.</p>
+          <p style="color:#94a3b8;font-size:0.75rem;margin-top:1.5rem;">— HireTrack Team | hiretrack-portal.vercel.app</p>
         </div>`
       })
     });
 
-    if (resendResponse.ok) {
-      return res.status(200).json({ ok: true, method: 'resend' });
-    } else if (data.success) {
-      return res.status(200).json({ ok: true, method: 'web3forms', note: 'OTP sent to admin, please check' });
+    const resendData = await resendResponse.json();
+    console.log('Resend response:', JSON.stringify(resendData));
+
+    if (resendResponse.ok && resendData.id) {
+      return res.status(200).json({ ok: true });
     } else {
-      return res.status(200).json({ ok: false, error: 'Failed to send email' });
+      return res.status(200).json({ ok: false, error: JSON.stringify(resendData) });
     }
 
   } catch(e) {
