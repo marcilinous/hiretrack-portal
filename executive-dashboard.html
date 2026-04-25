@@ -252,7 +252,7 @@
       const trialExpiry = new Date(); trialExpiry.setDate(trialExpiry.getDate() + 7);
       const { data: newEmp, error } = await sb.from('employers').insert([{
         company: empCompany, contact_name: empContact, email: empEmail, mobile: empMobile,
-        password: empMobile, // Default password is their mobile number
+        password: empMobile,
         city: empCity, industry: 'Other', plan: 'free',
         job_limit: 1, day_limit: 7,
         referred_by: executive.id, is_free_trial: true, free_trial_expires_at: trialExpiry.toISOString()
