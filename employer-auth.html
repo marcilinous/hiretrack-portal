@@ -214,7 +214,7 @@
       const res = await fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: selectedMethod, destination: dest, otp: generatedOTP })
+        body: JSON.stringify({ type: selectedMethod === 'mobile' ? 'sms' : 'email', destination: dest, otp: generatedOTP })
       });
       const data = await res.json();
       if (!data.ok) {
@@ -274,7 +274,7 @@
     document.getElementById('err-otp').style.display = 'none';
     await fetch('/api/send-otp', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ type: selectedMethod, destination: verifiedDestination, otp: generatedOTP })
+      body: JSON.stringify({ type: selectedMethod === 'mobile' ? 'sms' : 'email', destination: verifiedDestination, otp: generatedOTP })
     });
     startTimer();
     document.getElementById('otp-1').focus();
