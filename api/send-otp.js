@@ -1,65 +1,67 @@
 export default async function handler(req, res) {
-  // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({ ok: false });
 
   try {
-    // Parse body — handle both string and object
     let body = req.body;
     if (typeof body === 'string') body = JSON.parse(body);
-
-    const { type, destination, otp } = body;
-    const FAST2SMS_KEY = process.env.FAST2SMS_KEY;
+    const { destination, otp } = body;
     const WEB3FORMS_KEY = '30483d95-3da0-4a00-a262-944b2e82b3b2';
 
-    if (!type || !destination || !otp) {
-      return res.status(200).json({ ok: false, error: `Missing fields: type=${type}, destination=${destination}, otp=${otp}` });
+    if (!destination || !otp) {
+      return res.status(200).json({ ok: false, error: 'Missing destination or otp' });
     }
 
-    if (type === 'sms') {
-      const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-        method: 'POST',
-        headers: {
-          'authorization': FAST2SMS_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          route: 'otp',
-          variables_values: otp,
-          numbers: destination,
-          flash: 0
-        })
-      });
-      const data = await response.json();
-      console.log('Fast2SMS response:', JSON.stringify(data));
-      if (data.return === true) {
-        return res.status(200).json({ ok: true });
-      } else {
-        return res.status(200).json({ ok: false, error: JSON.stringify(data) });
-      }
-    }
+    // Send to employer email using Web3Forms
+    // Web3Forms sends to the account email by default
+    // We include the OTP and employer email in the message
+    const response = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: `HireTrack OTP for ${destination}: ${otp}`,
+        message: `EMPLOYER OTP REQUEST\n\nSend this OTP to: ${destination}\n\nOTP: ${otp}\n\nValid for 2 minutes.`,
+        from_name: 'HireTrack OTP System',
+        replyto: destination
+      })
+    });
+    const data = await response.json();
 
-    if (type === 'email') {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `Your HireTrack OTP: ${otp}`,
-          message: `Your HireTrack verification OTP is: ${otp}\n\nThis OTP is valid for 2 minutes.\nDo not share this with anyone.\n\n— HireTrack Team`,
-          from_name: 'HireTrack',
-          email: destination
-        })
-      });
-      const data = await response.json();
-      return res.status(200).json({ ok: data.success === true });
-    }
+    // Also use EmailJS or similar to send directly to employer
+    // For now use Resend free tier
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY || 're_free'}`
+      },
+      body: JSON.stringify({
+        from: 'HireTrack <onboarding@resend.dev>',
+        to: [destination],
+        subject: `Your HireTrack OTP: ${otp}`,
+        html: `<div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:2rem;border:1px solid #e2e8f0;border-radius:12px;">
+          <h2 style="color:#0f172a;">Your HireTrack OTP</h2>
+          <p style="color:#64748b;">Use this OTP to verify your employer account:</p>
+          <div style="background:#f0f7ff;border-radius:8px;padding:1.5rem;text-align:center;margin:1.5rem 0;">
+            <span style="font-size:2.5rem;font-weight:800;letter-spacing:8px;color:#3b82f6;">${otp}</span>
+          </div>
+          <p style="color:#64748b;font-size:0.85rem;">⏱ Valid for 2 minutes. Do not share with anyone.</p>
+          <p style="color:#94a3b8;font-size:0.75rem;margin-top:1rem;">— HireTrack Team</p>
+        </div>`
+      })
+    });
 
-    return res.status(200).json({ ok: false, error: `Unknown type: ${type}` });
+    if (resendResponse.ok) {
+      return res.status(200).json({ ok: true, method: 'resend' });
+    } else if (data.success) {
+      return res.status(200).json({ ok: true, method: 'web3forms', note: 'OTP sent to admin, please check' });
+    } else {
+      return res.status(200).json({ ok: false, error: 'Failed to send email' });
+    }
 
   } catch(e) {
     console.error('send-otp error:', e);
