@@ -8,115 +8,170 @@
 <style>
 .pricing-hero { background:linear-gradient(135deg,#0f172a,#1e293b); padding:3rem 2rem; text-align:center; color:#fff; }
 .pricing-hero h1 { font-size:2rem; font-weight:800; margin-bottom:0.5rem; }
-.pricing-hero p { color:#94a3b8; }
-.pricing-wrap { max-width:1000px; margin:3rem auto; padding:0 1rem; display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
-.plan-card { background:#fff; border-radius:16px; padding:2rem; border:2px solid #e2e8f0; position:relative; transition:all 0.2s; }
-.plan-card:hover { border-color:#3b82f6; box-shadow:0 8px 32px rgba(59,130,246,0.12); transform:translateY(-4px); }
+.pricing-hero p { color:#94a3b8; font-size:0.95rem; }
+.pricing-wrap { max-width:960px; margin:3rem auto; padding:0 1rem; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; }
+.plan-card { background:#fff; border-radius:16px; padding:1.75rem; border:2px solid #e2e8f0; position:relative; transition:all 0.2s; display:flex; flex-direction:column; }
+.plan-card:hover { border-color:#3b82f6; box-shadow:0 8px 32px rgba(59,130,246,0.1); transform:translateY(-4px); }
 .plan-card.popular { border-color:#3b82f6; }
-.popular-badge { position:absolute; top:-14px; left:50%; transform:translateX(-50%); background:#3b82f6; color:#fff; padding:4px 18px; border-radius:20px; font-size:0.75rem; font-weight:700; white-space:nowrap; }
-.plan-name { font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:0.3rem; }
-.plan-price { font-size:2.5rem; font-weight:800; color:#0f172a; margin:1rem 0 0.2rem; }
-.plan-price span { font-size:1rem; font-weight:500; color:#64748b; }
-.plan-desc { font-size:0.85rem; color:#64748b; margin-bottom:1.5rem; }
-.plan-features { list-style:none; margin-bottom:2rem; }
-.plan-features li { font-size:0.88rem; padding:0.4rem 0; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px; }
+.popular-badge { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#3b82f6; color:#fff; padding:3px 16px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.exec-badge { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#7c3aed; color:#fff; padding:3px 16px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.plan-icon { font-size:1.8rem; margin-bottom:0.5rem; }
+.plan-name { font-size:1rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
+.plan-price { font-size:2.2rem; font-weight:800; color:#0f172a; margin:0.75rem 0 0.2rem; }
+.plan-price span { font-size:0.9rem; font-weight:500; color:#64748b; }
+.plan-desc { font-size:0.8rem; color:#64748b; margin-bottom:1.2rem; }
+.plan-features { list-style:none; margin-bottom:1.5rem; flex:1; }
+.plan-features li { font-size:0.82rem; padding:0.35rem 0; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:7px; color:#374151; }
 .plan-features li:last-child { border-bottom:none; }
-.feat-yes { color:#22c55e; font-weight:700; }
-.feat-no { color:#94a3b8; }
-.btn-plan { width:100%; padding:0.85rem; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; border:none; transition:all 0.2s; }
-.btn-plan-free { background:#f1f5f9; color:#0f172a; }
-.btn-plan-free:hover { background:#e2e8f0; }
-.btn-plan-starter { background:#3b82f6; color:#fff; }
-.btn-plan-starter:hover { background:#2563eb; }
-.btn-plan-pro { background:#0f172a; color:#fff; }
-.btn-plan-pro:hover { background:#1e293b; }
-.btn-plan:disabled { opacity:0.6; cursor:default; transform:none !important; }
-.current-badge { display:inline-block; background:#dcfce7; color:#15803d; padding:3px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; margin-bottom:1rem; }
-.faq-wrap { max-width:700px; margin:0 auto 3rem; padding:0 1rem; }
-.faq-wrap h2 { font-size:1.3rem; font-weight:800; margin-bottom:1.2rem; text-align:center; }
-.faq-item { background:#fff; border-radius:12px; padding:1.2rem; border:1px solid #e2e8f0; margin-bottom:0.75rem; }
-.faq-item h4 { font-size:0.92rem; font-weight:700; margin-bottom:0.4rem; }
-.faq-item p { font-size:0.85rem; color:#64748b; line-height:1.6; }
-@media(max-width:768px) { .pricing-wrap { grid-template-columns:1fr; } }
+.feat-yes { color:#22c55e; font-weight:800; font-size:0.9rem; }
+.feat-no { color:#cbd5e1; font-size:0.9rem; }
+.btn-plan { width:100%; padding:0.8rem; border-radius:10px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:inherit; border:none; transition:all 0.2s; margin-top:auto; }
+.btn-free { background:#f1f5f9; color:#0f172a; }
+.btn-free:hover { background:#e2e8f0; }
+.btn-starter { background:#3b82f6; color:#fff; }
+.btn-starter:hover { background:#2563eb; }
+.btn-pro { background:#0f172a; color:#fff; }
+.btn-pro:hover { background:#1e293b; }
+.btn-enterprise { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; }
+.btn-enterprise:hover { opacity:0.9; }
+.btn-plan:disabled { opacity:0.5; cursor:default; transform:none; }
+.current-plan-badge { display:inline-block; background:#dcfce7; color:#15803d; padding:2px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; margin-bottom:0.75rem; }
+.exec-note { max-width:700px; margin:0 auto 2rem; padding:0 1rem; }
+.exec-note-box { background:#f5f3ff; border:1.5px solid #c4b5fd; border-radius:12px; padding:1.2rem 1.5rem; display:flex; gap:12px; align-items:flex-start; }
+.exec-note-box .icon { font-size:1.5rem; flex-shrink:0; }
+.exec-note-box h4 { font-size:0.88rem; font-weight:700; color:#4c1d95; margin-bottom:0.2rem; }
+.exec-note-box p { font-size:0.82rem; color:#6d28d9; margin:0; }
+.faq-wrap { max-width:680px; margin:1rem auto 3rem; padding:0 1rem; }
+.faq-wrap h2 { font-size:1.2rem; font-weight:800; margin-bottom:1rem; text-align:center; }
+.faq-item { background:#fff; border-radius:12px; padding:1.1rem 1.2rem; border:1px solid #e2e8f0; margin-bottom:0.7rem; }
+.faq-item h4 { font-size:0.88rem; font-weight:700; margin-bottom:0.3rem; }
+.faq-item p { font-size:0.82rem; color:#64748b; line-height:1.6; margin:0; }
+
+/* Invoice Modal */
+.invoice-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:500; display:none; align-items:center; justify-content:center; padding:1rem; }
+.invoice-overlay.show { display:flex; }
+.invoice-box { background:#fff; border-radius:16px; padding:2.5rem; max-width:520px; width:100%; max-height:90vh; overflow-y:auto; }
+.invoice-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; }
+.invoice-logo { font-size:1.3rem; font-weight:800; color:#0f172a; }
+.invoice-logo span { color:#3b82f6; }
+.invoice-title { text-align:right; }
+.invoice-title h2 { font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
+.invoice-title p { font-size:0.8rem; color:#64748b; margin:0; }
+.invoice-divider { border:none; border-top:1px solid #e2e8f0; margin:1.2rem 0; }
+.invoice-row { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; font-size:0.85rem; }
+.invoice-row .label { color:#64748b; }
+.invoice-row .value { font-weight:600; color:#0f172a; }
+.invoice-total { background:#f8fafc; border-radius:10px; padding:1rem; margin:1rem 0; }
+.invoice-total .row { display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:0.4rem; }
+.invoice-total .row:last-child { font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:0; border-top:1px solid #e2e8f0; padding-top:0.4rem; }
+.invoice-success { text-align:center; margin-bottom:1.5rem; }
+.invoice-success .check { width:56px; height:56px; background:#dcfce7; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 0.75rem; font-size:1.5rem; }
+.invoice-success h3 { font-size:1.1rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
+.invoice-success p { font-size:0.82rem; color:#64748b; margin:0; }
+.invoice-actions { display:flex; gap:10px; margin-top:1.5rem; }
+.btn-print { flex:1; padding:0.75rem; background:#f1f5f9; color:#0f172a; border:none; border-radius:10px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.btn-dashboard { flex:2; padding:0.75rem; background:#3b82f6; color:#fff; border:none; border-radius:10px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:inherit; }
+@media(max-width:900px) { .pricing-wrap { grid-template-columns:1fr 1fr; } }
+@media(max-width:580px) { .pricing-wrap { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
-
 <div id="navbar"></div>
 
 <div class="pricing-hero">
   <h1>Simple, Transparent Pricing</h1>
-  <p>Start free. Upgrade when your hiring needs grow.</p>
+  <p>Hire MIS & Data talent across Karnataka. No hidden fees.</p>
 </div>
 
 <div class="pricing-wrap">
 
-  <!-- FREE -->
-  <div class="plan-card">
-    <div class="plan-name">Free</div>
-    <div id="free-badge"></div>
-    <div class="plan-price">₹0 <span>/ forever</span></div>
-    <div class="plan-desc">Perfect to get started</div>
-    <ul class="plan-features">
-      <li><span class="feat-yes">✓</span> 1 active job posting</li>
-      <li><span class="feat-yes">✓</span> 15 days duration</li>
-      <li><span class="feat-yes">✓</span> Candidate applications</li>
-      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
-      <li><span class="feat-no">✗</span> Multiple job postings</li>
-      <li><span class="feat-no">✗</span> Extended duration</li>
-      <li><span class="feat-no">✗</span> Priority support</li>
-    </ul>
-    <button class="btn-plan btn-plan-free" id="btn-free" onclick="selectFree()">Get Started Free</button>
-  </div>
-
   <!-- STARTER -->
   <div class="plan-card popular">
     <div class="popular-badge">⭐ Most Popular</div>
+    <div class="plan-icon">🚀</div>
     <div class="plan-name">Starter</div>
     <div id="starter-badge"></div>
-    <div class="plan-price">₹299 <span>/ month</span></div>
+    <div class="plan-price">₹499 <span>/ month</span></div>
     <div class="plan-desc">For growing businesses</div>
     <ul class="plan-features">
       <li><span class="feat-yes">✓</span> 3 active job postings</li>
-      <li><span class="feat-yes">✓</span> 30 days duration</li>
-      <li><span class="feat-yes">✓</span> Candidate applications</li>
+      <li><span class="feat-yes">✓</span> 30 days listing duration</li>
+      <li><span class="feat-yes">✓</span> Unlimited applications</li>
       <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
       <li><span class="feat-yes">✓</span> Email notifications</li>
       <li><span class="feat-yes">✓</span> Resume downloads</li>
       <li><span class="feat-no">✗</span> Priority support</li>
+      <li><span class="feat-no">✗</span> Dedicated account manager</li>
     </ul>
-    <button class="btn-plan btn-plan-starter" id="btn-starter" onclick="buyPlan('starter',299)">Upgrade to Starter</button>
+    <button class="btn-plan btn-starter" id="btn-starter" onclick="buyPlan('starter',499)">Get Started — ₹499</button>
   </div>
 
   <!-- PRO -->
   <div class="plan-card">
+    <div class="plan-icon">💼</div>
     <div class="plan-name">Pro</div>
     <div id="pro-badge"></div>
-    <div class="plan-price">₹699 <span>/ month</span></div>
+    <div class="plan-price">₹999 <span>/ month</span></div>
     <div class="plan-desc">For high-volume hiring</div>
     <ul class="plan-features">
-      <li><span class="feat-yes">✓</span> 10 active job postings</li>
-      <li><span class="feat-yes">✓</span> 60 days duration</li>
-      <li><span class="feat-yes">✓</span> Candidate applications</li>
+      <li><span class="feat-yes">✓</span> 8 active job postings</li>
+      <li><span class="feat-yes">✓</span> 60 days listing duration</li>
+      <li><span class="feat-yes">✓</span> Unlimited applications</li>
       <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
       <li><span class="feat-yes">✓</span> Email notifications</li>
       <li><span class="feat-yes">✓</span> Resume downloads</li>
       <li><span class="feat-yes">✓</span> Priority support</li>
+      <li><span class="feat-no">✗</span> Dedicated account manager</li>
     </ul>
-    <button class="btn-plan btn-plan-pro" id="btn-pro" onclick="buyPlan('pro',699)">Upgrade to Pro</button>
+    <button class="btn-plan btn-pro" id="btn-pro" onclick="buyPlan('pro',999)">Get Started — ₹999</button>
   </div>
 
+  <!-- ENTERPRISE -->
+  <div class="plan-card">
+    <div class="plan-icon">🏢</div>
+    <div class="plan-name">Enterprise</div>
+    <div id="enterprise-badge"></div>
+    <div class="plan-price">₹2,499 <span>/ month</span></div>
+    <div class="plan-desc">For large hiring teams</div>
+    <ul class="plan-features">
+      <li><span class="feat-yes">✓</span> Unlimited job postings</li>
+      <li><span class="feat-yes">✓</span> 90 days listing duration</li>
+      <li><span class="feat-yes">✓</span> Unlimited applications</li>
+      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
+      <li><span class="feat-yes">✓</span> Email notifications</li>
+      <li><span class="feat-yes">✓</span> Resume downloads</li>
+      <li><span class="feat-yes">✓</span> Priority support</li>
+      <li><span class="feat-yes">✓</span> Dedicated account manager</li>
+    </ul>
+    <button class="btn-plan btn-enterprise" id="btn-enterprise" onclick="buyPlan('enterprise',2499)">Get Started — ₹2,499</button>
+  </div>
+
+</div>
+
+<!-- Trial note -->
+<div class="exec-note">
+  <div class="exec-note-box">
+    <div class="icon">🎁</div>
+    <div>
+      <h4>Want to try before you buy?</h4>
+      <p>Our executives offer a <strong>7-day free trial</strong> (1 job posting) when they personally onboard your company. <a href="callback.html" style="color:#6d28d9;font-weight:700;">Request a callback →</a> and our team will activate your trial.</p>
+    </div>
+  </div>
 </div>
 
 <div class="faq-wrap">
   <h2>Frequently Asked Questions</h2>
   <div class="faq-item">
     <h4>Can I upgrade anytime?</h4>
-    <p>Yes! Upgrade anytime and your new plan activates immediately after payment.</p>
+    <p>Yes! Upgrade anytime and your new plan activates immediately after payment. Your existing jobs get extended to the new plan's duration.</p>
   </div>
   <div class="faq-item">
-    <h4>What happens when plan expires?</h4>
-    <p>Jobs are marked expired and hidden from candidates. Renew to relist them instantly.</p>
+    <h4>What happens when my plan expires?</h4>
+    <p>Jobs are marked expired and hidden from candidates. Renew to relist them instantly — all applicant data is preserved.</p>
+  </div>
+  <div class="faq-item">
+    <h4>How do I get a free trial?</h4>
+    <p>Free trials are offered exclusively by our sales executives when they onboard your company. <a href="callback.html" style="color:#3b82f6;font-weight:600;">Request a callback →</a></p>
   </div>
   <div class="faq-item">
     <h4>Is payment secure?</h4>
@@ -130,79 +185,142 @@
 
 <footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
 
+<!-- Invoice Modal -->
+<div class="invoice-overlay" id="invoice-modal">
+  <div class="invoice-box">
+    <div class="invoice-success">
+      <div class="check">✅</div>
+      <h3>Payment Successful!</h3>
+      <p>Your plan has been activated. Here's your receipt.</p>
+    </div>
+    <div class="invoice-header">
+      <div class="invoice-logo">Hire<span>Track</span></div>
+      <div class="invoice-title">
+        <h2>INVOICE</h2>
+        <p id="inv-number">INV-XXXXXXXX</p>
+        <p id="inv-date"></p>
+      </div>
+    </div>
+    <hr class="invoice-divider">
+    <div class="invoice-row">
+      <span class="label">Billed to</span>
+      <span class="value" id="inv-employer"></span>
+    </div>
+    <div class="invoice-row">
+      <span class="label">Email</span>
+      <span class="value" id="inv-email"></span>
+    </div>
+    <div class="invoice-row">
+      <span class="label">Payment ID</span>
+      <span class="value" id="inv-payment-id" style="font-size:0.75rem;color:#64748b;"></span>
+    </div>
+    <hr class="invoice-divider">
+    <div class="invoice-row">
+      <span class="label">Plan</span>
+      <span class="value" id="inv-plan"></span>
+    </div>
+    <div class="invoice-row">
+      <span class="label">Job postings</span>
+      <span class="value" id="inv-jobs"></span>
+    </div>
+    <div class="invoice-row">
+      <span class="label">Duration</span>
+      <span class="value" id="inv-duration"></span>
+    </div>
+    <div class="invoice-row">
+      <span class="label">Valid until</span>
+      <span class="value" id="inv-valid-until"></span>
+    </div>
+    <div class="invoice-total">
+      <div class="row"><span>Subtotal</span><span id="inv-subtotal"></span></div>
+      <div class="row"><span>GST (18%)</span><span id="inv-gst"></span></div>
+      <div class="row"><span>Total Paid</span><span id="inv-total"></span></div>
+    </div>
+    <div class="invoice-actions">
+      <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+      <button class="btn-dashboard" onclick="window.location.href='employer-dashboard.html'">Go to Dashboard →</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
-  document.getElementById('navbar').innerHTML = renderNavbar('');
+  document.getElementById('navbar').innerHTML = renderNavbar('pricing');
 
   const RAZORPAY_KEY = 'rzp_test_ShI2u0ijEmSUD1';
   const PLANS = {
-    free:    { name:'Free',    jobs:1,  days:15, price:0   },
-    starter: { name:'Starter', jobs:3,  days:30, price:299 },
-    pro:     { name:'Pro',     jobs:10, days:60, price:699 }
+    free:       { name:'Free',       jobs:1,   days:15,  price:0    },
+    starter:    { name:'Starter',    jobs:3,   days:30,  price:499  },
+    pro:        { name:'Pro',        jobs:8,   days:60,  price:999  },
+    enterprise: { name:'Enterprise', jobs:999, days:90,  price:2499 }
   };
 
-  function getEmployerPlan() {
-    const employer = Auth.getCurrentEmployer();
-    if (!employer) return 'free';
-    const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
-    const p = plans[employer.id];
-    if (!p || new Date() > new Date(p.expiresAt)) return 'free';
-    return p.plan;
+  function getEmployerCurrentPlan() {
+    const employer = Session.getEmployer();
+    if (!employer) return 'none';
+    if (!employer.plan || employer.plan === 'free') return 'free';
+    if (employer.plan_expires_at && new Date() > new Date(employer.plan_expires_at)) return 'free';
+    return employer.plan;
   }
 
   function updateUI() {
-    const employer = Auth.getCurrentEmployer();
-    const currentPlan = getEmployerPlan();
-    ['free','starter','pro'].forEach(plan => {
+    const employer = Session.getEmployer();
+    const currentPlan = getEmployerCurrentPlan();
+    const planOrder = ['free','starter','pro','enterprise'];
+    const currIdx = planOrder.indexOf(currentPlan);
+
+    ['starter','pro','enterprise'].forEach(plan => {
       const badge = document.getElementById(`${plan}-badge`);
       const btn = document.getElementById(`btn-${plan}`);
+      if (!badge || !btn) return;
       if (plan === currentPlan) {
-        badge.innerHTML = '<span class="current-badge">✓ Current Plan</span>';
+        badge.innerHTML = '<span class="current-plan-badge">✓ Current Plan</span>';
         btn.textContent = 'Current Plan';
         btn.disabled = true;
       } else {
         badge.innerHTML = '';
         btn.disabled = false;
-        if (plan === 'free') btn.textContent = 'Downgrade to Free';
-        else if (plan === 'starter') btn.textContent = currentPlan==='pro' ? 'Downgrade to Starter' : 'Upgrade to Starter ₹299';
-        else btn.textContent = 'Upgrade to Pro ₹699';
+        const thisIdx = planOrder.indexOf(plan);
+        if (thisIdx < currIdx) {
+          btn.textContent = `Downgrade to ${PLANS[plan].name}`;
+        } else {
+          btn.textContent = `Get Started — ₹${PLANS[plan].price.toLocaleString('en-IN')}`;
+        }
       }
     });
-    if (!employer) {
-      document.getElementById('btn-free').textContent = 'Get Started Free';
-      document.getElementById('btn-starter').textContent = 'Login to Upgrade';
-      document.getElementById('btn-pro').textContent = 'Login to Upgrade';
-    }
-  }
-
-  function selectFree() {
-    const employer = Auth.getCurrentEmployer();
-    if (!employer) { window.location.href = 'employer-auth.html'; return; }
-    if (confirm('Downgrade to Free? Limited to 1 job for 15 days.')) {
-      const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
-      delete plans[employer.id];
-      localStorage.setItem('ht_employer_plans', JSON.stringify(plans));
-      showToast('Downgraded to Free plan.');
-      updateUI();
-    }
   }
 
   function buyPlan(planName, amount) {
-    const employer = Auth.getCurrentEmployer();
-    if (!employer) { window.location.href = 'employer-auth.html'; return; }
+    const employer = Session.getEmployer();
+    if (!employer) { 
+      sessionStorage.setItem('redirect_after_employer_login', 'pricing.html');
+      window.location.href = 'employer-auth.html'; 
+      return; 
+    }
     const plan = PLANS[planName];
+    // Add 18% GST
+    const subtotal = amount;
+    const gst = Math.round(subtotal * 0.18);
+    const total = subtotal + gst;
+
     const options = {
       key: RAZORPAY_KEY,
-      amount: amount * 100,
+      amount: total * 100, // paise including GST
       currency: 'INR',
       name: 'HireTrack',
-      description: `${plan.name} Plan — ${plan.jobs} jobs, ${plan.days} days`,
+      description: `${plan.name} Plan — ${plan.jobs === 999 ? 'Unlimited' : plan.jobs} jobs, ${plan.days} days`,
       image: 'https://hiretrack-portal.vercel.app/favicon.ico',
-      prefill: { name: employer.contactName, email: employer.email, contact: employer.mobile },
+      prefill: {
+        name: employer.contact_name,
+        email: employer.email,
+        contact: employer.mobile
+      },
       theme: { color: '#3b82f6' },
-      handler: function(response) { activatePlan(employer, planName, response.razorpay_payment_id); },
+      handler: function(response) {
+        activatePlan(employer, planName, response.razorpay_payment_id, subtotal, gst, total);
+      },
       modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
     };
     const rzp = new Razorpay(options);
@@ -210,27 +328,55 @@
     rzp.open();
   }
 
-  function activatePlan(employer, planName, paymentId) {
+  async function activatePlan(employer, planName, paymentId, subtotal, gst, total) {
     const plan = PLANS[planName];
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
-    const plans = JSON.parse(localStorage.getItem('ht_employer_plans') || '{}');
-    plans[employer.id] = { plan: planName, paymentId, activatedAt: new Date().toISOString(), expiresAt: expiresAt.toISOString(), jobLimit: plan.jobs, dayLimit: plan.days };
-    localStorage.setItem('ht_employer_plans', JSON.stringify(plans));
 
-    // Update existing job expiries
-    const jobs = Auth.getEmployerJobs();
-    jobs.filter(j => j.employerId === employer.id).forEach(j => {
-      const newExpiry = new Date();
-      newExpiry.setDate(newExpiry.getDate() + plan.days);
-      j.expiresAt = newExpiry.toISOString();
-    });
-    localStorage.setItem('ht_employer_jobs', JSON.stringify(jobs));
+    // Update in Supabase
+    await sb.from('employers').update({
+      plan: planName,
+      payment_id: paymentId,
+      plan_expires_at: expiresAt.toISOString(),
+      job_limit: plan.jobs,
+      day_limit: plan.days
+    }).eq('id', employer.id);
 
-    showToast(`✅ ${plan.name} plan activated! Redirecting to dashboard...`);
+    // Update session
+    const updatedEmployer = { ...employer, plan: planName, job_limit: plan.jobs, day_limit: plan.days, plan_expires_at: expiresAt.toISOString() };
+    Session.setEmployer(updatedEmployer);
+
+    showToast(`✅ ${plan.name} plan activated!`);
     updateUI();
-    setTimeout(() => window.location.href = 'employer-dashboard.html', 2000);
+    showInvoice(updatedEmployer, planName, paymentId, subtotal, gst, total, expiresAt);
   }
+
+  function showInvoice(employer, planName, paymentId, subtotal, gst, total, expiresAt) {
+    const plan = PLANS[planName];
+    const invNum = 'INV-' + Date.now().toString().slice(-8);
+    const today = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const expiry = expiresAt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+
+    document.getElementById('inv-number').textContent = invNum;
+    document.getElementById('inv-date').textContent = today;
+    document.getElementById('inv-employer').textContent = employer.company;
+    document.getElementById('inv-email').textContent = employer.email;
+    document.getElementById('inv-payment-id').textContent = paymentId;
+    document.getElementById('inv-plan').textContent = plan.name + ' Plan';
+    document.getElementById('inv-jobs').textContent = plan.jobs === 999 ? 'Unlimited' : plan.jobs + ' active jobs';
+    document.getElementById('inv-duration').textContent = plan.days + ' days per listing';
+    document.getElementById('inv-valid-until').textContent = expiry;
+    document.getElementById('inv-subtotal').textContent = '₹' + subtotal.toLocaleString('en-IN');
+    document.getElementById('inv-gst').textContent = '₹' + gst.toLocaleString('en-IN');
+    document.getElementById('inv-total').textContent = '₹' + total.toLocaleString('en-IN');
+
+    document.getElementById('invoice-modal').classList.add('show');
+  }
+
+  // Close invoice on outside click
+  document.getElementById('invoice-modal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
 
   updateUI();
 </script>
