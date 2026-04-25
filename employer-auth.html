@@ -85,7 +85,7 @@
       <p class="sub" id="otp-desc">OTP sent to your email</p>
 
       <div class="verify-note">
-        📧 <div>Enter the 4-digit OTP sent to <strong id="otp-email-display"></strong></div>
+        📋 <div>Enter the 4-digit OTP shown in the popup for <strong id="otp-email-display"></strong></div>
       </div>
 
       <div class="otp-boxes">
@@ -170,7 +170,38 @@
   let existingEmployer = null;
   let isResetMode = false;
 
-  // ── Step indicator ──
+  // ── OTP Dialog (temporary until domain is set up) ──
+  function showOTPDialog(otp, email) {
+    // Remove existing dialog if any
+    const existing = document.getElementById('otp-dialog');
+    if (existing) existing.remove();
+
+    const dialog = document.createElement('div');
+    dialog.id = 'otp-dialog';
+    dialog.style.cssText = `
+      position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;
+      display:flex;align-items:center;justify-content:center;padding:1rem;
+    `;
+    dialog.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:2rem;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>
+        <h3 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin-bottom:0.3rem;">Your OTP Code</h3>
+        <p style="font-size:0.82rem;color:#64748b;margin-bottom:1.2rem;">Note down this OTP — valid for 2 minutes</p>
+        <div style="background:#f0f7ff;border-radius:12px;padding:1.5rem;margin-bottom:1.2rem;">
+          <div style="font-size:2.5rem;font-weight:800;letter-spacing:12px;color:#3b82f6;">${otp}</div>
+        </div>
+        <p style="font-size:0.78rem;color:#94a3b8;margin-bottom:1.2rem;">
+          📧 Email delivery coming soon — domain setup in progress<br>
+          🔒 Do not share this OTP with anyone
+        </p>
+        <button onclick="document.getElementById('otp-dialog').remove()" 
+          style="background:#3b82f6;color:#fff;border:none;padding:0.75rem 2rem;border-radius:9px;font-size:0.95rem;font-weight:700;cursor:pointer;width:100%;font-family:inherit;">
+          I've noted it down ✓
+        </button>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+  }
   function setStepUI(step) {
     [1,2,3].forEach(i => {
       const c = document.getElementById('sc'+i);
@@ -207,31 +238,18 @@
     }
 
     const btn = document.querySelector('#step1 .btn-primary');
-    btn.textContent = 'Sending OTP...'; btn.disabled = true;
+    btn.textContent = 'Generating OTP...'; btn.disabled = true;
 
     currentMobile = mobile;
     currentEmail = email;
     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
     otpExpiry = Date.now() + 2 * 60 * 1000;
 
-    // Send email OTP via serverless function
-    try {
-      const res = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: email, otp: generatedOTP })
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        errEl.textContent = 'Failed: ' + (data.error || 'Please try again.'); errEl.style.display = 'block';
-        btn.textContent = 'Send OTP to Email →'; btn.disabled = false; return;
-      }
-    } catch(e) {
-      errEl.textContent = 'Network error. Please try again.'; errEl.style.display = 'block';
-      btn.textContent = 'Send OTP to Email →'; btn.disabled = false; return;
-    }
-
     btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
+
+    // Show OTP in a styled dialog (temporary until domain is set up)
+    showOTPDialog(generatedOTP, email);
+
     document.getElementById('otp-email-display').textContent = email;
     goStep(2);
     startTimer();
@@ -274,14 +292,10 @@
     otpExpiry = Date.now() + 2 * 60 * 1000;
     [1,2,3,4].forEach(i => { const el=document.getElementById('ob'+i); el.value=''; el.classList.remove('filled'); });
     document.getElementById('err2').style.display = 'none';
-    await fetch('/api/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })
-    });
+    showOTPDialog(generatedOTP, currentEmail);
     startTimer();
     document.getElementById('ob1').focus();
-    showToast('OTP resent to ' + currentEmail);
+    showToast('New OTP generated!');
   }
 
   // ── STEP 2: Verify OTP ──
