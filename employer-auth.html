@@ -214,15 +214,21 @@
     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
     otpExpiry = Date.now() + 2 * 60 * 1000;
 
-    // Send email OTP
+    // Send email OTP directly via Web3Forms (no serverless function needed)
     try {
-      const res = await fetch('/api/send-otp', {
+      const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'email', destination: email, otp: generatedOTP })
+        body: JSON.stringify({
+          access_key: '30483d95-3da0-4a00-a262-944b2e82b3b2',
+          subject: `Your HireTrack OTP: ${generatedOTP}`,
+          message: `Your HireTrack verification OTP is: ${generatedOTP}\n\nThis OTP is valid for 2 minutes.\nDo not share this with anyone.\n\n— HireTrack Team`,
+          from_name: 'HireTrack',
+          email: email
+        })
       });
       const data = await res.json();
-      if (!data.ok) {
+      if (!data.success) {
         errEl.textContent = 'Failed to send OTP. Please try again.'; errEl.style.display = 'block';
         btn.textContent = 'Send OTP to Email →'; btn.disabled = false; return;
       }
@@ -274,8 +280,17 @@
     otpExpiry = Date.now() + 2 * 60 * 1000;
     [1,2,3,4].forEach(i => { const el=document.getElementById('ob'+i); el.value=''; el.classList.remove('filled'); });
     document.getElementById('err2').style.display = 'none';
-    await fetch('/api/send-otp', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ type:'email', destination:currentEmail, otp:generatedOTP }) });
+    await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: '30483d95-3da0-4a00-a262-944b2e82b3b2',
+        subject: `Your HireTrack OTP: ${generatedOTP}`,
+        message: `Your HireTrack verification OTP is: ${generatedOTP}\n\nThis OTP is valid for 2 minutes.\nDo not share this with anyone.\n\n— HireTrack Team`,
+        from_name: 'HireTrack',
+        email: currentEmail
+      })
+    });
     startTimer();
     document.getElementById('ob1').focus();
     showToast('OTP resent to ' + currentEmail);
