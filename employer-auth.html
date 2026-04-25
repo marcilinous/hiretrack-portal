@@ -223,7 +223,7 @@
       });
       const data = await res.json();
       if (!data.ok) {
-        errEl.textContent = 'Failed to send OTP. Please try again.'; errEl.style.display = 'block';
+        errEl.textContent = 'Failed: ' + (data.error || 'Please try again.'); errEl.style.display = 'block';
         btn.textContent = 'Send OTP to Email →'; btn.disabled = false; return;
       }
     } catch(e) {
