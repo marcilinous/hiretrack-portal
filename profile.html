@@ -242,6 +242,7 @@ body { background:#f1f5f9; }
   if (!candidate) window.location.href = 'login.html';
 
   let myApps = [], myNotifs = [];
+  let quizData = [], quizIdx = 0;
 
   // ── Render skill categories immediately — no API call needed ──
   renderSkillCategories();
@@ -441,27 +442,40 @@ body { background:#f1f5f9; }
       </div>`).join('');
   }
 
+  async function getAIQuestions(prompt) {
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      const text = data.answer || data.content || JSON.stringify(data);
+      // Extract JSON array
+      const jsonMatch = text.replace(/```json|```/g,'').match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('No JSON in response');
+      return JSON.parse(jsonMatch[0]);
+    } catch(e) {
+      console.error('AI error:', e);
+      return null;
+    }
+  }
+
   async function loadSkillQuestions(skill) {
     const qa = document.getElementById('qa-box');
     document.getElementById('qa-title').textContent = `Practice: ${skill}`;
-    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Generating questions for ' + skill + '...</span></div>';
+    document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Preparing ${skill} questions...</span></div>`;
     qa.style.display = 'block';
     qa.scrollIntoView({ behavior: 'smooth' });
 
-    const context = candidate.jobtitle ? `for a ${candidate.jobtitle} with ${candidate.experience||'some'} experience` : '';
-    const prompt = `Generate exactly 5 interview questions about "${skill}" ${context}. 
-Each answer should be 2-3 sentences, practical and concise.
-Return ONLY a valid JSON array: [{"q":"question?","a":"answer."},...]`;
+    const context = candidate.jobtitle ? ` for a ${candidate.jobtitle} with ${candidate.experience||'some'} experience` : '';
+    const prompt = `Generate exactly 5 interview questions about "${skill}"${context}. Each answer must be 2-3 sentences only, practical and concise. Return ONLY a JSON array with no extra text: [{"q":"question?","a":"short answer."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."}]`;
 
-    const answer = await callGroq(prompt);
-    try {
-      const clean = answer.replace(/```json|```/g,'').trim();
-      const jsonMatch = clean.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('No JSON');
-      const questions = JSON.parse(jsonMatch[0]);
+    const questions = await getAIQuestions(prompt);
+    if (questions && questions.length) {
       renderQuiz(questions);
-    } catch(e) {
-      document.getElementById('qa-list').innerHTML = `<div style="padding:1rem;font-size:0.85rem;color:#374151;">${answer}</div>`;
+    } else {
+      document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;color:#ef4444;">Failed to load questions. Please try again.</div>`;
     }
   }
 
@@ -470,25 +484,19 @@ Return ONLY a valid JSON array: [{"q":"question?","a":"answer."},...]`;
     if (!input) { showToast('Please enter a job role'); return; }
     const qa = document.getElementById('qa-box');
     document.getElementById('qa-title').textContent = `Interview Prep: ${input}`;
-    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Generating questions...</span></div>';
+    document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Generating questions for ${input}...</span></div>`;
     qa.style.display = 'block';
     qa.scrollIntoView({ behavior: 'smooth' });
 
-    const prompt = `Generate exactly 5 interview questions with concise answers for: "${input}". Each answer should be 2-3 sentences max. Return ONLY a valid JSON array: [{"q":"question?","a":"answer."},...]`;
-    const answer = await callGroq(prompt);
+    const prompt = `Generate exactly 5 interview questions for: "${input}". Each answer must be 2-3 sentences only. Return ONLY a JSON array: [{"q":"question?","a":"short answer."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."}]`;
 
-    try {
-      const clean = answer.replace(/```json|```/g,'').trim();
-      const jsonMatch = clean.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('No JSON');
-      const questions = JSON.parse(jsonMatch[0]);
+    const questions = await getAIQuestions(prompt);
+    if (questions && questions.length) {
       renderQuiz(questions);
-    } catch(e) {
-      document.getElementById('qa-list').innerHTML = `<div style="padding:1rem;font-size:0.85rem;color:#374151;">${answer}</div>`;
+    } else {
+      document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;color:#ef4444;">Failed to generate questions. Please try again.</div>`;
     }
   }
-
-  let quizData = [], quizIdx = 0, quizAnswerShown = false;
 
   function renderQuiz(questions) {
     quizData = questions;
