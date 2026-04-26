@@ -7,59 +7,198 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
-.skill-chip { background:var(--gray2); border:1.5px solid var(--gray3); color:var(--gray5); font-size:0.82rem; padding:6px 14px; border-radius:20px; cursor:pointer; transition:all 0.18s; user-select:none; display:inline-flex; align-items:center; gap:4px; }
-.skill-chip:hover { border-color:var(--blue); color:var(--blue); background:#eff6ff; }
-.skill-chip.selected { background:var(--blue); color:#fff; border-color:var(--blue); }
-.skill-chip.custom .remove-skill { opacity:0.7; cursor:pointer; }
+.signup-steps{display:flex;justify-content:center;gap:0;margin-bottom:1.5rem;}
+.ss-item{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ss-circle{width:30px;height:30px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#94a3b8;transition:all 0.3s;}
+.ss-circle.active{border-color:#2563eb;background:#2563eb;color:#fff;}
+.ss-circle.done{border-color:#16a34a;background:#16a34a;color:#fff;}
+.ss-label{font-size:0.65rem;color:#94a3b8;font-weight:500;white-space:nowrap;}
+.ss-label.active{color:#2563eb;font-weight:700;}
+.ss-line{width:48px;height:2px;background:#e2e8f0;margin-bottom:18px;transition:background 0.3s;}
+.ss-line.done{background:#16a34a;}
+.step-section{display:none;}
+.step-section.active{display:block;}
+.skill-chip{background:#f1f5f9;border:1.5px solid #e2e8f0;color:#374151;font-size:0.82rem;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all 0.18s;user-select:none;display:inline-flex;align-items:center;gap:4px;}
+.skill-chip:hover{border-color:#2563eb;color:#2563eb;background:#eff6ff;}
+.skill-chip.selected{background:#2563eb;color:#fff;border-color:#2563eb;}
+.score-preview{background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1.5px solid #bfdbfe;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;}
+.score-preview h4{font-size:0.82rem;font-weight:700;color:#1d4ed8;margin-bottom:0.5rem;}
+.sp-items{display:flex;flex-direction:column;gap:4px;}
+.sp-item{display:flex;justify-content:space-between;font-size:0.78rem;}
+.sp-item .spl{color:#374151;}
+.sp-item .spr{font-weight:700;color:#16a34a;}
+.sp-item .spr.no{color:#94a3b8;}
+.sp-total{border-top:1px solid #bfdbfe;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:0.82rem;font-weight:700;color:#1d4ed8;}
 </style>
 </head>
 <body>
 <div id="navbar"></div>
-<div class="form-wrap">
+<div class="form-wrap" style="max-width:580px;">
   <div class="form-card">
-    <h2>Create Your Account</h2>
-    <p class="sub">Join thousands of MIS & Data professionals on HireTrack</p>
+
+    <!-- Step indicator -->
+    <div class="signup-steps">
+      <div class="ss-item">
+        <div class="ss-circle active" id="sc1">1</div>
+        <div class="ss-label active" id="sl1">Basic Info</div>
+      </div>
+      <div class="ss-line" id="sline1"></div>
+      <div class="ss-item">
+        <div class="ss-circle" id="sc2">2</div>
+        <div class="ss-label" id="sl2">Professional</div>
+      </div>
+      <div class="ss-line" id="sline2"></div>
+      <div class="ss-item">
+        <div class="ss-circle" id="sc3">3</div>
+        <div class="ss-label" id="sl3">Skills & Resume</div>
+      </div>
+      <div class="ss-line" id="sline3"></div>
+      <div class="ss-item">
+        <div class="ss-circle" id="sc4">4</div>
+        <div class="ss-label" id="sl4">Preferences</div>
+      </div>
+    </div>
+
     <div class="alert alert-error" id="err-msg"></div>
-    <div class="form-row">
-      <div class="fg-form"><label>Full Name *</label><input type="text" id="name" placeholder="Your full name" /></div>
-      <div class="fg-form"><label>Mobile Number *</label><input type="tel" id="mobile" placeholder="9XXXXXXXXX" maxlength="10" /></div>
+
+    <!-- STEP 1: Basic Info -->
+    <div class="step-section active" id="step1">
+      <h2 style="margin-bottom:0.25rem;">Basic Information</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Tell us about yourself</p>
+      <div class="form-row">
+        <div class="fg-form"><label>Full Name *</label><input type="text" id="s1-name" placeholder="Your full name" /></div>
+        <div class="fg-form"><label>Mobile Number *</label><input type="tel" id="s1-mobile" placeholder="9XXXXXXXXX" maxlength="10" /></div>
+      </div>
+      <div class="fg-form"><label>Email Address *</label><input type="email" id="s1-email" placeholder="you@example.com" /></div>
+      <div class="fg-form"><label>City *</label>
+        <select id="s1-city">
+          <option value="">Select city</option>
+          <option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option>
+          <option>Hubballi</option><option>Manipal</option><option>Tumakuru</option>
+          <option>Belagavi</option><option>Davanagere</option><option>Other Karnataka</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="fg-form"><label>Password *</label><input type="password" id="s1-password" placeholder="Min 6 characters" /></div>
+        <div class="fg-form"><label>Confirm Password *</label><input type="password" id="s1-confirm" placeholder="Repeat password" /></div>
+      </div>
+      <button class="btn-primary" onclick="goStep(2)">Continue →</button>
+      <p class="form-switch">Already have an account? <a href="login.html">Login here</a></p>
     </div>
-    <div class="fg-form"><label>Email Address *</label><input type="email" id="email" placeholder="you@example.com" /></div>
-    <div class="form-row">
-      <div class="fg-form"><label>Current Job Title</label><input type="text" id="jobtitle" placeholder="MIS Executive" /></div>
+
+    <!-- STEP 2: Professional Info -->
+    <div class="step-section" id="step2">
+      <h2 style="margin-bottom:0.25rem;">Professional Details</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Your work background</p>
+      <div class="form-row">
+        <div class="fg-form"><label>Current Job Title *</label><input type="text" id="s2-title" placeholder="e.g. MIS Executive" /></div>
+        <div class="fg-form"><label>Current Company</label><input type="text" id="s2-company" placeholder="Where you work now" /></div>
+      </div>
       <div class="fg-form"><label>Years of Experience *</label>
-        <select id="experience"><option value="">Select</option><option>Fresher (0–1 years)</option><option>1–3 years</option><option>3–5 years</option><option>5+ years</option></select>
+        <select id="s2-experience">
+          <option value="">Select experience</option>
+          <option>Fresher (0–1 years)</option>
+          <option>1–3 years</option>
+          <option>3–5 years</option>
+          <option>5–8 years</option>
+          <option>8+ years</option>
+        </select>
+      </div>
+      <div class="fg-form">
+        <label>About Yourself <span style="color:#94a3b8;font-size:0.75rem;">(boosts profile score by 10 pts)</span></label>
+        <textarea id="s2-about" rows="3" placeholder="Briefly describe your experience, strengths, and career goals... (min 50 characters)" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.88rem;font-family:inherit;resize:vertical;outline:none;"></textarea>
+        <div id="about-count" style="font-size:0.72rem;color:#94a3b8;text-align:right;margin-top:3px;">0 / 50 min</div>
+      </div>
+      <div style="display:flex;gap:1rem;">
+        <button class="btn-primary" onclick="goStep(1)" style="background:#f1f5f9;color:#0f172a;flex:0 0 auto;">← Back</button>
+        <button class="btn-primary" onclick="goStep(3)" style="flex:1;">Continue →</button>
       </div>
     </div>
-    <div class="fg-form"><label>City *</label>
-      <select id="city"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Manipal</option><option>Other Karnataka</option></select>
-    </div>
-    <div class="fg-form">
-      <label>Key Skills</label>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="skills-select">
-        <span class="skill-chip" data-skill="Excel" onclick="toggleSkill(this)">Excel</span>
-        <span class="skill-chip" data-skill="SQL" onclick="toggleSkill(this)">SQL</span>
-        <span class="skill-chip" data-skill="Power BI" onclick="toggleSkill(this)">Power BI</span>
-        <span class="skill-chip" data-skill="Python" onclick="toggleSkill(this)">Python</span>
-        <span class="skill-chip" data-skill="MIS Reporting" onclick="toggleSkill(this)">MIS Reporting</span>
-        <span class="skill-chip" data-skill="Tableau" onclick="toggleSkill(this)">Tableau</span>
-        <span class="skill-chip" data-skill="SAP" onclick="toggleSkill(this)">SAP</span>
-        <span class="skill-chip" data-skill="Automation" onclick="toggleSkill(this)">Automation</span>
-        <span class="skill-chip" data-skill="VBA" onclick="toggleSkill(this)">VBA</span>
-        <span class="skill-chip" data-skill="Tally" onclick="toggleSkill(this)">Tally</span>
+
+    <!-- STEP 3: Skills & Resume -->
+    <div class="step-section" id="step3">
+      <h2 style="margin-bottom:0.25rem;">Skills & Resume</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Add skills to boost your profile score</p>
+      <div class="fg-form">
+        <label>Key Skills <span style="color:#94a3b8;font-size:0.75rem;">(add 8+ for max 20 pts)</span></label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="skills-select">
+          <span class="skill-chip" data-skill="Excel" onclick="toggleSkill(this)">Excel</span>
+          <span class="skill-chip" data-skill="SQL" onclick="toggleSkill(this)">SQL</span>
+          <span class="skill-chip" data-skill="Power BI" onclick="toggleSkill(this)">Power BI</span>
+          <span class="skill-chip" data-skill="Python" onclick="toggleSkill(this)">Python</span>
+          <span class="skill-chip" data-skill="MIS Reporting" onclick="toggleSkill(this)">MIS Reporting</span>
+          <span class="skill-chip" data-skill="Tableau" onclick="toggleSkill(this)">Tableau</span>
+          <span class="skill-chip" data-skill="SAP" onclick="toggleSkill(this)">SAP</span>
+          <span class="skill-chip" data-skill="Automation" onclick="toggleSkill(this)">Automation</span>
+          <span class="skill-chip" data-skill="VBA" onclick="toggleSkill(this)">VBA</span>
+          <span class="skill-chip" data-skill="Tally" onclick="toggleSkill(this)">Tally</span>
+          <span class="skill-chip" data-skill="Data Analysis" onclick="toggleSkill(this)">Data Analysis</span>
+          <span class="skill-chip" data-skill="MySQL" onclick="toggleSkill(this)">MySQL</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <input type="text" id="custom-skill" placeholder="Add custom skill..." style="flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.5rem 0.8rem;font-size:0.85rem;outline:none;font-family:inherit;" />
+          <button onclick="addCustomSkill()" style="background:#0f172a;color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.85rem;">+ Add</button>
+        </div>
+        <div id="skill-count" style="font-size:0.72rem;margin-top:6px;color:#94a3b8;">0 skills selected</div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <input type="text" id="custom-skill" placeholder="Add custom skill..." style="flex:1;border:1.5px solid var(--gray3);border-radius:8px;padding:0.5rem 0.8rem;font-size:0.85rem;outline:none;font-family:inherit;" />
-        <button onclick="addCustomSkill()" style="background:var(--navy);color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.85rem;">+ Add</button>
+      <div class="fg-form"><label>Upload Resume <span style="color:#94a3b8;font-size:0.75rem;">(PDF, max 5MB — adds 15 pts)</span></label>
+        <input type="file" id="s3-resume" accept=".pdf" />
+      </div>
+      <div style="display:flex;gap:1rem;">
+        <button class="btn-primary" onclick="goStep(2)" style="background:#f1f5f9;color:#0f172a;flex:0 0 auto;">← Back</button>
+        <button class="btn-primary" onclick="goStep(4)" style="flex:1;">Continue →</button>
       </div>
     </div>
-    <div class="fg-form"><label>Upload Resume (PDF, max 5MB)</label><input type="file" id="resume" accept=".pdf" /></div>
-    <div class="form-row">
-      <div class="fg-form"><label>Password *</label><input type="password" id="password" placeholder="Min 6 characters" /></div>
-      <div class="fg-form"><label>Confirm Password *</label><input type="password" id="confirm-password" placeholder="Repeat password" /></div>
+
+    <!-- STEP 4: Preferences + Score Preview -->
+    <div class="step-section" id="step4">
+      <h2 style="margin-bottom:0.25rem;">Job Preferences</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Help employers find you faster</p>
+      <div class="form-row">
+        <div class="fg-form"><label>Preferred Job Type *</label>
+          <select id="s4-jobtype">
+            <option value="">Select type</option>
+            <option>Full Time</option>
+            <option>Contract</option>
+            <option>Remote</option>
+            <option>Part Time</option>
+            <option>Any</option>
+          </select>
+        </div>
+        <div class="fg-form"><label>Expected Salary *</label>
+          <select id="s4-salary">
+            <option value="">Select range</option>
+            <option>Below ₹2 LPA</option>
+            <option>₹2–4 LPA</option>
+            <option>₹4–6 LPA</option>
+            <option>₹6–8 LPA</option>
+            <option>₹8–12 LPA</option>
+            <option>₹12–20 LPA</option>
+            <option>Above ₹20 LPA</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg-form"><label>Notice Period *</label>
+        <select id="s4-notice">
+          <option value="">Select notice period</option>
+          <option>Immediately available</option>
+          <option>15 days</option>
+          <option>30 days</option>
+          <option>60 days</option>
+          <option>90 days</option>
+        </select>
+      </div>
+
+      <!-- Score Preview -->
+      <div class="score-preview" id="score-preview"></div>
+
+      <div style="display:flex;gap:1rem;">
+        <button class="btn-primary" onclick="goStep(3)" style="background:#f1f5f9;color:#0f172a;flex:0 0 auto;">← Back</button>
+        <button class="btn-primary" id="btn-submit" onclick="doSignup()" style="flex:1;">Create Account ✓</button>
+      </div>
+      <p class="form-switch">Already have an account? <a href="login.html">Login here</a></p>
     </div>
-    <button class="btn-primary" onclick="doSignup()">Create Account</button>
-    <p class="form-switch">Already have an account? <a href="login.html">Login here</a></p>
+
   </div>
 </div>
 <footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
@@ -69,47 +208,170 @@
   document.getElementById('navbar').innerHTML = renderNavbar('');
   if (Session.getCandidate()) window.location.href = 'profile.html';
 
-  function toggleSkill(el) { el.classList.toggle('selected'); }
+  function goStep(n) {
+    const errEl = document.getElementById('err-msg');
+    errEl.style.display = 'none';
 
+    // Validate before advancing
+    if (n > 1) {
+      const name = document.getElementById('s1-name').value.trim();
+      const mobile = document.getElementById('s1-mobile').value.trim();
+      const email = document.getElementById('s1-email').value.trim();
+      const city = document.getElementById('s1-city').value;
+      const pwd = document.getElementById('s1-password').value;
+      const confirm = document.getElementById('s1-confirm').value;
+      if (!name||!mobile||!email||!city||!pwd) { errEl.textContent='Please fill all required fields in Step 1.'; errEl.style.display='block'; goStepUI(1); return; }
+      if (mobile.length!==10||!/^\d+$/.test(mobile)) { errEl.textContent='Enter a valid 10-digit mobile.'; errEl.style.display='block'; goStepUI(1); return; }
+      if (pwd.length<6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; goStepUI(1); return; }
+      if (pwd!==confirm) { errEl.textContent='Passwords do not match.'; errEl.style.display='block'; goStepUI(1); return; }
+    }
+    if (n > 2) {
+      const title = document.getElementById('s2-title').value.trim();
+      const exp = document.getElementById('s2-experience').value;
+      if (!title||!exp) { errEl.textContent='Please fill job title and experience in Step 2.'; errEl.style.display='block'; goStepUI(2); return; }
+    }
+    if (n === 4) updateScorePreview();
+    goStepUI(n);
+  }
+
+  function goStepUI(n) {
+    document.querySelectorAll('.step-section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('step'+n).classList.add('active');
+    [1,2,3,4].forEach(i=>{
+      const c=document.getElementById('sc'+i);
+      const l=document.getElementById('sl'+i);
+      c.classList.remove('active','done');
+      l.classList.remove('active');
+      if(i<n){c.classList.add('done');c.textContent='✓';}
+      else if(i===n){c.classList.add('active');c.textContent=i;l.classList.add('active');}
+      else{c.textContent=i;}
+      if(i<4){const line=document.getElementById('sline'+i);line.classList.toggle('done',i<n);}
+    });
+    window.scrollTo(0,0);
+  }
+
+  // About character count
+  document.getElementById('s2-about').addEventListener('input', function() {
+    const len = this.value.length;
+    const el = document.getElementById('about-count');
+    el.textContent = len + ' / 50 min';
+    el.style.color = len >= 50 ? '#16a34a' : '#94a3b8';
+  });
+
+  // Skills
+  function toggleSkill(el) {
+    el.classList.toggle('selected');
+    updateSkillCount();
+  }
   function addCustomSkill() {
     const input = document.getElementById('custom-skill');
     const val = input.value.trim(); if (!val) return;
     const chip = document.createElement('span');
-    chip.className = 'skill-chip custom selected'; chip.dataset.skill = val;
-    chip.innerHTML = `${val} <span class="remove-skill" onclick="this.parentElement.remove()">×</span>`;
+    chip.className='skill-chip selected'; chip.dataset.skill=val;
+    chip.textContent=val;
+    chip.onclick=function(){this.classList.toggle('selected');updateSkillCount();};
     document.getElementById('skills-select').appendChild(chip);
-    input.value = ''; input.focus();
+    input.value=''; updateSkillCount();
+  }
+  document.getElementById('custom-skill').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addCustomSkill();}});
+
+  function updateSkillCount() {
+    const count=[...document.querySelectorAll('.skill-chip.selected')].length;
+    const el=document.getElementById('skill-count');
+    el.textContent=count+' skill'+(count!==1?'s':'')+' selected';
+    el.style.color=count>=8?'#16a34a':count>=5?'#d97706':count>=3?'#2563eb':'#94a3b8';
   }
 
-  document.getElementById('custom-skill').addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addCustomSkill();} });
+  function getSkillPts(count) {
+    if(count>=8) return 20;
+    if(count>=5) return 15;
+    if(count>=3) return 10;
+    return 0;
+  }
+
+  function updateScorePreview() {
+    const name=document.getElementById('s1-name').value.trim();
+    const mobile=document.getElementById('s1-mobile').value.trim();
+    const email=document.getElementById('s1-email').value.trim();
+    const city=document.getElementById('s1-city').value;
+    const title=document.getElementById('s2-title').value.trim();
+    const exp=document.getElementById('s2-experience').value;
+    const about=document.getElementById('s2-about').value.trim();
+    const skills=[...document.querySelectorAll('.skill-chip.selected')].length;
+    const resume=document.getElementById('s3-resume').files[0];
+    const jobtype=document.getElementById('s4-jobtype').value;
+    const salary=document.getElementById('s4-salary').value;
+    const notice=document.getElementById('s4-notice').value;
+
+    const checks = [
+      { label:'Basic info (name, mobile, email)', pts:15, done:!!(name&&mobile&&email) },
+      { label:'City', pts:10, done:!!city },
+      { label:'Job title & experience', pts:10, done:!!(title&&exp) },
+      { label:'About yourself (50+ chars)', pts:10, done:about.length>=50 },
+      { label:'Skills (3=10pts, 5=15pts, 8=20pts)', pts:getSkillPts(skills), done:skills>=3, partial:getSkillPts(skills) },
+      { label:'Resume uploaded', pts:15, done:!!resume },
+      { label:'Job preferences', pts:10, done:!!(jobtype&&salary&&notice) },
+    ];
+
+    const total = checks.reduce((s,c)=>s+(c.partial||0)+(c.done&&!c.partial?c.pts:0),0);
+    const level = total>=80?{l:'All-Star ⭐',c:'#16a34a'}:total>=60?{l:'Strong Profile',c:'#7c3aed'}:total>=40?{l:'Good Profile',c:'#2563eb'}:{l:'Getting Started',c:'#d97706'};
+
+    document.getElementById('score-preview').innerHTML=`
+      <h4>Your Profile Score Preview</h4>
+      <div class="sp-items">
+        ${checks.map(c=>`<div class="sp-item">
+          <span class="spl">${c.done||c.partial?'✅':'⬜'} ${c.label}</span>
+          <span class="spr ${c.done||c.partial?'':'no'}">+${c.partial!==undefined?c.partial:c.done?c.pts:0} pts</span>
+        </div>`).join('')}
+      </div>
+      <div class="sp-total">
+        <span>Starting score</span>
+        <span style="color:${level.c};">${total}/100 — ${level.l}</span>
+      </div>`;
+  }
+
+  // Listen for changes on step 4
+  ['s4-jobtype','s4-salary','s4-notice'].forEach(id=>{
+    document.getElementById(id).addEventListener('change',()=>{if(document.getElementById('step4').classList.contains('active'))updateScorePreview();});
+  });
 
   async function doSignup() {
-    const name=document.getElementById('name').value.trim();
-    const mobile=document.getElementById('mobile').value.trim();
-    const email=document.getElementById('email').value.trim();
-    const jobtitle=document.getElementById('jobtitle').value.trim();
-    const experience=document.getElementById('experience').value;
-    const city=document.getElementById('city').value;
-    const password=document.getElementById('password').value;
-    const confirm=document.getElementById('confirm-password').value;
-    const resumeFile=document.getElementById('resume').files[0];
+    const name=document.getElementById('s1-name').value.trim();
+    const mobile=document.getElementById('s1-mobile').value.trim();
+    const email=document.getElementById('s1-email').value.trim();
+    const city=document.getElementById('s1-city').value;
+    const password=document.getElementById('s1-password').value;
+    const jobtitle=document.getElementById('s2-title').value.trim();
+    const currentCompany=document.getElementById('s2-company').value.trim();
+    const experience=document.getElementById('s2-experience').value;
+    const about=document.getElementById('s2-about').value.trim();
+    const skills=[...document.querySelectorAll('.skill-chip.selected')].map(el=>el.dataset.skill).filter(Boolean);
+    const resumeFile=document.getElementById('s3-resume').files[0];
+    const preferredJobType=document.getElementById('s4-jobtype').value;
+    const expectedSalary=document.getElementById('s4-salary').value;
+    const noticePeriod=document.getElementById('s4-notice').value;
     const errEl=document.getElementById('err-msg');
     errEl.style.display='none';
-    const skills=[...document.querySelectorAll('.skill-chip.selected')].map(el=>el.dataset.skill).filter(Boolean);
-    if(!name||!mobile||!email||!experience||!city||!password){errEl.textContent='Please fill in all required fields.';errEl.style.display='block';return;}
-    if(mobile.length!==10||!/^\d+$/.test(mobile)){errEl.textContent='Enter a valid 10-digit mobile number.';errEl.style.display='block';return;}
-    if(password.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='block';return;}
-    if(password!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='block';return;}
-    let resumeName='', resumeData='';
+
+    if(!preferredJobType||!expectedSalary||!noticePeriod){errEl.textContent='Please complete all job preferences.';errEl.style.display='block';return;}
+
+    let resumeName='',resumeData='';
     if(resumeFile){
       if(resumeFile.size>5*1024*1024){errEl.textContent='Resume must be under 5MB.';errEl.style.display='block';return;}
       resumeName=resumeFile.name;
       resumeData=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(resumeFile);});
     }
-    const btn=document.querySelector('.btn-primary');
+
+    const btn=document.getElementById('btn-submit');
     btn.textContent='Creating account...'; btn.disabled=true;
-    const result=await CandidateAuth.register({name,mobile,email,jobtitle,experience,city,skills,password,resumeName,resumeData});
-    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account';btn.disabled=false;return;}
+
+    const result=await CandidateAuth.register({
+      name,mobile,email,city,password,jobtitle,experience,skills,
+      resumeName,resumeData,
+      about,currentCompany,preferredJobType,expectedSalary,noticePeriod
+    });
+
+    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account ✓';btn.disabled=false;return;}
     const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
     sessionStorage.removeItem('redirect_after_login');
     window.location.href=redirect;
