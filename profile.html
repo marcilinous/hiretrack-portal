@@ -447,11 +447,22 @@ body { background:#f1f5f9; }
         body: JSON.stringify({ prompt, mode: 'json' })
       });
       const data = await res.json();
-      const text = data.answer || '';
-      console.log('AI raw response:', text);
-      const jsonMatch = text.replace(/```json|```/g,'').match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('No JSON in response');
-      return JSON.parse(jsonMatch[0]);
+      let text = data.answer || '';
+      text = text.replace(/```json|```/g,'').trim();
+
+      // Try full parse first
+      const fullMatch = text.match(/\[[\s\S]*\]/);
+      if (fullMatch) {
+        try { return JSON.parse(fullMatch[0]); } catch(e) {}
+      }
+
+      // Try to salvage truncated JSON — extract complete objects only
+      const objMatches = text.match(/\{"q"\s*:\s*"[^"]+"\s*,\s*"a"\s*:\s*"[^"]+"\s*\}/g);
+      if (objMatches && objMatches.length >= 2) {
+        return objMatches.map(o => JSON.parse(o));
+      }
+
+      throw new Error('Could not parse AI response');
     } catch(e) {
       console.error('AI error:', e);
       return null;
@@ -466,7 +477,7 @@ body { background:#f1f5f9; }
     qa.scrollIntoView({ behavior: 'smooth' });
 
     const context = candidate.jobtitle ? ` for a ${candidate.jobtitle} with ${candidate.experience||'some'} experience` : '';
-    const prompt = `Generate exactly 5 interview questions about "${skill}"${context}. Each answer must be 2-3 sentences only, practical and concise. Return ONLY a JSON array with no extra text: [{"q":"question?","a":"short answer."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."}]`;
+    const prompt = `Generate 4 interview questions about "${skill}"${context}. Keep each answer under 2 sentences. Return ONLY a JSON array: [{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."}]`;
 
     const questions = await getAIQuestions(prompt);
     if (questions && questions.length) {
@@ -485,7 +496,7 @@ body { background:#f1f5f9; }
     qa.style.display = 'block';
     qa.scrollIntoView({ behavior: 'smooth' });
 
-    const prompt = `Generate exactly 5 interview questions for: "${input}". Each answer must be 2-3 sentences only. Return ONLY a JSON array: [{"q":"question?","a":"short answer."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."}]`;
+    const prompt = `Generate 4 interview questions for: "${input}". Keep each answer under 2 sentences. Return ONLY a JSON array: [{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."}]`;
 
     const questions = await getAIQuestions(prompt);
     if (questions && questions.length) {
