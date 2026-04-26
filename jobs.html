@@ -116,6 +116,12 @@
 
   function openJobModal(jobId) {
     const job=allJobs.find(j=>String(j.id)===String(jobId)); if(!job) return;
+    // Track view for employer-posted jobs
+    if (job.employer_id) {
+      sb.from('jobs').select('views').eq('id', jobId).single().then(({data}) => {
+        sb.from('jobs').update({ views: (data?.views||0) + 1 }).eq('id', jobId);
+      });
+    }
     const candidate=Session.getCandidate();
     const alreadyApplied=candidate&&candidateApps.find(a=>a.job_id===String(jobId));
     const typeClass={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
