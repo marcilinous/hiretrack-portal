@@ -31,7 +31,7 @@ export default async function handler(req, res) {
           },
           { role: 'user', content: prompt }
         ],
-        max_tokens: isJsonMode ? 1500 : 300,
+        max_tokens: isJsonMode ? 2000 : 300,
         temperature: isJsonMode ? 0.3 : 0.7
       })
     });
