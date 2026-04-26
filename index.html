@@ -3,72 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Login — HireTrack</title>
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; min-height:100vh; display:flex; align-items:center; justify-content:center; }
-  .login-box { background:#1e293b; border-radius:16px; padding:2.5rem; width:100%; max-width:420px; border:1px solid rgba(255,255,255,0.08); }
-  .logo { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:0.3rem; }
-  .logo span { color:#3b82f6; }
-  .sub { color:#64748b; font-size:0.85rem; margin-bottom:2rem; }
-  .badge { display:inline-block; background:rgba(59,130,246,0.15); color:#3b82f6; border:1px solid rgba(59,130,246,0.3); padding:3px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; margin-bottom:1.5rem; }
-  label { display:block; font-size:0.83rem; font-weight:600; color:#94a3b8; margin-bottom:0.4rem; }
-  input { width:100%; background:#0f172a; border:1.5px solid rgba(255,255,255,0.1); border-radius:9px; padding:0.75rem 1rem; font-size:0.93rem; color:#fff; outline:none; margin-bottom:1rem; font-family:inherit; transition:border 0.2s; }
-  input:focus { border-color:#3b82f6; }
-  .btn { width:100%; background:#3b82f6; color:#fff; border:none; padding:0.85rem; font-size:0.95rem; font-weight:700; border-radius:9px; cursor:pointer; font-family:inherit; transition:background 0.2s; margin-top:0.5rem; }
-  .btn:hover { background:#2563eb; }
-  .err { background:rgba(239,68,68,0.1); color:#f87171; border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:0.75rem 1rem; font-size:0.85rem; margin-bottom:1rem; display:none; }
-  .back { text-align:center; margin-top:1.2rem; font-size:0.83rem; color:#64748b; }
-  .back a { color:#3b82f6; }
-</style>
+<title>HireTrack — Find Jobs Across India</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
 </head>
 <body>
-<div class="login-box">
-  <div class="logo">Hire<span>Track</span></div>
-  <div class="sub">Management Console</div>
-  <div class="badge">🔐 Admin Access Only</div>
+<div id="navbar"></div>
+<section class="hero">
+  <div class="hero-badge">🎯 India's Growing Job Portal</div>
+  <h1>Find <span>Your Dream Job</span><br>Across India</h1>
+  <p>Connecting talented professionals with top opportunities in every industry.</p>
+  <div class="search-wrap">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Job title, skill, or company..." />
+      <button onclick="doSearch()">Search Jobs</button>
+    </div>
+  </div>
+  <div style="margin-top:1rem;">
+    <a href="callback.html" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:0.5rem 1.2rem;border-radius:8px;font-size:0.85rem;font-weight:600;transition:all 0.2s;">
+      📞 Are you an employer? Request a free callback →
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><strong id="stat-jobs">240+</strong><span>Live Jobs</span></div>
+    <div class="stat"><strong>180+</strong><span>Companies</span></div>
+    <div class="stat"><strong id="stat-cands">5,000+</strong><span>Candidates</span></div>
+  </div>
+</section>
 
-  <div class="err" id="err"></div>
-
-  <label>Admin Email</label>
-  <input type="email" id="email" placeholder="admin@hiretrack.in" />
-
-  <label>Password</label>
-  <input type="password" id="password" placeholder="Enter admin password" />
-
-  <button class="btn" onclick="doLogin()">Login to Admin Panel</button>
-  <div class="back"><a href="/">← Back to HireTrack</a></div>
+<div class="ai-section">
+  <div class="ai-card">
+    <div class="ai-card-header"><div class="ai-pulse"></div><h3>AI Career Assistant</h3><span class="ai-badge">Powered by Groq</span></div>
+    <div class="ai-row"><input type="text" id="ai-input" placeholder="Ask me anything — e.g. What jobs suit a fresher in Bengaluru?" /><button onclick="askAI()">Ask</button></div>
+    <div class="ai-chips">
+      <span class="chip" onclick="quickAsk('What jobs suit a fresher with a commerce degree in India?')">Fresher careers</span>
+      <span class="chip" onclick="quickAsk('What skills should I learn to get a high paying job in India in 2025?')">Upskill tips</span>
+      <span class="chip" onclick="quickAsk('What is the average salary for data analyst jobs in India?')">Salary info</span>
+      <span class="chip" onclick="quickAsk('How do I write a good resume for my first job?')">Resume tips</span>
+    </div>
+    <div class="ai-response" id="ai-response"></div>
+  </div>
 </div>
 
+<div class="section">
+  <div class="section-hd"><h2>Latest Job Openings</h2><a href="jobs.html">View all jobs →</a></div>
+  <div class="jobs-grid" id="jobs-container"><div class="loading-spinner">Loading jobs...</div></div>
+</div>
+
+<div class="section">
+  <div class="section-hd"><h2>Browse by Category</h2></div>
+  <div class="cats-grid">
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Data+Analyst'"><div class="cat-icon">📈</div><h4>Data Analyst</h4><span>52 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Sales'"><div class="cat-icon">🤝</div><h4>Sales & Business Dev</h4><span>48 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Marketing'"><div class="cat-icon">📣</div><h4>Marketing</h4><span>41 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=IT'"><div class="cat-icon">💻</div><h4>IT & Software</h4><span>67 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Finance'"><div class="cat-icon">💰</div><h4>Finance & Accounts</h4><span>35 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Operations'"><div class="cat-icon">⚙️</div><h4>Operations</h4><span>29 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=HR'"><div class="cat-icon">👥</div><h4>HR & Recruitment</h4><span>24 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Logistics'"><div class="cat-icon">🚚</div><h4>Logistics & Supply Chain</h4><span>18 jobs</span></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
 <script>
-  // Admin credentials — change these to your own
-  const ADMIN_EMAIL = 'admin@hiretrack.in';
-  const ADMIN_PASSWORD = 'HireTrack@Admin2025';
+  document.getElementById('navbar').innerHTML = renderNavbar('home');
 
-  // Redirect if already logged in
-  if (sessionStorage.getItem('ht_admin')) window.location.href = '/admin/dashboard.html';
-
-  function doLogin() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const err = document.getElementById('err');
-    err.style.display = 'none';
-
-    if (!email || !password) {
-      err.textContent = 'Please enter email and password.';
-      err.style.display = 'block'; return;
-    }
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('ht_admin', 'true');
-      window.location.href = '/admin/dashboard.html';
-    } else {
-      err.textContent = 'Invalid email or password.';
-      err.style.display = 'block';
-    }
+  async function loadHome() {
+    const dbJobs = await JobsDB.getAllPublicJobs();
+    window._employerJobs = dbJobs;
+    const allJobs = [...JOBS, ...dbJobs.map(j=>({...j,type:j.job_type}))];
+    // Update stats
+    document.getElementById('stat-jobs').textContent = allJobs.length + '+';
+    // Get candidate apps if logged in
+    const candidate = Session.getCandidate();
+    let apps = [];
+    if (candidate) apps = await ApplicationsDB.getCandidateApplications(candidate.id);
+    renderJobs(allJobs.slice(0,6), 'jobs-container', apps);
+    // Setup job modal
+    window._allJobs = allJobs;
+    window._apps = apps;
   }
 
-  document.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+  function openJobModal(jobId) {
+    const job = (window._allJobs||[...JOBS]).find(j=>String(j.id)===String(jobId));
+    if(!job) return;
+    // Track view for employer-posted jobs
+    if (job.employer_id) {
+      const currentViews = job.views || 0;
+      sb.from('jobs').update({ views: currentViews + 1 }).eq('id', jobId);
+      job.views = currentViews + 1;
+    }
+    const candidate = Session.getCandidate();
+    const alreadyApplied = candidate && (window._apps||[]).find(a=>a.job_id===String(jobId));
+    const typeClass={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
+    const waMsg=encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`);
+    const tags=Array.isArray(job.tags)?job.tags:(job.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
+    const expired=isJobExpired(job);
+    document.getElementById('jd-title').textContent=job.title;
+    document.getElementById('jd-company').textContent=`🏢 ${job.company}`;
+    document.getElementById('jd-meta').innerHTML=`<span class="jd-meta-item">📍 ${job.location}</span><span class="jd-meta-item">💰 ${job.salary||'Negotiable'}</span><span class="jd-meta-item badge ${typeClass[job.type||job.job_type]||'badge-full'}">${job.type||job.job_type}</span>`;
+    document.getElementById('jd-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
+    document.getElementById('jd-desc').textContent=job.description||'Contact employer for full job description.';
+    document.getElementById('jd-actions').innerHTML=`
+      <button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${waMsg}')">WhatsApp Apply</button>
+      <button class="btn-apply ${alreadyApplied?'applied':''} ${expired?'expired-btn':''}" style="flex:1;padding:0.8rem;" onclick="${expired?`showToast('This job has expired.')`:`applyJob('${job.id}',this)`}">${expired?'⚠ Expired':alreadyApplied?'✓ Applied':'Apply Now'}</button>`;
+    document.getElementById('jd-modal').classList.add('show');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeJobModal(e) {
+    if(e.target===document.getElementById('jd-modal')){document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';}
+  }
+
+  function doSearch() {
+    const q=document.getElementById('search-input').value.trim();
+    window.location.href=q?`jobs.html?search=${encodeURIComponent(q)}`:'jobs.html';
+  }
+
+  loadHome();
 </script>
+
+<!-- Job Modal -->
+<div class="jd-modal" id="jd-modal" onclick="closeJobModal(event)">
+  <div class="jd-box" id="jd-box">
+    <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';">✕</button>
+    <div class="jd-title" id="jd-title"></div>
+    <div class="jd-company" id="jd-company"></div>
+    <div class="jd-meta-row" id="jd-meta"></div>
+    <div class="jd-tags" id="jd-tags"></div>
+    <div class="jd-desc" id="jd-desc"></div>
+    <div class="jd-actions" id="jd-actions"></div>
+  </div>
+</div>
 <footer class="ht-footer">
   <div class="ht-footer-top">
     <p class="ht-follow-label">Follow Us</p>
