@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     }
 
     const resendBody = {
-      from: 'onboarding@resend.dev',
+      from: 'noreply@hiretrack.co.in',
       to: [destination],
       subject: `Your HireTrack OTP: ${otp}`,
       html: `<div style="font-family:sans-serif;padding:2rem;text-align:center;">
