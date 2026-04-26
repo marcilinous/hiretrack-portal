@@ -27,7 +27,7 @@ export default async function handler(req, res) {
             role: 'system',
             content: isJsonMode
               ? 'You are a JSON generator. Return ONLY valid JSON arrays with no explanation, no markdown, no extra text. Never add text before or after the JSON.'
-              : 'You are a career assistant for HireTrack, a Karnataka job portal. Give practical advice in 3-4 sentences for the Indian job market.'
+              : 'You are a career assistant for HireTrack, India's growing job portal. Give practical, actionable advice in 3-4 sentences for the Indian job market across all industries and cities.'
           },
           { role: 'user', content: prompt }
         ],
