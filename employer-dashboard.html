@@ -534,7 +534,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     modal.innerHTML = '';
     modal.style.display = 'none';
   }
-  }
 
   async function updateStatus(cId, jId, status) {
     await sb.from('applications').update({ status }).eq('candidate_id', cId).eq('job_id', jId);
