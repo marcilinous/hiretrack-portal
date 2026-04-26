@@ -87,6 +87,12 @@
   function openJobModal(jobId) {
     const job = (window._allJobs||[...JOBS]).find(j=>String(j.id)===String(jobId));
     if(!job) return;
+    // Track view for employer-posted jobs
+    if (job.employer_id) {
+      const currentViews = job.views || 0;
+      sb.from('jobs').update({ views: currentViews + 1 }).eq('id', jobId);
+      job.views = currentViews + 1;
+    }
     const candidate = Session.getCandidate();
     const alreadyApplied = candidate && (window._apps||[]).find(a=>a.job_id===String(jobId));
     const typeClass={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
