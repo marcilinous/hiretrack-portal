@@ -218,14 +218,9 @@ body { background:#f1f5f9; }
       </div>
     </div>
 
-    <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Question Bank by Category</h3>
-    <div class="prep-categories">
-      <div class="prep-cat" onclick="loadBank('excel')"><div class="cat-icon">📊</div><h4>Excel & MIS</h4><p>Formulas, Pivot, VBA</p></div>
-      <div class="prep-cat" onclick="loadBank('sql')"><div class="cat-icon">🗄️</div><h4>SQL & Database</h4><p>Queries, Joins, Indexes</p></div>
-      <div class="prep-cat" onclick="loadBank('python')"><div class="cat-icon">🐍</div><h4>Python & Analytics</h4><p>Pandas, NumPy, ML</p></div>
-      <div class="prep-cat" onclick="loadBank('powerbi')"><div class="cat-icon">📈</div><h4>Power BI & Tableau</h4><p>DAX, Reports, Dashboards</p></div>
-      <div class="prep-cat" onclick="loadBank('hr')"><div class="cat-icon">🤝</div><h4>HR & Behavioural</h4><p>Situational, Leadership</p></div>
-      <div class="prep-cat" onclick="loadBank('general')"><div class="cat-icon">💡</div><h4>General Aptitude</h4><p>Logical, Numerical</p></div>
+    <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
+    <div class="prep-categories" id="skill-categories">
+      <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
     </div>
 
     <div class="qa-box" id="qa-box" style="display:none;">
@@ -385,6 +380,7 @@ body { background:#f1f5f9; }
     const n = myNotifs.find(x=>x.id===id);
     if (n) n.is_read = true;
     updateNotifBadge();
+    renderSkillCategories();
   }
 
   async function markAllRead() {
@@ -401,114 +397,160 @@ body { background:#f1f5f9; }
   }
 
   // ── Interview Prep ──
-  const QUESTION_BANK = {
-    excel: { title:'Excel & MIS Questions', qs:[
-      {q:'What is the difference between VLOOKUP and INDEX MATCH?',a:'VLOOKUP searches left-to-right and requires column index numbers. INDEX MATCH is more flexible — it can search in any direction and is faster on large datasets. INDEX MATCH also handles column insertions better since it references column names directly.'},
-      {q:'How do you create a dynamic Pivot Table that auto-updates?',a:'Use a Table (Ctrl+T) as your data source before creating the Pivot Table. When you add rows to the Table, the Pivot Table range auto-expands. Then simply refresh the Pivot Table (Alt+F5) to see new data.'},
-      {q:'Explain the difference between SUMIF and SUMIFS.',a:'SUMIF handles one condition: =SUMIF(range, criteria, sum_range). SUMIFS handles multiple conditions: =SUMIFS(sum_range, range1, criteria1, range2, criteria2). SUMIFS is preferred as it is more versatile.'},
-      {q:'How would you build a MIS dashboard from scratch?',a:'1) Define KPIs with stakeholders. 2) Design data collection template. 3) Create a raw data sheet. 4) Build summary/calculation sheets using formulas. 5) Create charts linked to calculations. 6) Add slicers/filters for interactivity. 7) Automate refresh where possible.'},
-      {q:'What is Power Query and when do you use it?',a:'Power Query (Get & Transform) is used to connect to external data sources, clean/transform data, and load it into Excel without writing formulas. It is ideal for recurring reports where data structure is consistent but content changes regularly.'},
-    ]},
-    sql: { title:'SQL & Database Questions', qs:[
-      {q:'What is the difference between INNER JOIN, LEFT JOIN and RIGHT JOIN?',a:'INNER JOIN returns only matching rows from both tables. LEFT JOIN returns all rows from the left table and matching rows from the right (NULL for non-matches). RIGHT JOIN is the reverse of LEFT JOIN.'},
-      {q:'How do you find duplicate records in a table?',a:'SELECT column, COUNT(*) FROM table GROUP BY column HAVING COUNT(*) > 1. This groups records by the column and filters groups with more than one occurrence.'},
-      {q:'What is the difference between WHERE and HAVING?',a:'WHERE filters rows BEFORE grouping — it works on individual records. HAVING filters AFTER grouping — it works on aggregated results. You cannot use aggregate functions like COUNT() or SUM() in a WHERE clause.'},
-      {q:'Explain what an index is and when you would use it.',a:'An index is a data structure that speeds up SELECT queries on a column. Use indexes on columns frequently used in WHERE, JOIN, or ORDER BY clauses. Avoid over-indexing as it slows down INSERT/UPDATE/DELETE operations.'},
-      {q:'Write a query to find the second highest salary.',a:'SELECT MAX(salary) FROM employees WHERE salary < (SELECT MAX(salary) FROM employees). Alternative: SELECT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET 1.'},
-    ]},
-    python: { title:'Python & Analytics Questions', qs:[
-      {q:'What is the difference between a list and a tuple in Python?',a:'Lists are mutable (can be changed after creation) and use square brackets []. Tuples are immutable (cannot be changed) and use parentheses (). Tuples are faster and used for fixed data like coordinates or database records.'},
-      {q:'How do you handle missing values in a Pandas DataFrame?',a:'df.isnull().sum() to check. df.dropna() to remove rows with nulls. df.fillna(value) to replace with a specific value. df.fillna(df.mean()) to fill with column mean. Choice depends on the percentage of missing data and context.'},
-      {q:'What is the difference between apply() and map() in Pandas?',a:'map() works only on Series, element by element. apply() works on both Series and DataFrames — it can apply a function along rows (axis=1) or columns (axis=0). applymap() applies element-wise to entire DataFrames.'},
-      {q:'Explain GroupBy in Pandas with an example.',a:'GroupBy splits data into groups, applies a function, and combines results. Example: df.groupby("department")["salary"].mean() groups employees by department and calculates average salary per department.'},
-      {q:'What are the main steps in a data analysis project?',a:'1) Define the problem. 2) Collect data. 3) Clean data (handle nulls, outliers, types). 4) Explore data (EDA — distributions, correlations). 5) Analyse and model. 6) Visualise findings. 7) Communicate insights to stakeholders.'},
-    ]},
-    powerbi: { title:'Power BI & Tableau Questions', qs:[
-      {q:'What is DAX and give an example of a common DAX formula?',a:'DAX (Data Analysis Expressions) is Power BI\'s formula language. Example: Total Sales = SUM(Sales[Amount]). YTD Sales = TOTALYTD(SUM(Sales[Amount]), Dates[Date]). CALCULATE() is the most powerful DAX function — it evaluates expressions in a modified filter context.'},
-      {q:'What is the difference between a measure and a calculated column?',a:'Calculated columns are computed row by row and stored in the model (increases file size). Measures are computed at query time based on context (filters, slicers) and are more efficient. Use measures for aggregations, calculated columns for row-level calculations.'},
-      {q:'What are relationships in Power BI and why are they important?',a:'Relationships connect tables in the data model, similar to SQL joins. They allow filters to propagate between tables. Power BI supports one-to-many (most common), many-to-many, and one-to-one relationships. Active vs inactive relationships affect how DAX filters flow.'},
-      {q:'How do you optimise a slow Power BI report?',a:'1) Reduce data volume using query folding. 2) Avoid calculated columns — use measures. 3) Use star schema instead of flat tables. 4) Remove unused columns and rows. 5) Use aggregations for large tables. 6) Avoid bi-directional relationships.'},
-      {q:'What is the difference between Power BI Desktop, Service, and Mobile?',a:'Desktop is for building reports (Windows app). Service is the cloud platform for sharing, collaboration, and scheduling refresh. Mobile is the app for viewing reports on phones. Reports are created in Desktop, published to Service, and viewed in Mobile.'},
-    ]},
-    hr: { title:'HR & Behavioural Questions', qs:[
-      {q:'Tell me about yourself.',a:'Structure: Present (current role/skills) → Past (relevant experience) → Future (why this role). Keep it under 2 minutes. Focus on professional highlights relevant to the job. End with why you are excited about this specific opportunity.'},
-      {q:'Why are you looking for a new job?',a:'Focus on growth: "I\'ve learned a lot in my current role and I\'m looking for new challenges that align with my career goals." Avoid criticising your current employer. Frame it positively around opportunity rather than escaping a bad situation.'},
-      {q:'Tell me about a time you handled a difficult situation at work.',a:'Use the STAR method: Situation (context), Task (your responsibility), Action (what you did), Result (outcome). Choose a real example where you showed problem-solving and stayed professional. Quantify the result if possible.'},
-      {q:'Where do you see yourself in 5 years?',a:'Show ambition aligned with the role. "I want to grow into a senior analyst role, taking on more complex data projects and eventually leading a reporting team." Avoid saying you want the interviewer\'s job or being vague about your goals.'},
-      {q:'What is your greatest weakness?',a:'Choose a real but manageable weakness. Show self-awareness and what you are doing to improve. Example: "I used to struggle with delegating tasks. I\'ve been actively working on this by setting clear expectations and trusting my team members more."'},
-    ]},
-    general: { title:'General Aptitude Questions', qs:[
-      {q:'A train travels 360 km in 4 hours. What is its speed in m/s?',a:'Speed = 360 km / 4 h = 90 km/h. Convert: 90 × (1000/3600) = 90 × 5/18 = 25 m/s. Key: to convert km/h to m/s, multiply by 5/18.'},
-      {q:'If A can do a job in 10 days and B in 15 days, how long do they take together?',a:'A\'s rate = 1/10 per day. B\'s rate = 1/15 per day. Together = 1/10 + 1/15 = 3/30 + 2/30 = 5/30 = 1/6 per day. So together they finish in 6 days.'},
-      {q:'What number comes next: 2, 6, 12, 20, 30, ?',a:'Differences: 4, 6, 8, 10, 12. The differences increase by 2 each time. So next difference is 12, giving 30 + 12 = 42. Pattern: n(n+1) → 1×2=2, 2×3=6, 3×4=12, 4×5=20, 5×6=30, 6×7=42.'},
-      {q:'A shopkeeper marks goods 40% above cost and gives 25% discount. What is the profit %?',a:'Let cost = 100. Marked price = 140. After 25% discount: 140 × 0.75 = 105. Profit = 105 - 100 = 5. Profit % = 5%. Formula: Profit % = (1 + markup)(1 - discount) - 1.'},
-      {q:'Find the odd one out: 144, 169, 196, 225, 250.',a:'144=12², 169=13², 196=14², 225=15², 250 is not a perfect square (15.8²≈250). So 250 is the odd one out. All others are perfect squares.'},
-    ]},
+  // ── Skill Icons Map ──
+  const SKILL_ICONS = {
+    'excel':'📊','mis':'📋','sql':'🗄️','python':'🐍','power bi':'📈','tableau':'📉',
+    'vba':'⚙️','sap':'🏢','tally':'🧾','automation':'🤖','data entry':'📝',
+    'reporting':'📊','analytics':'📈','machine learning':'🧠','ai':'🤖','mysql':'🗃️',
+    'default':'💡'
   };
 
-  function loadBank(cat) {
-    const data = QUESTION_BANK[cat];
-    document.getElementById('qa-title').textContent = data.title;
-    document.getElementById('qa-list').innerHTML = data.qs.map((q,i)=>`
-      <div class="qa-item" id="qa-${i}">
-        <div class="qa-q"><span class="q-num">${i+1}</span>${q.q}</div>
-        <button class="qa-toggle" onclick="toggleQA(${i})">Show Answer</button>
-        <div class="qa-a">${q.a}</div>
+  function getSkillIcon(skill) {
+    const key = skill.toLowerCase();
+    for (const [k,v] of Object.entries(SKILL_ICONS)) { if (key.includes(k)) return v; }
+    return SKILL_ICONS.default;
+  }
+
+  function renderSkillCategories() {
+    const skills = candidate.skills || [];
+    const el = document.getElementById('skill-categories');
+
+    if (!skills.length) {
+      el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:1.5rem;background:#fff;border-radius:12px;border:1.5px solid #e2e8f0;">
+        <div style="font-size:1.5rem;margin-bottom:0.5rem;">⚠️</div>
+        <p style="font-size:0.85rem;color:#64748b;">No skills in your profile yet.</p>
+        <p style="font-size:0.82rem;color:#94a3b8;">Update your profile to get personalised practice questions.</p>
+      </div>`;
+      return;
+    }
+
+    // Always add HR & General
+    const allCategories = [
+      ...skills.map(s => ({ label: s, icon: getSkillIcon(s), isSkill: true })),
+      { label: 'HR & Behavioural', icon: '🤝', isSkill: false },
+      { label: 'General Aptitude', icon: '🧮', isSkill: false }
+    ];
+
+    el.innerHTML = allCategories.map(cat => `
+      <div class="prep-cat" onclick="loadSkillQuestions('${cat.label}')">
+        <div class="cat-icon">${cat.icon}</div>
+        <h4>${cat.label}</h4>
+        <p>${cat.isSkill ? `Based on your profile` : 'General practice'}</p>
       </div>`).join('');
-    document.getElementById('qa-box').style.display = 'block';
-    document.getElementById('qa-box').scrollIntoView({ behavior: 'smooth' });
   }
 
-  function toggleQA(i) {
-    const item = document.getElementById('qa-'+i);
-    const isOpen = item.classList.contains('open');
-    item.classList.toggle('open', !isOpen);
-    item.querySelector('.qa-toggle').textContent = isOpen ? 'Show Answer' : 'Hide Answer';
-  }
-
-  async function generateAIQuestions() {
-    const input = document.getElementById('prep-input').value.trim();
-    if (!input) { showToast('Please enter a job role or company'); return; }
+  async function loadSkillQuestions(skill) {
     const qa = document.getElementById('qa-box');
-    document.getElementById('qa-title').textContent = `AI Questions: ${input}`;
-    document.getElementById('qa-list').innerHTML = '<div style="padding:1.5rem;text-align:center;"><span class="ai-loading">🤖 Generating interview questions...</span></div>';
+    document.getElementById('qa-title').textContent = `Practice: ${skill}`;
+    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Generating questions for ' + skill + '...</span></div>';
     qa.style.display = 'block';
     qa.scrollIntoView({ behavior: 'smooth' });
 
-    const prompt = `Generate exactly 5 interview questions with concise answers for: "${input}".
-Each answer should be 2-3 short sentences maximum. Be direct and practical.
-Return ONLY a valid JSON array, no other text:
-[{"q":"question?","a":"concise answer."},...]`;
+    const context = candidate.jobtitle ? `for a ${candidate.jobtitle} with ${candidate.experience||'some'} experience` : '';
+    const prompt = `Generate exactly 5 interview questions about "${skill}" ${context}. 
+Each answer should be 2-3 sentences, practical and concise.
+Return ONLY a valid JSON array: [{"q":"question?","a":"answer."},...]`;
 
     const answer = await callGroq(prompt);
     try {
       const clean = answer.replace(/```json|```/g,'').trim();
-      // Extract JSON array even if there's extra text
       const jsonMatch = clean.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('No JSON found');
+      if (!jsonMatch) throw new Error('No JSON');
       const questions = JSON.parse(jsonMatch[0]);
-      document.getElementById('qa-list').innerHTML = questions.map((q, i) => {
-        // Format answer — split on sentences and add line breaks for readability
-        const formattedAnswer = q.a
-          .replace(/\. ([A-Z])/g, '.\n$1')  // break after sentences
-          .split('\n')
-          .filter(l => l.trim())
-          .map(l => `<p style="margin-bottom:0.5rem;">${l.trim()}</p>`)
-          .join('');
-        return `
-        <div class="qa-item" id="qa-ai-${i}">
-          <div class="qa-q"><span class="q-num">${i+1}</span>${q.q}</div>
-          <button class="qa-toggle" onclick="toggleQA('ai-${i}')">Show Answer</button>
-          <div class="qa-a">${formattedAnswer}</div>
-        </div>`;
-      }).join('');
+      renderQuiz(questions);
     } catch(e) {
-      // Fallback — display raw answer nicely formatted
-      const lines = answer.split('\n').filter(l => l.trim());
-      document.getElementById('qa-list').innerHTML = `<div style="padding:1.2rem;">` +
-        lines.map(l => `<p style="font-size:0.85rem;color:#374151;line-height:1.7;margin-bottom:0.5rem;">${l}</p>`).join('') +
-        `</div>`;
+      document.getElementById('qa-list').innerHTML = `<div style="padding:1rem;font-size:0.85rem;color:#374151;">${answer}</div>`;
     }
+  }
+
+  async function generateAIQuestions() {
+    const input = document.getElementById('prep-input').value.trim();
+    if (!input) { showToast('Please enter a job role'); return; }
+    const qa = document.getElementById('qa-box');
+    document.getElementById('qa-title').textContent = `Interview Prep: ${input}`;
+    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Generating questions...</span></div>';
+    qa.style.display = 'block';
+    qa.scrollIntoView({ behavior: 'smooth' });
+
+    const prompt = `Generate exactly 5 interview questions with concise answers for: "${input}". Each answer should be 2-3 sentences max. Return ONLY a valid JSON array: [{"q":"question?","a":"answer."},...]`;
+    const answer = await callGroq(prompt);
+
+    try {
+      const clean = answer.replace(/```json|```/g,'').trim();
+      const jsonMatch = clean.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('No JSON');
+      const questions = JSON.parse(jsonMatch[0]);
+      renderQuiz(questions);
+    } catch(e) {
+      document.getElementById('qa-list').innerHTML = `<div style="padding:1rem;font-size:0.85rem;color:#374151;">${answer}</div>`;
+    }
+  }
+
+  let quizData = [], quizIdx = 0, quizAnswerShown = false;
+
+  function renderQuiz(questions) {
+    quizData = questions;
+    quizIdx = 0;
+    showQuizCard();
+  }
+
+  function showQuizCard() {
+    const q = quizData[quizIdx];
+    const total = quizData.length;
+    quizAnswerShown = false;
+
+    document.getElementById('qa-list').innerHTML = `
+      <div style="padding:1.5rem;">
+        <!-- Progress -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+          <span style="font-size:0.78rem;color:#64748b;font-weight:600;">Question ${quizIdx+1} of ${total}</span>
+          <div style="display:flex;gap:4px;">${quizData.map((_,i)=>`<div style="width:28px;height:4px;border-radius:2px;background:${i<quizIdx?'#2563eb':i===quizIdx?'#93c5fd':'#e2e8f0'};"></div>`).join('')}</div>
+        </div>
+
+        <!-- Question Card -->
+        <div style="background:#f0f7ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+          <div style="font-size:0.72rem;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">❓ Question ${quizIdx+1}</div>
+          <div style="font-size:0.95rem;font-weight:700;color:#0f172a;line-height:1.6;">${q.q}</div>
+        </div>
+
+        <!-- Answer (hidden initially) -->
+        <div id="quiz-answer" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
+          <div style="font-size:0.72rem;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">✅ Model Answer</div>
+          <div style="font-size:0.88rem;color:#166534;line-height:1.7;">${q.a}</div>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:0.75rem;">
+          <button onclick="showQuizAnswer()" id="btn-show-ans" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
+            💡 Show Answer
+          </button>
+          ${quizIdx > 0 ? `<button onclick="quizNav(-1)" style="background:#f1f5f9;color:#374151;border:none;padding:0.75rem 1rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">← Prev</button>` : ''}
+          ${quizIdx < total-1 ? `<button onclick="quizNav(1)" id="btn-next" style="background:#0f172a;color:#fff;border:none;padding:0.75rem 1.2rem;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">Next →</button>` : `<button onclick="finishQuiz()" style="background:#16a34a;color:#fff;border:none;padding:0.75rem 1.2rem;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">Finish ✓</button>`}
+        </div>
+      </div>`;
+  }
+
+  function showQuizAnswer() {
+    document.getElementById('quiz-answer').style.display = 'block';
+    document.getElementById('btn-show-ans').textContent = '✅ Answer Shown';
+    document.getElementById('btn-show-ans').style.background = '#dcfce7';
+    document.getElementById('btn-show-ans').style.color = '#15803d';
+    quizAnswerShown = true;
+  }
+
+  function quizNav(dir) {
+    quizIdx = Math.max(0, Math.min(quizData.length-1, quizIdx + dir));
+    showQuizCard();
+  }
+
+  function finishQuiz() {
+    document.getElementById('qa-list').innerHTML = `
+      <div style="padding:2rem;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:1rem;">🎉</div>
+        <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:0.5rem;">Practice Complete!</h3>
+        <p style="color:#64748b;font-size:0.85rem;margin-bottom:1.5rem;">You've reviewed all ${quizData.length} questions. Keep practising to build confidence!</p>
+        <button onclick="quizIdx=0;showQuizCard()" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 1.5rem;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">🔁 Practice Again</button>
+      </div>`;
   }
 
   function prepForJob(title, company) {
