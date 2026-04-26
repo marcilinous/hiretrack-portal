@@ -272,3 +272,42 @@ footer span { color:var(--blue); }
   .hero-stats { gap:1.5rem; }
   .nav-center { display:none; }
 }
+
+/* ═══════════════════════════════════════════
+   HIRETRACK FOOTER — Full Footer Component
+   ═══════════════════════════════════════════ */
+.ht-footer { background: var(--navy); color: #fff; margin-top: 3rem; }
+.ht-footer-top { text-align: center; padding: 2.5rem 1rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.ht-follow-label { font-size: 1rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem; color: #e2e8f0; }
+.ht-underline { width: 36px; height: 3px; background: #f59e0b; border-radius: 2px; margin: 0 auto 2rem; }
+.ht-socials { display: flex; justify-content: center; gap: 0.85rem; margin-bottom: 1.8rem; }
+.ht-social { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+.ht-social:hover { background: rgba(59,130,246,0.25); border-color: rgba(59,130,246,0.5); transform: translateY(-2px); }
+.ht-social svg { width: 20px; height: 20px; }
+.ht-nav-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 0.5rem; max-width: 700px; margin: 0 auto; }
+.ht-nav-links a { color: rgba(255,255,255,0.55); font-size: 0.82rem; text-decoration: none; padding: 0.2rem 0.5rem; transition: color 0.2s; }
+.ht-nav-links a:hover { color: #fff; }
+.ht-nav-links .ht-sep { color: rgba(255,255,255,0.2); font-size: 0.82rem; padding: 0.2rem 0; }
+.ht-cta-row { display: grid; grid-template-columns: 1fr 1fr; }
+.ht-cta-card { background: #1e293b; padding: 2rem 2rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.2s; text-decoration: none; border-top: 1px solid rgba(255,255,255,0.08); }
+.ht-cta-card:first-child { border-right: 1px solid rgba(255,255,255,0.08); }
+.ht-cta-card:hover { background: #263548; }
+.ht-cta-text h3 { font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1.2; margin: 0 0 0.5rem; }
+.ht-cta-text p { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin: 0; display: flex; align-items: center; gap: 5px; }
+.ht-cta-arrow { width: 42px; height: 42px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.2s; }
+.ht-cta-card:hover .ht-cta-arrow { transform: scale(1.1); }
+.ht-cta-arrow svg { width: 18px; height: 18px; }
+.ht-footer-bottom { text-align: center; padding: 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
+.ht-footer-bottom p { font-size: 0.78rem; color: rgba(255,255,255,0.3); margin: 0; }
+.ht-footer-bottom span { color: var(--blue); }
+
+/* ── Footer page styles (about, privacy etc.) ── */
+.static-page { max-width: 780px; margin: 2.5rem auto; padding: 0 1.5rem; }
+.static-page h1 { font-size: 1.8rem; font-weight: 800; color: var(--navy); margin-bottom: 0.4rem; }
+.static-page .sp-date { font-size: 0.8rem; color: var(--gray5); margin-bottom: 2rem; }
+.static-page h2 { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin: 2rem 0 0.6rem; }
+.static-page p { font-size: 0.92rem; line-height: 1.75; color: #334155; margin-bottom: 1rem; }
+.static-page ul { padding-left: 1.4rem; margin-bottom: 1rem; }
+.static-page ul li { font-size: 0.92rem; line-height: 1.75; color: #334155; margin-bottom: 0.3rem; }
+.static-page .sp-card { background: #f8fafc; border: 1.5px solid var(--gray3); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+.static-page .sp-highlight { background: #eff6ff; border-left: 4px solid var(--blue); padding: 1rem 1.2rem; border-radius: 0 8px 8px 0; margin: 1.5rem 0; font-size: 0.92rem; color: #1e40af; line-height: 1.7; }
