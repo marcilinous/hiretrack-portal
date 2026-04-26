@@ -5,33 +5,241 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile — HireTrack</title>
 <link rel="stylesheet" href="style.css">
+<style>
+body { background:#f1f5f9; }
+
+/* ── Profile Header ── */
+.profile-header { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:2rem; }
+.profile-header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; }
+.avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); }
+.profile-info { flex:1; }
+.profile-name { font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:0.2rem; }
+.profile-title { color:#bfdbfe; font-size:0.85rem; }
+.profile-meta { display:flex; gap:1rem; margin-top:0.5rem; flex-wrap:wrap; }
+.profile-meta span { color:#bfdbfe; font-size:0.78rem; display:flex; align-items:center; gap:4px; }
+.profile-actions { display:flex; gap:0.5rem; }
+.btn-logout-p { background:rgba(255,255,255,0.15); color:#fff; border:1.5px solid rgba(255,255,255,0.3); padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.btn-edit-p { background:#fff; color:#2563eb; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
+
+/* ── Tabs ── */
+.tabs-wrap { background:#fff; border-bottom:2px solid #e2e8f0; }
+.tabs-inner { max-width:900px; margin:0 auto; padding:0 1.5rem; display:flex; }
+.tab { padding:0.9rem 1.1rem; font-size:0.85rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
+.tab:hover { color:#2563eb; }
+.tab.active { color:#2563eb; border-bottom-color:#2563eb; }
+.notif-dot { background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+
+/* ── Content ── */
+.content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
+
+/* ── Profile Tab ── */
+.profile-grid { display:grid; grid-template-columns:1fr 2fr; gap:1.5rem; }
+.card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
+.card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
+.info-row { display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #f1f5f9; font-size:0.85rem; }
+.info-row:last-child { border-bottom:none; }
+.info-row .label { color:#64748b; }
+.info-row .value { font-weight:600; color:#0f172a; }
+.skill-chip { background:#eff6ff; color:#1d4ed8; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; display:inline-block; margin:3px; }
+.resume-box { background:#f8fafc; border-radius:10px; padding:1rem; display:flex; align-items:center; justify-content:space-between; margin-top:0.5rem; }
+.btn-dl { background:#2563eb; color:#fff; border:none; padding:0.4rem 1rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
+
+/* ── Applications Tab ── */
+.app-item { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1.2rem; margin-bottom:0.75rem; display:flex; gap:1rem; align-items:flex-start; transition:border-color 0.2s; }
+.app-item:hover { border-color:#2563eb; }
+.app-company-logo { width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.85rem; font-weight:800; flex-shrink:0; }
+.app-info { flex:1; }
+.app-title { font-size:0.92rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
+.app-company { font-size:0.8rem; color:#64748b; margin-bottom:0.5rem; }
+.app-meta { display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap; }
+.status-badge { padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.s-Applied { background:#eff6ff; color:#1d4ed8; }
+.s-Viewed { background:#f5f3ff; color:#6d28d9; }
+.s-Shortlisted { background:#fef3c7; color:#b45309; }
+.s-Interview { background:#ecfeff; color:#0e7490; }
+.s-Hired { background:#dcfce7; color:#15803d; }
+.s-Rejected { background:#fef2f2; color:#b91c1c; }
+.app-date { font-size:0.75rem; color:#94a3b8; }
+.app-progress { display:flex; gap:0; margin-top:0.75rem; }
+.prog-step { flex:1; text-align:center; position:relative; }
+.prog-step::before { content:''; position:absolute; top:10px; left:50%; right:-50%; height:2px; background:#e2e8f0; z-index:0; }
+.prog-step:last-child::before { display:none; }
+.prog-dot { width:20px; height:20px; border-radius:50%; border:2px solid #e2e8f0; background:#fff; margin:0 auto 4px; position:relative; z-index:1; display:flex; align-items:center; justify-content:center; font-size:0.6rem; }
+.prog-dot.done { background:#2563eb; border-color:#2563eb; color:#fff; }
+.prog-dot.current { background:#fff; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.15); }
+.prog-dot.rejected { background:#ef4444; border-color:#ef4444; color:#fff; }
+.prog-label { font-size:0.62rem; color:#94a3b8; }
+.prog-label.done { color:#2563eb; font-weight:600; }
+.prog-label.current { color:#2563eb; font-weight:700; }
+.btn-prep { background:#f5f3ff; color:#6d28d9; border:none; padding:0.35rem 0.8rem; border-radius:7px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; }
+
+/* ── Notifications Tab ── */
+.notif-item { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1rem 1.2rem; margin-bottom:0.6rem; display:flex; gap:1rem; align-items:flex-start; transition:all 0.2s; }
+.notif-item.unread { border-color:#bfdbfe; background:#f0f7ff; }
+.notif-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.ni-status { background:#eff6ff; }
+.ni-shortlist { background:#fef3c7; }
+.ni-interview { background:#ecfeff; }
+.ni-hired { background:#dcfce7; }
+.ni-rejected { background:#fef2f2; }
+.notif-body { flex:1; }
+.notif-msg { font-size:0.85rem; font-weight:600; color:#0f172a; margin-bottom:0.2rem; }
+.notif-time { font-size:0.73rem; color:#94a3b8; }
+.unread-dot { width:8px; height:8px; border-radius:50%; background:#2563eb; flex-shrink:0; margin-top:4px; }
+
+/* ── Interview Prep Tab ── */
+.prep-hero { background:linear-gradient(135deg,#4f46e5,#7c3aed); border-radius:14px; padding:1.5rem; color:#fff; margin-bottom:1.5rem; }
+.prep-hero h2 { font-size:1.1rem; font-weight:800; margin-bottom:0.3rem; }
+.prep-hero p { font-size:0.82rem; color:#ddd6fe; margin-bottom:1rem; }
+.prep-ai-row { display:flex; gap:0.75rem; }
+.prep-ai-row input { flex:1; padding:0.6rem 1rem; border-radius:8px; border:none; font-size:0.85rem; font-family:inherit; outline:none; }
+.prep-ai-row button { background:#fff; color:#4f46e5; border:none; padding:0.6rem 1.2rem; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.prep-categories { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1.5rem; }
+.prep-cat { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; }
+.prep-cat:hover { border-color:#4f46e5; transform:translateY(-2px); box-shadow:0 4px 12px rgba(79,70,229,0.1); }
+.prep-cat .cat-icon { font-size:1.5rem; margin-bottom:0.4rem; }
+.prep-cat h4 { font-size:0.82rem; font-weight:700; margin-bottom:0.2rem; }
+.prep-cat p { font-size:0.72rem; color:#64748b; }
+.qa-box { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; overflow:hidden; }
+.qa-header { padding:1rem 1.2rem; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; }
+.qa-header h3 { font-size:0.9rem; font-weight:800; }
+.qa-item { padding:1rem 1.2rem; border-bottom:1px solid #f1f5f9; }
+.qa-item:last-child { border-bottom:none; }
+.qa-q { font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem; display:flex; gap:8px; }
+.qa-q .q-num { background:#eff6ff; color:#2563eb; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.72rem; flex-shrink:0; }
+.qa-a { font-size:0.82rem; color:#475569; line-height:1.6; padding-left:30px; display:none; }
+.qa-item.open .qa-a { display:block; }
+.qa-toggle { background:#f1f5f9; border:none; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:600; cursor:pointer; font-family:inherit; color:#64748b; margin-left:30px; margin-top:0.4rem; }
+.ai-loading { color:#6d28d9; font-size:0.85rem; animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+@media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
+</style>
 </head>
 <body>
 <div id="navbar"></div>
-<div class="page-hd"><h1>My Profile</h1><p>Manage your career profile and applications</p></div>
-<div class="profile-wrap" id="profile-wrap">
-  <aside class="profile-card">
-    <div class="profile-avatar" id="avatar-initials">?</div>
-    <div class="profile-name" id="p-name">—</div>
-    <div class="profile-title" id="p-title">—</div>
+
+<!-- Profile Header -->
+<div class="profile-header">
+  <div class="profile-header-inner">
+    <div class="avatar" id="p-avatar">?</div>
     <div class="profile-info">
-      <div class="pi-row"><span>📍 City</span><span id="p-city">—</span></div>
-      <div class="pi-row"><span>📞 Mobile</span><span id="p-mobile">—</span></div>
-      <div class="pi-row"><span>✉️ Email</span><span id="p-email" style="font-size:0.78rem;">—</span></div>
-      <div class="pi-row"><span>🎓 Experience</span><span id="p-exp">—</span></div>
+      <div class="profile-name" id="p-name">Loading...</div>
+      <div class="profile-title" id="p-title">Job Seeker</div>
+      <div class="profile-meta">
+        <span id="p-city">📍 —</span>
+        <span id="p-exp">🎓 —</span>
+        <span id="p-mobile">📞 —</span>
+      </div>
     </div>
-    <div id="p-skills" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;"></div>
-    <button class="btn-resume" id="resume-btn" onclick="downloadResume()" style="display:none;">📄 Download Resume</button>
-    <button class="btn-resume" style="margin-top:0.5rem;background:#fee2e2;color:#b91c1c;" onclick="CandidateAuth.logout()">Logout</button>
-  </aside>
-  <div>
-    <div class="apps-card">
-      <h2>My Applications (<span id="apps-count">0</span>)</h2>
-      <div id="apps-list"><div class="loading-spinner">Loading applications...</div></div>
+    <div class="profile-actions">
+      <button class="btn-logout-p" onclick="CandidateAuth.logout()">Logout</button>
     </div>
   </div>
 </div>
-<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs-inner">
+    <button class="tab active" onclick="switchTab('profile',this)">👤 Profile</button>
+    <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
+    <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
+    <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- PROFILE TAB -->
+  <div id="tab-profile">
+    <div class="profile-grid">
+      <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Personal Info</h3>
+          <div class="info-row"><span class="label">Email</span><span class="value" id="d-email">—</span></div>
+          <div class="info-row"><span class="label">Mobile</span><span class="value" id="d-mobile">—</span></div>
+          <div class="info-row"><span class="label">City</span><span class="value" id="d-city">—</span></div>
+          <div class="info-row"><span class="label">Experience</span><span class="value" id="d-exp">—</span></div>
+          <div class="info-row"><span class="label">Current Role</span><span class="value" id="d-title">—</span></div>
+        </div>
+        <div class="card">
+          <h3>Resume</h3>
+          <div id="resume-section">
+            <p style="font-size:0.82rem;color:#94a3b8;">No resume uploaded</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Skills</h3>
+          <div id="d-skills"><p style="font-size:0.82rem;color:#94a3b8;">No skills added</p></div>
+        </div>
+        <div class="card">
+          <h3>Activity Summary</h3>
+          <div class="info-row"><span class="label">Total Applications</span><span class="value" id="sum-total">0</span></div>
+          <div class="info-row"><span class="label">Shortlisted</span><span class="value" style="color:#d97706;" id="sum-short">0</span></div>
+          <div class="info-row"><span class="label">Interviews</span><span class="value" style="color:#0e7490;" id="sum-inter">0</span></div>
+          <div class="info-row"><span class="label">Hired</span><span class="value" style="color:#15803d;" id="sum-hired">0</span></div>
+          <div class="info-row"><span class="label">Member since</span><span class="value" id="sum-since">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATIONS TAB -->
+  <div id="tab-applications" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="font-size:1rem;font-weight:800;">My Applications</h2>
+      <select id="app-filter" onchange="filterApps()" style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.4rem 0.8rem;font-size:0.82rem;font-family:inherit;outline:none;">
+        <option value="">All Status</option>
+        <option>Applied</option><option>Viewed</option><option>Shortlisted</option>
+        <option>Interview</option><option>Hired</option><option>Rejected</option>
+      </select>
+    </div>
+    <div id="apps-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- NOTIFICATIONS TAB -->
+  <div id="tab-notifications" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="font-size:1rem;font-weight:800;">Notifications</h2>
+      <button onclick="markAllRead()" style="background:none;border:none;color:#2563eb;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Mark all as read</button>
+    </div>
+    <div id="notif-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- INTERVIEW PREP TAB -->
+  <div id="tab-prep" style="display:none;">
+    <div class="prep-hero">
+      <h2>🎯 AI Interview Prep</h2>
+      <p>Get AI-generated questions for any role, or pick from our question bank</p>
+      <div class="prep-ai-row">
+        <input type="text" id="prep-input" placeholder="e.g. MIS Executive at Infosys, Data Analyst at Wipro..." />
+        <button onclick="generateAIQuestions()">Generate Questions</button>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Question Bank by Category</h3>
+    <div class="prep-categories">
+      <div class="prep-cat" onclick="loadBank('excel')"><div class="cat-icon">📊</div><h4>Excel & MIS</h4><p>Formulas, Pivot, VBA</p></div>
+      <div class="prep-cat" onclick="loadBank('sql')"><div class="cat-icon">🗄️</div><h4>SQL & Database</h4><p>Queries, Joins, Indexes</p></div>
+      <div class="prep-cat" onclick="loadBank('python')"><div class="cat-icon">🐍</div><h4>Python & Analytics</h4><p>Pandas, NumPy, ML</p></div>
+      <div class="prep-cat" onclick="loadBank('powerbi')"><div class="cat-icon">📈</div><h4>Power BI & Tableau</h4><p>DAX, Reports, Dashboards</p></div>
+      <div class="prep-cat" onclick="loadBank('hr')"><div class="cat-icon">🤝</div><h4>HR & Behavioural</h4><p>Situational, Leadership</p></div>
+      <div class="prep-cat" onclick="loadBank('general')"><div class="cat-icon">💡</div><h4>General Aptitude</h4><p>Logical, Numerical</p></div>
+    </div>
+
+    <div class="qa-box" id="qa-box" style="display:none;">
+      <div class="qa-header">
+        <h3 id="qa-title">Interview Questions</h3>
+        <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
+      </div>
+      <div id="qa-list"></div>
+    </div>
+  </div>
+
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
@@ -39,38 +247,251 @@
   const candidate = Session.getCandidate();
   if (!candidate) window.location.href = 'login.html';
 
-  async function loadProfile() {
-    const initials=candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('avatar-initials').textContent=initials;
-    document.getElementById('p-name').textContent=candidate.name;
-    document.getElementById('p-title').textContent=candidate.jobtitle||'Job Seeker';
-    document.getElementById('p-city').textContent=candidate.city||'—';
-    document.getElementById('p-mobile').textContent=candidate.mobile||'—';
-    document.getElementById('p-email').textContent=candidate.email||'—';
-    document.getElementById('p-exp').textContent=candidate.experience||'—';
-    if(candidate.skills?.length) document.getElementById('p-skills').innerHTML=candidate.skills.map(s=>`<span class="tag">${s}</span>`).join('');
-    if(candidate.resume_data) document.getElementById('resume-btn').style.display='block';
+  let myApps = [], myNotifs = [];
 
-    const apps = await ApplicationsDB.getCandidateApplications(candidate.id);
-    document.getElementById('apps-count').textContent=apps.length;
-    if(apps.length){
-      const statusClass={Applied:'status-applied',Viewed:'status-viewed',Shortlisted:'status-shortlisted',Rejected:'status-rejected'};
-      document.getElementById('apps-list').innerHTML=apps.map(a=>{
-        const job=JOBS.find(j=>j.id===a.job_id);
-        const date=new Date(a.applied_at).toLocaleDateString('en-IN');
-        return `<div class="app-row"><div class="app-info"><h4>${job?job.title:'Job #'+a.job_id.slice(0,8)}</h4><p>${job?job.company+' · '+job.location:''} · Applied on ${date}</p></div><span class="status-badge ${statusClass[a.status]||'status-applied'}">${a.status}</span></div>`;
-      }).join('');
-    } else {
-      document.getElementById('apps-list').innerHTML='<div class="empty-state"><div class="es-icon">📋</div><p>No applications yet.<br><a href="jobs.html" style="color:var(--blue);font-weight:600;">Browse jobs →</a></p></div>';
+  // ── Init ──
+  async function init() {
+    const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('p-avatar').textContent = initials;
+    document.getElementById('p-name').textContent = candidate.name;
+    document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
+    document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
+    document.getElementById('p-exp').textContent = '🎓 ' + (candidate.experience||'—');
+    document.getElementById('p-mobile').textContent = '📞 ' + (candidate.mobile||'—');
+    document.getElementById('d-email').textContent = candidate.email||'—';
+    document.getElementById('d-mobile').textContent = candidate.mobile||'—';
+    document.getElementById('d-city').textContent = candidate.city||'—';
+    document.getElementById('d-exp').textContent = candidate.experience||'—';
+    document.getElementById('d-title').textContent = candidate.jobtitle||'—';
+    document.getElementById('sum-since').textContent = candidate.created_at ? new Date(candidate.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'}) : '—';
+
+    if (candidate.skills?.length) {
+      document.getElementById('d-skills').innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
+    }
+    if (candidate.resume_name) {
+      document.getElementById('resume-section').innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${candidate.resume_name}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
+    }
+
+    // Load applications
+    const { data: apps } = await sb.from('applications').select('*, jobs(*)').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
+    myApps = apps || [];
+
+    // Stats
+    document.getElementById('sum-total').textContent = myApps.length;
+    document.getElementById('sum-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
+    document.getElementById('sum-inter').textContent = myApps.filter(a=>a.status==='Interview').length;
+    document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
+
+    // Load notifications
+    const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
+    myNotifs = notifs || [];
+    const unread = myNotifs.filter(n=>!n.is_read).length;
+    if (unread > 0) {
+      const dot = document.getElementById('notif-count');
+      dot.textContent = unread; dot.style.display = 'inline-flex';
     }
   }
 
-  function downloadResume() {
-    if(!candidate.resume_data) return;
-    const a=document.createElement('a'); a.href=candidate.resume_data; a.download=candidate.resume_name||'resume.pdf'; a.click();
+  // ── Tab switching ──
+  function switchTab(tab, btn) {
+    ['profile','applications','notifications','prep'].forEach(t => document.getElementById('tab-'+t).style.display='none');
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-'+tab).style.display = 'block';
+    btn.classList.add('active');
+    if (tab === 'applications') renderApps(myApps);
+    if (tab === 'notifications') renderNotifs();
   }
 
-  loadProfile();
+  // ── Applications ──
+  const PROG_STEPS = ['Applied','Viewed','Shortlisted','Interview','Hired'];
+  const STATUS_ICONS = { Applied:'📥', Viewed:'👁️', Shortlisted:'⭐', Interview:'📅', Hired:'🎉', Rejected:'❌' };
+
+  function renderApps(apps) {
+    const el = document.getElementById('apps-list');
+    if (!apps.length) { el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">📋</div><p>No applications yet. <a href="jobs.html" style="color:#2563eb;font-weight:600;">Browse jobs →</a></p></div>'; return; }
+    el.innerHTML = apps.map(a => {
+      const job = a.jobs;
+      const title = job?.title || 'Job Application';
+      const company = job?.company || '—';
+      const initials = company.slice(0,2).toUpperCase();
+      const isRejected = a.status === 'Rejected';
+      const progIdx = PROG_STEPS.indexOf(a.status);
+
+      const progressHTML = `<div class="app-progress">${PROG_STEPS.map((step, i) => {
+        const isDone = isRejected ? false : i < progIdx;
+        const isCurrent = isRejected ? false : i === progIdx;
+        return `<div class="prog-step">
+          <div class="prog-dot ${isDone?'done':isCurrent?'current':''}">${isDone?'✓':''}</div>
+          <div class="prog-label ${isDone?'done':isCurrent?'current':''}">${step}</div>
+        </div>`;
+      }).join('')}${isRejected?`<div class="prog-step"><div class="prog-dot rejected">✕</div><div class="prog-label" style="color:#ef4444;font-weight:700;">Rejected</div></div>`:''}</div>`;
+
+      return `<div class="app-item">
+        <div class="app-company-logo">${initials}</div>
+        <div class="app-info">
+          <div class="app-title">${title}</div>
+          <div class="app-company">🏢 ${company} ${job?.location?`· 📍 ${job.location}`:''} ${job?.salary?`· 💰 ${job.salary}`:''}</div>
+          <div class="app-meta">
+            <span class="status-badge s-${a.status}">${STATUS_ICONS[a.status]||''} ${a.status}</span>
+            <span class="app-date">Applied ${new Date(a.applied_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
+            <button class="btn-prep" onclick="prepForJob('${title}','${company}')">🎯 Prep for Interview</button>
+          </div>
+          ${progressHTML}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filterApps() {
+    const filter = document.getElementById('app-filter').value;
+    renderApps(filter ? myApps.filter(a=>a.status===filter) : myApps);
+  }
+
+  // ── Notifications ──
+  const NOTIF_ICONS = { Viewed:'👁️', Shortlisted:'⭐', Interview:'📅', Hired:'🎉', Rejected:'❌', Applied:'📥' };
+  const NOTIF_CLASSES = { Viewed:'ni-status', Shortlisted:'ni-shortlist', Interview:'ni-interview', Hired:'ni-hired', Rejected:'ni-rejected' };
+
+  function renderNotifs() {
+    const el = document.getElementById('notif-list');
+    if (!myNotifs.length) { el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">🔔</div><p>No notifications yet.</p></div>'; return; }
+    el.innerHTML = myNotifs.map(n => `
+      <div class="notif-item ${n.is_read?'':'unread'}" onclick="markRead('${n.id}',this)">
+        <div class="notif-icon ${NOTIF_CLASSES[n.status]||'ni-status'}">${NOTIF_ICONS[n.status]||'🔔'}</div>
+        <div class="notif-body">
+          <div class="notif-msg">${n.message}</div>
+          <div class="notif-time">${new Date(n.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        ${!n.is_read ? '<div class="unread-dot"></div>' : ''}
+      </div>`).join('');
+  }
+
+  async function markRead(id, el) {
+    await sb.from('notifications').update({ is_read: true }).eq('id', id);
+    el.classList.remove('unread');
+    const dot = el.querySelector('.unread-dot');
+    if (dot) dot.remove();
+    const n = myNotifs.find(x=>x.id===id);
+    if (n) n.is_read = true;
+    updateNotifBadge();
+  }
+
+  async function markAllRead() {
+    await sb.from('notifications').update({ is_read: true }).eq('candidate_id', candidate.id);
+    myNotifs.forEach(n => n.is_read = true);
+    renderNotifs(); updateNotifBadge();
+  }
+
+  function updateNotifBadge() {
+    const unread = myNotifs.filter(n=>!n.is_read).length;
+    const dot = document.getElementById('notif-count');
+    if (unread > 0) { dot.textContent = unread; dot.style.display = 'inline-flex'; }
+    else dot.style.display = 'none';
+  }
+
+  // ── Interview Prep ──
+  const QUESTION_BANK = {
+    excel: { title:'Excel & MIS Questions', qs:[
+      {q:'What is the difference between VLOOKUP and INDEX MATCH?',a:'VLOOKUP searches left-to-right and requires column index numbers. INDEX MATCH is more flexible — it can search in any direction and is faster on large datasets. INDEX MATCH also handles column insertions better since it references column names directly.'},
+      {q:'How do you create a dynamic Pivot Table that auto-updates?',a:'Use a Table (Ctrl+T) as your data source before creating the Pivot Table. When you add rows to the Table, the Pivot Table range auto-expands. Then simply refresh the Pivot Table (Alt+F5) to see new data.'},
+      {q:'Explain the difference between SUMIF and SUMIFS.',a:'SUMIF handles one condition: =SUMIF(range, criteria, sum_range). SUMIFS handles multiple conditions: =SUMIFS(sum_range, range1, criteria1, range2, criteria2). SUMIFS is preferred as it is more versatile.'},
+      {q:'How would you build a MIS dashboard from scratch?',a:'1) Define KPIs with stakeholders. 2) Design data collection template. 3) Create a raw data sheet. 4) Build summary/calculation sheets using formulas. 5) Create charts linked to calculations. 6) Add slicers/filters for interactivity. 7) Automate refresh where possible.'},
+      {q:'What is Power Query and when do you use it?',a:'Power Query (Get & Transform) is used to connect to external data sources, clean/transform data, and load it into Excel without writing formulas. It is ideal for recurring reports where data structure is consistent but content changes regularly.'},
+    ]},
+    sql: { title:'SQL & Database Questions', qs:[
+      {q:'What is the difference between INNER JOIN, LEFT JOIN and RIGHT JOIN?',a:'INNER JOIN returns only matching rows from both tables. LEFT JOIN returns all rows from the left table and matching rows from the right (NULL for non-matches). RIGHT JOIN is the reverse of LEFT JOIN.'},
+      {q:'How do you find duplicate records in a table?',a:'SELECT column, COUNT(*) FROM table GROUP BY column HAVING COUNT(*) > 1. This groups records by the column and filters groups with more than one occurrence.'},
+      {q:'What is the difference between WHERE and HAVING?',a:'WHERE filters rows BEFORE grouping — it works on individual records. HAVING filters AFTER grouping — it works on aggregated results. You cannot use aggregate functions like COUNT() or SUM() in a WHERE clause.'},
+      {q:'Explain what an index is and when you would use it.',a:'An index is a data structure that speeds up SELECT queries on a column. Use indexes on columns frequently used in WHERE, JOIN, or ORDER BY clauses. Avoid over-indexing as it slows down INSERT/UPDATE/DELETE operations.'},
+      {q:'Write a query to find the second highest salary.',a:'SELECT MAX(salary) FROM employees WHERE salary < (SELECT MAX(salary) FROM employees). Alternative: SELECT salary FROM employees ORDER BY salary DESC LIMIT 1 OFFSET 1.'},
+    ]},
+    python: { title:'Python & Analytics Questions', qs:[
+      {q:'What is the difference between a list and a tuple in Python?',a:'Lists are mutable (can be changed after creation) and use square brackets []. Tuples are immutable (cannot be changed) and use parentheses (). Tuples are faster and used for fixed data like coordinates or database records.'},
+      {q:'How do you handle missing values in a Pandas DataFrame?',a:'df.isnull().sum() to check. df.dropna() to remove rows with nulls. df.fillna(value) to replace with a specific value. df.fillna(df.mean()) to fill with column mean. Choice depends on the percentage of missing data and context.'},
+      {q:'What is the difference between apply() and map() in Pandas?',a:'map() works only on Series, element by element. apply() works on both Series and DataFrames — it can apply a function along rows (axis=1) or columns (axis=0). applymap() applies element-wise to entire DataFrames.'},
+      {q:'Explain GroupBy in Pandas with an example.',a:'GroupBy splits data into groups, applies a function, and combines results. Example: df.groupby("department")["salary"].mean() groups employees by department and calculates average salary per department.'},
+      {q:'What are the main steps in a data analysis project?',a:'1) Define the problem. 2) Collect data. 3) Clean data (handle nulls, outliers, types). 4) Explore data (EDA — distributions, correlations). 5) Analyse and model. 6) Visualise findings. 7) Communicate insights to stakeholders.'},
+    ]},
+    powerbi: { title:'Power BI & Tableau Questions', qs:[
+      {q:'What is DAX and give an example of a common DAX formula?',a:'DAX (Data Analysis Expressions) is Power BI\'s formula language. Example: Total Sales = SUM(Sales[Amount]). YTD Sales = TOTALYTD(SUM(Sales[Amount]), Dates[Date]). CALCULATE() is the most powerful DAX function — it evaluates expressions in a modified filter context.'},
+      {q:'What is the difference between a measure and a calculated column?',a:'Calculated columns are computed row by row and stored in the model (increases file size). Measures are computed at query time based on context (filters, slicers) and are more efficient. Use measures for aggregations, calculated columns for row-level calculations.'},
+      {q:'What are relationships in Power BI and why are they important?',a:'Relationships connect tables in the data model, similar to SQL joins. They allow filters to propagate between tables. Power BI supports one-to-many (most common), many-to-many, and one-to-one relationships. Active vs inactive relationships affect how DAX filters flow.'},
+      {q:'How do you optimise a slow Power BI report?',a:'1) Reduce data volume using query folding. 2) Avoid calculated columns — use measures. 3) Use star schema instead of flat tables. 4) Remove unused columns and rows. 5) Use aggregations for large tables. 6) Avoid bi-directional relationships.'},
+      {q:'What is the difference between Power BI Desktop, Service, and Mobile?',a:'Desktop is for building reports (Windows app). Service is the cloud platform for sharing, collaboration, and scheduling refresh. Mobile is the app for viewing reports on phones. Reports are created in Desktop, published to Service, and viewed in Mobile.'},
+    ]},
+    hr: { title:'HR & Behavioural Questions', qs:[
+      {q:'Tell me about yourself.',a:'Structure: Present (current role/skills) → Past (relevant experience) → Future (why this role). Keep it under 2 minutes. Focus on professional highlights relevant to the job. End with why you are excited about this specific opportunity.'},
+      {q:'Why are you looking for a new job?',a:'Focus on growth: "I\'ve learned a lot in my current role and I\'m looking for new challenges that align with my career goals." Avoid criticising your current employer. Frame it positively around opportunity rather than escaping a bad situation.'},
+      {q:'Tell me about a time you handled a difficult situation at work.',a:'Use the STAR method: Situation (context), Task (your responsibility), Action (what you did), Result (outcome). Choose a real example where you showed problem-solving and stayed professional. Quantify the result if possible.'},
+      {q:'Where do you see yourself in 5 years?',a:'Show ambition aligned with the role. "I want to grow into a senior analyst role, taking on more complex data projects and eventually leading a reporting team." Avoid saying you want the interviewer\'s job or being vague about your goals.'},
+      {q:'What is your greatest weakness?',a:'Choose a real but manageable weakness. Show self-awareness and what you are doing to improve. Example: "I used to struggle with delegating tasks. I\'ve been actively working on this by setting clear expectations and trusting my team members more."'},
+    ]},
+    general: { title:'General Aptitude Questions', qs:[
+      {q:'A train travels 360 km in 4 hours. What is its speed in m/s?',a:'Speed = 360 km / 4 h = 90 km/h. Convert: 90 × (1000/3600) = 90 × 5/18 = 25 m/s. Key: to convert km/h to m/s, multiply by 5/18.'},
+      {q:'If A can do a job in 10 days and B in 15 days, how long do they take together?',a:'A\'s rate = 1/10 per day. B\'s rate = 1/15 per day. Together = 1/10 + 1/15 = 3/30 + 2/30 = 5/30 = 1/6 per day. So together they finish in 6 days.'},
+      {q:'What number comes next: 2, 6, 12, 20, 30, ?',a:'Differences: 4, 6, 8, 10, 12. The differences increase by 2 each time. So next difference is 12, giving 30 + 12 = 42. Pattern: n(n+1) → 1×2=2, 2×3=6, 3×4=12, 4×5=20, 5×6=30, 6×7=42.'},
+      {q:'A shopkeeper marks goods 40% above cost and gives 25% discount. What is the profit %?',a:'Let cost = 100. Marked price = 140. After 25% discount: 140 × 0.75 = 105. Profit = 105 - 100 = 5. Profit % = 5%. Formula: Profit % = (1 + markup)(1 - discount) - 1.'},
+      {q:'Find the odd one out: 144, 169, 196, 225, 250.',a:'144=12², 169=13², 196=14², 225=15², 250 is not a perfect square (15.8²≈250). So 250 is the odd one out. All others are perfect squares.'},
+    ]},
+  };
+
+  function loadBank(cat) {
+    const data = QUESTION_BANK[cat];
+    document.getElementById('qa-title').textContent = data.title;
+    document.getElementById('qa-list').innerHTML = data.qs.map((q,i)=>`
+      <div class="qa-item" id="qa-${i}">
+        <div class="qa-q"><span class="q-num">${i+1}</span>${q.q}</div>
+        <button class="qa-toggle" onclick="toggleQA(${i})">Show Answer</button>
+        <div class="qa-a">${q.a}</div>
+      </div>`).join('');
+    document.getElementById('qa-box').style.display = 'block';
+    document.getElementById('qa-box').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function toggleQA(i) {
+    const item = document.getElementById('qa-'+i);
+    const isOpen = item.classList.contains('open');
+    item.classList.toggle('open', !isOpen);
+    item.querySelector('.qa-toggle').textContent = isOpen ? 'Show Answer' : 'Hide Answer';
+  }
+
+  async function generateAIQuestions() {
+    const input = document.getElementById('prep-input').value.trim();
+    if (!input) return;
+    const qa = document.getElementById('qa-box');
+    document.getElementById('qa-title').textContent = `AI Questions: ${input}`;
+    document.getElementById('qa-list').innerHTML = '<div style="padding:1.5rem;"><span class="ai-loading">🤖 Generating interview questions...</span></div>';
+    qa.style.display = 'block';
+    qa.scrollIntoView({ behavior: 'smooth' });
+
+    const answer = await callGroq(`Generate 5 interview questions with detailed answers for: "${input}". Format as JSON array: [{"q":"question","a":"answer"}]. Return only valid JSON, no markdown.`);
+    try {
+      const clean = answer.replace(/```json|```/g,'').trim();
+      const questions = JSON.parse(clean);
+      document.getElementById('qa-list').innerHTML = questions.map((q,i)=>`
+        <div class="qa-item" id="qa-ai-${i}">
+          <div class="qa-q"><span class="q-num">${i+1}</span>${q.q}</div>
+          <button class="qa-toggle" onclick="toggleQA('ai-${i}')">Show Answer</button>
+          <div class="qa-a">${q.a}</div>
+        </div>`).join('');
+    } catch(e) {
+      document.getElementById('qa-list').innerHTML = `<div style="padding:1rem;font-size:0.85rem;color:#374151;">${answer}</div>`;
+    }
+  }
+
+  function prepForJob(title, company) {
+    switchTab('prep', document.querySelectorAll('.tab')[3]);
+    setTimeout(() => {
+      document.getElementById('prep-input').value = `${title} at ${company}`;
+      generateAIQuestions();
+    }, 100);
+  }
+
+  function downloadResume() {
+    if (!candidate.resume_data) return;
+    const a = document.createElement('a'); a.href = candidate.resume_data; a.download = candidate.resume_name || 'resume.pdf'; a.click();
+  }
+
+  init();
 </script>
 </body>
 </html>
