@@ -243,6 +243,9 @@ body { background:#f1f5f9; }
 
   let myApps = [], myNotifs = [];
 
+  // ── Render skill categories immediately — no API call needed ──
+  renderSkillCategories();
+
   // ── Init ──
   async function init() {
     const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
@@ -380,7 +383,6 @@ body { background:#f1f5f9; }
     const n = myNotifs.find(x=>x.id===id);
     if (n) n.is_read = true;
     updateNotifBadge();
-    renderSkillCategories();
   }
 
   async function markAllRead() {
