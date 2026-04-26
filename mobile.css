@@ -221,6 +221,9 @@
 }
 
 /* ── MOBILE HAMBURGER MENU ── */
+.mobile-menu-btn { display: none; }
+.mobile-nav { display: none; }
+
 @media (max-width: 768px) {
   .mobile-menu-btn {
     display: flex;
