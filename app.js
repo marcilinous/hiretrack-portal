@@ -5,20 +5,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const WEB3FORMS_KEY = '30483d95-3da0-4a00-a262-944b2e82b3b2';
 
-const JOBS = [
-  { id:'static-1', title:'MIS Executive', company:'Infosys BPM', location:'Bengaluru', salary:'₹4–6 LPA', type:'Full Time', tags:['Excel','MIS','Reporting'], posted:'2 days ago', phone:'9876543210' },
-  { id:'static-2', title:'Data Analyst', company:'Manipal Health', location:'Manipal', salary:'₹5–8 LPA', type:'Full Time', tags:['SQL','Python','Tableau'], posted:'1 day ago', phone:'9845012345' },
-  { id:'static-3', title:'Excel Reporting Analyst', company:'Decathlon India', location:'Bengaluru', salary:'₹3.5–5 LPA', type:'Full Time', tags:['Excel','Power BI','VBA'], posted:'3 days ago', phone:'9900112233' },
-  { id:'static-4', title:'SQL Database Executive', company:'Ninjacart', location:'Bengaluru', salary:'₹4–7 LPA', type:'Contract', tags:['SQL','MySQL','Reporting'], posted:'Today', phone:'9123456780' },
-  { id:'static-5', title:'BI Analyst', company:'KPMG India', location:'Bengaluru', salary:'₹7–11 LPA', type:'Full Time', tags:['Power BI','DAX','SQL'], posted:'4 days ago', phone:'9988776655' },
-  { id:'static-6', title:'MIS & Automation Analyst', company:'Bigbasket', location:'Bengaluru', salary:'₹5–8 LPA', type:'Full Time', tags:['Excel','Automation','Python'], posted:'Today', phone:'9871234560' },
-  { id:'static-7', title:'Operations Data Analyst', company:'Zepto', location:'Remote', salary:'₹6–9 LPA', type:'Remote', tags:['SQL','Excel','Analytics'], posted:'2 days ago', phone:'9765432109' },
-  { id:'static-8', title:'Reporting Executive', company:'TVS Motors', location:'Mysuru', salary:'₹3–5 LPA', type:'Full Time', tags:['Excel','MIS','SAP'], posted:'5 days ago', phone:'9654321098' },
-  { id:'static-9', title:'AI Operations Analyst', company:'Accenture', location:'Bengaluru', salary:'₹8–13 LPA', type:'Full Time', tags:['AI','Automation','Python'], posted:'1 day ago', phone:'9543210987' },
-  { id:'static-10', title:'Data Entry & Reporting Officer', company:'Karnataka Bank', location:'Mangaluru', salary:'₹2.5–4 LPA', type:'Full Time', tags:['Excel','Data Entry','MIS'], posted:'3 days ago', phone:'9432109876' },
-  { id:'static-11', title:'Business Analyst', company:'Wipro', location:'Bengaluru', salary:'₹6–10 LPA', type:'Full Time', tags:['SQL','Power BI','Excel'], posted:'Today', phone:'9321098765' },
-  { id:'static-12', title:'MIS Officer', company:'Apollo Hospitals', location:'Bengaluru', salary:'₹4–6 LPA', type:'Full Time', tags:['MIS','Excel','Reporting'], posted:'2 days ago', phone:'9210987654' },
-];
+const JOBS = []; // Static jobs removed — all jobs are now live from Supabase
 
 const Session = {
   getCandidate() { return JSON.parse(sessionStorage.getItem('ht_candidate') || 'null'); },
