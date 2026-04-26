@@ -192,6 +192,13 @@ body { background:#f1f5f9; }
           <div class="info-row"><span class="label">City</span><span class="value" id="d-city">—</span></div>
           <div class="info-row"><span class="label">Experience</span><span class="value" id="d-exp">—</span></div>
           <div class="info-row"><span class="label">Current Role</span><span class="value" id="d-title">—</span></div>
+          <div class="info-row"><span class="label">Company</span><span class="value" id="d-company">—</span></div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Job Preferences</h3>
+          <div class="info-row"><span class="label">Job Type</span><span class="value" id="d-jobtype">—</span></div>
+          <div class="info-row"><span class="label">Expected Salary</span><span class="value" id="d-salary">—</span></div>
+          <div class="info-row"><span class="label">Notice Period</span><span class="value" id="d-notice">—</span></div>
         </div>
         <div class="card">
           <h3>Resume</h3>
@@ -201,6 +208,10 @@ body { background:#f1f5f9; }
         </div>
       </div>
       <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>About</h3>
+          <div id="d-about" style="font-size:0.85rem;color:#64748b;line-height:1.6;">—</div>
+        </div>
         <div class="card" style="margin-bottom:1rem;">
           <h3>Skills</h3>
           <div id="d-skills"><p style="font-size:0.82rem;color:#94a3b8;">No skills added</p></div>
@@ -290,6 +301,11 @@ body { background:#f1f5f9; }
     document.getElementById('d-city').textContent = candidate.city||'—';
     document.getElementById('d-exp').textContent = candidate.experience||'—';
     document.getElementById('d-title').textContent = candidate.jobtitle||'—';
+    document.getElementById('d-company').textContent = candidate.current_company||'—';
+    document.getElementById('d-jobtype').textContent = candidate.preferred_job_type||'—';
+    document.getElementById('d-salary').textContent = candidate.expected_salary||'—';
+    document.getElementById('d-notice').textContent = candidate.notice_period||'—';
+    document.getElementById('d-about').textContent = candidate.about||'Not added yet.';
     document.getElementById('sum-since').textContent = candidate.created_at ? new Date(candidate.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'}) : '—';
 
     if (candidate.skills?.length) {
@@ -432,26 +448,33 @@ body { background:#f1f5f9; }
   }
 
   // ── Interview Prep ──
+  function getSkillPts(n){return n>=8?20:n>=5?15:n>=3?10:0;}
+
+  function showEditSection(section){
+    const editModal = document.getElementById('edit-modal');
+    if(editModal){editModal.style.display='flex';loadEditSection(section);}
+    else{showToast('Click Edit Profile to update this section.');}
+  }
+
   function renderProfileScore() {
+    const skillCount = (candidate.skills||[]).length;
+    const skillPts = getSkillPts(skillCount);
     const checks = [
-      { label:'Basic info (name, email, mobile)', pts:15, done: !!(candidate.name && candidate.email && candidate.mobile), fix:null },
-      { label:'City added', pts:10, done: !!candidate.city, fix:'#d-city' },
-      { label:'Job title added', pts:10, done: !!candidate.jobtitle, fix:'edit-profile' },
-      { label:'Experience level set', pts:10, done: !!candidate.experience, fix:'edit-profile' },
-      { label:'3 or more skills added', pts:20, done: (candidate.skills||[]).length >= 3, fix:'edit-profile' },
-      { label:'Resume uploaded', pts:20, done: !!candidate.resume_data, fix:'edit-profile' },
-      { label:'Applied to at least 1 job', pts:15, done: myApps.length > 0, fix:'jobs.html' },
+      { label:'Basic info (name, mobile, email)', pts:15, earned:15, done:!!(candidate.name&&candidate.mobile&&candidate.email), fix:null },
+      { label:'City added', pts:10, earned:10, done:!!candidate.city, fix:'city' },
+      { label:'Job title & experience', pts:10, earned:10, done:!!(candidate.jobtitle&&candidate.experience), fix:'professional' },
+      { label:'About yourself (50+ chars)', pts:10, earned:10, done:!!(candidate.about&&candidate.about.length>=50), fix:'about' },
+      { label:'Skills (3=10, 5=15, 8=20 pts)', pts:20, earned:skillPts, done:skillCount>=8, isPartial:skillCount>0&&skillCount<8, fix:'skills' },
+      { label:'Resume uploaded', pts:15, earned:15, done:!!candidate.resume_data, fix:'resume' },
+      { label:'Job preferences set', pts:10, earned:10, done:!!(candidate.preferred_job_type&&candidate.expected_salary&&candidate.notice_period), fix:'preferences' },
+      { label:'Applied to jobs (1=5, 3=8, 5=10 pts)', pts:10, earned:myApps.length>=5?10:myApps.length>=3?8:myApps.length>=1?5:0, done:myApps.length>=5, isPartial:myApps.length>0&&myApps.length<5, fix:'jobs.html' },
     ];
 
-    const score = checks.reduce((s,c) => s + (c.done ? c.pts : 0), 0);
-    const missing = checks.filter(c => !c.done);
+    const score = checks.reduce((s,c)=>s+(c.isPartial?c.earned:c.done?c.earned:0),0);
     const circumference = 2 * Math.PI * 42;
-    const offset = circumference - (score / 100) * circumference;
-
-    // Color based on score
-    const color = score >= 80 ? '#16a34a' : score >= 60 ? '#7c3aed' : score >= 40 ? '#2563eb' : '#f59e0b';
-    const level = score >= 80 ? {label:'Complete ⭐', cls:'level-complete'} : score >= 60 ? {label:'Pro Profile', cls:'level-pro'} : score >= 40 ? {label:'Good Profile', cls:'level-good'} : {label:'Getting Started', cls:'level-starter'};
-    const msg = score === 100 ? 'Your profile is complete! Employers can find you easily.' : `Complete your profile to get ${100 - score} more points and stand out to employers.`;
+    const offset = circumference - (score/100)*circumference;
+    const color = score>=80?'#16a34a':score>=60?'#7c3aed':score>=40?'#2563eb':'#d97706';
+    const level = score>=80?{label:'All-Star ⭐',cls:'level-complete'}:score>=60?{label:'Strong Profile',cls:'level-pro'}:score>=40?{label:'Good Profile',cls:'level-good'}:{label:'Getting Started',cls:'level-starter'};
 
     document.getElementById('score-card').innerHTML = `
       <div class="score-wrap">
@@ -459,10 +482,7 @@ body { background:#f1f5f9; }
           <svg width="100" height="100" viewBox="0 0 100 100">
             <circle class="score-ring-bg" cx="50" cy="50" r="42"/>
             <circle class="score-ring-fill" cx="50" cy="50" r="42"
-              stroke="${color}"
-              stroke-dasharray="${circumference}"
-              stroke-dashoffset="${offset}"
-              id="score-ring-anim"/>
+              stroke="${color}" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}" id="score-ring-anim"/>
           </svg>
           <div class="score-center">
             <div class="score-pct" style="color:${color};">${score}%</div>
@@ -472,42 +492,33 @@ body { background:#f1f5f9; }
         <div class="score-info">
           <span class="score-level ${level.cls}">${level.label}</span>
           <h3>Profile Strength</h3>
-          <p>${msg}</p>
-          ${missing.length ? `<div class="score-items">
-            ${missing.map(item => `
-              <div class="score-item missing">
+          <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;">${score===100?'Perfect profile! Employers can easily find you.':'Complete your profile to stand out to employers.'}</p>
+          <div class="score-items">
+            ${checks.map(c=>{
+              const isDone=c.isPartial?c.earned>=c.pts:c.done;
+              const isPartialDone=c.isPartial&&c.earned>0&&c.earned<c.pts;
+              return \`<div class="score-item \${isDone?'done':isPartialDone?'missing':'missing'}">
                 <div class="score-item-left">
-                  <span class="score-item-icon">⚠️</span>
-                  <span class="score-item-label">${item.label}</span>
+                  <span class="score-item-icon">\${isDone?'✅':isPartialDone?'🔶':'⬜'}</span>
+                  <span class="score-item-label">\${c.label}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;">
-                  <span class="score-item-pts">+${item.pts}pts</span>
-                  ${item.fix === 'edit-profile' ? `<button class="btn-fix" onclick="scrollToEdit()">Fix →</button>` : item.fix ? `<a href="${item.fix}" class="btn-fix" style="text-decoration:none;">Go →</a>` : ''}
+                  <span class="score-item-pts" style="color:\${isDone?'#15803d':isPartialDone?'#d97706':'#94a3b8'};">\${c.isPartial?c.earned:c.done?c.earned:0}/\${c.pts}pts</span>
+                  \${!isDone&&c.fix&&c.fix!=='jobs.html'?\`<button class="btn-fix" onclick="showEditSection('\${c.fix}')">Fix →</button>\`:''}
+                  \${!isDone&&c.fix==='jobs.html'?\`<a href="jobs.html" class="btn-fix" style="text-decoration:none;">Browse →</a>\`:''}
                 </div>
-              </div>`).join('')}
-          </div>` : `<div class="score-item done"><span class="score-item-icon">🎉</span><span class="score-item-label">All sections complete!</span></div>`}
+              </div>\`;
+            }).join('')}
+          </div>
         </div>
       </div>`;
 
-    // Update header badge
     const badge = document.getElementById('p-score-badge');
-    if (badge) badge.textContent = `⭐ Score: ${score}%`;
-    setTimeout(() => {
-      const ring = document.getElementById('score-ring-anim');
-      if (ring) {
-        ring.style.strokeDashoffset = circumference;
-        ring.style.transition = 'none';
-        requestAnimationFrame(() => {
-          ring.style.transition = 'stroke-dashoffset 1.2s ease';
-          ring.style.strokeDashoffset = offset;
-        });
-      }
-    }, 100);
+    if(badge) badge.textContent = `⭐ ${score}%`;
+    setTimeout(()=>{const ring=document.getElementById('score-ring-anim');if(ring){ring.style.transition='stroke-dashoffset 1.2s ease';ring.style.strokeDashoffset=offset;}},200);
   }
 
-  function scrollToEdit() {
-    showToast('Profile editing coming soon! Contact support to update your profile.');
-  }
+  function scrollToEdit() { showToast('Use Edit Profile to update this section.'); }
   const SKILL_ICONS = {
     'excel':'📊','mis':'📋','sql':'🗄️','python':'🐍','power bi':'📈','tableau':'📉',
     'vba':'⚙️','sap':'🏢','tally':'🧾','automation':'🤖','data entry':'📝',
