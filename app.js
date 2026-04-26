@@ -37,7 +37,11 @@ const CandidateAuth = {
       name: data.name, email: data.email, mobile: data.mobile,
       password: data.password, city: data.city, experience: data.experience,
       jobtitle: data.jobtitle, skills: data.skills || [],
-      resume_name: data.resumeName || '', resume_data: data.resumeData || ''
+      resume_name: data.resumeName || '', resume_data: data.resumeData || '',
+      about: data.about || '', current_company: data.currentCompany || '',
+      preferred_job_type: data.preferredJobType || '',
+      expected_salary: data.expectedSalary || '',
+      notice_period: data.noticePeriod || ''
     }]).select().single();
     if (error) return { ok: false, msg: error.message };
     Session.setCandidate(candidate);
