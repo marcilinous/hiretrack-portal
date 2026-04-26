@@ -239,13 +239,10 @@ body { background:#f1f5f9; }
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
   const candidate = Session.getCandidate();
-  if (!candidate) window.location.href = 'login.html';
+  if (!candidate) { window.location.href = 'login.html'; }
 
   let myApps = [], myNotifs = [];
   let quizData = [], quizIdx = 0;
-
-  // ── Render skill categories immediately — no API call needed ──
-  renderSkillCategories();
 
   // ── Init ──
   async function init() {
@@ -576,7 +573,10 @@ body { background:#f1f5f9; }
     const a = document.createElement('a'); a.href = candidate.resume_data; a.download = candidate.resume_name || 'resume.pdf'; a.click();
   }
 
-  init();
+  if (candidate) {
+    renderSkillCategories();
+    init();
+  }
 </script>
 </body>
 </html>
