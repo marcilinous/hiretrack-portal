@@ -475,15 +475,10 @@ body { background:#f1f5f9; }
     qa.style.display = 'block';
     qa.scrollIntoView({ behavior: 'smooth' });
 
-    const prompt = `Generate exactly 5 interview questions with detailed answers for the role: "${input}".
-Return ONLY a valid JSON array in this exact format, nothing else:
-[
-  {"q": "Question 1 here?", "a": "Detailed answer here."},
-  {"q": "Question 2 here?", "a": "Detailed answer here."},
-  {"q": "Question 3 here?", "a": "Detailed answer here."},
-  {"q": "Question 4 here?", "a": "Detailed answer here."},
-  {"q": "Question 5 here?", "a": "Detailed answer here."}
-]`;
+    const prompt = `Generate exactly 5 interview questions with concise answers for: "${input}".
+Each answer should be 2-3 short sentences maximum. Be direct and practical.
+Return ONLY a valid JSON array, no other text:
+[{"q":"question?","a":"concise answer."},...]`;
 
     const answer = await callGroq(prompt);
     try {
@@ -492,12 +487,21 @@ Return ONLY a valid JSON array in this exact format, nothing else:
       const jsonMatch = clean.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('No JSON found');
       const questions = JSON.parse(jsonMatch[0]);
-      document.getElementById('qa-list').innerHTML = questions.map((q, i) => `
+      document.getElementById('qa-list').innerHTML = questions.map((q, i) => {
+        // Format answer — split on sentences and add line breaks for readability
+        const formattedAnswer = q.a
+          .replace(/\. ([A-Z])/g, '.\n$1')  // break after sentences
+          .split('\n')
+          .filter(l => l.trim())
+          .map(l => `<p style="margin-bottom:0.5rem;">${l.trim()}</p>`)
+          .join('');
+        return `
         <div class="qa-item" id="qa-ai-${i}">
           <div class="qa-q"><span class="q-num">${i+1}</span>${q.q}</div>
           <button class="qa-toggle" onclick="toggleQA('ai-${i}')">Show Answer</button>
-          <div class="qa-a">${q.a}</div>
-        </div>`).join('');
+          <div class="qa-a">${formattedAnswer}</div>
+        </div>`;
+      }).join('');
     } catch(e) {
       // Fallback — display raw answer nicely formatted
       const lines = answer.split('\n').filter(l => l.trim());
