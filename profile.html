@@ -133,7 +133,6 @@ body { background:#f1f5f9; }
       </div>
     </div>
     <div class="profile-actions">
-      <button class="btn-logout-p" onclick="CandidateAuth.logout()">Logout</button>
     </div>
   </div>
 </div>
@@ -272,9 +271,22 @@ body { background:#f1f5f9; }
       document.getElementById('resume-section').innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${candidate.resume_name}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
     }
 
-    // Load applications
-    const { data: apps } = await sb.from('applications').select('*, jobs(*)').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
+    // Load applications — fetch apps then match with jobs separately
+    const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
     myApps = apps || [];
+
+    // Fetch job details for each application
+    for (const app of myApps) {
+      // Try Supabase jobs first
+      const { data: job } = await sb.from('jobs').select('title,company,location,salary').eq('id', app.job_id).maybeSingle();
+      if (job) {
+        app.jobs = job;
+      } else {
+        // Fall back to static jobs
+        const staticJob = JOBS.find(j => String(j.id) === String(app.job_id));
+        if (staticJob) app.jobs = { title: staticJob.title, company: staticJob.company, location: staticJob.location, salary: staticJob.salary };
+      }
+    }
 
     // Stats
     document.getElementById('sum-total').textContent = myApps.length;
@@ -456,25 +468,42 @@ body { background:#f1f5f9; }
 
   async function generateAIQuestions() {
     const input = document.getElementById('prep-input').value.trim();
-    if (!input) return;
+    if (!input) { showToast('Please enter a job role or company'); return; }
     const qa = document.getElementById('qa-box');
     document.getElementById('qa-title').textContent = `AI Questions: ${input}`;
-    document.getElementById('qa-list').innerHTML = '<div style="padding:1.5rem;"><span class="ai-loading">🤖 Generating interview questions...</span></div>';
+    document.getElementById('qa-list').innerHTML = '<div style="padding:1.5rem;text-align:center;"><span class="ai-loading">🤖 Generating interview questions...</span></div>';
     qa.style.display = 'block';
     qa.scrollIntoView({ behavior: 'smooth' });
 
-    const answer = await callGroq(`Generate 5 interview questions with detailed answers for: "${input}". Format as JSON array: [{"q":"question","a":"answer"}]. Return only valid JSON, no markdown.`);
+    const prompt = `Generate exactly 5 interview questions with detailed answers for the role: "${input}".
+Return ONLY a valid JSON array in this exact format, nothing else:
+[
+  {"q": "Question 1 here?", "a": "Detailed answer here."},
+  {"q": "Question 2 here?", "a": "Detailed answer here."},
+  {"q": "Question 3 here?", "a": "Detailed answer here."},
+  {"q": "Question 4 here?", "a": "Detailed answer here."},
+  {"q": "Question 5 here?", "a": "Detailed answer here."}
+]`;
+
+    const answer = await callGroq(prompt);
     try {
       const clean = answer.replace(/```json|```/g,'').trim();
-      const questions = JSON.parse(clean);
-      document.getElementById('qa-list').innerHTML = questions.map((q,i)=>`
+      // Extract JSON array even if there's extra text
+      const jsonMatch = clean.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('No JSON found');
+      const questions = JSON.parse(jsonMatch[0]);
+      document.getElementById('qa-list').innerHTML = questions.map((q, i) => `
         <div class="qa-item" id="qa-ai-${i}">
           <div class="qa-q"><span class="q-num">${i+1}</span>${q.q}</div>
           <button class="qa-toggle" onclick="toggleQA('ai-${i}')">Show Answer</button>
           <div class="qa-a">${q.a}</div>
         </div>`).join('');
     } catch(e) {
-      document.getElementById('qa-list').innerHTML = `<div style="padding:1rem;font-size:0.85rem;color:#374151;">${answer}</div>`;
+      // Fallback — display raw answer nicely formatted
+      const lines = answer.split('\n').filter(l => l.trim());
+      document.getElementById('qa-list').innerHTML = `<div style="padding:1.2rem;">` +
+        lines.map(l => `<p style="font-size:0.85rem;color:#374151;line-height:1.7;margin-bottom:0.5rem;">${l}</p>`).join('') +
+        `</div>`;
     }
   }
 
