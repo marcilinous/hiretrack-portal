@@ -300,6 +300,8 @@ document.addEventListener('click', e => {
     nav.classList.remove('open');
   }
 });
+
+function showToast(msg) {
   let t=document.getElementById('ht-toast');
   if(!t){t=document.createElement('div');t.id='ht-toast';t.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:0.75rem 1.2rem;border-radius:10px;font-size:0.88rem;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:opacity 0.3s;';document.body.appendChild(t);}
   t.textContent=msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2500);
