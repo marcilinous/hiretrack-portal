@@ -216,13 +216,24 @@ async function applyJob(jobId, btn) {
   const candidate = Session.getCandidate();
   if (!candidate) { sessionStorage.setItem('redirect_after_login', window.location.href); window.location.href='login.html'; return; }
   btn.textContent = 'Applying...'; btn.disabled = true;
-  const result = await ApplicationsDB.apply(candidate.id, jobId);
-  if (result.ok) {
+
+  // Insert with status "Applied"
+  const { data: existing } = await sb.from('applications').select('id,status').eq('candidate_id', candidate.id).eq('job_id', String(jobId)).maybeSingle();
+  if (existing) {
+    btn.textContent='✓ Applied'; btn.classList.add('applied');
+    showToast('Already applied to this job.');
+    return;
+  }
+  const { error } = await sb.from('applications').insert([{ candidate_id: candidate.id, job_id: String(jobId), status: 'Applied' }]);
+  if (!error) {
     btn.textContent = '✓ Applied'; btn.classList.add('applied');
     showToast('✅ Applied! Notifying employer...');
     const job = [...JOBS, ...(window._employerJobs||[])].find(j=>String(j.id)===String(jobId));
     if (job) sendEmailNotification(candidate, job, job.email||'anchansachinv99@gmail.com');
-  } else { btn.textContent='Apply Now'; btn.disabled=false; showToast(result.msg==='Already applied'?'Already applied to this job.':'Failed. Try again.'); }
+  } else {
+    btn.textContent='Apply Now'; btn.disabled=false;
+    showToast('Failed. Try again.');
+  }
 }
 
 async function sendEmailNotification(candidate, job, employerEmail) {
