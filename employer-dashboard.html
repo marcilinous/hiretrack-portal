@@ -248,7 +248,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   let myJobs = [], allApps = [], currentView = 'board';
   const STATUSES = ['Viewed','Applied','Shortlisted','Interview','Hired','Rejected'];
-  const SC = {Applied:'s-Applied',Viewed:'s-Viewed',Shortlisted:'s-Shortlisted',Interview:'s-Interview',Hired:'s-Hired',Rejected:'s-Rejected'};
+  const SC = {Viewed:'s-Viewed',Applied:'s-Applied',Shortlisted:'s-Shortlisted',Interview:'s-Interview',Hired:'s-Hired',Rejected:'s-Rejected'};
 
   async function init() {
     // Header
@@ -403,17 +403,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     if (!jobId) { el.innerHTML = '<div class="empty-state"><div class="ei">📊</div><p>Select a job to view pipeline</p></div>'; return; }
     const apps = allApps.filter(a => a.job_id === jobId);
     if (!apps.length) { el.innerHTML = '<div class="empty-state"><div class="ei">👤</div><p>No applicants yet for this job.</p></div>'; return; }
-
-    // Auto-mark "Applied" → "Viewed" when employer opens pipeline
-    const toMark = apps.filter(a => a.status === 'Applied');
-    if (toMark.length) {
-      await Promise.all(toMark.map(a =>
-        sb.from('applications').update({ status: 'Viewed' }).eq('candidate_id', a.candidate_id).eq('job_id', a.job_id)
-      ));
-      toMark.forEach(a => a.status = 'Viewed');
-      updateStats();
-    }
-
     currentView === 'board' ? renderBoard(apps) : renderList(apps);
   }
 
