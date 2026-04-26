@@ -450,10 +450,9 @@ body { background:#f1f5f9; }
   // ── Interview Prep ──
   function getSkillPts(n){return n>=8?20:n>=5?15:n>=3?10:0;}
 
-  function showEditSection(section){
-    const editModal = document.getElementById('edit-modal');
-    if(editModal){editModal.style.display='flex';loadEditSection(section);}
-    else{showToast('Click Edit Profile to update this section.');}
+  function showEditSection(sectionOrEl){
+    const section = typeof sectionOrEl === 'string' ? sectionOrEl : sectionOrEl.dataset.fix;
+    showToast('Click Edit Profile to update: ' + section);
   }
 
   function renderProfileScore() {
@@ -493,28 +492,38 @@ body { background:#f1f5f9; }
           <span class="score-level ${level.cls}">${level.label}</span>
           <h3>Profile Strength</h3>
           <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;">${score===100?'Perfect profile! Employers can easily find you.':'Complete your profile to stand out to employers.'}</p>
-          <div class="score-items">
-            ${checks.map(c=>{
-              const isDone=c.isPartial?c.earned>=c.pts:c.done;
-              const isPartialDone=c.isPartial&&c.earned>0&&c.earned<c.pts;
-              return \`<div class="score-item \${isDone?'done':isPartialDone?'missing':'missing'}">
-                <div class="score-item-left">
-                  <span class="score-item-icon">\${isDone?'✅':isPartialDone?'🔶':'⬜'}</span>
-                  <span class="score-item-label">\${c.label}</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span class="score-item-pts" style="color:\${isDone?'#15803d':isPartialDone?'#d97706':'#94a3b8'};">\${c.isPartial?c.earned:c.done?c.earned:0}/\${c.pts}pts</span>
-                  \${!isDone&&c.fix&&c.fix!=='jobs.html'?\`<button class="btn-fix" onclick="showEditSection('\${c.fix}')">Fix →</button>\`:''}
-                  \${!isDone&&c.fix==='jobs.html'?\`<a href="jobs.html" class="btn-fix" style="text-decoration:none;">Browse →</a>\`:''}
-                </div>
-              </div>\`;
-            }).join('')}
-          </div>
+          <div class="score-items" id="score-items-list"></div>
         </div>
       </div>`;
 
     const badge = document.getElementById('p-score-badge');
     if(badge) badge.textContent = `⭐ ${score}%`;
+
+    // Render check items separately to avoid nested template literal issues
+    const itemsEl = document.getElementById('score-items-list');
+    if(itemsEl) {
+      itemsEl.innerHTML = checks.map(c => {
+        const isDone = c.isPartial ? c.earned >= c.pts : c.done;
+        const isPartialDone = c.isPartial && c.earned > 0 && c.earned < c.pts;
+        const icon = isDone ? '✅' : isPartialDone ? '🔶' : '⬜';
+        const ptColor = isDone ? '#15803d' : isPartialDone ? '#d97706' : '#94a3b8';
+        const earnedPts = c.isPartial ? c.earned : c.done ? c.earned : 0;
+        let fixBtn = '';
+        if (!isDone && c.fix && c.fix !== 'jobs.html') fixBtn = '<button class="btn-fix" onclick="showEditSection(this.dataset.fix)" data-fix="'+c.fix+'">Fix →</button>';
+        if (!isDone && c.fix === 'jobs.html') fixBtn = '<a href="jobs.html" class="btn-fix" style="text-decoration:none;">Browse →</a>';
+        return '<div class="score-item ' + (isDone?'done':'missing') + '">' +
+          '<div class="score-item-left">' +
+            '<span class="score-item-icon">' + icon + '</span>' +
+            '<span class="score-item-label">' + c.label + '</span>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span class="score-item-pts" style="color:' + ptColor + ';">' + earnedPts + '/' + c.pts + 'pts</span>' +
+            fixBtn +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
     setTimeout(()=>{const ring=document.getElementById('score-ring-anim');if(ring){ring.style.transition='stroke-dashoffset 1.2s ease';ring.style.strokeDashoffset=offset;}},200);
   }
 
