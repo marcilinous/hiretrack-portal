@@ -33,7 +33,34 @@ body { background:#f1f5f9; }
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
 
-/* ── Profile Tab ── */
+/* ── Profile Score ── */
+.score-wrap { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+.score-ring-wrap { position:relative; width:100px; height:100px; flex-shrink:0; }
+.score-ring-wrap svg { transform:rotate(-90deg); }
+.score-ring-bg { fill:none; stroke:#f1f5f9; stroke-width:8; }
+.score-ring-fill { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
+.score-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.score-pct { font-size:1.4rem; font-weight:800; color:#0f172a; line-height:1; }
+.score-label { font-size:0.6rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; }
+.score-info { flex:1; min-width:200px; }
+.score-info h3 { font-size:0.95rem; font-weight:800; margin-bottom:0.25rem; }
+.score-info p { font-size:0.8rem; color:#64748b; margin-bottom:1rem; }
+.score-items { display:flex; flex-direction:column; gap:0.5rem; }
+.score-item { display:flex; align-items:center; justify-content:space-between; gap:0.75rem; padding:0.5rem 0.75rem; border-radius:8px; font-size:0.82rem; }
+.score-item.done { background:#f0fdf4; }
+.score-item.missing { background:#fef9c3; }
+.score-item-left { display:flex; align-items:center; gap:8px; }
+.score-item-icon { font-size:0.9rem; }
+.score-item-label { font-weight:600; }
+.score-item-pts { font-size:0.72rem; font-weight:700; }
+.score-item.done .score-item-pts { color:#15803d; }
+.score-item.missing .score-item-pts { color:#b45309; }
+.btn-fix { background:#2563eb; color:#fff; border:none; padding:3px 10px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.score-level { display:inline-block; padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; margin-bottom:0.5rem; }
+.level-starter { background:#fef3c7; color:#b45309; }
+.level-good { background:#dbeafe; color:#1d4ed8; }
+.level-pro { background:#f5f3ff; color:#6d28d9; }
+.level-complete { background:#dcfce7; color:#15803d; }
 .profile-grid { display:grid; grid-template-columns:1fr 2fr; gap:1.5rem; }
 .card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
 .card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
@@ -131,6 +158,7 @@ body { background:#f1f5f9; }
         <span id="p-city">📍 —</span>
         <span id="p-exp">🎓 —</span>
         <span id="p-mobile">📞 —</span>
+        <span id="p-score-badge" style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">⭐ Score: —</span>
       </div>
     </div>
     <div class="profile-actions">
@@ -152,6 +180,9 @@ body { background:#f1f5f9; }
 
   <!-- PROFILE TAB -->
   <div id="tab-profile">
+    <!-- Profile Score Card -->
+    <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
+
     <div class="profile-grid">
       <div>
         <div class="card" style="margin-bottom:1rem;">
@@ -291,6 +322,9 @@ body { background:#f1f5f9; }
     document.getElementById('sum-inter').textContent = myApps.filter(a=>a.status==='Interview').length;
     document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
 
+    // Render profile score after apps are loaded (needs myApps.length)
+    renderProfileScore();
+
     // Load notifications
     const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
     myNotifs = notifs || [];
@@ -398,7 +432,82 @@ body { background:#f1f5f9; }
   }
 
   // ── Interview Prep ──
-  // ── Skill Icons Map ──
+  function renderProfileScore() {
+    const checks = [
+      { label:'Basic info (name, email, mobile)', pts:15, done: !!(candidate.name && candidate.email && candidate.mobile), fix:null },
+      { label:'City added', pts:10, done: !!candidate.city, fix:'#d-city' },
+      { label:'Job title added', pts:10, done: !!candidate.jobtitle, fix:'edit-profile' },
+      { label:'Experience level set', pts:10, done: !!candidate.experience, fix:'edit-profile' },
+      { label:'3 or more skills added', pts:20, done: (candidate.skills||[]).length >= 3, fix:'edit-profile' },
+      { label:'Resume uploaded', pts:20, done: !!candidate.resume_data, fix:'edit-profile' },
+      { label:'Applied to at least 1 job', pts:15, done: myApps.length > 0, fix:'jobs.html' },
+    ];
+
+    const score = checks.reduce((s,c) => s + (c.done ? c.pts : 0), 0);
+    const missing = checks.filter(c => !c.done);
+    const circumference = 2 * Math.PI * 42;
+    const offset = circumference - (score / 100) * circumference;
+
+    // Color based on score
+    const color = score >= 80 ? '#16a34a' : score >= 60 ? '#7c3aed' : score >= 40 ? '#2563eb' : '#f59e0b';
+    const level = score >= 80 ? {label:'Complete ⭐', cls:'level-complete'} : score >= 60 ? {label:'Pro Profile', cls:'level-pro'} : score >= 40 ? {label:'Good Profile', cls:'level-good'} : {label:'Getting Started', cls:'level-starter'};
+    const msg = score === 100 ? 'Your profile is complete! Employers can find you easily.' : `Complete your profile to get ${100 - score} more points and stand out to employers.`;
+
+    document.getElementById('score-card').innerHTML = `
+      <div class="score-wrap">
+        <div class="score-ring-wrap">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle class="score-ring-bg" cx="50" cy="50" r="42"/>
+            <circle class="score-ring-fill" cx="50" cy="50" r="42"
+              stroke="${color}"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${offset}"
+              id="score-ring-anim"/>
+          </svg>
+          <div class="score-center">
+            <div class="score-pct" style="color:${color};">${score}%</div>
+            <div class="score-label">Score</div>
+          </div>
+        </div>
+        <div class="score-info">
+          <span class="score-level ${level.cls}">${level.label}</span>
+          <h3>Profile Strength</h3>
+          <p>${msg}</p>
+          ${missing.length ? `<div class="score-items">
+            ${missing.map(item => `
+              <div class="score-item missing">
+                <div class="score-item-left">
+                  <span class="score-item-icon">⚠️</span>
+                  <span class="score-item-label">${item.label}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="score-item-pts">+${item.pts}pts</span>
+                  ${item.fix === 'edit-profile' ? `<button class="btn-fix" onclick="scrollToEdit()">Fix →</button>` : item.fix ? `<a href="${item.fix}" class="btn-fix" style="text-decoration:none;">Go →</a>` : ''}
+                </div>
+              </div>`).join('')}
+          </div>` : `<div class="score-item done"><span class="score-item-icon">🎉</span><span class="score-item-label">All sections complete!</span></div>`}
+        </div>
+      </div>`;
+
+    // Update header badge
+    const badge = document.getElementById('p-score-badge');
+    if (badge) badge.textContent = `⭐ Score: ${score}%`;
+    setTimeout(() => {
+      const ring = document.getElementById('score-ring-anim');
+      if (ring) {
+        ring.style.strokeDashoffset = circumference;
+        ring.style.transition = 'none';
+        requestAnimationFrame(() => {
+          ring.style.transition = 'stroke-dashoffset 1.2s ease';
+          ring.style.strokeDashoffset = offset;
+        });
+      }
+    }, 100);
+  }
+
+  function scrollToEdit() {
+    showToast('Profile editing coming soon! Contact support to update your profile.');
+  }
   const SKILL_ICONS = {
     'excel':'📊','mis':'📋','sql':'🗄️','python':'🐍','power bi':'📈','tableau':'📉',
     'vba':'⚙️','sap':'🏢','tally':'🧾','automation':'🤖','data entry':'📝',
