@@ -176,7 +176,35 @@ function renderNavbar(activePage) {
   } else {
     rightHTML = `<a href="login.html" class="btn-login">Login</a><a href="signup.html" class="btn-signup">Sign Up</a><a href="employer-auth.html" class="btn-employer">For Employers</a>`;
   }
-  return `<nav class="navbar"><a href="index.html" class="nav-logo">Hire<span>Track</span></a><div class="nav-center">${employer?`<a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>`:`<a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a><a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>`}</div><div class="nav-right">${rightHTML}</div></nav>`;
+
+  // Mobile nav links
+  let mobileLinks = '';
+  if (candidate) {
+    mobileLinks = `<a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a><div class="nav-divider"></div><a href="#" onclick="CandidateAuth.logout()">Logout</a>`;
+  } else if (employer) {
+    mobileLinks = `<a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="#" onclick="EmployerAuth.logout()">Logout</a>`;
+  } else {
+    mobileLinks = `<a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a><a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><div class="nav-divider"></div><a href="login.html">Candidate Login</a><a href="employer-auth.html">Employer Login</a><a href="signup.html">Sign Up Free</a>`;
+  }
+
+  return `<nav class="navbar">
+    <a href="index.html" class="nav-logo">Hire<span>Track</span></a>
+    <div class="nav-center">
+      ${employer ? `
+        <a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>
+        <a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
+        <a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>
+      ` : `
+        <a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a>
+        <a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
+      `}
+    </div>
+    <div class="nav-right">${rightHTML}</div>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div class="mobile-nav" id="mobile-nav">${mobileLinks}</div>`;
 }
 
 function renderJobCard(job, applications=[]) {
@@ -260,7 +288,18 @@ async function askAI() {
 
 function quickAsk(q) { document.getElementById('ai-input').value=q; askAI(); }
 
-function showToast(msg) {
+function toggleMobileMenu() {
+  const nav = document.getElementById('mobile-nav');
+  if (nav) nav.classList.toggle('open');
+}
+
+// Close mobile menu on link click
+document.addEventListener('click', e => {
+  const nav = document.getElementById('mobile-nav');
+  if (nav && nav.classList.contains('open') && e.target.tagName === 'A') {
+    nav.classList.remove('open');
+  }
+});
   let t=document.getElementById('ht-toast');
   if(!t){t=document.createElement('div');t.id='ht-toast';t.style.cssText='position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:0.75rem 1.2rem;border-radius:10px;font-size:0.88rem;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:opacity 0.3s;';document.body.appendChild(t);}
   t.textContent=msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2500);

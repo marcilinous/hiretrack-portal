@@ -1,0 +1,268 @@
+/* ═══════════════════════════════════════════
+   HireTrack Mobile CSS — applies to all pages
+   Breakpoints: 768px tablet, 480px phone
+   ═══════════════════════════════════════════ */
+
+/* ── GLOBAL ── */
+@media (max-width: 768px) {
+  * { -webkit-tap-highlight-color: transparent; }
+  body { font-size: 15px; }
+
+  /* ── NAVBAR ── */
+  .navbar { padding: 0 1rem; height: 56px; position: sticky; top: 0; z-index: 200; }
+  .nav-logo { font-size: 1.2rem; }
+  .nav-center { display: none; }
+  .nav-right { gap: 0.5rem; }
+  .nav-right .btn-login,
+  .nav-right .btn-signup,
+  .nav-right .btn-employer { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
+  .nav-user { gap: 0.5rem; }
+  .nav-user-name { display: none; }
+  .btn-logout { font-size: 0.75rem; padding: 0.35rem 0.7rem; }
+
+  /* ── HERO ── */
+  .hero { padding: 2rem 1rem 1.5rem; }
+  .hero h1 { font-size: 1.6rem; line-height: 1.3; }
+  .hero p { font-size: 0.88rem; }
+  .hero-badge { font-size: 0.72rem; padding: 0.3rem 0.8rem; }
+  .search-wrap { padding: 0 0.5rem; }
+  .search-box { flex-direction: row; border-radius: 10px; }
+  .search-box input { padding: 0.7rem 0.8rem; font-size: 0.88rem; }
+  .search-box button { padding: 0.7rem 1rem; font-size: 0.82rem; white-space: nowrap; }
+  .hero-stats { gap: 1.2rem; }
+  .hero-stats .stat strong { font-size: 1.4rem; }
+  .hero-stats .stat span { font-size: 0.72rem; }
+
+  /* ── SECTIONS ── */
+  .section { padding: 1.5rem 1rem; }
+  .ai-section { padding: 1rem; }
+  .section-hd h2 { font-size: 1rem; }
+  .section-hd a { font-size: 0.78rem; }
+
+  /* ── AI CARD ── */
+  .ai-card { padding: 1rem; }
+  .ai-card-header h3 { font-size: 0.92rem; }
+  .ai-row { flex-direction: column; gap: 8px; }
+  .ai-row input { width: 100%; }
+  .ai-row button { width: 100%; padding: 0.65rem; }
+  .ai-chips { gap: 6px; }
+  .chip { font-size: 0.75rem; padding: 0.3rem 0.7rem; }
+
+  /* ── JOBS GRID ── */
+  .jobs-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .job-card { padding: 1rem; }
+  .jc-title { font-size: 0.9rem; }
+  .jc-footer { flex-direction: row; gap: 8px; }
+  .btn-apply { padding: 0.5rem 1rem; font-size: 0.8rem; }
+
+  /* ── CATS GRID ── */
+  .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .cat-card { padding: 1rem 0.75rem; }
+  .cat-icon { font-size: 1.5rem; }
+  .cat-card h4 { font-size: 0.82rem; }
+
+  /* ── JOBS LAYOUT (Browse page) ── */
+  .jobs-layout { grid-template-columns: 1fr; gap: 1rem; margin: 1rem auto; padding: 0 0.75rem; }
+  .filter-panel { border-radius: 10px; padding: 1rem; }
+  .filter-panel h3 { font-size: 0.92rem; margin-bottom: 0.75rem; }
+
+  /* ── FORMS ── */
+  .form-wrap { padding: 1rem; }
+  .form-card { padding: 1.2rem; border-radius: 12px; }
+  .form-card h2 { font-size: 1.1rem; }
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+  .fg-form { margin-bottom: 0.85rem; }
+  .fg-form label { font-size: 0.8rem; }
+  .fg-form input,
+  .fg-form select,
+  .fg-form textarea { padding: 0.6rem 0.8rem; font-size: 0.88rem; }
+  .btn-primary { padding: 0.8rem; font-size: 0.92rem; }
+
+  /* ── PRICING ── */
+  .pricing-wrap { grid-template-columns: 1fr; gap: 1rem; margin: 1.5rem auto; padding: 0 1rem; }
+  .pricing-hero { padding: 1.5rem 1rem; }
+  .pricing-hero h1 { font-size: 1.4rem; }
+  .plan-price { font-size: 2rem; }
+  .faq-wrap { padding: 0 1rem; }
+
+  /* ── PROFILE ── */
+  .profile-wrap { grid-template-columns: 1fr; gap: 1rem; padding: 0 0.75rem; }
+  .profile-card { padding: 1.2rem; }
+  .profile-avatar { width: 60px; height: 60px; font-size: 1.5rem; }
+  .apps-card { padding: 1.2rem; }
+
+  /* ── PAGE HEADER ── */
+  .page-hd { padding: 1.2rem 1rem; }
+  .page-hd h1 { font-size: 1.2rem; }
+  .page-hd p { font-size: 0.82rem; }
+
+  /* ── JOB MODAL ── */
+  .jd-box { padding: 1.2rem; border-radius: 12px 12px 0 0; margin-top: auto; }
+  .jd-title { font-size: 1.05rem; }
+  .jd-actions { flex-direction: column; gap: 8px; }
+  .jd-actions button { width: 100%; padding: 0.75rem; }
+
+  /* ── FOOTER ── */
+  footer { padding: 1rem; font-size: 0.78rem; }
+
+  /* ── METHOD CARDS (Employer Auth) ── */
+  .method-cards { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .method-card { padding: 1rem 0.75rem; }
+  .method-card .mc-icon { font-size: 1.5rem; }
+  .method-card h3 { font-size: 0.82rem; }
+  .method-card p { font-size: 0.7rem; }
+
+  /* ── OTP INPUTS ── */
+  .otp-boxes { gap: 0.5rem; }
+  .otp-box { width: 50px; height: 50px; font-size: 1.3rem; }
+
+  /* ── STEP BAR ── */
+  .step-bar { gap: 0; }
+  .step-circle { width: 28px; height: 28px; font-size: 0.72rem; }
+  .step-line { width: 32px; }
+  .step-label { font-size: 0.62rem; }
+}
+
+/* ── PHONE SPECIFIC (480px) ── */
+@media (max-width: 480px) {
+  /* Navbar — show only logo and essential buttons */
+  .navbar { padding: 0 0.75rem; }
+  .nav-right .btn-employer { display: none; }
+
+  /* Hero */
+  .hero h1 { font-size: 1.35rem; }
+  .search-box input { font-size: 0.82rem; }
+
+  /* Jobs */
+  .jc-meta { gap: 0.5rem; font-size: 0.72rem; }
+  .expiry-badge { font-size: 0.65rem; padding: 2px 6px; }
+
+  /* Cats grid — 2 columns on phone */
+  .cats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Forms */
+  .form-card { padding: 1rem; }
+  .fg-form input,
+  .fg-form select { font-size: 0.85rem; }
+
+  /* Profile */
+  .profile-grid { grid-template-columns: 1fr; }
+  .prep-categories { grid-template-columns: 1fr 1fr; }
+  .kanban { grid-template-columns: 1fr; }
+  .stats-inner { grid-template-columns: repeat(3, 1fr); }
+
+  /* Employer dashboard header */
+  .dash-header-inner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .dash-header-right { width: 100%; justify-content: space-between; }
+  .job-metrics { display: none; }
+  .job-card-footer { gap: 0.4rem; }
+  .act { padding: 0.35rem 0.65rem; font-size: 0.72rem; }
+
+  /* Pipeline kanban */
+  .kanban { grid-template-columns: repeat(2, 1fr); overflow-x: auto; }
+  .kcol { min-width: 140px; }
+
+  /* Bulk WhatsApp */
+  .bulk-footer { flex-direction: column; align-items: stretch; }
+  .btn-send-wa { justify-content: center; }
+
+  /* Pricing */
+  .plan-price { font-size: 1.8rem; }
+  .plan-features li { font-size: 0.8rem; }
+
+  /* Callback time slots */
+  .time-slots { grid-template-columns: 1fr; gap: 0.6rem; }
+
+  /* Executive dashboard stats */
+  .exec-stats { grid-template-columns: repeat(2, 1fr); }
+
+  /* Pipeline controls */
+  .pipe-controls { flex-direction: column; gap: 0.6rem; }
+  .view-toggle { align-self: flex-end; }
+
+  /* Notif dot */
+  .notif-dot { width: 16px; height: 16px; font-size: 0.6rem; }
+}
+
+/* ── TOUCH IMPROVEMENTS ── */
+@media (max-width: 768px) {
+  /* Bigger tap targets */
+  button, a, select, input[type="checkbox"] {
+    min-height: 40px;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+    border-radius: 8px;
+  }
+  .btn-plan { min-height: 48px; font-size: 0.9rem; }
+  .dash-tab, .tab { padding: 0.75rem 0.85rem; font-size: 0.8rem; }
+
+  /* Smooth scrolling */
+  html { scroll-behavior: smooth; }
+
+  /* Better card shadows on mobile */
+  .job-card, .form-card, .plan-card { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+  /* Fix overflow issues */
+  .content, .dash-content { overflow-x: hidden; }
+
+  /* Fixed bottom CTA for job browsing */
+  .jd-modal.show { align-items: flex-end; padding: 0; }
+  .jd-box {
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+}
+
+/* ── MOBILE HAMBURGER MENU ── */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
+  .mobile-menu-btn span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+  .mobile-nav {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: #0f172a;
+    padding: 1rem;
+    z-index: 199;
+    display: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .mobile-nav.open { display: flex; }
+  .mobile-nav a {
+    color: #e2e8f0;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .mobile-nav a:hover { background: rgba(255,255,255,0.08); }
+  .mobile-nav a.active { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .mobile-nav .nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0.25rem 0; }
+}
