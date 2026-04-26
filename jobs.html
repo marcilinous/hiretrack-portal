@@ -118,9 +118,9 @@
     const job=allJobs.find(j=>String(j.id)===String(jobId)); if(!job) return;
     // Track view for employer-posted jobs
     if (job.employer_id) {
-      sb.from('jobs').select('views').eq('id', jobId).single().then(({data}) => {
-        sb.from('jobs').update({ views: (data?.views||0) + 1 }).eq('id', jobId);
-      });
+      const currentViews = job.views || 0;
+      sb.from('jobs').update({ views: currentViews + 1 }).eq('id', jobId);
+      job.views = currentViews + 1;
     }
     const candidate=Session.getCandidate();
     const alreadyApplied=candidate&&candidateApps.find(a=>a.job_id===String(jobId));
