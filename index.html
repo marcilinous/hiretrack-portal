@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HireTrack — MIS & Data Jobs in Karnataka</title>
+<title>HireTrack — Find Jobs Across India</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 <div id="navbar"></div>
 <section class="hero">
-  <div class="hero-badge">🎯 Karnataka's #1 MIS & Data Job Portal</div>
-  <h1>Find <span>MIS & Data Jobs</span><br>Across Karnataka</h1>
-  <p>Connecting talented professionals with the best opportunities in analytics, MIS, Excel & office tech roles.</p>
+  <div class="hero-badge">🎯 India's Growing Job Portal</div>
+  <h1>Find <span>Your Dream Job</span><br>Across India</h1>
+  <p>Connecting talented professionals with top opportunities in every industry.</p>
   <div class="search-wrap">
     <div class="search-box">
       <input type="text" id="search-input" placeholder="Job title, skill, or company..." />
@@ -34,12 +34,12 @@
 <div class="ai-section">
   <div class="ai-card">
     <div class="ai-card-header"><div class="ai-pulse"></div><h3>AI Career Assistant</h3><span class="ai-badge">Powered by Groq</span></div>
-    <div class="ai-row"><input type="text" id="ai-input" placeholder="Ask me anything — e.g. What jobs suit an MIS executive?" /><button onclick="askAI()">Ask</button></div>
+    <div class="ai-row"><input type="text" id="ai-input" placeholder="Ask me anything — e.g. What jobs suit a fresher in Bengaluru?" /><button onclick="askAI()">Ask</button></div>
     <div class="ai-chips">
-      <span class="chip" onclick="quickAsk('What jobs suit an MIS executive with 4 years experience in Bengaluru?')">MIS careers</span>
-      <span class="chip" onclick="quickAsk('What skills should I learn to become a data analyst in India?')">Upskill tips</span>
-      <span class="chip" onclick="quickAsk('What is the average salary for MIS jobs in Karnataka?')">Salary info</span>
-      <span class="chip" onclick="quickAsk('How do I write a good resume for a data analyst role?')">Resume tips</span>
+      <span class="chip" onclick="quickAsk('What jobs suit a fresher with a commerce degree in India?')">Fresher careers</span>
+      <span class="chip" onclick="quickAsk('What skills should I learn to get a high paying job in India in 2025?')">Upskill tips</span>
+      <span class="chip" onclick="quickAsk('What is the average salary for data analyst jobs in India?')">Salary info</span>
+      <span class="chip" onclick="quickAsk('How do I write a good resume for my first job?')">Resume tips</span>
     </div>
     <div class="ai-response" id="ai-response"></div>
   </div>
@@ -53,16 +53,18 @@
 <div class="section">
   <div class="section-hd"><h2>Browse by Category</h2></div>
   <div class="cats-grid">
-    <div class="cat-card" onclick="window.location='jobs.html?cat=MIS'"><div class="cat-icon">📊</div><h4>MIS Executive</h4><span>68 jobs</span></div>
     <div class="cat-card" onclick="window.location='jobs.html?cat=Data+Analyst'"><div class="cat-icon">📈</div><h4>Data Analyst</h4><span>52 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Excel'"><div class="cat-icon">📋</div><h4>Excel & Reporting</h4><span>44 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=SQL'"><div class="cat-icon">🗄️</div><h4>SQL & Database</h4><span>38 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=BI'"><div class="cat-icon">🔍</div><h4>Business Intelligence</h4><span>29 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Automation'"><div class="cat-icon">⚙️</div><h4>Automation & AI</h4><span>21 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Sales'"><div class="cat-icon">🤝</div><h4>Sales & Business Dev</h4><span>48 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Marketing'"><div class="cat-icon">📣</div><h4>Marketing</h4><span>41 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=IT'"><div class="cat-icon">💻</div><h4>IT & Software</h4><span>67 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Finance'"><div class="cat-icon">💰</div><h4>Finance & Accounts</h4><span>35 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Operations'"><div class="cat-icon">⚙️</div><h4>Operations</h4><span>29 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=HR'"><div class="cat-icon">👥</div><h4>HR & Recruitment</h4><span>24 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?cat=Logistics'"><div class="cat-icon">🚚</div><h4>Logistics & Supply Chain</h4><span>18 jobs</span></div>
   </div>
 </div>
 
-<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka. Built with ❤️ in Bengaluru.</p></footer>
+<footer><p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
