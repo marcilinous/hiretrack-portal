@@ -444,11 +444,11 @@ body { background:#f1f5f9; }
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, mode: 'json' })
       });
       const data = await res.json();
-      const text = data.answer || data.content || JSON.stringify(data);
-      // Extract JSON array
+      const text = data.answer || '';
+      console.log('AI raw response:', text);
       const jsonMatch = text.replace(/```json|```/g,'').match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('No JSON in response');
       return JSON.parse(jsonMatch[0]);
