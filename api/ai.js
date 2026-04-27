@@ -1,14 +1,23 @@
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { prompt, mode } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e) { body = {}; } }
+    const { prompt, mode } = body || {};
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
     if (!GROQ_API_KEY) {
       return res.status(200).json({ answer: 'API key not configured.' });
+    }
+    if (!prompt) {
+      return res.status(200).json({ answer: 'No prompt provided.' });
     }
 
     // JSON mode for interview questions, chat mode for career assistant
