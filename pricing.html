@@ -81,7 +81,7 @@
 
 <div class="pricing-hero">
   <h1>Simple, Transparent Pricing</h1>
-  <p>Hire MIS & Data talent across Karnataka. No hidden fees.</p>
+  <p>Hire top talent across India. No hidden fees.</p>
 </div>
 
 <div class="pricing-wrap">
@@ -180,7 +180,7 @@
   </div>
   <div class="faq-item">
     <h4>Do you offer refunds?</h4>
-    <p>7-day refund policy if you're not satisfied. Contact support@hiretrack.in</p>
+    <p>7-day refund policy if you're not satisfied. Contact support@hiretrack.co.in</p>
   </div>
 </div>
 
@@ -217,7 +217,30 @@
       <a href="job-alerts.html">Free Job Alerts</a>
     </nav>
   </div>
-    </footer>
+  <div class="ht-cta-row">
+    <a href="employer-auth.html" class="ht-cta-card">
+      <div class="ht-cta-text">
+        <h3>I want to<br>Hire</h3>
+        <p>📋 Post a New Job</p>
+      </div>
+      <div class="ht-cta-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+    <a href="jobs.html" class="ht-cta-card">
+      <div class="ht-cta-text">
+        <h3>I want a<br>Job</h3>
+        <p>🔍 Browse Jobs Free</p>
+      </div>
+      <div class="ht-cta-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+  </div>
+  <div class="ht-footer-bottom">
+    <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+  </div>
+</footer>
 
 
 <!-- Invoice Modal -->
@@ -282,7 +305,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
-  document.getElementById('navbar').innerHTML = renderNavbar('pricing');
+  document.getElementById('navbar').innerHTML = renderNavbar(Session.getEmployer() ? 'pricing' : 'employer');
 
   const RAZORPAY_KEY = 'rzp_test_ShI2u0ijEmSUD1';
   const PLANS = {
