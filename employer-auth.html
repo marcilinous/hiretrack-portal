@@ -7,17 +7,23 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
-.auth-wrap { max-width:480px; margin:2rem auto; padding:0 1rem; }
+.auth-wrap { max-width:500px; margin:2rem auto; padding:0 1rem; }
 .step { display:none; }
 .step.active { display:block; }
+.choose-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
+.choose-card { border:2px solid var(--gray3); border-radius:14px; padding:1.5rem 1.2rem; text-align:center; cursor:pointer; transition:all 0.2s; display:block; background:#fff; }
+.choose-card:hover { border-color:var(--blue); background:#f0f7ff; transform:translateY(-2px); }
+.choose-card .cc-icon { font-size:2rem; margin-bottom:0.5rem; }
+.choose-card h3 { font-size:1rem; font-weight:700; color:var(--navy); margin:0 0 0.3rem; }
+.choose-card p { font-size:0.78rem; color:var(--gray5); margin:0; }
 .step-bar { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:1.5rem; }
 .step-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
 .step-circle { width:32px; height:32px; border-radius:50%; border:2px solid var(--gray3); background:#fff; display:flex; align-items:center; justify-content:center; font-size:0.78rem; font-weight:700; color:var(--gray4); transition:all 0.3s; }
 .step-circle.active { border-color:var(--blue); background:var(--blue); color:#fff; }
-.step-circle.done { border-color:var(--green); background:var(--green); color:#fff; }
+.step-circle.done { border-color:#22c55e; background:#22c55e; color:#fff; }
 .step-label { font-size:0.7rem; color:var(--gray4); font-weight:500; white-space:nowrap; }
 .step-line { width:48px; height:2px; background:var(--gray3); margin-bottom:18px; transition:background 0.3s; }
-.step-line.done { background:var(--green); }
+.step-line.done { background:#22c55e; }
 .otp-boxes { display:flex; gap:0.75rem; justify-content:center; margin:1.2rem 0; }
 .otp-box { width:58px; height:58px; text-align:center; font-size:1.5rem; font-weight:800; border:2px solid var(--gray3); border-radius:12px; outline:none; font-family:inherit; transition:all 0.2s; }
 .otp-box:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
@@ -27,9 +33,9 @@
 .timer.expired strong { color:#ef4444; }
 .resend { background:none; border:none; color:var(--blue); font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; display:block; margin:0 auto 1rem; }
 .resend:disabled { color:var(--gray4); cursor:default; }
-.mobile-note { background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:0.75rem 1rem; font-size:0.82rem; color:#15803d; margin-bottom:1rem; display:flex; gap:8px; align-items:flex-start; }
 .verify-note { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.75rem 1rem; font-size:0.82rem; color:#1d4ed8; margin-bottom:1rem; display:flex; gap:8px; align-items:flex-start; }
 .success-icon { font-size:3rem; text-align:center; display:block; margin-bottom:0.5rem; }
+.mode-badge { display:inline-block; background:#dbeafe; color:#1d4ed8; font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:20px; margin-bottom:1rem; }
 </style>
 </head>
 <body>
@@ -38,181 +44,186 @@
 <div class="auth-wrap">
   <div class="form-card">
 
-    <!-- Step indicator -->
-    <div class="step-bar">
-      <div class="step-item">
-        <div class="step-circle active" id="sc1">1</div>
-        <div class="step-label">Details</div>
+    <!-- CHOOSE -->
+    <div class="step active" id="step-choose">
+      <h2>Employer Portal</h2>
+      <p class="sub">Are you a new employer or returning?</p>
+      <div class="choose-grid">
+        <div class="choose-card" onclick="startFlow('login')">
+          <div class="cc-icon">👋</div>
+          <h3>Login</h3>
+          <p>Already have an account</p>
+        </div>
+        <div class="choose-card" onclick="startFlow('register')">
+          <div class="cc-icon">🚀</div>
+          <h3>Register</h3>
+          <p>New to HireTrack</p>
+        </div>
       </div>
-      <div class="step-line" id="sl1"></div>
-      <div class="step-item">
-        <div class="step-circle" id="sc2">2</div>
-        <div class="step-label">Verify OTP</div>
-      </div>
-      <div class="step-line" id="sl2"></div>
-      <div class="step-item">
-        <div class="step-circle" id="sc3">3</div>
-        <div class="step-label">Password</div>
-      </div>
+      <p class="form-switch" style="margin-top:1.5rem;">Looking for a job? <a href="login.html">Candidate login</a></p>
     </div>
 
-    <!-- STEP 1: Enter mobile + email -->
-    <div class="step active" id="step1">
-      <h2>Employer Portal</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">Enter your details to get started</p>
-
-      <div class="mobile-note">
-        📱 <div>Your mobile number is collected for future WhatsApp notifications and OTP verification.</div>
+    <!-- LOGIN STEP 1 -->
+    <div class="step" id="step-login-1">
+      <div class="step-bar">
+        <div class="step-item"><div class="step-circle active">1</div><div class="step-label">Email</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">2</div><div class="step-label">Verify OTP</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">3</div><div class="step-label">Password</div></div>
       </div>
-
-      <div class="fg-form">
-        <label>Mobile Number *</label>
-        <input type="tel" id="s1-mobile" placeholder="10-digit mobile number" maxlength="10" />
-      </div>
+      <div class="mode-badge">👋 Employer Login</div>
+      <h2>Welcome Back</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Enter your registered email to receive an OTP</p>
       <div class="fg-form">
         <label>Email Address *</label>
-        <input type="email" id="s1-email" placeholder="hr@company.com" />
+        <input type="email" id="l-email" placeholder="hr@company.com" />
         <small style="color:var(--gray5);font-size:0.78rem;margin-top:4px;display:block;">OTP will be sent to this email</small>
       </div>
-
-      <div class="alert alert-error" id="err1"></div>
-      <button class="btn-primary" onclick="sendEmailOTP()">Send OTP to Email →</button>
-      <p class="form-switch">Looking for a job? <a href="login.html">Candidate login</a></p>
+      <div class="alert alert-error" id="l-err1"></div>
+      <button class="btn-primary" onclick="loginSendOTP()">Send OTP →</button>
+      <p class="form-switch"><a href="#" onclick="goChoose()">← Back</a> · New here? <a href="#" onclick="startFlow('register')">Register</a></p>
     </div>
 
-    <!-- STEP 2: Verify OTP -->
-    <div class="step" id="step2">
+    <!-- LOGIN STEP 2 -->
+    <div class="step" id="step-login-2">
+      <div class="step-bar">
+        <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Email</div></div>
+        <div class="step-line done"></div>
+        <div class="step-item"><div class="step-circle active">2</div><div class="step-label">Verify OTP</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">3</div><div class="step-label">Password</div></div>
+      </div>
+      <div class="mode-badge">👋 Employer Login</div>
       <h2>Verify OTP</h2>
-      <p class="sub" id="otp-desc">OTP sent to your email</p>
-
-      <div class="verify-note">
-        📧 <div>We've sent a 4-digit OTP to <strong id="otp-email-display"></strong></div>
-      </div>
-
+      <div class="verify-note">📧 <div>OTP sent to <strong id="l-email-display"></strong></div></div>
       <div class="otp-boxes">
-        <input type="text" class="otp-box" id="ob1" maxlength="1" oninput="ob(this,1)" onkeydown="obk(event,1)">
-        <input type="text" class="otp-box" id="ob2" maxlength="1" oninput="ob(this,2)" onkeydown="obk(event,2)">
-        <input type="text" class="otp-box" id="ob3" maxlength="1" oninput="ob(this,3)" onkeydown="obk(event,3)">
-        <input type="text" class="otp-box" id="ob4" maxlength="1" oninput="ob(this,4)" onkeydown="obk(event,4)">
+        <input type="text" class="otp-box" id="lob1" maxlength="1" oninput="ob(this,1,'l')" onkeydown="obk(event,1,'l')">
+        <input type="text" class="otp-box" id="lob2" maxlength="1" oninput="ob(this,2,'l')" onkeydown="obk(event,2,'l')">
+        <input type="text" class="otp-box" id="lob3" maxlength="1" oninput="ob(this,3,'l')" onkeydown="obk(event,3,'l')">
+        <input type="text" class="otp-box" id="lob4" maxlength="1" oninput="ob(this,4,'l')" onkeydown="obk(event,4,'l')">
       </div>
-
-      <div class="timer" id="timer-wrap">OTP expires in <strong id="countdown">2:00</strong></div>
-      <button class="resend" id="resend-btn" onclick="resendOTP()" disabled>Resend OTP</button>
-
-      <div class="alert alert-error" id="err2"></div>
-      <button class="btn-primary" onclick="verifyOTP()">Verify OTP ✓</button>
-      <p class="form-switch"><a href="#" onclick="goStep(1)">← Change email</a></p>
+      <div class="timer" id="l-timer">OTP expires in <strong id="l-countdown">2:00</strong></div>
+      <button class="resend" id="l-resend" onclick="loginResendOTP()" disabled>Resend OTP</button>
+      <div class="alert alert-error" id="l-err2"></div>
+      <button class="btn-primary" onclick="loginVerifyOTP()">Verify OTP ✓</button>
+      <p class="form-switch"><a href="#" onclick="showStep('step-login-1')">← Change email</a></p>
     </div>
 
-    <!-- STEP 3A: New employer — set password + company details -->
-    <div class="step" id="step3-new">
-      <span class="success-icon">🎉</span>
-      <h2>Complete Your Profile</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Set up your employer account.</p>
+    <!-- LOGIN STEP 3 -->
+    <div class="step" id="step-login-3">
+      <div class="step-bar">
+        <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Email</div></div>
+        <div class="step-line done"></div>
+        <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Verify OTP</div></div>
+        <div class="step-line done"></div>
+        <div class="step-item"><div class="step-circle active">3</div><div class="step-label">Password</div></div>
+      </div>
+      <div class="mode-badge">👋 Employer Login</div>
+      <span class="success-icon">👋</span>
+      <h2 id="l-welcome">Welcome Back!</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Enter your password to continue.</p>
+      <div class="alert alert-error" id="l-err3"></div>
+      <div class="fg-form">
+        <label id="l-pwd-label">Password *</label>
+        <input type="password" id="l-password" placeholder="Your password" />
+      </div>
+      <button class="btn-primary" id="l-btn-login" onclick="loginComplete()">Login to Dashboard →</button>
+      <p class="form-switch"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
+    </div>
 
-      <div class="alert alert-error" id="err3"></div>
-
+    <!-- REGISTER STEP 1 -->
+    <div class="step" id="step-reg-1">
+      <div class="step-bar">
+        <div class="step-item"><div class="step-circle active">1</div><div class="step-label">Details</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">2</div><div class="step-label">Verify OTP</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">3</div><div class="step-label">Password</div></div>
+      </div>
+      <div class="mode-badge">🚀 New Employer</div>
+      <h2>Create Employer Account</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Fill in your details to get started</p>
       <div class="form-row">
         <div class="fg-form"><label>Company Name *</label><input type="text" id="r-company" placeholder="Your company name" /></div>
         <div class="fg-form"><label>Contact Person *</label><input type="text" id="r-contact" placeholder="Your full name" /></div>
       </div>
-      <div class="fg-form"><label>City *</label>
-        <select id="r-city">
-          <option value="">Select city</option>
-          <option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option>
-          <option>Hubballi</option><option>Other Karnataka</option>
-        </select>
-      </div>
-      <div class="fg-form"><label>Industry</label>
-        <select id="r-industry">
-          <option>IT & Software</option><option>Healthcare</option><option>Manufacturing</option>
-          <option>Retail & E-commerce</option><option>Banking & Finance</option>
-          <option>Logistics</option><option>Other</option>
-        </select>
+      <div class="form-row">
+        <div class="fg-form"><label>Mobile Number *</label><input type="tel" id="r-mobile" placeholder="10-digit mobile" maxlength="10" /></div>
+        <div class="fg-form"><label>Email Address *</label><input type="email" id="r-email" placeholder="hr@company.com" /></div>
       </div>
       <div class="form-row">
-        <div class="fg-form"><label>Set Password *</label><input type="password" id="r-password" placeholder="Min 6 characters" /></div>
-        <div class="fg-form"><label>Confirm Password *</label><input type="password" id="r-confirm" placeholder="Repeat password" /></div>
+        <div class="fg-form"><label>City *</label>
+          <select id="r-city">
+            <option value="">Select city</option>
+            <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
+            <option>Hyderabad</option><option>Chennai</option><option>Pune</option>
+            <option>Kolkata</option><option>Ahmedabad</option><option>Mysuru</option>
+            <option>Mangaluru</option><option>Remote</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg-form"><label>Industry</label>
+          <select id="r-industry">
+            <option>IT & Software</option><option>Healthcare</option><option>Manufacturing</option>
+            <option>Retail & E-commerce</option><option>Banking & Finance</option>
+            <option>Logistics</option><option>Education</option><option>Media & Marketing</option>
+            <option>Real Estate</option><option>Other</option>
+          </select>
+        </div>
       </div>
-      <button class="btn-primary" onclick="completeRegister()">Create Account & Continue →</button>
+      <div class="alert alert-error" id="r-err1"></div>
+      <button class="btn-primary" onclick="registerSendOTP()">Send OTP to Email →</button>
+      <p class="form-switch"><a href="#" onclick="goChoose()">← Back</a> · Already registered? <a href="#" onclick="startFlow('login')">Login</a></p>
     </div>
 
-    <!-- STEP 3B: Existing employer — enter password -->
-    <div class="step" id="step3-existing">
-      <span class="success-icon">👋</span>
-      <h2 id="welcome-name">Welcome Back!</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Enter your password to continue.</p>
-
-      <div class="alert alert-error" id="err4"></div>
-      <div class="fg-form">
-        <label id="pwd-label">Password *</label>
-        <input type="password" id="login-pwd" placeholder="Your password" />
+    <!-- REGISTER STEP 2 -->
+    <div class="step" id="step-reg-2">
+      <div class="step-bar">
+        <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Details</div></div>
+        <div class="step-line done"></div>
+        <div class="step-item"><div class="step-circle active">2</div><div class="step-label">Verify OTP</div></div>
+        <div class="step-line"></div>
+        <div class="step-item"><div class="step-circle">3</div><div class="step-label">Password</div></div>
       </div>
-      <button class="btn-primary" id="btn-login" onclick="completeLogin()">Login to Dashboard →</button>
-      <p class="form-switch"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
+      <div class="mode-badge">🚀 New Employer</div>
+      <h2>Verify OTP</h2>
+      <div class="verify-note">📧 <div>OTP sent to <strong id="r-email-display"></strong></div></div>
+      <div class="otp-boxes">
+        <input type="text" class="otp-box" id="rob1" maxlength="1" oninput="ob(this,1,'r')" onkeydown="obk(event,1,'r')">
+        <input type="text" class="otp-box" id="rob2" maxlength="1" oninput="ob(this,2,'r')" onkeydown="obk(event,2,'r')">
+        <input type="text" class="otp-box" id="rob3" maxlength="1" oninput="ob(this,3,'r')" onkeydown="obk(event,3,'r')">
+        <input type="text" class="otp-box" id="rob4" maxlength="1" oninput="ob(this,4,'r')" onkeydown="obk(event,4,'r')">
+      </div>
+      <div class="timer" id="r-timer">OTP expires in <strong id="r-countdown">2:00</strong></div>
+      <button class="resend" id="r-resend" onclick="registerResendOTP()" disabled>Resend OTP</button>
+      <div class="alert alert-error" id="r-err2"></div>
+      <button class="btn-primary" onclick="registerVerifyOTP()">Verify OTP ✓</button>
+      <p class="form-switch"><a href="#" onclick="showStep('step-reg-1')">← Change details</a></p>
+    </div>
+
+    <!-- REGISTER STEP 3 -->
+    <div class="step" id="step-reg-3">
+      <div class="step-bar">
+        <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Details</div></div>
+        <div class="step-line done"></div>
+        <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Verify OTP</div></div>
+        <div class="step-line done"></div>
+        <div class="step-item"><div class="step-circle active">3</div><div class="step-label">Password</div></div>
+      </div>
+      <div class="mode-badge">🚀 New Employer</div>
+      <span class="success-icon">🎉</span>
+      <h2>Almost There!</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Set a password to secure your account.</p>
+      <div class="alert alert-error" id="r-err3"></div>
+      <div class="form-row">
+        <div class="fg-form"><label>Password *</label><input type="password" id="r-password" placeholder="Min 6 characters" /></div>
+        <div class="fg-form"><label>Confirm Password *</label><input type="password" id="r-confirm" placeholder="Repeat password" /></div>
+      </div>
+      <button class="btn-primary" onclick="registerComplete()">Create Account & Continue →</button>
     </div>
 
   </div>
 </div>
-
-<footer class="ht-footer">
-  <div class="ht-footer-top">
-    <p class="ht-follow-label">Follow Us</p>
-    <div class="ht-underline"></div>
-    <div class="ht-socials">
-      <a class="ht-social" href="#" title="Facebook">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="LinkedIn">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Twitter / X">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="YouTube">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Instagram">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-      </a>
-    </div>
-    <nav class="ht-nav-links">
-      <a href="about.html">About</a><span class="ht-sep">·</span>
-      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
-      <a href="culture.html">Culture</a><span class="ht-sep">·</span>
-      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
-      <a href="interview-tips.html">Interview Tips</a><span class="ht-sep">·</span>
-      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
-      <a href="refund.html">Refund Policy</a><span class="ht-sep">·</span>
-      <a href="terms.html">Terms of Use</a><span class="ht-sep">·</span>
-      <a href="job-alerts.html">Free Job Alerts</a>
-    </nav>
-  </div>
-  <div class="ht-cta-row">
-    <a href="employer-auth.html" class="ht-cta-card">
-      <div class="ht-cta-text">
-        <h3>I want to<br>Hire</h3>
-        <p>📋 Post a New Job</p>
-      </div>
-      <div class="ht-cta-arrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </div>
-    </a>
-    <a href="jobs.html" class="ht-cta-card">
-      <div class="ht-cta-text">
-        <h3>I want a<br>Job</h3>
-        <p>🔍 Browse Jobs Free</p>
-      </div>
-      <div class="ht-cta-arrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </div>
-    </a>
-  </div>
-  <div class="ht-footer-bottom">
-    <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
-  </div>
-</footer>
-
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
@@ -220,204 +231,121 @@
   document.getElementById('navbar').innerHTML = renderNavbar('');
   if (Session.getEmployer()) window.location.href = 'employer-dashboard.html';
 
-  let generatedOTP = '';
-  let otpExpiry = null;
-  let timerInterval = null;
-  let currentEmail = '';
-  let currentMobile = '';
-  let existingEmployer = null;
-  let isResetMode = false;
-  function setStepUI(step) {
-    [1,2,3].forEach(i => {
-      const c = document.getElementById('sc'+i);
-      c.classList.remove('active','done');
-      if (i < step) c.classList.add('done'), c.textContent = '✓';
-      else if (i === step) c.classList.add('active'), c.textContent = i;
-      else c.textContent = i;
-    });
-    [1,2].forEach(i => {
-      document.getElementById('sl'+i).classList.toggle('done', i < step);
-    });
-  }
+  let loginOTP = '', loginOTPExpiry = 0;
+  let regOTP = '', regOTPExpiry = 0;
+  let loginEmail = '', loginEmployer = null, isResetMode = false;
+  let regEmail = '', regMobile = '', regCompany = '', regContact = '', regCity = '', regIndustry = '';
 
-  function goStep(n, section='') {
+  function showStep(id) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    const id = n === 3 ? (section || 'step3-new') : 'step'+n;
     document.getElementById(id).classList.add('active');
-    setStepUI(n);
-    if (n === 2) document.getElementById('ob1').focus();
+    window.scrollTo(0,0);
   }
+  function goChoose() { showStep('step-choose'); }
+  function startFlow(mode) { showStep(mode === 'login' ? 'step-login-1' : 'step-reg-1'); }
 
-  // ── STEP 1: Send OTP ──
-  async function sendEmailOTP() {
-    const mobile = document.getElementById('s1-mobile').value.trim();
-    const email = document.getElementById('s1-email').value.trim();
-    const errEl = document.getElementById('err1');
-    errEl.style.display = 'none';
-
-    if (!mobile || mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      errEl.textContent = 'Please enter a valid 10-digit mobile number.'; errEl.style.display = 'block'; return;
-    }
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;
-    }
-
-    const btn = document.querySelector('#step1 .btn-primary');
-    btn.textContent = 'Generating OTP...'; btn.disabled = true;
-
-    currentMobile = mobile;
-    currentEmail = email;
-    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-    otpExpiry = Date.now() + 2 * 60 * 1000;
-
-    btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
-
-    // Send OTP via Resend email
-    document.getElementById('otp-email-display').textContent = email;
-    try {
-      const res = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: email, otp: generatedOTP })
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        showToast('Failed to send OTP. Please try again.');
-        btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
-        return;
-      }
-    } catch(e) {
-      showToast('Network error. Please try again.');
-      btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
-      return;
-    }
-    goStep(2);
-    startTimer();
-  }
-
-  // ── OTP Input handlers ──
-  function ob(el, idx) {
+  function ob(el, idx, prefix) {
     el.value = el.value.replace(/\D/g,'');
     el.classList.toggle('filled', el.value.length > 0);
-    if (el.value && idx < 4) document.getElementById('ob'+(idx+1)).focus();
-    if (idx === 4 && el.value) verifyOTP();
+    if (el.value && idx < 4) document.getElementById(prefix+'ob'+(idx+1)).focus();
+  }
+  function obk(e, idx, prefix) {
+    if (e.key==='Backspace' && !document.getElementById(prefix+'ob'+idx).value && idx > 1)
+      document.getElementById(prefix+'ob'+(idx-1)).focus();
   }
 
-  function obk(e, idx) {
-    if (e.key === 'Backspace' && !document.getElementById('ob'+idx).value && idx > 1)
-      document.getElementById('ob'+(idx-1)).focus();
-  }
-
-  // ── Timer ──
-  function startTimer() {
-    clearInterval(timerInterval);
-    document.getElementById('resend-btn').disabled = true;
-    document.getElementById('timer-wrap').classList.remove('expired');
-    timerInterval = setInterval(() => {
-      const rem = Math.max(0, otpExpiry - Date.now());
+  function startTimer(countdownId, timerKey, expiryFn, resendId, timerElId) {
+    clearInterval(window[timerKey]);
+    document.getElementById(resendId).disabled = true;
+    document.getElementById(timerElId).classList.remove('expired');
+    window[timerKey] = setInterval(() => {
+      const rem = Math.max(0, expiryFn() - Date.now());
       const m = Math.floor(rem/60000), s = Math.floor((rem%60000)/1000);
-      document.getElementById('countdown').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+      document.getElementById(countdownId).textContent = `${m}:${s.toString().padStart(2,'0')}`;
       if (rem === 0) {
-        clearInterval(timerInterval);
-        document.getElementById('timer-wrap').classList.add('expired');
-        document.getElementById('countdown').textContent = 'Expired';
-        document.getElementById('resend-btn').disabled = false;
-        generatedOTP = '';
+        clearInterval(window[timerKey]);
+        document.getElementById(timerElId).classList.add('expired');
+        document.getElementById(countdownId).textContent = 'Expired';
+        document.getElementById(resendId).disabled = false;
       }
     }, 1000);
   }
 
-  async function resendOTP() {
-    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-    otpExpiry = Date.now() + 2 * 60 * 1000;
-    [1,2,3,4].forEach(i => { const el=document.getElementById('ob'+i); el.value=''; el.classList.remove('filled'); });
-    document.getElementById('err2').style.display = 'none';
-    // Resend via email
+  async function sendOTPEmail(email, otpVar, expiryVar) {
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    window[otpVar] = otp;
+    window[expiryVar] = Date.now() + 2 * 60 * 1000;
     try {
-      await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })
+      const res = await fetch('/api/send-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destination: email, otp })
       });
-    } catch(e) {}
-    startTimer();
-    document.getElementById('ob1').focus();
-    showToast('New OTP sent to ' + currentEmail);
+      const data = await res.json();
+      return data.ok;
+    } catch(e) { return false; }
   }
 
-  // ── STEP 2: Verify OTP ──
-  async function verifyOTP() {
-    const entered = [1,2,3,4].map(i => document.getElementById('ob'+i).value).join('');
-    const errEl = document.getElementById('err2');
+  // ── LOGIN FLOW ──
+  async function loginSendOTP() {
+    const email = document.getElementById('l-email').value.trim();
+    const errEl = document.getElementById('l-err1');
     errEl.style.display = 'none';
-
-    if (entered.length !== 4) { errEl.textContent='Please enter all 4 digits.'; errEl.style.display='block'; return; }
-    if (Date.now() > otpExpiry) { errEl.textContent='OTP expired. Click Resend OTP.'; errEl.style.display='block'; return; }
-    if (entered !== generatedOTP) { errEl.textContent='Invalid OTP. Please try again.'; errEl.style.display='block'; return; }
-
-    clearInterval(timerInterval);
-
-    // Check if employer exists by email or mobile
-    const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
-    const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
-    existingEmployer = byEmail || byMobile;
-
-    if (existingEmployer) {
-      document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
-      goStep(3, 'step3-existing');
-    } else {
-      goStep(3, 'step3-new');
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;
     }
+    const { data: emp } = await sb.from('employers').select('*').eq('email', email).maybeSingle();
+    if (!emp) {
+      errEl.innerHTML = 'No account found with this email. <a href="#" onclick="startFlow(\'register\')" style="color:#3b82f6;font-weight:700;">Register instead →</a>';
+      errEl.style.display = 'block'; return;
+    }
+    const btn = document.querySelector('#step-login-1 .btn-primary');
+    btn.textContent = 'Sending OTP...'; btn.disabled = true;
+    loginEmail = email; loginEmployer = emp;
+    const ok = await sendOTPEmail(email, 'loginOTP', 'loginOTPExpiry');
+    btn.textContent = 'Send OTP →'; btn.disabled = false;
+    if (!ok) { errEl.textContent = 'Failed to send OTP. Try again.'; errEl.style.display = 'block'; return; }
+    document.getElementById('l-email-display').textContent = email;
+    showStep('step-login-2');
+    startTimer('l-countdown', 'loginTimerInt', () => loginOTPExpiry, 'l-resend', 'l-timer');
+    document.getElementById('lob1').focus();
   }
 
-  // ── STEP 3A: Register new employer ──
-  async function completeRegister() {
-    const company = document.getElementById('r-company').value.trim();
-    const contactName = document.getElementById('r-contact').value.trim();
-    const city = document.getElementById('r-city').value;
-    const industry = document.getElementById('r-industry').value;
-    const password = document.getElementById('r-password').value;
-    const confirm = document.getElementById('r-confirm').value;
-    const errEl = document.getElementById('err3');
-    errEl.style.display = 'none';
-
-    if (!company||!contactName||!city||!password) { errEl.textContent='Please fill all required fields.'; errEl.style.display='block'; return; }
-    if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
-    if (password !== confirm) { errEl.textContent='Passwords do not match.'; errEl.style.display='block'; return; }
-
-    const btn = document.querySelector('#step3-new .btn-primary');
-    btn.textContent = 'Creating...'; btn.disabled = true;
-
-    const result = await EmployerAuth.register({ company, contactName, email: currentEmail, mobile: currentMobile, city, industry, password });
-    if (!result.ok) { errEl.textContent=result.msg; errEl.style.display='block'; btn.textContent='Create Account & Continue →'; btn.disabled=false; return; }
-
-    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'post-job.html';
-    sessionStorage.removeItem('redirect_after_employer_login');
-    window.location.href = redirect;
+  async function loginResendOTP() {
+    const ok = await sendOTPEmail(loginEmail, 'loginOTP', 'loginOTPExpiry');
+    [1,2,3,4].forEach(i => { const el=document.getElementById('lob'+i); el.value=''; el.classList.remove('filled'); });
+    startTimer('l-countdown', 'loginTimerInt', () => loginOTPExpiry, 'l-resend', 'l-timer');
+    document.getElementById('lob1').focus();
+    showToast(ok ? 'New OTP sent to ' + loginEmail : 'Failed to send OTP');
   }
 
-  // ── STEP 3B: Login existing employer ──
-  async function completeLogin() {
-    const password = document.getElementById('login-pwd').value;
-    const errEl = document.getElementById('err4');
-    errEl.style.display = 'none';
+  function loginVerifyOTP() {
+    const entered = [1,2,3,4].map(i => document.getElementById('lob'+i).value).join('');
+    const errEl = document.getElementById('l-err2'); errEl.style.display = 'none';
+    if (entered.length !== 4) { errEl.textContent='Enter all 4 digits.'; errEl.style.display='block'; return; }
+    if (Date.now() > loginOTPExpiry) { errEl.textContent='OTP expired. Resend OTP.'; errEl.style.display='block'; return; }
+    if (entered !== loginOTP) { errEl.textContent='Invalid OTP. Try again.'; errEl.style.display='block'; return; }
+    clearInterval(window.loginTimerInt);
+    document.getElementById('l-welcome').textContent = `Welcome back, ${loginEmployer.contact_name.split(' ')[0]}!`;
+    showStep('step-login-3');
+    document.getElementById('l-password').focus();
+  }
+
+  async function loginComplete() {
+    const password = document.getElementById('l-password').value;
+    const errEl = document.getElementById('l-err3'); errEl.style.display = 'none';
     if (!password) { errEl.textContent='Please enter your password.'; errEl.style.display='block'; return; }
-
     if (isResetMode) {
-      if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
-      await sb.from('employers').update({ password }).eq('id', existingEmployer.id);
-      Session.setEmployer({ ...existingEmployer, password });
+      if (password.length < 6) { errEl.textContent='Min 6 characters.'; errEl.style.display='block'; return; }
+      await sb.from('employers').update({ password }).eq('id', loginEmployer.id);
+      Session.setEmployer({ ...loginEmployer, password });
       showToast('Password reset! Redirecting...');
       setTimeout(() => window.location.href = 'employer-dashboard.html', 1200);
       return;
     }
-
-    if (password !== existingEmployer.password) {
-      errEl.textContent = 'Incorrect password. Use "Forgot password?" to reset with OTP.';
-      errEl.style.display = 'block'; return;
+    if (password !== loginEmployer.password) {
+      errEl.textContent = 'Incorrect password. Use "Forgot password?" to reset.'; errEl.style.display = 'block'; return;
     }
-
-    Session.setEmployer(existingEmployer);
+    Session.setEmployer(loginEmployer);
     const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
     sessionStorage.removeItem('redirect_after_employer_login');
     window.location.href = redirect;
@@ -425,16 +353,89 @@
 
   function showReset() {
     isResetMode = true;
-    document.getElementById('welcome-name').textContent = 'Reset Password';
-    document.getElementById('pwd-label').textContent = 'New Password *';
-    document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
-    document.getElementById('btn-login').textContent = 'Set New Password →';
-    document.querySelector('#step3-existing .form-switch').style.display = 'none';
+    document.getElementById('l-welcome').textContent = 'Reset Password';
+    document.getElementById('l-pwd-label').textContent = 'New Password *';
+    document.getElementById('l-password').placeholder = 'Enter new password (min 6 chars)';
+    document.getElementById('l-btn-login').textContent = 'Set New Password →';
+    document.querySelector('#step-login-3 .form-switch').style.display = 'none';
   }
 
-  // Enter key support
-  document.getElementById('s1-email').addEventListener('keydown', e => { if(e.key==='Enter') sendEmailOTP(); });
-  document.getElementById('login-pwd').addEventListener('keydown', e => { if(e.key==='Enter') completeLogin(); });
+  // ── REGISTER FLOW ──
+  async function registerSendOTP() {
+    regCompany  = document.getElementById('r-company').value.trim();
+    regContact  = document.getElementById('r-contact').value.trim();
+    regMobile   = document.getElementById('r-mobile').value.trim();
+    regEmail    = document.getElementById('r-email').value.trim();
+    regCity     = document.getElementById('r-city').value;
+    regIndustry = document.getElementById('r-industry').value;
+    const errEl = document.getElementById('r-err1'); errEl.style.display = 'none';
+    if (!regCompany||!regContact||!regMobile||!regEmail||!regCity) {
+      errEl.textContent='Please fill all required fields.'; errEl.style.display='block'; return;
+    }
+    if (regMobile.length!==10||!/^\d+$/.test(regMobile)) {
+      errEl.textContent='Enter a valid 10-digit mobile number.'; errEl.style.display='block'; return;
+    }
+    if (!/\S+@\S+\.\S+/.test(regEmail)) {
+      errEl.textContent='Enter a valid email address.'; errEl.style.display='block'; return;
+    }
+    const { data: existing } = await sb.from('employers').select('id').eq('email', regEmail).maybeSingle();
+    if (existing) {
+      errEl.innerHTML='An account with this email already exists. <a href="#" onclick="startFlow(\'login\')" style="color:#3b82f6;font-weight:700;">Login instead →</a>';
+      errEl.style.display='block'; return;
+    }
+    const btn = document.querySelector('#step-reg-1 .btn-primary');
+    btn.textContent = 'Sending OTP...'; btn.disabled = true;
+    const ok = await sendOTPEmail(regEmail, 'regOTP', 'regOTPExpiry');
+    btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
+    if (!ok) { errEl.textContent='Failed to send OTP. Try again.'; errEl.style.display='block'; return; }
+    document.getElementById('r-email-display').textContent = regEmail;
+    showStep('step-reg-2');
+    startTimer('r-countdown', 'regTimerInt', () => regOTPExpiry, 'r-resend', 'r-timer');
+    document.getElementById('rob1').focus();
+  }
+
+  async function registerResendOTP() {
+    const ok = await sendOTPEmail(regEmail, 'regOTP', 'regOTPExpiry');
+    [1,2,3,4].forEach(i => { const el=document.getElementById('rob'+i); el.value=''; el.classList.remove('filled'); });
+    startTimer('r-countdown', 'regTimerInt', () => regOTPExpiry, 'r-resend', 'r-timer');
+    document.getElementById('rob1').focus();
+    showToast(ok ? 'New OTP sent to ' + regEmail : 'Failed to send OTP');
+  }
+
+  function registerVerifyOTP() {
+    const entered = [1,2,3,4].map(i => document.getElementById('rob'+i).value).join('');
+    const errEl = document.getElementById('r-err2'); errEl.style.display = 'none';
+    if (entered.length !== 4) { errEl.textContent='Enter all 4 digits.'; errEl.style.display='block'; return; }
+    if (Date.now() > regOTPExpiry) { errEl.textContent='OTP expired. Resend OTP.'; errEl.style.display='block'; return; }
+    if (entered !== regOTP) { errEl.textContent='Invalid OTP. Try again.'; errEl.style.display='block'; return; }
+    clearInterval(window.regTimerInt);
+    showStep('step-reg-3');
+    document.getElementById('r-password').focus();
+  }
+
+  async function registerComplete() {
+    const password = document.getElementById('r-password').value;
+    const confirm  = document.getElementById('r-confirm').value;
+    const errEl = document.getElementById('r-err3'); errEl.style.display = 'none';
+    if (!password) { errEl.textContent='Please set a password.'; errEl.style.display='block'; return; }
+    if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
+    if (password !== confirm) { errEl.textContent='Passwords do not match.'; errEl.style.display='block'; return; }
+    const btn = document.querySelector('#step-reg-3 .btn-primary');
+    btn.textContent = 'Creating account...'; btn.disabled = true;
+    const result = await EmployerAuth.register({
+      company: regCompany, contactName: regContact,
+      email: regEmail, mobile: regMobile,
+      city: regCity, industry: regIndustry, password
+    });
+    if (!result.ok) { errEl.textContent=result.msg; errEl.style.display='block'; btn.textContent='Create Account & Continue →'; btn.disabled=false; return; }
+    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'post-job.html';
+    sessionStorage.removeItem('redirect_after_employer_login');
+    window.location.href = redirect;
+  }
+
+  document.getElementById('l-email').addEventListener('keydown', e => { if(e.key==='Enter') loginSendOTP(); });
+  document.getElementById('l-password').addEventListener('keydown', e => { if(e.key==='Enter') loginComplete(); });
+  document.getElementById('r-password').addEventListener('keydown', e => { if(e.key==='Enter') registerComplete(); });
 </script>
 </body>
 </html>
