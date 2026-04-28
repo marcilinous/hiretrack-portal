@@ -1,12 +1,4 @@
 {
-  "functions": {
-    "api/ai.js": {
-      "runtime": "nodejs20.x"
-    },
-    "api/send-otp.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
