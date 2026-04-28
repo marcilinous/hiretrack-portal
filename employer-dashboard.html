@@ -23,6 +23,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .plan-enterprise{background:rgba(16,185,129,0.3);color:#a7f3d0;border-color:#10b981;}
 .btn-upgrade{background:#fff;color:#2563eb;padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;}
 .btn-logout{background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.2);padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-edit-profile{background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.35);padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+.btn-edit-profile:hover{background:rgba(255,255,255,0.25);}
 
 /* ── Stats ── */
 .stats-section{background:#fff;border-bottom:1px solid #e2e8f0;}
@@ -186,7 +188,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="dash-header-right">
       <span class="plan-badge plan-free" id="plan-badge">Free Plan</span>
       <button class="btn-upgrade" onclick="window.location.href='pricing.html'">Upgrade ↑</button>
-      <button class="btn-upgrade" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);" onclick="openEmployerEdit()">✏️ Edit Profile</button>
+      <button class="btn-edit-profile" onclick="openEmployerEdit()">✏️ Edit Profile</button>
       <button class="btn-logout" onclick="EmployerAuth.logout()">Logout</button>
     </div>
   </div>
