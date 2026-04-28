@@ -153,6 +153,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 @media(max-width:900px){.stats-inner{grid-template-columns:repeat(3,1fr);}.kanban{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.stats-inner{grid-template-columns:repeat(2,1fr);}.kanban{grid-template-columns:repeat(2,1fr);}.job-metrics{display:none;}}
+
+/* ── Employer Edit Modal ── */
+.emp-edit-modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; display:none; align-items:center; justify-content:center; padding:1rem; }
+.emp-edit-modal.show { display:flex; }
+.emp-edit-box { background:#fff; border-radius:16px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; position:relative; }
+.emp-edit-header { padding:1.2rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; border-radius:16px 16px 0 0; }
+.emp-edit-header h3 { font-size:1rem; font-weight:800; margin:0; }
+.emp-edit-close { background:none; border:none; font-size:1.3rem; cursor:pointer; color:#94a3b8; }
+.emp-edit-body { padding:1.5rem; }
+.emp-edit-fg { margin-bottom:1rem; }
+.emp-edit-fg label { display:block; font-size:0.8rem; font-weight:600; color:#374151; margin-bottom:0.4rem; }
+.emp-edit-fg input, .emp-edit-fg select { width:100%; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.6rem 0.8rem; font-size:0.88rem; font-family:inherit; outline:none; transition:border 0.2s; }
+.emp-edit-fg input:focus, .emp-edit-fg select:focus { border-color:#2563eb; }
+.emp-edit-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.emp-edit-footer { padding:1rem 1.5rem; border-top:1px solid #e2e8f0; display:flex; gap:0.75rem; justify-content:flex-end; position:sticky; bottom:0; background:#fff; border-radius:0 0 16px 16px; }
+.emp-edit-section { margin-bottom:1.5rem; }
+.emp-edit-section h4 { font-size:0.82rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid #f1f5f9; }
+.emp-pwd-toggle { display:flex; align-items:center; gap:8px; font-size:0.78rem; color:#64748b; margin-top:0.5rem; cursor:pointer; }
+.emp-pwd-toggle input { width:auto; }
 </style>
 </head>
 <body>
@@ -167,6 +186,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="dash-header-right">
       <span class="plan-badge plan-free" id="plan-badge">Free Plan</span>
       <button class="btn-upgrade" onclick="window.location.href='pricing.html'">Upgrade ↑</button>
+      <button class="btn-upgrade" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);" onclick="openEmployerEdit()">✏️ Edit Profile</button>
       <button class="btn-logout" onclick="EmployerAuth.logout()">Logout</button>
     </div>
   </div>
@@ -604,6 +624,163 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCandidateProfile(); });
 
   init();
+
+  // ── Employer Edit Profile ──
+  function openEmployerEdit() {
+    const emp = Session.getEmployer();
+    document.getElementById('ee-company').value = emp.company || '';
+    document.getElementById('ee-city').value = emp.city || '';
+    document.getElementById('ee-industry').value = emp.industry || 'IT & Software';
+    document.getElementById('ee-contact').value = emp.contact_name || '';
+    document.getElementById('ee-mobile').value = emp.mobile || '';
+    document.getElementById('ee-email').value = emp.email || '';
+    document.getElementById('ee-current-pwd').value = '';
+    document.getElementById('ee-new-pwd').value = '';
+    document.getElementById('ee-confirm-pwd').value = '';
+    document.getElementById('ee-err').style.display = 'none';
+    document.getElementById('ee-success').style.display = 'none';
+    document.getElementById('emp-edit-modal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEmpEdit(e) {
+    if (e.target === document.getElementById('emp-edit-modal')) closeEmpEditDirect();
+  }
+
+  function closeEmpEditDirect() {
+    document.getElementById('emp-edit-modal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  async function saveEmployerProfile() {
+    const emp = Session.getEmployer();
+    const company  = document.getElementById('ee-company').value.trim();
+    const contact  = document.getElementById('ee-contact').value.trim();
+    const mobile   = document.getElementById('ee-mobile').value.trim();
+    const city     = document.getElementById('ee-city').value;
+    const industry = document.getElementById('ee-industry').value;
+    const currentPwd = document.getElementById('ee-current-pwd').value;
+    const newPwd     = document.getElementById('ee-new-pwd').value;
+    const confirmPwd = document.getElementById('ee-confirm-pwd').value;
+
+    const errEl     = document.getElementById('ee-err');
+    const successEl = document.getElementById('ee-success');
+    errEl.style.display = 'none';
+    successEl.style.display = 'none';
+
+    // Validate
+    if (!company || !contact || !mobile) {
+      errEl.textContent = 'Company name, contact person and mobile are required.';
+      errEl.style.display = 'block'; return;
+    }
+    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+      errEl.textContent = 'Enter a valid 10-digit mobile number.';
+      errEl.style.display = 'block'; return;
+    }
+
+    const updates = { company, contact_name: contact, mobile, city, industry };
+
+    // Password change
+    if (newPwd || currentPwd) {
+      if (!currentPwd) { errEl.textContent = 'Enter your current password to change it.'; errEl.style.display='block'; return; }
+      if (currentPwd !== emp.password) { errEl.textContent = 'Current password is incorrect.'; errEl.style.display='block'; return; }
+      if (newPwd.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; errEl.style.display='block'; return; }
+      if (newPwd !== confirmPwd) { errEl.textContent = 'New passwords do not match.'; errEl.style.display='block'; return; }
+      updates.password = newPwd;
+    }
+
+    const btn = document.getElementById('ee-save-btn');
+    btn.textContent = 'Saving...'; btn.disabled = true;
+
+    const { error } = await sb.from('employers').update(updates).eq('id', emp.id);
+
+    if (error) {
+      errEl.textContent = 'Failed to save. Please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Save Changes'; btn.disabled = false;
+      return;
+    }
+
+    // Update session
+    const updated = { ...emp, ...updates };
+    Session.setEmployer(updated);
+
+    // Refresh header
+    document.getElementById('dash-company').textContent = updated.company;
+    document.getElementById('dash-welcome').textContent = `Welcome back, ${updated.contact_name.split(' ')[0]} 👋`;
+
+    successEl.textContent = '✅ Profile updated successfully!';
+    successEl.style.display = 'block';
+    btn.textContent = 'Save Changes'; btn.disabled = false;
+
+    setTimeout(() => closeEmpEditDirect(), 1500);
+  }
+
 </script>
+
+<!-- ── Employer Edit Profile Modal ── -->
+<div class="emp-edit-modal" id="emp-edit-modal" onclick="closeEmpEdit(event)">
+  <div class="emp-edit-box">
+    <div class="emp-edit-header">
+      <h3>✏️ Edit Company Profile</h3>
+      <button class="emp-edit-close" onclick="closeEmpEditDirect()">✕</button>
+    </div>
+    <div class="emp-edit-body">
+
+      <div class="emp-edit-section">
+        <h4>Company Details</h4>
+        <div class="emp-edit-fg"><label>Company Name *</label><input type="text" id="ee-company" placeholder="Your company name" /></div>
+        <div class="emp-edit-row">
+          <div class="emp-edit-fg"><label>City *</label>
+            <select id="ee-city">
+              <option value="">Select city</option>
+              <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
+              <option>Hyderabad</option><option>Chennai</option><option>Pune</option>
+              <option>Kolkata</option><option>Ahmedabad</option><option>Mysuru</option>
+              <option>Mangaluru</option><option>Remote</option><option>Other</option>
+            </select>
+          </div>
+          <div class="emp-edit-fg"><label>Industry</label>
+            <select id="ee-industry">
+              <option>IT & Software</option><option>Healthcare</option>
+              <option>Manufacturing</option><option>Retail & E-commerce</option>
+              <option>Banking & Finance</option><option>Logistics</option>
+              <option>Education</option><option>Media & Marketing</option>
+              <option>Real Estate</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="emp-edit-section">
+        <h4>Contact Details</h4>
+        <div class="emp-edit-row">
+          <div class="emp-edit-fg"><label>Contact Person *</label><input type="text" id="ee-contact" placeholder="Full name" /></div>
+          <div class="emp-edit-fg"><label>Mobile *</label><input type="tel" id="ee-mobile" placeholder="10-digit mobile" maxlength="10" /></div>
+        </div>
+        <div class="emp-edit-fg"><label>Email</label><input type="email" id="ee-email" disabled style="background:#f8fafc;color:#94a3b8;cursor:not-allowed;" /><small style="font-size:0.75rem;color:#94a3b8;margin-top:4px;display:block;">Email cannot be changed. Contact support if needed.</small></div>
+      </div>
+
+      <div class="emp-edit-section">
+        <h4>Change Password</h4>
+        <div class="emp-edit-fg"><label>Current Password</label><input type="password" id="ee-current-pwd" placeholder="Enter current password" /></div>
+        <div class="emp-edit-row">
+          <div class="emp-edit-fg"><label>New Password</label><input type="password" id="ee-new-pwd" placeholder="Min 6 characters" /></div>
+          <div class="emp-edit-fg"><label>Confirm New Password</label><input type="password" id="ee-confirm-pwd" placeholder="Repeat new password" /></div>
+        </div>
+        <p style="font-size:0.75rem;color:#94a3b8;margin-top:-0.5rem;">Leave password fields empty to keep current password.</p>
+      </div>
+
+      <div class="alert alert-error" id="ee-err" style="display:none;"></div>
+      <div class="alert alert-success" id="ee-success" style="display:none;"></div>
+
+    </div>
+    <div class="emp-edit-footer">
+      <button class="btn-logout" onclick="closeEmpEditDirect()" style="background:#f1f5f9;color:#374151;border:none;">Cancel</button>
+      <button class="btn-upgrade" onclick="saveEmployerProfile()" id="ee-save-btn" style="background:#2563eb;">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
