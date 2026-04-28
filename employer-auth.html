@@ -254,16 +254,17 @@
       document.getElementById(prefix+'ob'+(idx-1)).focus();
   }
 
+  const _timers = {};
   function startTimer(countdownId, timerKey, expiryFn, resendId, timerElId) {
-    clearInterval(window[timerKey]);
+    clearInterval(_timers[timerKey]);
     document.getElementById(resendId).disabled = true;
     document.getElementById(timerElId).classList.remove('expired');
-    window[timerKey] = setInterval(() => {
+    _timers[timerKey] = setInterval(() => {
       const rem = Math.max(0, expiryFn() - Date.now());
       const m = Math.floor(rem/60000), s = Math.floor((rem%60000)/1000);
       document.getElementById(countdownId).textContent = `${m}:${s.toString().padStart(2,'0')}`;
       if (rem === 0) {
-        clearInterval(window[timerKey]);
+        clearInterval(_timers[timerKey]);
         document.getElementById(timerElId).classList.add('expired');
         document.getElementById(countdownId).textContent = 'Expired';
         document.getElementById(resendId).disabled = false;
@@ -273,8 +274,11 @@
 
   async function sendOTPEmail(email, otpVar, expiryVar) {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    // Set on window AND update local refs
     window[otpVar] = otp;
     window[expiryVar] = Date.now() + 2 * 60 * 1000;
+    if (otpVar === 'loginOTP') { loginOTP = otp; loginOTPExpiry = window[expiryVar]; }
+    if (otpVar === 'regOTP') { regOTP = otp; regOTPExpiry = window[expiryVar]; }
     try {
       const res = await fetch('/api/send-otp', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
