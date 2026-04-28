@@ -142,6 +142,36 @@ body { background:#f1f5f9; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
+
+/* ── Edit Profile Modal ── */
+.edit-modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; display:none; align-items:center; justify-content:center; padding:1rem; overflow-y:auto; }
+.edit-modal.show { display:flex; }
+.edit-box { background:#fff; border-radius:16px; width:100%; max-width:580px; max-height:90vh; overflow-y:auto; position:relative; margin:auto; }
+.edit-box-header { padding:1.2rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; border-radius:16px 16px 0 0; }
+.edit-box-header h3 { font-size:1rem; font-weight:800; margin:0; }
+.edit-close { background:none; border:none; font-size:1.3rem; cursor:pointer; color:#94a3b8; line-height:1; }
+.edit-tabs { display:flex; border-bottom:2px solid #e2e8f0; padding:0 1.5rem; gap:0; overflow-x:auto; }
+.edit-tab { padding:0.7rem 1rem; font-size:0.8rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; }
+.edit-tab.active { color:#2563eb; border-bottom-color:#2563eb; }
+.edit-body { padding:1.5rem; }
+.edit-section { display:none; }
+.edit-section.active { display:block; }
+.edit-fg { margin-bottom:1rem; }
+.edit-fg label { display:block; font-size:0.8rem; font-weight:600; color:#374151; margin-bottom:0.4rem; }
+.edit-fg input, .edit-fg select, .edit-fg textarea { width:100%; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.6rem 0.8rem; font-size:0.88rem; font-family:inherit; outline:none; transition:border 0.2s; }
+.edit-fg input:focus, .edit-fg select:focus, .edit-fg textarea:focus { border-color:#2563eb; }
+.edit-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.skills-input-wrap { display:flex; gap:8px; }
+.skills-input-wrap input { flex:1; }
+.skills-input-wrap button { padding:0.6rem 1rem; background:#2563eb; color:#fff; border:none; border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.skill-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:0.75rem; }
+.skill-tag { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:20px; padding:4px 10px; font-size:0.78rem; font-weight:600; display:flex; align-items:center; gap:5px; }
+.skill-tag button { background:none; border:none; color:#93c5fd; cursor:pointer; font-size:0.85rem; line-height:1; padding:0; font-family:inherit; }
+.skill-tag button:hover { color:#ef4444; }
+.edit-footer { padding:1rem 1.5rem; border-top:1px solid #e2e8f0; display:flex; gap:0.75rem; justify-content:flex-end; position:sticky; bottom:0; background:#fff; border-radius:0 0 16px 16px; }
+.btn-save-edit { background:#2563eb; color:#fff; border:none; padding:0.65rem 1.5rem; border-radius:8px; font-size:0.88rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.btn-save-edit:hover { background:#1d4ed8; }
+.btn-cancel-edit { background:#f1f5f9; color:#374151; border:none; padding:0.65rem 1.2rem; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; font-family:inherit; }
 </style>
 </head>
 <body>
@@ -162,6 +192,8 @@ body { background:#f1f5f9; }
       </div>
     </div>
     <div class="profile-actions">
+      <button class="btn-logout-p" onclick="CandidateAuth.logout()">Logout</button>
+      <button class="btn-edit-p" onclick="openEditModal()">✏️ Edit Profile</button>
     </div>
   </div>
 </div>
@@ -527,7 +559,7 @@ body { background:#f1f5f9; }
     setTimeout(()=>{const ring=document.getElementById('score-ring-anim');if(ring){ring.style.transition='stroke-dashoffset 1.2s ease';ring.style.strokeDashoffset=offset;}},200);
   }
 
-  function scrollToEdit() { showToast('Use Edit Profile to update this section.'); }
+  function scrollToEdit() { openEditModal(); }
   const SKILL_ICONS = {
     'excel':'📊','mis':'📋','sql':'🗄️','python':'🐍','power bi':'📈','tableau':'📉',
     'vba':'⚙️','sap':'🏢','tally':'🧾','automation':'🤖','data entry':'📝',
@@ -718,41 +750,271 @@ body { background:#f1f5f9; }
     renderSkillCategories();
     init();
   }
+
+  // ── Edit Profile ──
+  let editSkills = [];
+
+  function openEditModal(section) {
+    const c = Session.getCandidate();
+    // Populate fields
+    document.getElementById('e-name').value = c.name || '';
+    document.getElementById('e-mobile').value = c.mobile || '';
+    document.getElementById('e-city').value = c.city || '';
+    document.getElementById('e-experience').value = c.experience || '';
+    document.getElementById('e-jobtitle').value = c.jobtitle || '';
+    document.getElementById('e-company').value = c.current_company || '';
+    document.getElementById('e-about').value = c.about || '';
+    document.getElementById('e-jobtype').value = c.preferred_job_type || '';
+    document.getElementById('e-salary').value = c.expected_salary || '';
+    document.getElementById('e-notice').value = c.notice_period || '';
+    updateAboutCount();
+
+    // Populate skills
+    editSkills = Array.isArray(c.skills) ? [...c.skills] : [];
+    renderSkillTags();
+
+    // Switch to relevant tab if section provided
+    const tabMap = { about:'about', skills:'skills', preferences:'prefs', prefs:'prefs' };
+    if (section && tabMap[section]) {
+      document.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
+      const targetTab = tabMap[section];
+      document.getElementById('es-' + targetTab).classList.add('active');
+      document.querySelector(`.edit-tab[onclick*="${targetTab}"]`).classList.add('active');
+    } else {
+      // Default to basic tab
+      document.querySelectorAll('.edit-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+      document.querySelectorAll('.edit-section').forEach((s,i) => s.classList.toggle('active', i===0));
+    }
+
+    document.getElementById('edit-modal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEditModal(e) {
+    if (e.target === document.getElementById('edit-modal')) closeEditModalDirect();
+  }
+
+  function closeEditModalDirect() {
+    document.getElementById('edit-modal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function switchEditTab(tab, el) {
+    document.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('es-' + tab).classList.add('active');
+  }
+
+  function updateAboutCount() {
+    const len = document.getElementById('e-about').value.length;
+    document.getElementById('e-about-count').textContent = len + ' / 500 characters';
+    document.getElementById('e-about-count').style.color = len >= 50 ? '#22c55e' : '#94a3b8';
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('e-about')?.addEventListener('input', updateAboutCount);
+  });
+
+  function addSkillTag() {
+    const input = document.getElementById('e-skill-input');
+    const val = input.value.trim();
+    if (!val) return;
+    const skills = val.split(',').map(s => s.trim()).filter(Boolean);
+    skills.forEach(s => { if (s && !editSkills.includes(s)) editSkills.push(s); });
+    input.value = '';
+    renderSkillTags();
+    input.focus();
+  }
+
+  function removeSkillTag(skill) {
+    editSkills = editSkills.filter(s => s !== skill);
+    renderSkillTags();
+  }
+
+  function renderSkillTags() {
+    document.getElementById('e-skill-tags').innerHTML = editSkills.map(s =>
+      `<div class="skill-tag">${s}<button onclick="removeSkillTag('${s.replace(/'/g,"\'")}')">×</button></div>`
+    ).join('');
+  }
+
+  async function saveProfile() {
+    const name = document.getElementById('e-name').value.trim();
+    const mobile = document.getElementById('e-mobile').value.trim();
+    if (!name) { showToast('Name is required.'); return; }
+    if (mobile && (mobile.length !== 10 || !/^\d+$/.test(mobile))) {
+      showToast('Enter a valid 10-digit mobile number.'); return;
+    }
+
+    const btn = document.querySelector('.btn-save-edit');
+    btn.textContent = 'Saving...'; btn.disabled = true;
+
+    const updates = {
+      name: name,
+      mobile: mobile,
+      city: document.getElementById('e-city').value,
+      experience: document.getElementById('e-experience').value,
+      jobtitle: document.getElementById('e-jobtitle').value.trim(),
+      current_company: document.getElementById('e-company').value.trim(),
+      about: document.getElementById('e-about').value.trim(),
+      preferred_job_type: document.getElementById('e-jobtype').value,
+      expected_salary: document.getElementById('e-salary').value,
+      notice_period: document.getElementById('e-notice').value,
+      skills: editSkills
+    };
+
+    const { error } = await sb.from('candidates').update(updates).eq('id', candidate.id);
+
+    if (error) {
+      showToast('Failed to save. Please try again.');
+      btn.textContent = 'Save Changes'; btn.disabled = false;
+      return;
+    }
+
+    // Update session
+    const updated = { ...candidate, ...updates };
+    Session.setCandidate(updated);
+
+    // Refresh displayed data
+    document.getElementById('p-name').textContent = updated.name;
+    document.getElementById('p-title').textContent = updated.jobtitle || 'Job Seeker';
+    document.getElementById('p-city').textContent = '📍 ' + (updated.city || '—');
+    document.getElementById('p-exp').textContent = '🎓 ' + (updated.experience || '—');
+    document.getElementById('p-mobile').textContent = '📞 ' + (updated.mobile || '—');
+    document.getElementById('d-email').textContent = updated.email || '—';
+    document.getElementById('d-mobile').textContent = updated.mobile || '—';
+    document.getElementById('d-city').textContent = updated.city || '—';
+    document.getElementById('d-exp').textContent = updated.experience || '—';
+    document.getElementById('d-title').textContent = updated.jobtitle || '—';
+    document.getElementById('d-company').textContent = updated.current_company || '—';
+    document.getElementById('d-jobtype').textContent = updated.preferred_job_type || '—';
+    document.getElementById('d-salary').textContent = updated.expected_salary || '—';
+    document.getElementById('d-notice').textContent = updated.notice_period || '—';
+    document.getElementById('d-about').textContent = updated.about || 'Not added yet.';
+    document.getElementById('d-skills').innerHTML = updated.skills?.length
+      ? updated.skills.map(s => `<span class="skill-chip">${s}</span>`).join('')
+      : '<p style="font-size:0.82rem;color:#94a3b8;">No skills added</p>';
+
+    // Refresh initials
+    const initials = updated.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('p-avatar').textContent = initials;
+
+    // Refresh profile score
+    if (typeof calcScore === 'function') calcScore(updated);
+    else if (typeof renderScore === 'function') renderScore(updated);
+
+    btn.textContent = 'Save Changes'; btn.disabled = false;
+    closeEditModalDirect();
+    showToast('✅ Profile updated successfully!');
+  }
+
 </script>
-<footer class="ht-footer">
-  <div class="ht-footer-top">
-    <p class="ht-follow-label">Follow Us</p>
-    <div class="ht-underline"></div>
-    <div class="ht-socials">
-      <a class="ht-social" href="#" title="Facebook">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="LinkedIn">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Twitter / X">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="YouTube">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Instagram">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-      </a>
+
+<!-- ── Edit Profile Modal ── -->
+<div class="edit-modal" id="edit-modal" onclick="closeEditModal(event)">
+  <div class="edit-box" id="edit-box">
+    <div class="edit-box-header">
+      <h3>✏️ Edit Profile</h3>
+      <button class="edit-close" onclick="closeEditModalDirect()">✕</button>
     </div>
-    <nav class="ht-nav-links">
-      <a href="about.html">About</a><span class="ht-sep">·</span>
-      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
-      <a href="culture.html">Culture</a><span class="ht-sep">·</span>
-      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
-      <a href="interview-tips.html">Interview Tips</a><span class="ht-sep">·</span>
-      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
-      <a href="refund.html">Refund Policy</a><span class="ht-sep">·</span>
-      <a href="terms.html">Terms of Use</a><span class="ht-sep">·</span>
-      <a href="job-alerts.html">Free Job Alerts</a>
-    </nav>
+    <div class="edit-tabs">
+      <button class="edit-tab active" onclick="switchEditTab('basic',this)">Basic Info</button>
+      <button class="edit-tab" onclick="switchEditTab('about',this)">About</button>
+      <button class="edit-tab" onclick="switchEditTab('skills',this)">Skills</button>
+      <button class="edit-tab" onclick="switchEditTab('prefs',this)">Preferences</button>
+    </div>
+    <div class="edit-body">
+
+      <!-- Basic Info -->
+      <div class="edit-section active" id="es-basic">
+        <div class="edit-row">
+          <div class="edit-fg"><label>Full Name *</label><input type="text" id="e-name" placeholder="Your full name" /></div>
+          <div class="edit-fg"><label>Mobile *</label><input type="tel" id="e-mobile" placeholder="10-digit mobile" maxlength="10" /></div>
+        </div>
+        <div class="edit-row">
+          <div class="edit-fg"><label>City</label>
+            <select id="e-city">
+              <option value="">Select city</option>
+              <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
+              <option>Hyderabad</option><option>Chennai</option><option>Pune</option>
+              <option>Kolkata</option><option>Ahmedabad</option><option>Mysuru</option>
+              <option>Mangaluru</option><option>Other</option>
+            </select>
+          </div>
+          <div class="edit-fg"><label>Experience</label>
+            <select id="e-experience">
+              <option value="">Select experience</option>
+              <option>Fresher (0 years)</option><option>0–1 years</option>
+              <option>1–3 years</option><option>3–5 years</option>
+              <option>5–8 years</option><option>8+ years</option>
+            </select>
+          </div>
+        </div>
+        <div class="edit-row">
+          <div class="edit-fg"><label>Current Job Title</label><input type="text" id="e-jobtitle" placeholder="e.g. MIS Executive" /></div>
+          <div class="edit-fg"><label>Current Company</label><input type="text" id="e-company" placeholder="e.g. Infosys" /></div>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="edit-section" id="es-about">
+        <div class="edit-fg">
+          <label>About Yourself</label>
+          <textarea id="e-about" rows="6" placeholder="Write a short professional summary about yourself — your experience, strengths, and what you're looking for..."></textarea>
+          <small id="e-about-count" style="font-size:0.75rem;color:#94a3b8;margin-top:4px;display:block;">0 / 500 characters</small>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="edit-section" id="es-skills">
+        <div class="edit-fg">
+          <label>Add Skills</label>
+          <div class="skills-input-wrap">
+            <input type="text" id="e-skill-input" placeholder="e.g. Excel, SQL, Python..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSkillTag();}" />
+            <button onclick="addSkillTag()">+ Add</button>
+          </div>
+          <div class="skill-tags" id="e-skill-tags"></div>
+        </div>
+        <p style="font-size:0.78rem;color:#94a3b8;margin-top:0.5rem;">Press Enter or click Add after each skill. Click × to remove.</p>
+      </div>
+
+      <!-- Preferences -->
+      <div class="edit-section" id="es-prefs">
+        <div class="edit-fg"><label>Preferred Job Type</label>
+          <select id="e-jobtype">
+            <option value="">Select preference</option>
+            <option>Full Time</option><option>Part Time</option>
+            <option>Remote</option><option>Contract</option><option>Internship</option>
+          </select>
+        </div>
+        <div class="edit-row">
+          <div class="edit-fg"><label>Expected Salary</label>
+            <select id="e-salary">
+              <option value="">Select range</option>
+              <option>Below ₹3 LPA</option><option>₹3–5 LPA</option>
+              <option>₹5–8 LPA</option><option>₹8–12 LPA</option>
+              <option>₹12–18 LPA</option><option>₹18–25 LPA</option>
+              <option>Above ₹25 LPA</option>
+            </select>
+          </div>
+          <div class="edit-fg"><label>Notice Period</label>
+            <select id="e-notice">
+              <option value="">Select notice period</option>
+              <option>Immediate</option><option>15 days</option>
+              <option>1 month</option><option>2 months</option>
+              <option>3 months</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="edit-footer">
+      <button class="btn-cancel-edit" onclick="closeEditModalDirect()">Cancel</button>
+      <button class="btn-save-edit" onclick="saveProfile()">Save Changes</button>
+    </div>
   </div>
-    </footer>
+</div>
 
 </body>
 </html>
