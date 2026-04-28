@@ -751,6 +751,73 @@ body { background:#f1f5f9; }
     init();
   }
 
+  // ── Resume handling ──
+  let pendingResumeData = null;
+  let pendingResumeName = null;
+
+  function initResumeTab() {
+    const c = Session.getCandidate();
+    const display = document.getElementById('current-resume-display');
+    if (c.resume_name) {
+      display.innerHTML = `<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:1rem;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.3rem;">📄</span>
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:#1d4ed8;">Current: ${c.resume_name}</div>
+            <div style="font-size:0.75rem;color:#64748b;">Upload a new file below to replace it</div>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      display.innerHTML = `<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:0.75rem 1rem;font-size:0.82rem;color:#c2410c;">⚠️ No resume uploaded yet. Upload one to boost your profile score by 15 points!</div>`;
+    }
+    // Reset pending
+    pendingResumeData = null;
+    pendingResumeName = null;
+    document.getElementById('resume-preview').style.display = 'none';
+    document.getElementById('e-resume-file').value = '';
+  }
+
+  function handleResumeFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    processResumeFile(file);
+  }
+
+  function handleResumeDrop(event) {
+    event.preventDefault();
+    document.getElementById('resume-drop-zone').style.borderColor = '#cbd5e1';
+    const file = event.dataTransfer.files[0];
+    if (file) processResumeFile(file);
+  }
+
+  function processResumeFile(file) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) { showToast('File too large. Max 5MB allowed.'); return; }
+    const allowed = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(file.type) && !file.name.match(/\.(pdf|doc|docx)$/i)) {
+      showToast('Only PDF, DOC, or DOCX files are allowed.'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingResumeData = e.target.result;
+      pendingResumeName = file.name;
+      // Show preview
+      const preview = document.getElementById('resume-preview');
+      document.getElementById('resume-preview-name').textContent = file.name;
+      document.getElementById('resume-preview-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+      preview.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearResumeSelection() {
+    pendingResumeData = null;
+    pendingResumeName = null;
+    document.getElementById('resume-preview').style.display = 'none';
+    document.getElementById('e-resume-file').value = '';
+  }
+
   // ── Edit Profile ──
   let editSkills = [];
 
@@ -774,7 +841,7 @@ body { background:#f1f5f9; }
     renderSkillTags();
 
     // Switch to relevant tab if section provided
-    const tabMap = { about:'about', skills:'skills', preferences:'prefs', prefs:'prefs' };
+    const tabMap = { about:'about', skills:'skills', preferences:'prefs', prefs:'prefs', resume:'resume' };
     if (section && tabMap[section]) {
       document.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
@@ -805,6 +872,7 @@ body { background:#f1f5f9; }
     document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('es-' + tab).classList.add('active');
+    if (tab === 'resume') initResumeTab();
   }
 
   function updateAboutCount() {
@@ -862,6 +930,11 @@ body { background:#f1f5f9; }
       notice_period: document.getElementById('e-notice').value,
       skills: editSkills
     };
+    // Include resume if a new one was selected
+    if (pendingResumeData && pendingResumeName) {
+      updates.resume_data = pendingResumeData;
+      updates.resume_name = pendingResumeName;
+    }
 
     const { error } = await sb.from('candidates').update(updates).eq('id', candidate.id);
 
@@ -891,6 +964,10 @@ body { background:#f1f5f9; }
     document.getElementById('d-salary').textContent = updated.expected_salary || '—';
     document.getElementById('d-notice').textContent = updated.notice_period || '—';
     document.getElementById('d-about').textContent = updated.about || 'Not added yet.';
+    // Refresh resume display
+    if (updated.resume_name) {
+      document.getElementById('resume-section').innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${updated.resume_name}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
+    }
     document.getElementById('d-skills').innerHTML = updated.skills?.length
       ? updated.skills.map(s => `<span class="skill-chip">${s}</span>`).join('')
       : '<p style="font-size:0.82rem;color:#94a3b8;">No skills added</p>';
@@ -922,6 +999,7 @@ body { background:#f1f5f9; }
       <button class="edit-tab" onclick="switchEditTab('about',this)">About</button>
       <button class="edit-tab" onclick="switchEditTab('skills',this)">Skills</button>
       <button class="edit-tab" onclick="switchEditTab('prefs',this)">Preferences</button>
+      <button class="edit-tab" onclick="switchEditTab('resume',this)">Resume</button>
     </div>
     <div class="edit-body">
 
@@ -1006,6 +1084,32 @@ body { background:#f1f5f9; }
             </select>
           </div>
         </div>
+      </div>
+
+
+      <!-- Resume -->
+      <div class="edit-section" id="es-resume">
+        <div id="current-resume-display" style="margin-bottom:1.2rem;"></div>
+        <div class="edit-fg">
+          <label>Upload New Resume</label>
+          <div id="resume-drop-zone" style="border:2px dashed #cbd5e1;border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:#f8fafc;" onclick="document.getElementById('e-resume-file').click()" ondragover="event.preventDefault();this.style.borderColor='#2563eb'" ondragleave="this.style.borderColor='#cbd5e1'" ondrop="handleResumeDrop(event)">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+            <p style="font-size:0.88rem;font-weight:600;color:#374151;margin:0 0 0.25rem;">Click to upload or drag & drop</p>
+            <p style="font-size:0.78rem;color:#94a3b8;margin:0;">PDF, DOC, DOCX — Max 5MB</p>
+          </div>
+          <input type="file" id="e-resume-file" accept=".pdf,.doc,.docx" style="display:none;" onchange="handleResumeFile(this)" />
+        </div>
+        <div id="resume-preview" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:1rem;display:none;align-items:center;justify-content:space-between;margin-top:0.75rem;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.5rem;">📄</span>
+            <div>
+              <div id="resume-preview-name" style="font-size:0.88rem;font-weight:700;color:#15803d;"></div>
+              <div id="resume-preview-size" style="font-size:0.75rem;color:#64748b;"></div>
+            </div>
+          </div>
+          <button onclick="clearResumeSelection()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
+        </div>
+        <p style="font-size:0.75rem;color:#94a3b8;margin-top:0.75rem;">Your resume is stored securely and only shared with employers when you apply.</p>
       </div>
 
     </div>
