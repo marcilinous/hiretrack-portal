@@ -269,3 +269,42 @@
   .mobile-nav a.active { background: rgba(59,130,246,0.2); color: #60a5fa; }
   .mobile-nav .nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0.25rem 0; }
 }
+
+/* ═══════════════════════════════════════════
+   HIRETRACK FOOTER — Mobile Responsive
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .ht-footer-top { padding: 2rem 1rem 1.5rem; }
+  .ht-follow-label { font-size: 0.85rem; }
+  .ht-underline { margin-bottom: 1.2rem; }
+
+  /* Social icons — slightly smaller */
+  .ht-socials { gap: 0.6rem; margin-bottom: 1.4rem; }
+  .ht-social { width: 38px; height: 38px; }
+  .ht-social svg { width: 17px; height: 17px; }
+
+  /* Nav links — wrap naturally, centered */
+  .ht-nav-links { gap: 0.2rem 0.4rem; padding: 0 0.5rem; }
+  .ht-nav-links a { font-size: 0.78rem; padding: 0.15rem 0.4rem; }
+  .ht-sep { display: none; }
+
+  /* Footer bottom */
+  .ht-footer-bottom { padding: 1rem; }
+  .ht-footer-bottom p { font-size: 0.72rem; line-height: 1.5; }
+}
+
+@media (max-width: 480px) {
+  .ht-footer-top { padding: 1.5rem 0.75rem 1.2rem; }
+
+  /* Social icons in a single row */
+  .ht-socials { gap: 0.5rem; }
+  .ht-social { width: 34px; height: 34px; }
+  .ht-social svg { width: 15px; height: 15px; }
+
+  /* Nav links — 2 per row feel */
+  .ht-nav-links { gap: 0.4rem 0; flex-direction: column; align-items: center; }
+  .ht-nav-links a { font-size: 0.8rem; padding: 0.3rem 0.5rem; }
+
+  .ht-footer-bottom p { font-size: 0.7rem; }
+}
