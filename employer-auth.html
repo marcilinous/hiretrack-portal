@@ -125,19 +125,36 @@
         <div class="step-line done"></div>
         <div class="step-item"><div class="step-circle done">✓</div><div class="step-label">Verify OTP</div></div>
         <div class="step-line done"></div>
-        <div class="step-item"><div class="step-circle active">3</div><div class="step-label">Password</div></div>
+        <div class="step-item"><div class="step-circle active">3</div><div class="step-label">Access</div></div>
       </div>
       <div class="mode-badge">👋 Employer Login</div>
       <span class="success-icon">👋</span>
       <h2 id="l-welcome">Welcome Back!</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Enter your password to continue.</p>
+      <p class="sub" style="margin-bottom:1rem;">OTP verified! You can login directly or enter your password.</p>
       <div class="alert alert-error" id="l-err3"></div>
-      <div class="fg-form">
-        <label id="l-pwd-label">Password *</label>
-        <input type="password" id="l-password" placeholder="Your password" />
+
+      <!-- Option A: Login directly with OTP -->
+      <button class="btn-primary" onclick="loginWithOTP()" style="margin-bottom:0.75rem;">
+        Continue with OTP ✓
+      </button>
+
+      <!-- Option B: Password (collapsible) -->
+      <div style="text-align:center;margin-bottom:0.75rem;">
+        <a href="#" onclick="togglePasswordSection()" style="font-size:0.83rem;color:#3b82f6;font-weight:600;" id="pwd-toggle-link">
+          🔑 Login with password instead
+        </a>
       </div>
-      <button class="btn-primary" id="l-btn-login" onclick="loginComplete()">Login to Dashboard →</button>
-      <p class="form-switch"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
+      <div id="pwd-section" style="display:none;">
+        <div class="fg-form">
+          <label id="l-pwd-label">Password</label>
+          <input type="password" id="l-password" placeholder="Your password" />
+        </div>
+        <button class="btn-primary" id="l-btn-login" onclick="loginWithPassword()" style="background:#1e293b;">
+          Login with Password →
+        </button>
+      </div>
+
+      <p class="form-switch" style="margin-top:0.75rem;"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
     </div>
 
     <!-- REGISTER STEP 1 -->
@@ -342,7 +359,27 @@
     document.getElementById('l-password').focus();
   }
 
-  async function loginComplete() {
+  function togglePasswordSection() {
+    const sec = document.getElementById('pwd-section');
+    const link = document.getElementById('pwd-toggle-link');
+    if (sec.style.display === 'none') {
+      sec.style.display = 'block';
+      link.textContent = '✕ Cancel password login';
+    } else {
+      sec.style.display = 'none';
+      link.textContent = '🔑 Login with password instead';
+    }
+  }
+
+  function loginWithOTP() {
+    // OTP already verified — just log in directly
+    Session.setEmployer(loginEmployer);
+    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+    sessionStorage.removeItem('redirect_after_employer_login');
+    window.location.href = redirect;
+  }
+
+  async function loginWithPassword() {
     const password = document.getElementById('l-password').value;
     const errEl = document.getElementById('l-err3'); errEl.style.display = 'none';
     if (!password) { errEl.textContent='Please enter your password.'; errEl.style.display='block'; return; }
@@ -363,13 +400,20 @@
     window.location.href = redirect;
   }
 
+  // Keep loginComplete as alias for backward compat
+  async function loginComplete() { loginWithPassword(); }
+
   function showReset() {
     isResetMode = true;
     document.getElementById('l-welcome').textContent = 'Reset Password';
+    document.getElementById('pwd-section').style.display = 'block';
     document.getElementById('l-pwd-label').textContent = 'New Password *';
     document.getElementById('l-password').placeholder = 'Enter new password (min 6 chars)';
     document.getElementById('l-btn-login').textContent = 'Set New Password →';
     document.querySelector('#step-login-3 .form-switch').style.display = 'none';
+    // Hide OTP login button in reset mode
+    document.querySelector('#step-login-3 .btn-primary').style.display = 'none';
+    document.getElementById('pwd-toggle-link').style.display = 'none';
   }
 
   // ── REGISTER FLOW ──
