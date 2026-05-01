@@ -1,15 +1,3 @@
-/* ── Fix gap above navbar on mobile ── */
-@media (max-width: 768px) {
-  html { margin: 0 !important; padding: 0 !important; }
-  body { margin: 0 !important; padding-top: 56px !important; }
-}
-@media (max-width: 480px) {
-  body { padding-top: 56px !important; }
-}
-
-
-body { padding-top: 56px !important; }
-}
 /* ═══════════════════════════════════════════
    HireTrack Mobile CSS — applies to all pages
    Breakpoints: 768px tablet, 480px phone
@@ -283,40 +271,102 @@ body { padding-top: 56px !important; }
 }
 
 /* ═══════════════════════════════════════════
-   HIRETRACK FOOTER — Mobile Responsive
+   MOBILE FIXES — Specific Pages
    ═══════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .ht-footer-top { padding: 2rem 1rem 1.5rem; }
-  .ht-follow-label { font-size: 0.85rem; }
-  .ht-underline { margin-bottom: 1.2rem; }
 
-  /* Social icons — slightly smaller */
-  .ht-socials { gap: 0.6rem; margin-bottom: 1.4rem; }
-  .ht-social { width: 38px; height: 38px; }
-  .ht-social svg { width: 17px; height: 17px; }
+  /* ── Pricing Page ── */
+  .pricing-hero h1 { font-size: 1.3rem !important; }
+  .pricing-hero p { font-size: 0.85rem; }
+  .faq-wrap { padding: 0 0.75rem; }
+  .faq-item { padding: 1rem; }
+  .faq-item h4 { font-size: 0.88rem; }
+  .plan-card { padding: 1.2rem; }
+  .plan-price { font-size: 2rem; }
+  .plan-features li { font-size: 0.82rem; }
+  .invoice-actions { flex-direction: column; gap: 0.5rem; }
+  .invoice-actions button { width: 100%; }
 
-  /* Nav links — wrap naturally, centered */
-  .ht-nav-links { gap: 0.2rem 0.4rem; padding: 0 0.5rem; }
-  .ht-nav-links a { font-size: 0.78rem; padding: 0.15rem 0.4rem; }
-  .ht-sep { display: none; }
+  /* ── Employer Auth ── */
+  .choose-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .choose-card { padding: 1rem 0.75rem; }
+  .choose-card .cc-icon { font-size: 1.5rem; }
+  .choose-card h3 { font-size: 0.88rem; }
+  .choose-card p { font-size: 0.72rem; }
+  .auth-wrap { padding: 0.75rem; }
 
-  /* Footer bottom */
-  .ht-footer-bottom { padding: 1rem; }
-  .ht-footer-bottom p { font-size: 0.72rem; line-height: 1.5; }
+  /* ── Employer Dashboard ── */
+  .dash-header { padding: 1rem; }
+  .dash-header-inner { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+  .dash-header-right { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .btn-edit-profile { font-size: 0.72rem; padding: 4px 10px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 0.75rem; }
+  .stat-card { padding: 0.85rem; }
+  .stat-val { font-size: 1.4rem; }
+  .dash-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+  .dash-tab { padding: 0.7rem 0.85rem; font-size: 0.78rem; }
+  .dash-content { padding: 0.75rem; }
+  .job-card-hd { flex-direction: column; gap: 0.5rem; }
+  .job-metrics { flex-wrap: wrap; gap: 0.4rem; }
+  .job-metrics span { font-size: 0.72rem; }
+  .job-card-footer { flex-wrap: wrap; gap: 0.4rem; }
+  .act { padding: 0.35rem 0.65rem; font-size: 0.72rem; }
+
+  /* ── Executive Dashboard ── */
+  .exec-header { padding: 1rem; }
+  .exec-stats { grid-template-columns: repeat(2, 1fr); }
+  .exec-stat { padding: 0.85rem; }
+
+  /* ── Callback Page ── */
+  .callback-hero { padding: 1.5rem 1rem; }
+  .callback-hero h1 { font-size: 1.3rem; }
+  .time-slots { grid-template-columns: 1fr; gap: 0.6rem; }
+  .why-call { padding: 1rem; }
+  .why-item { font-size: 0.82rem; }
+
+  /* ── Static Pages (about, terms etc.) ── */
+  .static-page { padding: 0 0.75rem; margin: 1.5rem auto; }
+  .static-page h1 { font-size: 1.3rem; }
+  .static-page h2 { font-size: 1rem; }
+  .static-page .sp-card { padding: 1rem; }
+  .static-page .sp-highlight { padding: 0.75rem 1rem; font-size: 0.85rem; }
+
+  /* ── Edit Profile Modal ── */
+  .edit-box { max-height: 95vh; border-radius: 12px 12px 0 0; margin-top: auto; }
+  .edit-tabs { padding: 0 0.75rem; }
+  .edit-tab { padding: 0.6rem 0.75rem; font-size: 0.75rem; }
+  .edit-body { padding: 1rem; }
+  .edit-row { grid-template-columns: 1fr; gap: 0; }
+  .otp-box { width: 50px; height: 50px; font-size: 1.2rem; }
+
+  /* ── Employer Edit Modal ── */
+  .emp-edit-box { border-radius: 12px 12px 0 0; margin-top: auto; max-height: 95vh; }
+  .emp-edit-body { padding: 1rem; }
+  .emp-edit-row { grid-template-columns: 1fr; gap: 0; }
+
+  /* ── Jobs Layout ── */
+  .jobs-layout { grid-template-columns: 1fr !important; }
+  .filter-panel { position: static !important; }
+
+  /* ── Post Job Page ── */
+  .page-hd h1 { font-size: 1.1rem; }
+  .page-hd p { font-size: 0.8rem; }
 }
 
 @media (max-width: 480px) {
-  .ht-footer-top { padding: 1.5rem 0.75rem 1.2rem; }
+  /* ── Pricing ── */
+  .pricing-wrap { grid-template-columns: 1fr !important; }
+  .plan-price { font-size: 1.8rem; }
 
-  /* Social icons in a single row */
-  .ht-socials { gap: 0.5rem; }
-  .ht-social { width: 34px; height: 34px; }
-  .ht-social svg { width: 15px; height: 15px; }
+  /* ── Employer Dashboard stats ── */
+  .stats-grid { grid-template-columns: 1fr 1fr; }
 
-  /* Nav links — 2 per row feel */
-  .ht-nav-links { gap: 0.4rem 0; flex-direction: column; align-items: center; }
-  .ht-nav-links a { font-size: 0.8rem; padding: 0.3rem 0.5rem; }
+  /* ── OTP boxes smaller ── */
+  .otp-box { width: 44px; height: 44px; font-size: 1.1rem; }
+  .otp-boxes { gap: 0.4rem; }
 
-  .ht-footer-bottom p { font-size: 0.7rem; }
+  /* ── Choose cards ── */
+  .choose-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .choose-card { padding: 0.85rem 0.5rem; }
 }
