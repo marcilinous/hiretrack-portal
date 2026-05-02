@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="mobile.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a;padding-top:0!important;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a;}
 
 /* ── Header ── */
 .dash-header{background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.5rem 2rem;}
@@ -23,8 +23,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .plan-enterprise{background:rgba(16,185,129,0.3);color:#a7f3d0;border-color:#10b981;}
 .btn-upgrade{background:#fff;color:#2563eb;padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;}
 .btn-logout{background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.2);padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;}
-.btn-edit-profile{background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.35);padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;}
-.btn-edit-profile:hover{background:rgba(255,255,255,0.25);}
 
 /* ── Stats ── */
 .stats-section{background:#fff;border-bottom:1px solid #e2e8f0;}
@@ -156,33 +154,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(max-width:900px){.stats-inner{grid-template-columns:repeat(3,1fr);}.kanban{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.stats-inner{grid-template-columns:repeat(2,1fr);}.kanban{grid-template-columns:repeat(2,1fr);}.job-metrics{display:none;}}
 
-/* ── Employer Edit Modal ── */
-.emp-edit-modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; display:none; align-items:center; justify-content:center; padding:1rem; }
-.emp-edit-modal.show { display:flex; }
-.emp-edit-box { background:#fff; border-radius:16px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; position:relative; }
-.emp-edit-header { padding:1.2rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; border-radius:16px 16px 0 0; }
-.emp-edit-header h3 { font-size:1rem; font-weight:800; margin:0; }
-.emp-edit-close { background:none; border:none; font-size:1.3rem; cursor:pointer; color:#94a3b8; }
-.emp-edit-body { padding:1.5rem; }
-.emp-edit-fg { margin-bottom:1rem; }
-.emp-edit-fg label { display:block; font-size:0.8rem; font-weight:600; color:#374151; margin-bottom:0.4rem; }
-.emp-edit-fg input, .emp-edit-fg select { width:100%; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.6rem 0.8rem; font-size:0.88rem; font-family:inherit; outline:none; transition:border 0.2s; }
-.emp-edit-fg input:focus, .emp-edit-fg select:focus { border-color:#2563eb; }
-.emp-edit-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-.emp-edit-footer { padding:1rem 1.5rem; border-top:1px solid #e2e8f0; display:flex; gap:0.75rem; justify-content:flex-end; position:sticky; bottom:0; background:#fff; border-radius:0 0 16px 16px; }
-.emp-edit-section { margin-bottom:1.5rem; }
-.emp-edit-section h4 { font-size:0.82rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid #f1f5f9; }
-.emp-pwd-toggle { display:flex; align-items:center; gap:8px; font-size:0.78rem; color:#64748b; margin-top:0.5rem; cursor:pointer; }
-.emp-pwd-toggle input { width:auto; }
+/* ── Company Logo ── */
+.company-logo-wrap { position:relative; display:inline-block; margin-right:1rem; flex-shrink:0; }
+.company-logo { width:52px; height:52px; border-radius:12px; background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.2rem; font-weight:800; cursor:pointer; overflow:hidden; transition:all 0.2s; }
+.company-logo:hover { background:rgba(255,255,255,0.25); }
+.company-logo img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
+.logo-edit-hint { position:absolute; bottom:-4px; right:-4px; background:#3b82f6; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px; border:2px solid #1e3a5f; cursor:pointer; }
 </style>
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-76H5XQV27B');
-</script>
 </head>
 <body>
 
@@ -190,13 +168,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="dash-header">
   <div class="dash-header-inner">
     <div>
-      <div class="dash-company" id="dash-company">Loading...</div>
-      <div class="dash-welcome" id="dash-welcome"></div>
+      <div style="display:flex;align-items:center;gap:0;">
+        <div class="company-logo-wrap">
+          <div class="company-logo" id="company-logo" onclick="document.getElementById('logo-upload').click()" title="Click to upload company logo">?</div>
+          <div class="logo-edit-hint" onclick="document.getElementById('logo-upload').click()">📷</div>
+          <input type="file" id="logo-upload" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+        </div>
+        <div>
+          <div class="dash-company" id="dash-company">Loading...</div>
+          <div class="dash-welcome" id="dash-welcome"></div>
+        </div>
+      </div>
     </div>
     <div class="dash-header-right">
       <span class="plan-badge plan-free" id="plan-badge">Free Plan</span>
       <button class="btn-upgrade" onclick="window.location.href='pricing.html'">Upgrade ↑</button>
-      <button class="btn-edit-profile" onclick="openEmployerEdit()">✏️ Edit Profile</button>
       <button class="btn-logout" onclick="EmployerAuth.logout()">Logout</button>
     </div>
   </div>
@@ -286,6 +272,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   async function init() {
     // Header
     document.getElementById('dash-company').textContent = employer.company;
+    // Show logo if exists
+    if (employer.company_logo) {
+      document.getElementById('company-logo').innerHTML = `<img src="${employer.company_logo}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" />`;
+    } else {
+      document.getElementById('company-logo').textContent = employer.company.charAt(0).toUpperCase();
+    }
     document.getElementById('dash-welcome').textContent = `Welcome back, ${employer.contact_name.split(' ')[0]} 👋`;
     const plan = employer.plan || 'free';
     const badge = document.getElementById('plan-badge');
@@ -635,162 +627,70 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   init();
 
-  // ── Employer Edit Profile ──
-  function openEmployerEdit() {
-    const emp = Session.getEmployer();
-    document.getElementById('ee-company').value = emp.company || '';
-    document.getElementById('ee-city').value = emp.city || '';
-    document.getElementById('ee-industry').value = emp.industry || 'IT & Software';
-    document.getElementById('ee-contact').value = emp.contact_name || '';
-    document.getElementById('ee-mobile').value = emp.mobile || '';
-    document.getElementById('ee-email').value = emp.email || '';
-    document.getElementById('ee-current-pwd').value = '';
-    document.getElementById('ee-new-pwd').value = '';
-    document.getElementById('ee-confirm-pwd').value = '';
-    document.getElementById('ee-err').style.display = 'none';
-    document.getElementById('ee-success').style.display = 'none';
-    document.getElementById('emp-edit-modal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeEmpEdit(e) {
-    if (e.target === document.getElementById('emp-edit-modal')) closeEmpEditDirect();
-  }
-
-  function closeEmpEditDirect() {
-    document.getElementById('emp-edit-modal').classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  async function saveEmployerProfile() {
-    const emp = Session.getEmployer();
-    const company  = document.getElementById('ee-company').value.trim();
-    const contact  = document.getElementById('ee-contact').value.trim();
-    const mobile   = document.getElementById('ee-mobile').value.trim();
-    const city     = document.getElementById('ee-city').value;
-    const industry = document.getElementById('ee-industry').value;
-    const currentPwd = document.getElementById('ee-current-pwd').value;
-    const newPwd     = document.getElementById('ee-new-pwd').value;
-    const confirmPwd = document.getElementById('ee-confirm-pwd').value;
-
-    const errEl     = document.getElementById('ee-err');
-    const successEl = document.getElementById('ee-success');
-    errEl.style.display = 'none';
-    successEl.style.display = 'none';
-
-    // Validate
-    if (!company || !contact || !mobile) {
-      errEl.textContent = 'Company name, contact person and mobile are required.';
-      errEl.style.display = 'block'; return;
-    }
-    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      errEl.textContent = 'Enter a valid 10-digit mobile number.';
-      errEl.style.display = 'block'; return;
-    }
-
-    const updates = { company, contact_name: contact, mobile, city, industry };
-
-    // Password change
-    if (newPwd || currentPwd) {
-      if (!currentPwd) { errEl.textContent = 'Enter your current password to change it.'; errEl.style.display='block'; return; }
-      if (currentPwd !== emp.password) { errEl.textContent = 'Current password is incorrect.'; errEl.style.display='block'; return; }
-      if (newPwd.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; errEl.style.display='block'; return; }
-      if (newPwd !== confirmPwd) { errEl.textContent = 'New passwords do not match.'; errEl.style.display='block'; return; }
-      updates.password = newPwd;
-    }
-
-    const btn = document.getElementById('ee-save-btn');
-    btn.textContent = 'Saving...'; btn.disabled = true;
-
-    const { error } = await sb.from('employers').update(updates).eq('id', emp.id);
-
-    if (error) {
-      errEl.textContent = 'Failed to save. Please try again.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Save Changes'; btn.disabled = false;
-      return;
-    }
-
-    // Update session
-    const updated = { ...emp, ...updates };
-    Session.setEmployer(updated);
-
-    // Refresh header
-    document.getElementById('dash-company').textContent = updated.company;
-    document.getElementById('dash-welcome').textContent = `Welcome back, ${updated.contact_name.split(' ')[0]} 👋`;
-
-    successEl.textContent = '✅ Profile updated successfully!';
-    successEl.style.display = 'block';
-    btn.textContent = 'Save Changes'; btn.disabled = false;
-
-    setTimeout(() => closeEmpEditDirect(), 1500);
+  // ── Company Logo Upload ──
+  async function handleLogoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2MB.'); return; }
+    if (!file.type.startsWith('image/')) { showToast('Please select an image file.'); return; }
+    showToast('Uploading logo...');
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target.result;
+      document.getElementById('company-logo').innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" />`;
+      try {
+        const { error } = await sb.from('employers').update({ company_logo: base64 }).eq('id', employer.id);
+        if (error) { showToast('❌ Failed: ' + error.message); return; }
+        employer.company_logo = base64;
+        Session.setEmployer({ ...employer, company_logo: base64 });
+        showToast('✅ Company logo updated!');
+      } catch(err) {
+        showToast('❌ Error: ' + err.message);
+      }
+    };
+    reader.onerror = () => showToast('Failed to read file.');
+    reader.readAsDataURL(file);
   }
 
 </script>
-
-<!-- ── Employer Edit Profile Modal ── -->
-<div class="emp-edit-modal" id="emp-edit-modal" onclick="closeEmpEdit(event)">
-  <div class="emp-edit-box">
-    <div class="emp-edit-header">
-      <h3>✏️ Edit Company Profile</h3>
-      <button class="emp-edit-close" onclick="closeEmpEditDirect()">✕</button>
+<footer class="ht-footer">
+  <div class="ht-footer-top">
+    <p class="ht-follow-label">Follow Us</p>
+    <div class="ht-underline"></div>
+    <div class="ht-socials">
+      <a class="ht-social" href="#" title="Facebook">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="LinkedIn">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="Twitter / X">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="YouTube">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="Instagram">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
     </div>
-    <div class="emp-edit-body">
-
-      <div class="emp-edit-section">
-        <h4>Company Details</h4>
-        <div class="emp-edit-fg"><label>Company Name *</label><input type="text" id="ee-company" placeholder="Your company name" /></div>
-        <div class="emp-edit-row">
-          <div class="emp-edit-fg"><label>City *</label>
-            <select id="ee-city">
-              <option value="">Select city</option>
-              <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
-              <option>Hyderabad</option><option>Chennai</option><option>Pune</option>
-              <option>Kolkata</option><option>Ahmedabad</option><option>Mysuru</option>
-              <option>Mangaluru</option><option>Remote</option><option>Other</option>
-            </select>
-          </div>
-          <div class="emp-edit-fg"><label>Industry</label>
-            <select id="ee-industry">
-              <option>IT & Software</option><option>Healthcare</option>
-              <option>Manufacturing</option><option>Retail & E-commerce</option>
-              <option>Banking & Finance</option><option>Logistics</option>
-              <option>Education</option><option>Media & Marketing</option>
-              <option>Real Estate</option><option>Other</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="emp-edit-section">
-        <h4>Contact Details</h4>
-        <div class="emp-edit-row">
-          <div class="emp-edit-fg"><label>Contact Person *</label><input type="text" id="ee-contact" placeholder="Full name" /></div>
-          <div class="emp-edit-fg"><label>Mobile *</label><input type="tel" id="ee-mobile" placeholder="10-digit mobile" maxlength="10" /></div>
-        </div>
-        <div class="emp-edit-fg"><label>Email</label><input type="email" id="ee-email" disabled style="background:#f8fafc;color:#94a3b8;cursor:not-allowed;" /><small style="font-size:0.75rem;color:#94a3b8;margin-top:4px;display:block;">Email cannot be changed. Contact support if needed.</small></div>
-      </div>
-
-      <div class="emp-edit-section">
-        <h4>Change Password</h4>
-        <div class="emp-edit-fg"><label>Current Password</label><input type="password" id="ee-current-pwd" placeholder="Enter current password" /></div>
-        <div class="emp-edit-row">
-          <div class="emp-edit-fg"><label>New Password</label><input type="password" id="ee-new-pwd" placeholder="Min 6 characters" /></div>
-          <div class="emp-edit-fg"><label>Confirm New Password</label><input type="password" id="ee-confirm-pwd" placeholder="Repeat new password" /></div>
-        </div>
-        <p style="font-size:0.75rem;color:#94a3b8;margin-top:-0.5rem;">Leave password fields empty to keep current password.</p>
-      </div>
-
-      <div class="alert alert-error" id="ee-err" style="display:none;"></div>
-      <div class="alert alert-success" id="ee-success" style="display:none;"></div>
-
-    </div>
-    <div class="emp-edit-footer">
-      <button class="btn-logout" onclick="closeEmpEditDirect()" style="background:#f1f5f9;color:#374151;border:none;">Cancel</button>
-      <button class="btn-upgrade" onclick="saveEmployerProfile()" id="ee-save-btn" style="background:#2563eb;">Save Changes</button>
-    </div>
+    <nav class="ht-nav-links">
+      <a href="about.html">About</a><span class="ht-sep">·</span>
+      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
+      <a href="culture.html">Culture</a><span class="ht-sep">·</span>
+      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
+      <a href="pricing.html">Pricing</a><span class="ht-sep">·</span>
+      <a href="interview-tips.html">Interview Tips</a><span class="ht-sep">·</span>
+      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
+      <a href="refund.html">Refund Policy</a><span class="ht-sep">·</span>
+      <a href="terms.html">Terms of Use</a><span class="ht-sep">·</span>
+      <a href="job-alerts.html">Free Job Alerts</a>
+    </nav>
   </div>
-</div>
+  <div class="ht-footer-bottom">
+    <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+  </div>
+</footer>
 
 </body>
 </html>
