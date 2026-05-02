@@ -276,6 +276,7 @@ body { padding-top: 64px; background: #f8fafc; }
         </div>
         <div class="template-label">
           <div><h3>Classic</h3><span>Best for Sales & HR</span></div>
+          <span style="background:#fef3c7;color:#92400e;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;">⭐ PRO</span>
           <div class="template-check">✓</div>
         </div>
       </div>
@@ -309,6 +310,7 @@ body { padding-top: 64px; background: #f8fafc; }
         </div>
         <div class="template-label">
           <div><h3>Minimal</h3><span>Best for All Industries</span></div>
+          <span style="background:#fef3c7;color:#92400e;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;">⭐ PRO</span>
           <div class="template-check">✓</div>
         </div>
       </div>
@@ -375,7 +377,7 @@ body { padding-top: 64px; background: #f8fafc; }
       <div style="font-size:2.5rem;margin-bottom:0.75rem;">🤖</div>
       <h3>AI-Powered Resume Optimization</h3>
       <p>Our AI scans live job postings on HireTrack and identifies the most important keywords for your role. It then suggests improvements to make your resume stand out and pass ATS filters.</p>
-      <button class="btn-ai-optimize" id="btn-ai-opt" onclick="runAIOptimize()">✨ Optimize My Resume with AI</button>
+      <button class="btn-ai-optimize" id="btn-ai-opt" onclick="runAIOptimize()">✨ Optimize My Resume with AI <span style="background:rgba(255,255,255,0.2);font-size:0.72rem;padding:2px 8px;border-radius:10px;margin-left:6px;">⭐ PRO</span></button>
     </div>
 
     <div class="ai-loading" id="ai-loading">
@@ -483,6 +485,10 @@ function goStep(n) {
 
 // ── Template Selection ──
 function selectTemplate(t) {
+  if ((t === 'classic' || t === 'minimal') && !isProCandidate()) {
+    showProWall('Classic and Minimal templates');
+    return;
+  }
   selectedTemplate = t;
   ['modern','classic','minimal'].forEach(id => {
     document.getElementById('tpl-' + id).classList.toggle('selected', id === t);
@@ -584,6 +590,10 @@ function collectData() {
 
 // ── AI Optimize ──
 async function runAIOptimize() {
+  if (!isProCandidate()) {
+    showProWall('AI Resume Optimization');
+    return;
+  }
   const btn = document.getElementById('btn-ai-opt');
   btn.disabled = true; btn.textContent = 'Running AI...';
   document.getElementById('ai-loading').style.display = 'block';
@@ -847,6 +857,39 @@ async function downloadPDF() {
     showToast('Download failed. Try again.');
   }
 }
+
+  // ── Pro Plan Check ──
+  function isProCandidate() {
+    const c = Session.getCandidate();
+    if (!c) return false;
+    if (!c.pro_expires_at) return false;
+    return new Date() < new Date(c.pro_expires_at);
+  }
+
+  function showProWall(feature) {
+    const msg = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="this.remove()">
+        <div style="background:#fff;border-radius:16px;padding:2rem;max-width:420px;width:100%;text-align:center;" onclick="event.stopPropagation()">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">⭐</div>
+          <h3 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem;">Pro Feature</h3>
+          <p style="font-size:0.88rem;color:#64748b;margin:0 0 1.2rem;">${feature} is available on the <strong>Candidate Pro plan</strong> for just ₹49/month.</p>
+          <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:1rem;margin-bottom:1.2rem;text-align:left;">
+            <div style="font-size:0.8rem;font-weight:700;color:#15803d;margin-bottom:0.5rem;">Pro includes:</div>
+            <div style="font-size:0.8rem;color:#374151;display:flex;flex-direction:column;gap:4px;">
+              <span>✓ All 3 resume templates</span>
+              <span>✓ AI keyword optimization</span>
+              <span>✓ Unlimited interview prep</span>
+              <span>✓ Priority job alerts</span>
+              <span>✓ Profile boost</span>
+            </div>
+          </div>
+          <button onclick="window.location.href='pricing-candidate.html'" style="width:100%;background:#3b82f6;color:#fff;border:none;padding:0.85rem;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month</button>
+          <button onclick="this.closest('[style*=position]').remove()" style="width:100%;background:#f1f5f9;color:#374151;border:none;padding:0.75rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">Maybe later</button>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', msg);
+  }
+
 </script>
 </body>
 </html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidate Pro — ₹49/month | HireTrack</title>
+<meta name="description" content="Upgrade to HireTrack Candidate Pro for ₹49/month. Get all resume templates, AI keyword optimization, unlimited interview prep and more.">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-76H5XQV27B');</script>
+<style>
+body { padding-top: 64px; background: #f8fafc; }
+.cp-hero { background: linear-gradient(135deg,#0f172a,#1e3a5f); padding: 3rem 1rem 2.5rem; text-align: center; color: #fff; }
+.cp-hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+.cp-hero p { color: #94a3b8; font-size: 0.95rem; max-width: 480px; margin: 0 auto; }
+.cp-wrap { max-width: 860px; margin: 2.5rem auto; padding: 0 1.5rem 3rem; }
+
+/* Comparison table */
+.cp-table { background: #fff; border-radius: 16px; border: 1.5px solid #e2e8f0; overflow: hidden; margin-bottom: 2rem; }
+.cp-table-header { display: grid; grid-template-columns: 2fr 1fr 1fr; background: #0f172a; }
+.cp-table-header div { padding: 1rem 1.2rem; font-size: 0.82rem; font-weight: 700; color: #fff; }
+.cp-table-header .pro-col { background: #1e3a5f; text-align: center; border-left: 2px solid #3b82f6; }
+.cp-table-header .free-col { text-align: center; color: #94a3b8; }
+.cp-row { display: grid; grid-template-columns: 2fr 1fr 1fr; border-top: 1px solid #f1f5f9; }
+.cp-row:hover { background: #f8fafc; }
+.cp-row div { padding: 0.85rem 1.2rem; font-size: 0.85rem; color: #334155; display: flex; align-items: center; }
+.cp-row .pro-col { background: #f0f7ff; border-left: 2px solid #bfdbfe; justify-content: center; font-weight: 700; color: #1d4ed8; }
+.cp-row .free-col { justify-content: center; color: #94a3b8; }
+
+/* Plan card */
+.cp-plan { background: linear-gradient(135deg,#1e3a5f,#0f172a); border-radius: 16px; padding: 2.5rem; text-align: center; color: #fff; margin-bottom: 1.5rem; border: 2px solid #3b82f6; box-shadow: 0 0 40px rgba(59,130,246,0.2); }
+.cp-plan-price { font-size: 3.5rem; font-weight: 800; margin: 0.5rem 0 0.25rem; }
+.cp-plan-price span { font-size: 1.2rem; font-weight: 400; color: #94a3b8; }
+.cp-plan-note { color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem; }
+.btn-upgrade-pro { background: #3b82f6; color: #fff; border: none; padding: 1rem 3rem; border-radius: 12px; font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.btn-upgrade-pro:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.4); }
+.cp-trust { display: flex; justify-content: center; gap: 2rem; margin-top: 1.2rem; flex-wrap: wrap; }
+.cp-trust span { font-size: 0.78rem; color: #64748b; display: flex; align-items: center; gap: 5px; }
+.alert { border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; margin-top: 1rem; display: none; }
+.alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.alert-success { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+@media (max-width: 768px) {
+  body { padding-top: 56px; }
+  .cp-table-header, .cp-row { grid-template-columns: 1.5fr 1fr 1fr; }
+  .cp-hero h1 { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="cp-hero">
+  <span style="background:rgba(59,130,246,0.3);color:#93c5fd;font-size:0.75rem;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;display:inline-block;margin-bottom:0.75rem;">Candidate Pro</span>
+  <h1>Land Your Dream Job Faster</h1>
+  <p>AI-powered resume builder, unlimited interview prep, and priority job alerts — for less than a coffee a month.</p>
+</div>
+
+<div class="cp-wrap">
+
+  <!-- Plan card -->
+  <div class="cp-plan">
+    <div style="font-size:0.82rem;font-weight:700;color:#93c5fd;text-transform:uppercase;letter-spacing:1px;">Candidate Pro Plan</div>
+    <div class="cp-plan-price">₹49<span>/month</span></div>
+    <div class="cp-plan-note">Cancel anytime · Instant access · No hidden fees</div>
+    <button class="btn-upgrade-pro" onclick="upgradePro()">Upgrade to Pro Now →</button>
+    <div class="alert alert-error" id="upgrade-err"></div>
+    <div class="alert alert-success" id="upgrade-ok"></div>
+    <div class="cp-trust">
+      <span>🔒 Secure payment via Razorpay</span>
+      <span>↩️ 3-day refund policy</span>
+      <span>⚡ Instant activation</span>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="cp-table">
+    <div class="cp-table-header">
+      <div>Feature</div>
+      <div class="free-col">Free</div>
+      <div class="pro-col">⭐ Pro — ₹49/mo</div>
+    </div>
+    <div class="cp-row"><div>Resume Templates</div><div class="free-col">1 (Modern)</div><div class="pro-col">All 3</div></div>
+    <div class="cp-row"><div>AI Keyword Optimization</div><div class="free-col">✕</div><div class="pro-col">✓ Unlimited</div></div>
+    <div class="cp-row"><div>PDF Resume Download</div><div class="free-col">✓</div><div class="pro-col">✓</div></div>
+    <div class="cp-row"><div>AI Interview Prep Questions</div><div class="free-col">3/day</div><div class="pro-col">✓ Unlimited</div></div>
+    <div class="cp-row"><div>Job Alerts</div><div class="free-col">Standard</div><div class="pro-col">Priority</div></div>
+    <div class="cp-row"><div>Profile Boost (seen first by employers)</div><div class="free-col">✕</div><div class="pro-col">✓</div></div>
+    <div class="cp-row"><div>ATS Score Checker</div><div class="free-col">✕</div><div class="pro-col">✓ Coming soon</div></div>
+    <div class="cp-row"><div>Career Roadmap AI</div><div class="free-col">✕</div><div class="pro-col">✓ Coming soon</div></div>
+  </div>
+
+  <!-- FAQ -->
+  <div style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;overflow:hidden;">
+    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid #f1f5f9;">
+      <h4 style="font-size:0.88rem;font-weight:700;color:#0f172a;margin:0 0 0.4rem;">How does billing work?</h4>
+      <p style="font-size:0.82rem;color:#64748b;margin:0;line-height:1.6;">You pay ₹49 for 30 days of Pro access. You'll need to renew manually — we don't auto-charge. No subscriptions, no surprises.</p>
+    </div>
+    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid #f1f5f9;">
+      <h4 style="font-size:0.88rem;font-weight:700;color:#0f172a;margin:0 0 0.4rem;">Can I cancel anytime?</h4>
+      <p style="font-size:0.82rem;color:#64748b;margin:0;line-height:1.6;">Yes. Since there's no auto-renewal, your Pro access simply expires after 30 days. You can choose to renew or continue on the free plan.</p>
+    </div>
+    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid #f1f5f9;">
+      <h4 style="font-size:0.88rem;font-weight:700;color:#0f172a;margin:0 0 0.4rem;">What happens to my resume when Pro expires?</h4>
+      <p style="font-size:0.82rem;color:#64748b;margin:0;line-height:1.6;">Your downloaded PDF stays with you forever. You'll just lose access to Classic/Minimal templates and AI optimize until you renew.</p>
+    </div>
+    <div style="padding:1.2rem 1.5rem;">
+      <h4 style="font-size:0.88rem;font-weight:700;color:#0f172a;margin:0 0 0.4rem;">Is payment secure?</h4>
+      <p style="font-size:0.82rem;color:#64748b;margin:0;line-height:1.6;">Yes. All payments are processed by Razorpay — India's most trusted payment gateway. HireTrack never stores your card details.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+document.getElementById('navbar').innerHTML = renderNavbar('');
+
+async function upgradePro() {
+  const candidate = Session.getCandidate();
+  if (!candidate) {
+    sessionStorage.setItem('redirect_after_login', 'pricing-candidate.html');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const errEl = document.getElementById('upgrade-err');
+  const okEl = document.getElementById('upgrade-ok');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  const options = {
+    key: 'rzp_test_ShI2u0ijEmSUD1', // Replace with live key when ready
+    amount: 4900, // ₹49 in paise
+    currency: 'INR',
+    name: 'HireTrack',
+    description: 'Candidate Pro — 30 days',
+    image: 'https://www.hiretrack.co.in/og-image.png',
+    prefill: {
+      name: candidate.name || '',
+      email: candidate.email || '',
+      contact: candidate.mobile || ''
+    },
+    theme: { color: '#3b82f6' },
+    handler: async function(response) {
+      // Payment successful — activate Pro
+      const proExpiry = new Date();
+      proExpiry.setDate(proExpiry.getDate() + 30);
+      const { error } = await sb.from('candidates')
+        .update({ pro_expires_at: proExpiry.toISOString() })
+        .eq('id', candidate.id);
+      if (error) {
+        errEl.textContent = 'Payment received but activation failed. Contact support@hiretrack.co.in';
+        errEl.style.display = 'block';
+        return;
+      }
+      Session.setCandidate({ ...candidate, pro_expires_at: proExpiry.toISOString() });
+      okEl.textContent = '🎉 Pro activated! Redirecting to Resume Builder...';
+      okEl.style.display = 'block';
+      setTimeout(() => window.location.href = 'resume-builder.html', 2000);
+    },
+    modal: {
+      ondismiss: function() {
+        errEl.textContent = 'Payment cancelled. Try again when ready.';
+        errEl.style.display = 'block';
+      }
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+</body>
+</html>
