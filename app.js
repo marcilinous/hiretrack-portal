@@ -230,7 +230,7 @@ function renderNavbar(activePage) {
   const employer = Session.getEmployer();
   let rightHTML = '';
   if (candidate) {
-    rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${candidate.name.split(' ')[0]}</span></span><a href="profile.html" class="btn-employer">My Profile</a><span class="btn-logout" onclick="CandidateAuth.logout()">Logout</span></div>`;
+    rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${candidate.name.split(' ')[0]}</span></span><a href="resume-builder.html" class="btn-employer" style="margin-right:6px;">📄 Resume</a><a href="profile.html" class="btn-employer">My Profile</a><span class="btn-logout" onclick="CandidateAuth.logout()">Logout</span></div>`;
   } else if (employer) {
     rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${employer.contact_name.split(' ')[0]}</span></span><a href="post-job.html" class="btn-signup">+ Post Job</a></div>`;
   } else {
