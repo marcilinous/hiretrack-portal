@@ -1,3 +1,8 @@
+/* ── Fix gap above navbar — mobile ── */
+@media (max-width: 768px) {
+  html, body { margin: 0 !important; padding: 0 !important; }
+  body { padding-top: 56px !important; }
+}
 /* ═══════════════════════════════════════════
    HireTrack Mobile CSS — applies to all pages
    Breakpoints: 768px tablet, 480px phone
