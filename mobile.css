@@ -271,102 +271,158 @@
 }
 
 /* ═══════════════════════════════════════════
-   MOBILE FIXES — Specific Pages
+   COMPREHENSIVE MOBILE FIXES v2
    ═══════════════════════════════════════════ */
 
 @media (max-width: 768px) {
 
-  /* ── Pricing Page ── */
-  .pricing-hero h1 { font-size: 1.3rem !important; }
-  .pricing-hero p { font-size: 0.85rem; }
-  .faq-wrap { padding: 0 0.75rem; }
-  .faq-item { padding: 1rem; }
-  .faq-item h4 { font-size: 0.88rem; }
-  .plan-card { padding: 1.2rem; }
-  .plan-price { font-size: 2rem; }
-  .plan-features li { font-size: 0.82rem; }
-  .invoice-actions { flex-direction: column; gap: 0.5rem; }
-  .invoice-actions button { width: 100%; }
+  /* ── General layout fixes ── */
+  .form-row { grid-template-columns: 1fr !important; }
+  .profile-wrap { grid-template-columns: 1fr !important; padding: 0 0.75rem; }
+  .profile-grid { grid-template-columns: 1fr !important; }
 
-  /* ── Employer Auth ── */
-  .choose-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-  .choose-card { padding: 1rem 0.75rem; }
-  .choose-card .cc-icon { font-size: 1.5rem; }
-  .choose-card h3 { font-size: 0.88rem; }
-  .choose-card p { font-size: 0.72rem; }
-  .auth-wrap { padding: 0.75rem; }
+  /* ── Profile page ── */
+  .profile-header { padding: 1.2rem 1rem; }
+  .profile-header-inner { flex-direction: column; align-items: center; text-align: center; gap: 0.75rem; }
+  .profile-actions { justify-content: center; flex-wrap: wrap; gap: 0.5rem; }
+  .btn-edit-p { font-size: 0.78rem; padding: 0.4rem 0.85rem; }
+  .btn-logout-p { font-size: 0.78rem; padding: 0.4rem 0.85rem; }
+  .profile-card { padding: 1rem; margin-bottom: 0.75rem; }
+  .profile-card h3 { font-size: 0.9rem; }
+  .score-ring { width: 90px; height: 90px; }
+  .score-number { font-size: 1.4rem; }
+  .score-checks { gap: 0.4rem; }
+  .score-check { font-size: 0.78rem; }
+  .kanban { grid-template-columns: 1fr !important; overflow-x: auto; }
+  .kcol { min-width: unset; }
+  .prep-categories { grid-template-columns: 1fr 1fr !important; }
+  .tabs-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { padding: 0.65rem 0.85rem; font-size: 0.78rem; white-space: nowrap; }
+  .apps-card { padding: 1rem; }
+  .app-item { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .notif-list { padding: 0; }
 
-  /* ── Employer Dashboard ── */
-  .dash-header { padding: 1rem; }
-  .dash-header-inner { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
-  .dash-header-right { width: 100%; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .btn-edit-profile { font-size: 0.72rem; padding: 4px 10px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 0.75rem; }
-  .stat-card { padding: 0.85rem; }
-  .stat-val { font-size: 1.4rem; }
-  .dash-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
-  .dash-tab { padding: 0.7rem 0.85rem; font-size: 0.78rem; }
+  /* ── Employer dashboard ── */
+  .dash-header { padding: 1rem 0.75rem; }
+  .dash-header-inner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .dash-header-right { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .dash-company { font-size: 1.1rem; }
+  .stats-grid { grid-template-columns: repeat(2,1fr) !important; gap: 0.6rem; padding: 0.75rem; }
+  .stat-card { padding: 0.75rem; }
+  .stat-val { font-size: 1.3rem; }
+  .stat-label { font-size: 0.72rem; }
+  .dash-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; border-bottom: 2px solid #e2e8f0; }
+  .dash-tab { padding: 0.65rem 0.85rem; font-size: 0.78rem; flex-shrink: 0; }
   .dash-content { padding: 0.75rem; }
-  .job-card-hd { flex-direction: column; gap: 0.5rem; }
-  .job-metrics { flex-wrap: wrap; gap: 0.4rem; }
-  .job-metrics span { font-size: 0.72rem; }
-  .job-card-footer { flex-wrap: wrap; gap: 0.4rem; }
-  .act { padding: 0.35rem 0.65rem; font-size: 0.72rem; }
+  .job-card { padding: 1rem; margin-bottom: 0.75rem; }
+  .job-card-hd { flex-direction: column; gap: 0.4rem; }
+  .job-title { font-size: 0.92rem; }
+  .job-metrics { flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; }
+  .job-metrics span { font-size: 0.7rem; padding: 2px 8px; }
+  .job-card-footer { flex-wrap: wrap; gap: 0.35rem; padding: 0.6rem 1rem; }
+  .act { padding: 0.3rem 0.6rem; font-size: 0.7rem; }
+  .kanban { grid-template-columns: repeat(2,1fr) !important; gap: 0.5rem; overflow-x: auto; }
+  .kcol { min-width: 140px; }
+  .kcol-title { font-size: 0.78rem; padding: 0.5rem 0.75rem; }
+  .kcard { padding: 0.6rem 0.75rem; font-size: 0.78rem; }
+  .bulk-wrap { padding: 0.75rem; }
+  .bulk-footer { flex-direction: column; gap: 0.5rem; }
+  .btn-send-wa { width: 100%; justify-content: center; }
+  .pipeline-list { padding: 0; }
 
-  /* ── Executive Dashboard ── */
+  /* ── Executive dashboard ── */
   .exec-header { padding: 1rem; }
-  .exec-stats { grid-template-columns: repeat(2, 1fr); }
-  .exec-stat { padding: 0.85rem; }
+  .exec-header-inner { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+  .exec-stats { grid-template-columns: repeat(2,1fr) !important; gap: 0.6rem; padding: 0.75rem; }
+  .exec-stat { padding: 0.75rem; }
+  .exec-stat-val { font-size: 1.3rem; }
+  .exec-tabs { overflow-x: auto; white-space: nowrap; }
+  .exec-content { padding: 0.75rem; }
+  .cb-card { padding: 0.85rem; }
+  .cb-card-hd { flex-direction: column; gap: 0.4rem; }
+  .pipe-controls { flex-direction: column; gap: 0.5rem; }
+  .view-toggle { align-self: flex-start; }
 
-  /* ── Callback Page ── */
-  .callback-hero { padding: 1.5rem 1rem; }
-  .callback-hero h1 { font-size: 1.3rem; }
-  .time-slots { grid-template-columns: 1fr; gap: 0.6rem; }
-  .why-call { padding: 1rem; }
-  .why-item { font-size: 0.82rem; }
+  /* ── Post job page ── */
+  .post-job-wrap { padding: 0 0.75rem; }
+  .ai-jd-row { flex-direction: column; gap: 8px; }
+  .ai-jd-row input { width: 100%; }
+  .ai-jd-row button { width: 100%; }
 
-  /* ── Static Pages (about, terms etc.) ── */
-  .static-page { padding: 0 0.75rem; margin: 1.5rem auto; }
-  .static-page h1 { font-size: 1.3rem; }
-  .static-page h2 { font-size: 1rem; }
-  .static-page .sp-card { padding: 1rem; }
-  .static-page .sp-highlight { padding: 0.75rem 1rem; font-size: 0.85rem; }
+  /* ── Jobs browse page ── */
+  .jobs-layout { grid-template-columns: 1fr !important; gap: 0.75rem; margin: 0.75rem auto; padding: 0 0.75rem; }
+  .filter-panel { border-radius: 10px; padding: 1rem; }
+  .results-hd { padding: 0 0; }
 
-  /* ── Edit Profile Modal ── */
-  .edit-box { max-height: 95vh; border-radius: 12px 12px 0 0; margin-top: auto; }
-  .edit-tabs { padding: 0 0.75rem; }
-  .edit-tab { padding: 0.6rem 0.75rem; font-size: 0.75rem; }
-  .edit-body { padding: 1rem; }
-  .edit-row { grid-template-columns: 1fr; gap: 0; }
-  .otp-box { width: 50px; height: 50px; font-size: 1.2rem; }
+  /* ── Job modal on mobile ── */
+  .jd-modal { padding: 0 !important; align-items: flex-end !important; }
+  .jd-box { border-radius: 16px 16px 0 0 !important; max-height: 88vh; overflow-y: auto; padding: 1.2rem; }
+  .jd-title { font-size: 1rem; }
+  .jd-actions { flex-direction: column; gap: 8px; }
+  .jd-actions button { width: 100% !important; }
 
-  /* ── Employer Edit Modal ── */
-  .emp-edit-box { border-radius: 12px 12px 0 0; margin-top: auto; max-height: 95vh; }
-  .emp-edit-body { padding: 1rem; }
-  .emp-edit-row { grid-template-columns: 1fr; gap: 0; }
+  /* ── About/static pages ── */
+  .static-page { padding: 0 0.75rem; margin: 1.2rem auto; }
+  .static-page h1 { font-size: 1.25rem; }
+  .static-page h2 { font-size: 0.95rem; }
+  .static-page p, .static-page li { font-size: 0.85rem; line-height: 1.65; }
+  .static-page .sp-card { padding: 0.85rem; }
 
-  /* ── Jobs Layout ── */
-  .jobs-layout { grid-template-columns: 1fr !important; }
-  .filter-panel { position: static !important; }
+  /* ── Callback page ── */
+  .callback-hero { padding: 1.2rem 0.75rem; }
+  .callback-hero h1 { font-size: 1.2rem; }
+  .time-slots { grid-template-columns: 1fr !important; gap: 0.5rem; }
+  .time-slot { padding: 0.75rem; }
 
-  /* ── Post Job Page ── */
-  .page-hd h1 { font-size: 1.1rem; }
-  .page-hd p { font-size: 0.8rem; }
+  /* ── Pricing page ── */
+  .pricing-hero { padding: 1.2rem 0.75rem; }
+  .pricing-hero h1 { font-size: 1.3rem !important; }
+  .pricing-wrap { grid-template-columns: 1fr !important; max-width: 400px; margin: 0 auto; padding: 0 0.75rem; }
+  .plan-card { padding: 1.2rem; }
+  .plan-price { font-size: 2rem !important; }
+  .plan-features li { font-size: 0.82rem; }
+  .btn-plan { padding: 0.75rem; font-size: 0.88rem; }
+  .faq-wrap { padding: 0 0.75rem; }
+  .faq-item { padding: 0.85rem 1rem; }
+
+  /* ── Employer auth ── */
+  .auth-wrap { padding: 0.5rem; }
+  .form-card { padding: 1.2rem; }
+  .choose-grid { gap: 0.6rem; }
+  .choose-card { padding: 1rem 0.75rem; }
+  .otp-boxes { gap: 0.5rem; }
+  .otp-box { width: 52px; height: 52px; font-size: 1.3rem; }
+  .step-line { width: 32px; }
+
+  /* ── Edit profile modal on mobile ── */
+  .edit-modal { padding: 0 !important; align-items: flex-end !important; }
+  .edit-box { border-radius: 16px 16px 0 0 !important; max-height: 92vh; }
+  .edit-tabs { gap: 0; }
+  .edit-tab { padding: 0.55rem 0.65rem; font-size: 0.72rem; }
+  .edit-row { grid-template-columns: 1fr !important; }
+  .skills-input-wrap { flex-direction: row; }
+  .emp-edit-modal { padding: 0 !important; align-items: flex-end !important; }
+  .emp-edit-box { border-radius: 16px 16px 0 0 !important; max-height: 92vh; }
+  .emp-edit-row { grid-template-columns: 1fr !important; }
+
+  /* ── Footer on mobile ── */
+  .ht-footer-top { padding: 1.5rem 0.75rem 1.2rem; }
+  .ht-nav-links { gap: 0.25rem 0; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .ht-nav-links a { font-size: 0.75rem; }
+  .ht-sep { display: inline !important; }
 }
 
 @media (max-width: 480px) {
-  /* ── Pricing ── */
-  .pricing-wrap { grid-template-columns: 1fr !important; }
-  .plan-price { font-size: 1.8rem; }
-
-  /* ── Employer Dashboard stats ── */
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-
-  /* ── OTP boxes smaller ── */
-  .otp-box { width: 44px; height: 44px; font-size: 1.1rem; }
+  /* Even more compact on small phones */
+  .stats-grid, .exec-stats { grid-template-columns: repeat(2,1fr) !important; }
+  .kanban { grid-template-columns: 1fr !important; }
+  .prep-categories { grid-template-columns: 1fr 1fr !important; }
+  .otp-box { width: 46px; height: 46px; font-size: 1.1rem; }
   .otp-boxes { gap: 0.4rem; }
-
-  /* ── Choose cards ── */
-  .choose-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-  .choose-card { padding: 0.85rem 0.5rem; }
+  .choose-card h3 { font-size: 0.82rem; }
+  .choose-card p { font-size: 0.68rem; }
+  .dash-header-right { gap: 0.35rem; }
+  .btn-upgrade, .btn-logout, .btn-edit-profile { font-size: 0.68rem !important; padding: 3px 8px !important; }
+  .ht-nav-links { flex-direction: column; align-items: center; gap: 0.2rem; }
+  .ht-sep { display: none !important; }
 }
