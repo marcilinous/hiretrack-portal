@@ -244,7 +244,7 @@ function renderNavbar(activePage) {
   } else if (employer) {
     mobileLinks = `<a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="#" onclick="EmployerAuth.logout()">Logout</a>`;
   } else {
-    mobileLinks = `<a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a><a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><div class="nav-divider"></div><a href="login.html">Candidate Login</a><a href="employer-auth.html">Employer Login</a><a href="signup.html">Sign Up Free</a>`;
+    mobileLinks = `<a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a><a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="blog.html" ${activePage==='blog'?'class="active"':''}>Blog</a><div class="nav-divider"></div><a href="login.html">Candidate Login</a><a href="employer-auth.html">Employer Login</a><a href="signup.html">Sign Up Free</a>`;
   }
 
   return `<nav class="navbar">
@@ -257,6 +257,7 @@ function renderNavbar(activePage) {
       ` : `
         <a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a>
         <a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
+        <a href="blog.html" ${activePage==='blog'?'class="active"':''}>Blog</a>
       `}
     </div>
     <div class="nav-right">${rightHTML}</div>
