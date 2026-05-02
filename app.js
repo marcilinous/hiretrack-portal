@@ -92,6 +92,62 @@ const JobsDB = {
     const { data } = await sb.from('jobs').select('*').eq('delisted', false).order('posted_at', { ascending: false });
     return data || [];
   },
+async sendJobAlerts(job) {
+    // Find candidates whose skills or city match this job
+    try {
+      const { data: candidates } = await sb
+        .from('candidates')
+        .select('id, name, email, city, skills, job_alerts_enabled')
+        .eq('job_alerts_enabled', true)
+        .not('email', 'is', null);
+
+      if (!candidates || !candidates.length) return;
+
+      const jobSkills = (job.skills || '').toLowerCase().split(',').map(s => s.trim());
+      const jobLocation = (job.location || '').toLowerCase();
+      const jobTitle = (job.title || '').toLowerCase();
+
+      // Score candidates by relevance
+      const matches = candidates.filter(c => {
+        if (!c.email) return false;
+        const candSkills = Array.isArray(c.skills)
+          ? c.skills.map(s => s.toLowerCase())
+          : (c.skills || '').toLowerCase().split(',').map(s => s.trim());
+        const candCity = (c.city || '').toLowerCase();
+
+        // Match if: same city OR remote job OR skill overlap
+        const cityMatch = jobLocation === 'remote' || candCity === jobLocation || jobLocation.includes(candCity) || candCity.includes(jobLocation);
+        const skillMatch = jobSkills.some(js => candSkills.some(cs => cs.includes(js) || js.includes(cs)));
+        const titleMatch = candSkills.some(cs => jobTitle.includes(cs));
+
+        return cityMatch || skillMatch || titleMatch;
+      });
+
+      if (!matches.length) return;
+
+      // Send email alerts (max 50 per job to avoid spam)
+      const toNotify = matches.slice(0, 50);
+      for (const candidate of toNotify) {
+        await fetch('/api/send-job-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: candidate.email,
+            candidateName: candidate.name,
+            jobTitle: job.title,
+            company: job.company,
+            location: job.location,
+            salary: job.salary || 'Negotiable',
+            jobType: job.job_type || job.jobType,
+          })
+        }).catch(() => {}); // Silent fail per email
+      }
+      console.log(`Job alerts sent to ${toNotify.length} candidates`);
+    } catch(e) {
+      console.error('Job alert error:', e);
+    }
+  },
+
   async postJob(job) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + (job.dayLimit || 15));
@@ -173,13 +229,10 @@ function renderNavbar(activePage) {
   const candidate = Session.getCandidate();
   const employer = Session.getEmployer();
   let rightHTML = '';
-  const executive = (() => { try { return JSON.parse(sessionStorage.getItem('ht_executive')); } catch(e) { return null; } })();
   if (candidate) {
     rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${candidate.name.split(' ')[0]}</span></span><a href="profile.html" class="btn-employer">My Profile</a><span class="btn-logout" onclick="CandidateAuth.logout()">Logout</span></div>`;
   } else if (employer) {
     rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${employer.contact_name.split(' ')[0]}</span></span><a href="post-job.html" class="btn-signup">+ Post Job</a></div>`;
-  } else if (executive) {
-    rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${executive.name.split(' ')[0]}</span></span><a href="executive-dashboard.html" class="btn-employer">Dashboard</a><span class="btn-logout" onclick="sessionStorage.removeItem('ht_executive');window.location.href='executive.html'">Logout</span></div>`;
   } else {
     rightHTML = `<a href="login.html" class="btn-login">Login</a><a href="signup.html" class="btn-signup">Sign Up</a><a href="employer-auth.html" class="btn-employer">For Employers</a>`;
   }
@@ -190,10 +243,6 @@ function renderNavbar(activePage) {
     mobileLinks = `<a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a><div class="nav-divider"></div><a href="#" onclick="CandidateAuth.logout()">Logout</a>`;
   } else if (employer) {
     mobileLinks = `<a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="#" onclick="EmployerAuth.logout()">Logout</a>`;
-  } else if (executive) {
-    mobileLinks = `<a href="executive-dashboard.html" ${activePage==='exec-dashboard'?'class="active"':''}>Dashboard</a><div class="nav-divider"></div><a href="#" onclick="sessionStorage.removeItem('ht_executive');window.location.href='executive.html'">Logout</a>`;
-  } else if (activePage === 'employer' || activePage === 'pricing') {
-    mobileLinks = `<a href="employer-auth.html" ${activePage==='employer'?'class="active"':''}>For Employers</a><a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="login.html">Candidate Login</a><a href="signup.html">Sign Up Free</a>`;
   } else {
     mobileLinks = `<a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a><a href="jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><div class="nav-divider"></div><a href="login.html">Candidate Login</a><a href="employer-auth.html">Employer Login</a><a href="signup.html">Sign Up Free</a>`;
   }
@@ -204,9 +253,6 @@ function renderNavbar(activePage) {
       ${employer ? `
         <a href="employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>
         <a href="post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
-        <a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>
-      ` : activePage === 'employer' || activePage === 'pricing' ? `
-        <a href="employer-auth.html" ${activePage==='employer'?'class="active"':''}>For Employers</a>
         <a href="pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>
       ` : `
         <a href="index.html" ${activePage==='home'?'class="active"':''}>Home</a>
