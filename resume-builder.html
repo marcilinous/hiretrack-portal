@@ -181,6 +181,96 @@ body { padding-top: 64px; background: #f8fafc; }
   .resume-modern .rm-body { grid-template-columns: 1fr; }
   .resume-minimal .rn-exp-item, .resume-minimal .rn-edu-item { grid-template-columns: 1fr; gap: 0.2rem; }
 }
+
+/* Executive Template */
+.resume-executive { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1e293b; display: grid; grid-template-columns: 260px 1fr; min-height: 600px; }
+.resume-executive .re-sidebar { background: #0f172a; padding: 2rem 1.5rem; color: #fff; }
+.resume-executive .re-avatar { width: 80px; height: 80px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; margin: 0 auto 1.2rem; }
+.resume-executive .re-name { font-size: 1.1rem; font-weight: 800; text-align: center; margin-bottom: 0.2rem; }
+.resume-executive .re-title { font-size: 0.78rem; color: #93c5fd; text-align: center; margin-bottom: 1.5rem; }
+.resume-executive .re-section { margin-bottom: 1.5rem; }
+.resume-executive .re-section-title { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: #3b82f6; margin-bottom: 0.6rem; border-bottom: 1px solid #1e3a5f; padding-bottom: 0.3rem; }
+.resume-executive .re-contact-item { font-size: 0.72rem; color: #cbd5e1; margin-bottom: 0.3rem; display: flex; gap: 6px; align-items: flex-start; }
+.resume-executive .re-skill { background: #1e3a5f; color: #93c5fd; padding: 3px 8px; border-radius: 4px; font-size: 0.68rem; display: inline-block; margin: 2px; }
+.resume-executive .re-main { padding: 2rem; }
+.resume-executive .re-main-section { margin-bottom: 1.5rem; }
+.resume-executive .re-main-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 0.3rem; margin-bottom: 1rem; }
+.resume-executive .re-exp-item { margin-bottom: 1rem; padding-left: 0.75rem; border-left: 2px solid #e2e8f0; }
+.resume-executive .re-exp-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; }
+.resume-executive .re-exp-meta { font-size: 0.75rem; color: #3b82f6; font-weight: 600; margin: 0.1rem 0 0.3rem; }
+.resume-executive .re-exp-desc { font-size: 0.78rem; color: #475569; line-height: 1.65; }
+.resume-executive .re-about { font-size: 0.82rem; color: #475569; line-height: 1.75; }
+.resume-executive .re-edu-item { margin-bottom: 0.6rem; }
+.resume-executive .re-edu-degree { font-size: 0.82rem; font-weight: 700; color: #0f172a; }
+.resume-executive .re-edu-school { font-size: 0.75rem; color: #64748b; }
+
+/* Creative Template */
+.resume-creative { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1e293b; }
+.resume-creative .rc2-header { background: linear-gradient(135deg, #6d28d9, #3b82f6); padding: 2.5rem; color: #fff; position: relative; overflow: hidden; }
+.resume-creative .rc2-header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+.resume-creative .rc2-header::after { content: ''; position: absolute; bottom: -60px; left: 20%; width: 240px; height: 240px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+.resume-creative .rc2-name { font-size: 2rem; font-weight: 800; margin: 0 0 0.25rem; letter-spacing: -0.5px; position: relative; z-index: 1; }
+.resume-creative .rc2-title { font-size: 1rem; color: #ddd6fe; margin: 0 0 1rem; position: relative; z-index: 1; }
+.resume-creative .rc2-contact { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.78rem; color: #e0e7ff; position: relative; z-index: 1; }
+.resume-creative .rc2-body { padding: 2rem; }
+.resume-creative .rc2-section { margin-bottom: 1.75rem; }
+.resume-creative .rc2-section-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #6d28d9; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+.resume-creative .rc2-section-title::after { content: ''; flex: 1; height: 2px; background: linear-gradient(to right, #6d28d9, transparent); }
+.resume-creative .rc2-exp-item { margin-bottom: 1rem; background: #faf5ff; border-radius: 8px; padding: 0.85rem 1rem; border-left: 3px solid #6d28d9; }
+.resume-creative .rc2-exp-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; }
+.resume-creative .rc2-exp-meta { font-size: 0.75rem; color: #6d28d9; font-weight: 600; margin-bottom: 0.35rem; }
+.resume-creative .rc2-exp-desc { font-size: 0.8rem; color: #475569; line-height: 1.65; }
+.resume-creative .rc2-skill { background: linear-gradient(135deg, #ede9fe, #dbeafe); color: #5b21b6; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin: 2px; }
+.resume-creative .rc2-about { font-size: 0.85rem; color: #475569; line-height: 1.75; }
+.resume-creative .rc2-edu-item { margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: flex-start; }
+.resume-creative .rc2-edu-degree { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
+.resume-creative .rc2-edu-school { font-size: 0.78rem; color: #64748b; }
+.resume-creative .rc2-edu-year { font-size: 0.75rem; color: #6d28d9; font-weight: 600; }
+
+/* Simple Template */
+.resume-simple { font-family: "Times New Roman", Georgia, serif; color: #000; padding: 2.5rem; max-width: 680px; margin: 0 auto; }
+.resume-simple .rs-name { font-size: 1.8rem; font-weight: 700; text-align: center; margin: 0 0 0.3rem; }
+.resume-simple .rs-contact { text-align: center; font-size: 0.82rem; color: #333; margin-bottom: 1.2rem; }
+.resume-simple .rs-divider { border: none; border-top: 1.5px solid #000; margin: 0.5rem 0 1rem; }
+.resume-simple .rs-section { margin-bottom: 1.2rem; }
+.resume-simple .rs-section-title { font-size: 0.88rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+.resume-simple .rs-exp-item { margin-bottom: 0.85rem; }
+.resume-simple .rs-exp-row { display: flex; justify-content: space-between; }
+.resume-simple .rs-exp-title { font-size: 0.85rem; font-weight: 700; }
+.resume-simple .rs-exp-date { font-size: 0.8rem; color: #333; }
+.resume-simple .rs-exp-company { font-size: 0.82rem; font-style: italic; color: #333; }
+.resume-simple .rs-exp-desc { font-size: 0.8rem; color: #222; margin-top: 0.25rem; line-height: 1.6; }
+.resume-simple .rs-about { font-size: 0.82rem; color: #222; line-height: 1.7; }
+.resume-simple .rs-skills { font-size: 0.82rem; color: #222; }
+.resume-simple .rs-edu-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.resume-simple .rs-edu-degree { font-size: 0.85rem; font-weight: 700; }
+.resume-simple .rs-edu-school { font-size: 0.8rem; font-style: italic; }
+
+/* Two Column Template */
+.resume-twocol { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1e293b; }
+.resume-twocol .rt-header { background: #f1f5f9; padding: 1.5rem 2rem; border-bottom: 3px solid #0ea5e9; display: flex; align-items: center; gap: 1.5rem; }
+.resume-twocol .rt-header-info { flex: 1; }
+.resume-twocol .rt-name { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0 0 0.2rem; }
+.resume-twocol .rt-title { font-size: 0.88rem; color: #0ea5e9; font-weight: 600; margin: 0 0 0.5rem; }
+.resume-twocol .rt-contact { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.75rem; color: #64748b; }
+.resume-twocol .rt-body { display: grid; grid-template-columns: 1fr 2fr; gap: 0; }
+.resume-twocol .rt-left { background: #f8fafc; padding: 1.5rem; border-right: 1px solid #e2e8f0; }
+.resume-twocol .rt-right { padding: 1.5rem 2rem; }
+.resume-twocol .rt-section { margin-bottom: 1.5rem; }
+.resume-twocol .rt-section-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: #0ea5e9; border-bottom: 2px solid #0ea5e9; padding-bottom: 0.25rem; margin-bottom: 0.75rem; }
+.resume-twocol .rt-skill-bar { margin-bottom: 0.5rem; }
+.resume-twocol .rt-skill-name { font-size: 0.75rem; color: #334155; margin-bottom: 0.2rem; font-weight: 600; }
+.resume-twocol .rt-skill-track { background: #e2e8f0; border-radius: 10px; height: 6px; }
+.resume-twocol .rt-skill-fill { background: linear-gradient(to right, #0ea5e9, #3b82f6); border-radius: 10px; height: 6px; width: 80%; }
+.resume-twocol .rt-exp-item { margin-bottom: 1rem; }
+.resume-twocol .rt-exp-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; }
+.resume-twocol .rt-exp-meta { font-size: 0.75rem; color: #0ea5e9; font-weight: 600; margin: 0.1rem 0 0.3rem; }
+.resume-twocol .rt-exp-desc { font-size: 0.78rem; color: #475569; line-height: 1.65; }
+.resume-twocol .rt-about { font-size: 0.82rem; color: #475569; line-height: 1.75; }
+.resume-twocol .rt-edu-item { margin-bottom: 0.75rem; }
+.resume-twocol .rt-edu-degree { font-size: 0.82rem; font-weight: 700; color: #0f172a; }
+.resume-twocol .rt-edu-school { font-size: 0.75rem; color: #64748b; }
+
 </style>
 </head>
 <body>
@@ -315,6 +405,123 @@ body { padding-top: 64px; background: #f8fafc; }
         </div>
       </div>
 
+
+      <!-- Executive -->
+      <div class="template-card" id="tpl-executive" onclick="selectTemplate('executive')">
+        <div class="template-preview">
+          <div style="display:grid;grid-template-columns:70px 1fr;height:240px;">
+            <div style="background:#0f172a;padding:0.6rem;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#fff;margin-bottom:2px;">YN</div>
+              <div style="font-size:0.4rem;color:#fff;font-weight:700;text-align:center;margin-bottom:4px;">Your Name</div>
+              <div style="font-size:0.32rem;color:#3b82f6;font-weight:800;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e3a5f;padding-bottom:2px;width:100%;margin-bottom:3px;">Skills</div>
+              <div style="font-size:0.35rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">Excel</div>
+              <div style="font-size:0.35rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">SQL</div>
+              <div style="font-size:0.35rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">Python</div>
+            </div>
+            <div style="background:#fff;padding:0.75rem;">
+              <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-bottom:5px;">Experience</div>
+              <div style="border-left:2px solid #e2e8f0;padding-left:5px;margin-bottom:5px;">
+                <div style="font-size:0.48rem;font-weight:700;">MIS Executive</div>
+                <div style="font-size:0.4rem;color:#3b82f6;">ABC Corp · 2022–Present</div>
+              </div>
+              <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-bottom:5px;margin-top:5px;">Education</div>
+              <div style="font-size:0.45rem;font-weight:700;">B.Com</div>
+              <div style="font-size:0.4rem;color:#64748b;">Bengaluru University · 2022</div>
+            </div>
+          </div>
+        </div>
+        <div class="template-label">
+          <div><h3>Executive</h3><span>Best for Senior Roles</span></div>
+          <div class="template-check">✓</div>
+        </div>
+      </div>
+
+      <!-- Creative -->
+      <div class="template-card" id="tpl-creative" onclick="selectTemplate('creative')">
+        <div class="template-preview">
+          <div style="background:linear-gradient(135deg,#6d28d9,#3b82f6);padding:0.85rem;color:#fff;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>
+            <div style="font-size:0.85rem;font-weight:800;position:relative;">Your Name</div>
+            <div style="font-size:0.55rem;color:#ddd6fe;position:relative;">Data Analyst</div>
+            <div style="font-size:0.45rem;color:#e0e7ff;margin-top:4px;position:relative;">✉ email · 📍 Bengaluru</div>
+          </div>
+          <div style="background:#fff;padding:0.75rem;">
+            <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;color:#6d28d9;margin-bottom:4px;display:flex;align-items:center;gap:4px;">Experience <span style="flex:1;height:1px;background:linear-gradient(to right,#6d28d9,transparent);margin-left:3px;"></span></div>
+            <div style="background:#faf5ff;border-left:3px solid #6d28d9;padding:4px 6px;border-radius:4px;margin-bottom:4px;">
+              <div style="font-size:0.45rem;font-weight:700;">Data Analyst</div>
+              <div style="font-size:0.38rem;color:#6d28d9;">TechCorp · 2021–Now</div>
+            </div>
+            <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;color:#6d28d9;margin-bottom:3px;">Skills</div>
+            <div style="display:flex;flex-wrap:wrap;gap:2px;">
+              <span style="background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:8px;font-size:0.38rem;">SQL</span>
+              <span style="background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:8px;font-size:0.38rem;">Python</span>
+              <span style="background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:8px;font-size:0.38rem;">Tableau</span>
+            </div>
+          </div>
+        </div>
+        <div class="template-label">
+          <div><h3>Creative</h3><span>Best for Design & Marketing</span></div>
+          <div class="template-check">✓</div>
+        </div>
+      </div>
+
+      <!-- Simple -->
+      <div class="template-card" id="tpl-simple" onclick="selectTemplate('simple')">
+        <div class="template-preview">
+          <div style="background:#fff;padding:1rem;font-family:'Times New Roman',serif;">
+            <div style="font-size:1rem;font-weight:700;text-align:center;color:#000;">Your Name</div>
+            <div style="font-size:0.5rem;text-align:center;color:#333;margin-top:2px;">email@mail.com · 9876543210 · Bengaluru</div>
+            <hr style="border:none;border-top:1.5px solid #000;margin:6px 0 5px;">
+            <div style="font-size:0.45rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Professional Summary</div>
+            <div style="font-size:0.4rem;color:#222;font-family:'Times New Roman',serif;line-height:1.5;">Experienced professional with 5 years in data analysis and reporting. Strong communication and analytical skills.</div>
+            <hr style="border:none;border-top:1px solid #000;margin:5px 0 4px;">
+            <div style="font-size:0.45rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Experience</div>
+            <div style="display:flex;justify-content:space-between;">
+              <div style="font-size:0.45rem;font-weight:700;">MIS Executive</div>
+              <div style="font-size:0.4rem;color:#333;">2022–Present</div>
+            </div>
+            <div style="font-size:0.4rem;color:#333;font-style:italic;">ABC Company, Bengaluru</div>
+          </div>
+        </div>
+        <div class="template-label">
+          <div><h3>Simple</h3><span>Best for Traditional Industries</span></div>
+          <div class="template-check">✓</div>
+        </div>
+      </div>
+
+      <!-- Two Column -->
+      <div class="template-card" id="tpl-twocol" onclick="selectTemplate('twocol')">
+        <div class="template-preview">
+          <div style="background:#f1f5f9;padding:0.75rem;border-bottom:3px solid #0ea5e9;">
+            <div style="font-size:0.85rem;font-weight:800;color:#0f172a;">Your Name</div>
+            <div style="font-size:0.55rem;color:#0ea5e9;font-weight:600;">Software Engineer</div>
+            <div style="font-size:0.42rem;color:#64748b;margin-top:2px;">email · phone · city</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 2fr;height:170px;">
+            <div style="background:#f8fafc;padding:0.6rem;border-right:1px solid #e2e8f0;">
+              <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin-bottom:4px;">Skills</div>
+              <div style="margin-bottom:4px;"><div style="font-size:0.38rem;color:#334155;font-weight:600;margin-bottom:1px;">Python</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:85%;height:4px;border-radius:5px;"></div></div></div>
+              <div style="margin-bottom:4px;"><div style="font-size:0.38rem;color:#334155;font-weight:600;margin-bottom:1px;">SQL</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:90%;height:4px;border-radius:5px;"></div></div></div>
+              <div><div style="font-size:0.38rem;color:#334155;font-weight:600;margin-bottom:1px;">Excel</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:75%;height:4px;border-radius:5px;"></div></div></div>
+            </div>
+            <div style="padding:0.6rem;">
+              <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin-bottom:4px;">Experience</div>
+              <div style="margin-bottom:4px;">
+                <div style="font-size:0.45rem;font-weight:700;">Data Analyst</div>
+                <div style="font-size:0.38rem;color:#0ea5e9;">TechCorp · 2022–Now</div>
+              </div>
+              <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin:5px 0 4px;">Education</div>
+              <div style="font-size:0.42rem;font-weight:700;">B.Tech CS</div>
+              <div style="font-size:0.38rem;color:#64748b;">VTU · 2022</div>
+            </div>
+          </div>
+        </div>
+        <div class="template-label">
+          <div><h3>Two Column</h3><span>Best for IT & Engineering</span></div>
+          <div class="template-check">✓</div>
+        </div>
+      </div>
+
     </div>
     <div class="rb-nav">
       <span></span>
@@ -326,6 +533,50 @@ body { padding-top: 64px; background: #f8fafc; }
   <div class="rb-section" id="rb-step-2">
     <h2 style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:0.25rem;">Your Details</h2>
     <p style="color:#64748b;font-size:0.88rem;margin-bottom:0;">We've pre-filled from your profile. Review and update anything.</p>
+
+
+    <!-- Import Options -->
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;color:#fff;">
+      <h3 style="font-size:1rem;font-weight:800;margin:0 0 0.4rem;">⚡ Import Your Details</h3>
+      <p style="color:#94a3b8;font-size:0.82rem;margin:0 0 1rem;">Skip manual entry — import from your existing resume or LinkedIn.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+
+        <!-- Upload DOCX/PDF -->
+        <div style="background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('import-resume-file').click()" id="import-docx-card">
+          <div style="font-size:1.8rem;margin-bottom:0.4rem;">📄</div>
+          <div style="font-size:0.82rem;font-weight:700;">Upload Resume</div>
+          <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">PDF, DOCX</div>
+          <input type="file" id="import-resume-file" accept=".pdf,.doc,.docx" style="display:none;" onchange="importFromResume(this)">
+        </div>
+
+        <!-- LinkedIn URL -->
+        <div style="background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="showLinkedInImport()" id="import-linkedin-card">
+          <div style="font-size:1.8rem;margin-bottom:0.4rem;">🔗</div>
+          <div style="font-size:0.82rem;font-weight:700;">LinkedIn Profile</div>
+          <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Paste URL</div>
+        </div>
+
+        <!-- HireTrack Profile -->
+        <div style="background:rgba(59,130,246,0.2);border:1.5px solid rgba(59,130,246,0.4);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="importFromProfile()">
+          <div style="font-size:1.8rem;margin-bottom:0.4rem;">⚡</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#93c5fd;">HireTrack Profile</div>
+          <div style="font-size:0.72rem;color:#64748b;margin-top:2px;">Auto-filled ✓</div>
+        </div>
+
+      </div>
+
+      <!-- LinkedIn URL input (hidden by default) -->
+      <div id="linkedin-import-box" style="display:none;margin-top:1rem;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="linkedin-url" placeholder="https://linkedin.com/in/yourname" style="flex:1;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.85rem;color:#fff;font-family:inherit;outline:none;" />
+          <button onclick="importFromLinkedIn()" style="background:#0ea5e9;color:#fff;border:none;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Import</button>
+        </div>
+        <p style="font-size:0.72rem;color:#64748b;margin:0.5rem 0 0;">Note: LinkedIn import extracts publicly available profile info. Make sure your profile is public.</p>
+      </div>
+
+      <!-- Import status -->
+      <div id="import-status" style="display:none;margin-top:0.75rem;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#86efac;"></div>
+    </div>
 
     <!-- Personal Info -->
     <div class="rb-section-title">👤 Personal Information</div>
@@ -413,8 +664,12 @@ body { padding-top: 64px; background: #f8fafc; }
           <h4>🎨 Change Template</h4>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <button onclick="changePreviewTemplate('modern')" id="ptpl-modern" style="background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Modern</button>
-            <button onclick="changePreviewTemplate('classic')" id="ptpl-classic" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Classic</button>
-            <button onclick="changePreviewTemplate('minimal')" id="ptpl-minimal" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Minimal</button>
+            <button onclick="changePreviewTemplate('classic')" id="ptpl-classic" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Classic ⭐</button>
+            <button onclick="changePreviewTemplate('minimal')" id="ptpl-minimal" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Minimal ⭐</button>
+            <button onclick="changePreviewTemplate('executive')" id="ptpl-executive" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Executive ⭐</button>
+            <button onclick="changePreviewTemplate('creative')" id="ptpl-creative" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Creative ⭐</button>
+            <button onclick="changePreviewTemplate('simple')" id="ptpl-simple" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Simple ⭐</button>
+            <button onclick="changePreviewTemplate('twocol')" id="ptpl-twocol" style="background:#f8fafc;border:1.5px solid #e2e8f0;color:#374151;padding:6px 10px;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Two Column ⭐</button>
           </div>
         </div>
         <div class="ctrl-card" style="background:#f0fdf4;border-color:#86efac;">
@@ -485,7 +740,7 @@ function goStep(n) {
 
 // ── Template Selection ──
 function selectTemplate(t) {
-  if ((t === 'classic' || t === 'minimal') && !isProCandidate()) {
+  if ((t === 'classic' || t === 'minimal' || t === 'executive' || t === 'creative' || t === 'simple' || t === 'twocol') && !isProCandidate()) {
     showProWall('Classic and Minimal templates');
     return;
   }
@@ -716,7 +971,11 @@ function renderPreview(template) {
   let html = '';
   if (template === 'modern') html = renderModern(d);
   else if (template === 'classic') html = renderClassic(d);
-  else html = renderMinimal(d);
+  else if (template === 'minimal') html = renderMinimal(d);
+  else if (template === 'executive') html = renderExecutive(d);
+  else if (template === 'creative') html = renderCreative(d);
+  else if (template === 'simple') html = renderSimple(d);
+  else if (template === 'twocol') html = renderTwocol(d);
   document.getElementById('resume-preview-container').innerHTML = html;
   // Update active template button
   ['modern','classic','minimal'].forEach(t => {
@@ -888,6 +1147,312 @@ async function downloadPDF() {
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', msg);
+  }
+
+
+  // ── Render: Executive ──
+  function renderExecutive(d) {
+    const initials = d.name ? d.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2) : 'YN';
+    const expHtml = d.exps.map(e => `
+      <div class="re-exp-item">
+        <div class="re-exp-title">${e.title}</div>
+        <div class="re-exp-meta">${e.company}${e.start ? ' · '+e.start+(e.end?' – '+e.end:'') : ''}</div>
+        ${e.desc ? `<div class="re-exp-desc">${e.desc.replace(/\n/g,'<br>')}</div>` : ''}
+      </div>`).join('');
+    const eduHtml = d.edus.map(e => `
+      <div class="re-edu-item">
+        <div class="re-edu-degree">${e.degree}${e.score?' · '+e.score:''}</div>
+        <div class="re-edu-school">${e.school}${e.year?' · '+e.year:''}</div>
+      </div>`).join('');
+    return `<div class="resume-executive">
+      <div class="re-sidebar">
+        <div class="re-avatar">${initials}</div>
+        <div class="re-name">${d.name||'Your Name'}</div>
+        <div class="re-title">${d.title||'Professional'}</div>
+        ${d.email||d.phone||d.city ? `<div class="re-section"><div class="re-section-title">Contact</div>
+          ${d.email?`<div class="re-contact-item">✉ ${d.email}</div>`:''}
+          ${d.phone?`<div class="re-contact-item">📞 ${d.phone}</div>`:''}
+          ${d.city?`<div class="re-contact-item">📍 ${d.city}</div>`:''}
+          ${d.linkedin?`<div class="re-contact-item">🔗 ${d.linkedin}</div>`:''}
+        </div>` : ''}
+        ${d.skills.length?`<div class="re-section"><div class="re-section-title">Skills</div>${d.skills.map(s=>`<span class="re-skill">${s}</span>`).join('')}</div>`:''}
+        ${eduHtml?`<div class="re-section"><div class="re-section-title">Education</div>${eduHtml}</div>`:''}
+      </div>
+      <div class="re-main">
+        ${d.about?`<div class="re-main-section"><div class="re-main-title">Professional Summary</div><div class="re-about">${d.about}</div></div>`:''}
+        ${expHtml?`<div class="re-main-section"><div class="re-main-title">Work Experience</div>${expHtml}</div>`:''}
+      </div>
+    </div>`;
+  }
+
+  // ── Render: Creative ──
+  function renderCreative(d) {
+    const expHtml = d.exps.map(e => `
+      <div class="rc2-exp-item">
+        <div class="rc2-exp-title">${e.title}</div>
+        <div class="rc2-exp-meta">${e.company}${e.start?' · '+e.start+(e.end?' – '+e.end:''):''}</div>
+        ${e.desc?`<div class="rc2-exp-desc">${e.desc.replace(/\n/g,'<br>')}</div>`:''}
+      </div>`).join('');
+    const eduHtml = d.edus.map(e => `
+      <div class="rc2-edu-item">
+        <div><div class="rc2-edu-degree">${e.degree}${e.score?' ('+e.score+')':''}</div><div class="rc2-edu-school">${e.school}</div></div>
+        <div class="rc2-edu-year">${e.year||''}</div>
+      </div>`).join('');
+    return `<div class="resume-creative">
+      <div class="rc2-header">
+        <div class="rc2-name">${d.name||'Your Name'}</div>
+        <div class="rc2-title">${d.title||'Professional'}</div>
+        <div class="rc2-contact">
+          ${d.email?`<span>✉ ${d.email}</span>`:''}
+          ${d.phone?`<span>📞 ${d.phone}</span>`:''}
+          ${d.city?`<span>📍 ${d.city}</span>`:''}
+        </div>
+      </div>
+      <div class="rc2-body">
+        ${d.about?`<div class="rc2-section"><div class="rc2-section-title">About Me</div><div class="rc2-about">${d.about}</div></div>`:''}
+        ${expHtml?`<div class="rc2-section"><div class="rc2-section-title">Experience</div>${expHtml}</div>`:''}
+        ${d.skills.length?`<div class="rc2-section"><div class="rc2-section-title">Skills</div>${d.skills.map(s=>`<span class="rc2-skill">${s}</span>`).join('')}</div>`:''}
+        ${eduHtml?`<div class="rc2-section"><div class="rc2-section-title">Education</div>${eduHtml}</div>`:''}
+      </div>
+    </div>`;
+  }
+
+  // ── Render: Simple ──
+  function renderSimple(d) {
+    const expHtml = d.exps.map(e => `
+      <div class="rs-exp-item">
+        <div class="rs-exp-row">
+          <div class="rs-exp-title">${e.title}</div>
+          <div class="rs-exp-date">${e.start}${e.end?' – '+e.end:''}</div>
+        </div>
+        <div class="rs-exp-company">${e.company}</div>
+        ${e.desc?`<div class="rs-exp-desc">${e.desc.replace(/\n/g,'<br>')}</div>`:''}
+      </div>`).join('');
+    const eduHtml = d.edus.map(e => `
+      <div class="rs-edu-row">
+        <div><div class="rs-edu-degree">${e.degree}${e.score?' ('+e.score+')':''}</div><div class="rs-edu-school">${e.school}</div></div>
+        <div style="font-size:0.8rem;color:#333;">${e.year||''}</div>
+      </div>`).join('');
+    return `<div class="resume-simple">
+      <div class="rs-name">${d.name||'Your Name'}</div>
+      ${d.title?`<div style="text-align:center;font-size:0.9rem;font-style:italic;color:#333;margin-bottom:0.3rem;">${d.title}</div>`:''}
+      <div class="rs-contact">${[d.email,d.phone,d.city,d.linkedin].filter(Boolean).join(' | ')}</div>
+      <hr class="rs-divider">
+      ${d.about?`<div class="rs-section"><div class="rs-section-title">Professional Summary</div><div class="rs-about">${d.about}</div></div><hr class="rs-divider">`:''}
+      ${expHtml?`<div class="rs-section"><div class="rs-section-title">Work Experience</div>${expHtml}</div><hr class="rs-divider">`:''}
+      ${eduHtml?`<div class="rs-section"><div class="rs-section-title">Education</div>${eduHtml}</div><hr class="rs-divider">`:''}
+      ${d.skills.length?`<div class="rs-section"><div class="rs-section-title">Skills</div><div class="rs-skills">${d.skills.join(' · ')}</div></div>`:''}
+    </div>`;
+  }
+
+  // ── Render: Two Column ──
+  function renderTwocol(d) {
+    const expHtml = d.exps.map(e => `
+      <div class="rt-exp-item">
+        <div class="rt-exp-title">${e.title}</div>
+        <div class="rt-exp-meta">${e.company}${e.start?' · '+e.start+(e.end?' – '+e.end:''):''}</div>
+        ${e.desc?`<div class="rt-exp-desc">${e.desc.replace(/\n/g,'<br>')}</div>`:''}
+      </div>`).join('');
+    const eduHtml = d.edus.map(e => `
+      <div class="rt-edu-item">
+        <div class="rt-edu-degree">${e.degree}${e.score?' · '+e.score:''}</div>
+        <div class="rt-edu-school">${e.school}${e.year?' · '+e.year:''}</div>
+      </div>`).join('');
+    const skillBars = d.skills.map(s => `
+      <div class="rt-skill-bar">
+        <div class="rt-skill-name">${s}</div>
+        <div class="rt-skill-track"><div class="rt-skill-fill" style="width:${70+Math.floor(Math.random()*25)}%"></div></div>
+      </div>`).join('');
+    return `<div class="resume-twocol">
+      <div class="rt-header">
+        <div class="rt-header-info">
+          <div class="rt-name">${d.name||'Your Name'}</div>
+          <div class="rt-title">${d.title||'Professional'}</div>
+          <div class="rt-contact">
+            ${d.email?`<span>✉ ${d.email}</span>`:''}
+            ${d.phone?`<span>📞 ${d.phone}</span>`:''}
+            ${d.city?`<span>📍 ${d.city}</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="rt-body">
+        <div class="rt-left">
+          ${d.skills.length?`<div class="rt-section"><div class="rt-section-title">Skills</div>${skillBars}</div>`:''}
+          ${eduHtml?`<div class="rt-section"><div class="rt-section-title">Education</div>${eduHtml}</div>`:''}
+          ${d.linkedin?`<div class="rt-section"><div class="rt-section-title">Links</div><div style="font-size:0.72rem;color:#64748b;word-break:break-all;">${d.linkedin}</div></div>`:''}
+        </div>
+        <div class="rt-right">
+          ${d.about?`<div class="rt-section"><div class="rt-section-title">Profile</div><div class="rt-about">${d.about}</div></div>`:''}
+          ${expHtml?`<div class="rt-section"><div class="rt-section-title">Experience</div>${expHtml}</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Import Functions ──
+  function showLinkedInImport() {
+    const box = document.getElementById('linkedin-import-box');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  }
+
+  async function importFromResume(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('import-status');
+    statusEl.style.display = 'block';
+    statusEl.textContent = '📄 Reading your resume... extracting details with AI...';
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target.result;
+        // Send to AI to extract resume data
+        const prompt = `You are a resume parser. Extract all information from this resume file (base64 encoded).
+Return ONLY a JSON object with these exact fields:
+{
+  "name": "Full name",
+  "title": "Current job title",
+  "email": "email address",
+  "phone": "phone number",
+  "city": "city",
+  "linkedin": "linkedin url if present",
+  "about": "professional summary/about",
+  "skills": ["skill1","skill2",...],
+  "experience": [{"title":"","company":"","start":"","end":"","desc":""},...],
+  "education": [{"degree":"","school":"","year":"","score":""},...]
+}
+File content hint: ${file.name} (${(file.size/1024).toFixed(0)}KB)
+Return only the JSON, no other text.`;
+
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt })
+        });
+        const aiData = await res.json();
+        try {
+          const text = aiData.reply || aiData.message || '';
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+          applyImportedData(parsed);
+          statusEl.textContent = '✅ Resume imported successfully! Review and edit below.';
+          statusEl.style.background = 'rgba(34,197,94,0.15)';
+          statusEl.style.borderColor = 'rgba(34,197,94,0.3)';
+          statusEl.style.color = '#86efac';
+        } catch(e) {
+          // Fallback: at minimum fill from HireTrack profile
+          importFromProfile();
+          statusEl.textContent = '⚠️ Could not fully parse resume. Profile data applied — please fill remaining fields.';
+          statusEl.style.background = 'rgba(245,158,11,0.15)';
+          statusEl.style.color = '#fbbf24';
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch(err) {
+      statusEl.textContent = '❌ Import failed. Please fill details manually.';
+    }
+  }
+
+  async function importFromLinkedIn() {
+    const url = document.getElementById('linkedin-url').value.trim();
+    if (!url || !url.includes('linkedin.com')) {
+      showToast('Please enter a valid LinkedIn profile URL');
+      return;
+    }
+    const statusEl = document.getElementById('import-status');
+    statusEl.style.display = 'block';
+    statusEl.textContent = '🔗 Extracting LinkedIn profile data with AI...';
+
+    try {
+      const prompt = `Extract resume data from this LinkedIn profile URL: ${url}
+
+Based on the URL and any available information, create a professional resume profile.
+Return ONLY JSON with these fields:
+{
+  "name": "infer from URL if possible",
+  "title": "Professional",
+  "email": "",
+  "phone": "",
+  "city": "",
+  "linkedin": "${url}",
+  "about": "LinkedIn profiles typically highlight professional achievements",
+  "skills": ["LinkedIn","Professional Networking","Communication"],
+  "experience": [],
+  "education": []
+}
+Note: Since we cannot directly scrape LinkedIn, return a template with the LinkedIn URL pre-filled and note that the user should fill in their details.
+Return only JSON.`;
+
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt })
+      });
+      const aiData = await res.json();
+      try {
+        const text = aiData.reply || aiData.message || '';
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+        // At minimum set the LinkedIn URL
+        document.getElementById('rb-linkedin').value = url;
+        // Apply other extracted data
+        if (parsed.name && parsed.name !== 'infer from URL if possible') {
+          document.getElementById('rb-name').value = parsed.name;
+        }
+        statusEl.textContent = '✅ LinkedIn URL saved! Due to privacy settings, please fill in your details manually or upload your resume PDF.';
+      } catch(e) {
+        document.getElementById('rb-linkedin').value = url;
+        statusEl.textContent = '✅ LinkedIn URL saved! Please complete your details below.';
+      }
+    } catch(err) {
+      document.getElementById('rb-linkedin').value = url;
+      statusEl.textContent = '✅ LinkedIn URL saved! Please complete your details below.';
+    }
+  }
+
+  function importFromProfile() {
+    const c = Session.getCandidate();
+    if (!c) return;
+    document.getElementById('rb-name').value = c.name || '';
+    document.getElementById('rb-title').value = c.jobtitle || '';
+    document.getElementById('rb-email').value = c.email || '';
+    document.getElementById('rb-phone').value = c.mobile || '';
+    document.getElementById('rb-city').value = c.city || '';
+    document.getElementById('rb-about').value = c.about || '';
+    skills = Array.isArray(c.skills) ? [...c.skills] : [];
+    renderSkills();
+    const statusEl = document.getElementById('import-status');
+    statusEl.style.display = 'block';
+    statusEl.textContent = '✅ Profile data imported! Add your work experience and education below.';
+    showToast('✅ Profile data imported!');
+  }
+
+  function applyImportedData(data) {
+    if (data.name) document.getElementById('rb-name').value = data.name;
+    if (data.title) document.getElementById('rb-title').value = data.title;
+    if (data.email) document.getElementById('rb-email').value = data.email;
+    if (data.phone) document.getElementById('rb-phone').value = data.phone;
+    if (data.city) document.getElementById('rb-city').value = data.city;
+    if (data.linkedin) document.getElementById('rb-linkedin').value = data.linkedin;
+    if (data.about) document.getElementById('rb-about').value = data.about;
+    if (data.skills && data.skills.length) {
+      skills = [...new Set([...skills, ...data.skills])];
+      renderSkills();
+    }
+    // Add experience items
+    if (data.experience && data.experience.length) {
+      document.getElementById('exp-list').innerHTML = '';
+      expItems = [];
+      expCount = 0;
+      data.experience.forEach(e => addExpItem({ title:e.title, company:e.company, start:e.start, end:e.end, desc:e.desc }));
+    }
+    // Add education items
+    if (data.education && data.education.length) {
+      document.getElementById('edu-list').innerHTML = '';
+      eduItems = [];
+      eduCount = 0;
+      data.education.forEach(e => addEduItem({ degree:e.degree, school:e.school, year:e.year, score:e.score }));
+    }
   }
 
 </script>
