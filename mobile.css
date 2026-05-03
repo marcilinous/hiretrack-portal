@@ -1,12 +1,19 @@
+/* ── Navbar height compensation — mobile ──
+   style.css sets body{padding-top:64px} for desktop navbar (64px tall).
+   On mobile the navbar is 56px tall — reduce by 8px.
+   Dashboard pages use body{padding-top:0!important} inline — not affected.
+*/
+@media (max-width: 768px) {
+  body { padding-top: 56px !important; }
+}
+
 /* ── Navbar gap fix — mobile only ──
    Pages have body{padding-top:64px} inline.
    On mobile, navbar is 56px tall so reduce by 8px.
    Dashboards use padding-top:0!important — not affected.
 */
 @media (max-width: 768px) {
-  body { padding-top: 56px !important; }
-  body[style*="padding-top:0"] { padding-top: 0 !important; }
-}
+  }
 
 /* Prevent horizontal overflow globally */
 *, *::before, *::after { box-sizing: border-box; }
