@@ -271,6 +271,42 @@ body { padding-top: 64px; background: #f8fafc; }
 .resume-twocol .rt-edu-degree { font-size: 0.82rem; font-weight: 700; color: #0f172a; }
 .resume-twocol .rt-edu-school { font-size: 0.75rem; color: #64748b; }
 
+
+/* ── Template Card — Badging & Lock ── */
+.tpl-free-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #dcfce7; color: #15803d;
+  font-size: 0.65rem; font-weight: 800;
+  padding: 3px 9px; border-radius: 20px;
+  border: 1px solid #86efac;
+}
+.tpl-pro-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg,#fef3c7,#fde68a);
+  color: #92400e; font-size: 0.65rem; font-weight: 800;
+  padding: 3px 9px; border-radius: 20px;
+  border: 1px solid #f59e0b;
+}
+.tpl-lock-overlay {
+  position: absolute; inset: 0;
+  background: rgba(15,23,42,0.45);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 0;
+  z-index: 2;
+}
+.template-card.pro-locked:hover .tpl-lock-overlay { opacity: 1; }
+.tpl-lock-overlay .lock-icon { font-size: 1.8rem; }
+.tpl-lock-overlay .lock-label {
+  background: #3b82f6; color: #fff;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 5px 14px; border-radius: 20px;
+}
+.template-card.pro-locked { cursor: pointer; }
+.template-card.pro-locked:hover { border-color: #f59e0b; box-shadow: 0 8px 24px rgba(245,158,11,0.2); }
+
 </style>
 </head>
 <body>
@@ -340,14 +376,20 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Modern</h3><span>Best for Tech & Finance</span></div>
+          <h3>Modern</h3><span>Best for Tech & Finance</span></div>
+                    <div><h3>Modern</h3><span>Best for Tech & Finance</span></div>
+          <span class="tpl-free-badge">✓ Free</span>
           <div class="template-check">✓</div>
         </div>
       </div>
 
       <!-- Classic -->
-      <div class="template-card" id="tpl-classic" onclick="selectTemplate('classic')">
-        <div class="template-preview">
+      <div class="template-card pro-locked" id="tpl-classic" onclick="selectTemplate('classic')">
+        <div class="template-preview" style="position:relative;">
+          <div class="tpl-lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-label">Unlock Pro</div>
+          </div>
           <div style="background:#fff;padding:1rem;text-align:center;border-bottom:2px solid #0f172a;">
             <div style="font-size:1rem;font-weight:700;font-family:Georgia,serif;color:#0f172a;">Your Name</div>
             <div style="font-size:0.6rem;color:#64748b;font-style:italic;margin-top:2px;">Sales Manager</div>
@@ -365,15 +407,20 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Classic</h3><span>Best for Sales & HR</span></div>
-          <span style="background:#fef3c7;color:#92400e;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;">⭐ PRO</span>
+          <h3>Classic</h3><span>Best for Sales & HR</span></div>
+                    <div><h3>Classic</h3><span>Best for Sales & HR</span></div>
+          <span class="tpl-pro-badge">⭐ Pro</span>
           <div class="template-check">✓</div>
         </div>
       </div>
 
       <!-- Minimal -->
-      <div class="template-card" id="tpl-minimal" onclick="selectTemplate('minimal')">
-        <div class="template-preview">
+      <div class="template-card pro-locked" id="tpl-minimal" onclick="selectTemplate('minimal')">
+        <div class="template-preview" style="position:relative;">
+          <div class="tpl-lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-label">Unlock Pro</div>
+          </div>
           <div style="background:#fff;padding:1rem;">
             <div style="border-left:4px solid #3b82f6;padding-left:0.75rem;margin-bottom:1rem;">
               <div style="font-size:1rem;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Your Name</div>
@@ -399,16 +446,21 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Minimal</h3><span>Best for All Industries</span></div>
-          <span style="background:#fef3c7;color:#92400e;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;">⭐ PRO</span>
+          <h3>Minimal</h3><span>Best for All Industries</span></div>
+                    <div><h3>Minimal</h3><span>Best for All Industries</span></div>
+          <span class="tpl-pro-badge">⭐ Pro</span>
           <div class="template-check">✓</div>
         </div>
       </div>
 
 
       <!-- Executive -->
-      <div class="template-card" id="tpl-executive" onclick="selectTemplate('executive')">
-        <div class="template-preview">
+      <div class="template-card pro-locked" id="tpl-executive" onclick="selectTemplate('executive')">
+        <div class="template-preview" style="position:relative;">
+          <div class="tpl-lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-label">Unlock Pro</div>
+          </div>
           <div style="display:grid;grid-template-columns:70px 1fr;height:240px;">
             <div style="background:#0f172a;padding:0.6rem;display:flex;flex-direction:column;align-items:center;gap:4px;">
               <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#fff;margin-bottom:2px;">YN</div>
@@ -431,14 +483,20 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Executive</h3><span>Best for Senior Roles</span></div>
+          <h3>Executive</h3><span>Best for Senior Roles</span></div>
+                    <div><h3>Executive</h3><span>Best for Senior Roles</span></div>
+          <span class="tpl-pro-badge">⭐ Pro</span>
           <div class="template-check">✓</div>
         </div>
       </div>
 
       <!-- Creative -->
-      <div class="template-card" id="tpl-creative" onclick="selectTemplate('creative')">
-        <div class="template-preview">
+      <div class="template-card pro-locked" id="tpl-creative" onclick="selectTemplate('creative')">
+        <div class="template-preview" style="position:relative;">
+          <div class="tpl-lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-label">Unlock Pro</div>
+          </div>
           <div style="background:linear-gradient(135deg,#6d28d9,#3b82f6);padding:0.85rem;color:#fff;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>
             <div style="font-size:0.85rem;font-weight:800;position:relative;">Your Name</div>
@@ -460,14 +518,20 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Creative</h3><span>Best for Design & Marketing</span></div>
+          <h3>Creative</h3><span>Best for Design & Marketing</span></div>
+                    <div><h3>Creative</h3><span>Best for Design & Marketing</span></div>
+          <span class="tpl-pro-badge">⭐ Pro</span>
           <div class="template-check">✓</div>
         </div>
       </div>
 
       <!-- Simple -->
-      <div class="template-card" id="tpl-simple" onclick="selectTemplate('simple')">
-        <div class="template-preview">
+      <div class="template-card pro-locked" id="tpl-simple" onclick="selectTemplate('simple')">
+        <div class="template-preview" style="position:relative;">
+          <div class="tpl-lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-label">Unlock Pro</div>
+          </div>
           <div style="background:#fff;padding:1rem;font-family:'Times New Roman',serif;">
             <div style="font-size:1rem;font-weight:700;text-align:center;color:#000;">Your Name</div>
             <div style="font-size:0.5rem;text-align:center;color:#333;margin-top:2px;">email@mail.com · 9876543210 · Bengaluru</div>
@@ -484,14 +548,20 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Simple</h3><span>Best for Traditional Industries</span></div>
+          <h3>Simple</h3><span>Best for Traditional Industries</span></div>
+                    <div><h3>Simple</h3><span>Best for Traditional Industries</span></div>
+          <span class="tpl-pro-badge">⭐ Pro</span>
           <div class="template-check">✓</div>
         </div>
       </div>
 
       <!-- Two Column -->
-      <div class="template-card" id="tpl-twocol" onclick="selectTemplate('twocol')">
-        <div class="template-preview">
+      <div class="template-card pro-locked" id="tpl-twocol" onclick="selectTemplate('twocol')">
+        <div class="template-preview" style="position:relative;">
+          <div class="tpl-lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-label">Unlock Pro</div>
+          </div>
           <div style="background:#f1f5f9;padding:0.75rem;border-bottom:3px solid #0ea5e9;">
             <div style="font-size:0.85rem;font-weight:800;color:#0f172a;">Your Name</div>
             <div style="font-size:0.55rem;color:#0ea5e9;font-weight:600;">Software Engineer</div>
@@ -517,7 +587,9 @@ body { padding-top: 64px; background: #f8fafc; }
           </div>
         </div>
         <div class="template-label">
-          <div><h3>Two Column</h3><span>Best for IT & Engineering</span></div>
+          <h3>Two Column</h3><span>Best for IT & Engineering</span></div>
+                    <div><h3>Two Column</h3><span>Best for IT & Engineering</span></div>
+          <span class="tpl-pro-badge">⭐ Pro</span>
           <div class="template-check">✓</div>
         </div>
       </div>
@@ -740,10 +812,8 @@ function goStep(n) {
 
 // ── Template Selection ──
 function selectTemplate(t) {
-  if ((t === 'classic' || t === 'minimal' || t === 'executive' || t === 'creative' || t === 'simple' || t === 'twocol') && !isProCandidate()) {
-    showProWall('Classic and Minimal templates');
-    return;
-  }
+  const FREE_TEMPLATES = ['modern'];
+  if (!FREE_TEMPLATES.includes(t) && !ProBundle.gate('templates')) return;
   selectedTemplate = t;
   ['modern','classic','minimal'].forEach(id => {
     document.getElementById('tpl-' + id).classList.toggle('selected', id === t);
@@ -845,10 +915,7 @@ function collectData() {
 
 // ── AI Optimize ──
 async function runAIOptimize() {
-  if (!isProCandidate()) {
-    showProWall('AI Resume Optimization');
-    return;
-  }
+  if (!ProBundle.gate('ai_optimize')) return;
   const btn = document.getElementById('btn-ai-opt');
   btn.disabled = true; btn.textContent = 'Running AI...';
   document.getElementById('ai-loading').style.display = 'block';
@@ -1117,15 +1184,120 @@ async function downloadPDF() {
   }
 }
 
-  // ── Pro Plan Check ──
-  function isProCandidate() {
-    const c = Session.getCandidate();
-    if (!c) return false;
-    if (!c.pro_expires_at) return false;
-    return new Date() < new Date(c.pro_expires_at);
-  }
 
-  function showProWall(feature) {
+  // ════════════════════════════════════════════════
+  // PRO BUNDLE STATE — Single source of truth
+  // Controls Resume Builder + Interview Prep access
+  // ════════════════════════════════════════════════
+  const ProBundle = {
+    // Check if candidate has active Pro subscription
+    isActive() {
+      const c = Session.getCandidate();
+      if (!c || !c.pro_expires_at) return false;
+      return new Date() < new Date(c.pro_expires_at);
+    },
+
+    // Features gated behind Pro
+    FEATURES: {
+      templates:      { name: 'Pro Resume Templates',   icon: '📄' },
+      ai_optimize:    { name: 'AI Keyword Optimization', icon: '🤖' },
+      interview_prep: { name: 'Unlimited Interview Prep',icon: '🎯' },
+    },
+
+    // Unified upgrade modal — same UI regardless of entry point
+    showUpgradeModal(featureKey) {
+      const feature = this.FEATURES[featureKey] || { name: featureKey, icon: '⭐' };
+      const existing = document.getElementById('pro-bundle-modal');
+      if (existing) existing.remove();
+
+      document.body.insertAdjacentHTML('beforeend', `
+        <div id="pro-bundle-modal"
+             style="position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;
+                    display:flex;align-items:center;justify-content:center;padding:1rem;"
+             onclick="if(event.target===this)this.remove()">
+          <div style="background:#fff;border-radius:20px;padding:0;max-width:440px;width:100%;
+                      overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.25);"
+               onclick="event.stopPropagation()">
+
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:1.75rem;text-align:center;color:#fff;">
+              <div style="font-size:2.5rem;margin-bottom:0.5rem;">${feature.icon}</div>
+              <div style="font-size:0.72rem;font-weight:700;color:#93c5fd;text-transform:uppercase;
+                          letter-spacing:1px;margin-bottom:0.4rem;">Pro Feature</div>
+              <h3 style="font-size:1.1rem;font-weight:800;margin:0 0 0.3rem;">
+                Unlock ${feature.name}
+              </h3>
+              <p style="color:#94a3b8;font-size:0.82rem;margin:0;">
+                Get the full Pro Bundle — Resume Builder + Interview Prep
+              </p>
+            </div>
+
+            <!-- What's included -->
+            <div style="padding:1.25rem 1.5rem;">
+              <div style="font-size:0.75rem;font-weight:700;color:#64748b;text-transform:uppercase;
+                          letter-spacing:0.5px;margin-bottom:0.75rem;">Pro Bundle includes:</div>
+              <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.2rem;">
+                ${Object.values(ProBundle.FEATURES).map(f => `
+                  <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;color:#1e293b;">
+                    <span style="width:24px;height:24px;background:#eff6ff;border-radius:50%;
+                                 display:flex;align-items:center;justify-content:center;
+                                 font-size:0.7rem;flex-shrink:0;">${f.icon}</span>
+                    ${f.name}
+                    <span style="margin-left:auto;color:#22c55e;font-weight:700;font-size:0.8rem;">✓</span>
+                  </div>`).join('')}
+                <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;color:#1e293b;">
+                  <span style="width:24px;height:24px;background:#eff6ff;border-radius:50%;
+                               display:flex;align-items:center;justify-content:center;
+                               font-size:0.7rem;flex-shrink:0;">📧</span>
+                  Priority job alerts
+                  <span style="margin-left:auto;color:#22c55e;font-weight:700;font-size:0.8rem;">✓</span>
+                </div>
+              </div>
+
+              <!-- Price -->
+              <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;
+                          padding:1rem;text-align:center;margin-bottom:1rem;">
+                <div style="font-size:2rem;font-weight:800;color:#0f172a;">₹49
+                  <span style="font-size:1rem;font-weight:400;color:#94a3b8;">/month</span>
+                </div>
+                <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">
+                  Cancel anytime · No auto-renewal
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <button onclick="window.location.href='/pricing-candidate.html'"
+                      style="width:100%;background:#3b82f6;color:#fff;border:none;
+                             padding:0.9rem;border-radius:10px;font-size:0.95rem;
+                             font-weight:800;cursor:pointer;font-family:inherit;
+                             margin-bottom:0.5rem;transition:all 0.2s;">
+                Upgrade to Pro — ₹49/month →
+              </button>
+              <button onclick="document.getElementById('pro-bundle-modal').remove()"
+                      style="width:100%;background:none;border:none;color:#94a3b8;
+                             font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0.4rem;">
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>`);
+    },
+
+    // Gate check — call before any Pro feature
+    // Returns true if allowed, false + shows modal if not
+    gate(featureKey) {
+      if (this.isActive()) return true;
+      this.showUpgradeModal(featureKey);
+      return false;
+    }
+  };
+
+  // Alias for backward compat
+  function isProCandidate() { return ProBundle.isActive(); }
+  function showProWall(feature) { ProBundle.showUpgradeModal('templates'); }
+
+
+  function showProWallOLD(feature) {
     const msg = `
       <div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="this.remove()">
         <div style="background:#fff;border-radius:16px;padding:2rem;max-width:420px;width:100%;text-align:center;" onclick="event.stopPropagation()">
