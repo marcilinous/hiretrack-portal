@@ -191,6 +191,20 @@ body { background:#f1f5f9; }
 </style>
 
 <style>body{padding-top:64px;}</style>
+
+<style>
+/* Pro plan upsell */
+.pro-banner { background: linear-gradient(135deg,#1e3a5f,#0f172a); border-radius: 14px; padding: 1.5rem; margin: 1.5rem 0; color: #fff; display: flex; align-items: center; gap: 1.5rem; }
+.pro-banner-icon { font-size: 2.5rem; flex-shrink: 0; }
+.pro-banner-text h3 { font-size: 1rem; font-weight: 800; margin: 0 0 0.3rem; }
+.pro-banner-text p { font-size: 0.82rem; color: #94a3b8; margin: 0 0 0.75rem; }
+.btn-get-pro { background: #3b82f6; color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.pro-feature-locked { background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden; margin-bottom: 1rem; }
+.pro-feature-locked::before { content: ''; position: absolute; inset: 0; background: rgba(248,250,252,0.7); backdrop-filter: blur(2px); z-index: 1; }
+.pro-feature-locked-inner { position: relative; z-index: 2; }
+.pro-lock-badge { display: inline-flex; align-items: center; gap: 6px; background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 0.75rem; }
+.pro-upsell-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+</style>
 </head>
 <body>
 <div id="navbar"></div>
@@ -775,6 +789,7 @@ body { background:#f1f5f9; }
   if (candidate) {
     renderSkillCategories();
     init();
+    renderProSection();
   }
 
   // ── Profile Photo Upload ──
@@ -1155,6 +1170,63 @@ body { background:#f1f5f9; }
     closeEditModalDirect();
     showToast('✅ Profile updated successfully!');
   }
+
+  // ── Pro Plan Check & Upsell ──
+  function isProCandidate() {
+    const c = Session.getCandidate();
+    if (!c || !c.pro_expires_at) return false;
+    return new Date() < new Date(c.pro_expires_at);
+  }
+
+  function renderProSection() {
+    const isPro = isProCandidate();
+    const proSection = document.getElementById('pro-upsell-section');
+    if (!proSection) return;
+
+    if (isPro) {
+      const expiry = new Date(candidate.pro_expires_at);
+      proSection.innerHTML = `
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;">
+          <span style="font-size:1.5rem;">⭐</span>
+          <div>
+            <div style="font-size:0.88rem;font-weight:700;color:#15803d;">Pro Plan Active</div>
+            <div style="font-size:0.75rem;color:#64748b;">Expires ${expiry.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+          </div>
+          <a href="/resume-builder.html" style="margin-left:auto;background:#22c55e;color:#fff;text-decoration:none;padding:0.5rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:700;">Build Resume →</a>
+        </div>`;
+    } else {
+      proSection.innerHTML = `
+        <div class="pro-banner">
+          <div class="pro-banner-icon">⭐</div>
+          <div class="pro-banner-text">
+            <h3>Upgrade to Pro — ₹49/month</h3>
+            <p>Unlock AI resume builder, all templates, unlimited interview prep and priority job alerts.</p>
+            <button class="btn-get-pro" onclick="window.location.href='/pricing-candidate.html'">Upgrade to Pro →</button>
+          </div>
+        </div>
+        <div class="pro-upsell-grid">
+          <div class="pro-feature-locked">
+            <div class="pro-feature-locked-inner">
+              <div class="pro-lock-badge">🔒 Pro Feature</div>
+              <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+              <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">AI Resume Builder</div>
+              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">6 professional templates + AI keyword optimization from live jobs</div>
+              <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
+            </div>
+          </div>
+          <div class="pro-feature-locked">
+            <div class="pro-feature-locked-inner">
+              <div class="pro-lock-badge">🔒 Pro Feature</div>
+              <div style="font-size:2rem;margin-bottom:0.5rem;">🎯</div>
+              <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">Unlimited Interview Prep</div>
+              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">AI-generated role-specific questions with instant feedback. Free: 3/day.</div>
+              <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+
 </script>
 
 </body>

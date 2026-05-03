@@ -1,3 +1,86 @@
+
+/* ═══════════════════════════════════════
+   MOBILE FIRST — Global Overrides
+   Base styles for all screens, 
+   overridden for larger screens above
+   ═══════════════════════════════════════ */
+
+/* Prevent horizontal overflow globally */
+*, *::before, *::after { box-sizing: border-box; }
+html { overflow-x: hidden; }
+body { overflow-x: hidden; min-width: 320px; }
+
+/* Images never overflow */
+img, video, iframe { max-width: 100%; height: auto; }
+
+/* Tables scroll on small screens */
+table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Fix common overflow issues */
+.section, .wrap, .page-wrap, .hero, .auth-wrap { max-width: 100%; }
+
+/* Pro plan section on mobile */
+@media (max-width: 680px) {
+  /* Landing page Pro plan grid → single column */
+  div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* New Feature section padding */
+  div[style*="background:linear-gradient(135deg,#0f172a,#1e3a5f)"] {
+    padding: 2rem 0.75rem !important;
+  }
+}
+
+/* Navbar fixes for very small screens */
+@media (max-width: 380px) {
+  .nav-logo { font-size: 1.1rem; }
+  .btn-signup, .btn-login, .btn-employer { 
+    padding: 4px 8px !important; 
+    font-size: 0.72rem !important; 
+  }
+}
+
+/* Resume builder mobile */
+@media (max-width: 768px) {
+  .template-grid { grid-template-columns: 1fr 1fr !important; gap: 0.75rem; }
+  .rb-steps { padding: 0 0.5rem; }
+  .rb-step-circle { width: 28px; height: 28px; font-size: 0.72rem; }
+  .rb-step-line { width: 20px; }
+  .rb-step-label { font-size: 0.6rem; }
+  .rb-wrap { padding: 0 0.75rem 2rem; }
+  .preview-wrap { flex-direction: column; }
+  .preview-controls { width: 100%; }
+  div[style*="grid-template-columns:repeat(3,1fr)"][id] { 
+    grid-template-columns: 1fr !important; 
+  }
+}
+
+@media (max-width: 480px) {
+  .template-grid { grid-template-columns: 1fr !important; }
+  .rb-form-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Blog mobile */
+@media (max-width: 768px) {
+  .blog-grid { grid-template-columns: 1fr !important; }
+  .related-grid { grid-template-columns: 1fr 1fr !important; }
+  .blog-wrap { padding: 0 0.75rem; }
+  .article-wrap { padding: 0 0.75rem; }
+  .art-table { font-size: 0.78rem; }
+  .art-table th, .art-table td { padding: 0.5rem 0.6rem; }
+}
+
+/* Pincode 3-block layout mobile */
+@media (max-width: 768px) {
+  .pincode-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Candidate Pro section on profile mobile */
+@media (max-width: 768px) {
+  .pro-upsell-grid { grid-template-columns: 1fr !important; }
+  .pro-feature-locked { padding: 1rem !important; }
+}
+
 /* ── Fix gap above navbar — mobile ── */
 @media (max-width: 768px) {
   html, body { margin: 0 !important; padding: 0 !important; }
