@@ -246,6 +246,8 @@ body { background:#f1f5f9; }
 
   <!-- PROFILE TAB -->
   <div id="tab-profile">
+    <!-- Pro Plan Upsell -->
+    <div id="pro-upsell-section"></div>
     <!-- Profile Score Card -->
     <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
 
@@ -1182,8 +1184,15 @@ body { background:#f1f5f9; }
 
   function renderProSection() {
     const isPro = isProCandidate();
-    const proSection = document.getElementById('pro-upsell-section');
-    if (!proSection) return;
+    let proSection = document.getElementById('pro-upsell-section');
+    // Create it if missing
+    if (!proSection) {
+      proSection = document.createElement('div');
+      proSection.id = 'pro-upsell-section';
+      const tabProfile = document.getElementById('tab-profile');
+      if (tabProfile) tabProfile.insertBefore(proSection, tabProfile.firstChild);
+      else return;
+    }
 
     if (isPro) {
       const expiry = new Date(candidate.pro_expires_at);
