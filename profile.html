@@ -146,6 +146,47 @@ body { background:#f1f5f9; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
+
+/* ── PRO Badge Animation ── */
+@keyframes pro-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.8); }
+  70%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
+  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+}
+@keyframes pro-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.tab-pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: linear-gradient(100deg,#f59e0b 0%,#fde68a 45%,#f59e0b 55%,#d97706 100%);
+  background-size: 300% auto;
+  color: #7c2d12;
+  font-size: 0.58rem;
+  font-weight: 900;
+  padding: 2px 7px 2px 5px;
+  border-radius: 20px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1.5px solid #f59e0b;
+  animation: pro-pulse 1.8s ease-out infinite, pro-shimmer 2.5s linear infinite;
+  position: relative;
+  top: -1px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.tab-pro-badge::before { content: '⭐'; font-size: 0.52rem; }
+.tab.pro-tab:hover .tab-pro-badge {
+  animation: none;
+  background: linear-gradient(135deg,#f59e0b,#d97706);
+  box-shadow: 0 0 14px rgba(245,158,11,0.7);
+  transform: scale(1.12);
+}
+
 </style>
 
 <style>
