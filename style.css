@@ -62,7 +62,7 @@ img { max-width:100%; }
 .hero {
   background: linear-gradient(-45deg, #0f172a, #1e3a5f, #0f2744, #1a1a4e, #0f172a);
   background-size: 400% 400%;
-  animation: heroFlow 12s ease infinite;
+  animation: heroFlow 28s ease infinite;
   padding: 2.5rem 2rem 3.5rem;
   text-align:center;
   position:relative;
@@ -75,19 +75,42 @@ img { max-width:100%; }
   75%  { background-position: 50% 100%; }
   100% { background-position: 0% 50%; }
 }
+/* Radiant orb — top right */
 .hero::before {
   content:'';
-  position:absolute; inset:0;
-  background:
-    radial-gradient(ellipse 70% 60% at 20% 50%, rgba(59,130,246,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 30%, rgba(99,102,241,0.1) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 50% 100%, rgba(59,130,246,0.08) 0%, transparent 60%);
+  position:absolute;
+  top: -80px; right: -80px;
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+    rgba(99,102,241,0.28) 0%,
+    rgba(59,130,246,0.18) 30%,
+    rgba(59,130,246,0.06) 60%,
+    transparent 75%);
   pointer-events:none;
-  animation: heroGlow 8s ease-in-out infinite alternate;
+  animation: orbFloat 18s ease-in-out infinite alternate;
+  filter: blur(2px);
 }
-@keyframes heroGlow {
-  0%   { opacity: 0.6; }
-  100% { opacity: 1; }
+/* Radiant orb — bottom right */
+.hero::after {
+  content:'';
+  position:absolute;
+  bottom: -60px; right: 8%;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+    rgba(59,130,246,0.22) 0%,
+    rgba(99,102,241,0.12) 40%,
+    transparent 70%);
+  pointer-events:none;
+  animation: orbFloat 22s ease-in-out infinite alternate-reverse;
+  filter: blur(3px);
+}
+@keyframes orbFloat {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  33%  { transform: translate(-20px, 15px) scale(1.06); opacity: 1; }
+  66%  { transform: translate(10px, -10px) scale(0.96); opacity: 0.8; }
+  100% { transform: translate(-10px, 20px) scale(1.04); opacity: 0.9; }
 }
 .hero-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(59,130,246,0.2); border:1px solid rgba(59,130,246,0.4); color:#93c5fd; padding:0.35rem 1rem; border-radius:20px; font-size:0.8rem; font-weight:600; margin-bottom:1.2rem; letter-spacing:0.5px; }
 .hero h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:800; color:#fff; line-height:1.15; margin-bottom:1rem; }
