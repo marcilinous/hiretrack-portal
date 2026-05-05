@@ -376,8 +376,8 @@ footer span { color:var(--blue); }
   gap: 0;
 }
 .hero-left .hero-badge { align-self: flex-start; margin-bottom: 1rem; }
-.hero-left h1 { text-align: left; margin-bottom: 0.6rem; font-size: clamp(1.8rem,4vw,2.8rem); }
-.hero-left p { text-align: left; margin: 0 0 1rem; max-width: 480px; }
+.hero-left h1 { text-align: center; margin-bottom: 0.6rem; font-size: clamp(1.8rem,4vw,2.8rem); }
+.hero-left p { text-align: center; margin: 0 0 1rem; max-width: 480px; }
 .hero-left .search-wrap { width: 100%; margin: 0 0 1rem; }
 
 /* CTA Buttons */
