@@ -222,18 +222,26 @@
     { id:12, title:'MIS Officer', company:'Apollo Hospitals', location:'Bengaluru', type:'Full Time', posted:'2 days ago', status:'Active' },
   ];
 
-  function getCandidates() { return JSON.parse(localStorage.getItem('ht_candidates') || '[]'); }
-  function saveCandidates(d) { localStorage.setItem('ht_candidates', JSON.stringify(d)); }
-  function getEmployers() { return JSON.parse(localStorage.getItem('ht_employers') || '[]'); }
-  function saveEmployers(d) { localStorage.setItem('ht_employers', JSON.stringify(d)); }
-  function getApplications() { return JSON.parse(localStorage.getItem('ht_applications') || '[]'); }
-  function saveApplications(d) { localStorage.setItem('ht_applications', JSON.stringify(d)); }
-  function getEmployerJobs() { return JSON.parse(localStorage.getItem('ht_employer_jobs') || '[]'); }
-  function saveEmployerJobs(d) { localStorage.setItem('ht_employer_jobs', JSON.stringify(d)); }
+  async function getCandidates() { const { data } = await sb.from('candidates').select('id,name,email,mobile,city,created_at,pro_expires_at').order('created_at',{ascending:false}).limit(200); return data || []; }
+  async function saveCandidates(d) { /* Read-only from Supabase */ }
+  async function getEmployers() { const { data } = await sb.from('employers').select('id,company,contact_name,email,mobile,city,plan,created_at').order('created_at',{ascending:false}).limit(200); return data || []; }
+  async function saveEmployers(d) { /* Read-only from Supabase */ }
+  async function getApplications() {
+    const { data } = await sb.from('jobs').select('id,title,company,applications_count').order('created_at',{ascending:false}).limit(100);
+    return data || [];
+  }
+  async function saveApplications(d) { /* Now handled directly via Supabase */ }
+  async function getEmployerJobs() { const { data } = await sb.from('jobs').select('id,title,company,location,created_at,expires_at').order('created_at',{ascending:false}).limit(200); return data || []; }
+  async function saveEmployerJobs(d) { /* Managed via Supabase */ }
   function getAllJobs() { return [...STATIC_JOBS, ...getEmployerJobs().map(j => ({ ...j, status: j.status || 'Active', posted: new Date(j.postedAt).toLocaleDateString('en-IN') }))] ; }
 
-  function getAdminSettings() { return JSON.parse(localStorage.getItem('ht_admin_settings') || '{"featured":[],"blocked_jobs":[],"blocked_candidates":[],"blocked_employers":[]}'); }
-  function saveAdminSettings(d) { localStorage.setItem('ht_admin_settings', JSON.stringify(d)); }
+  async function getAdminSettings() {
+    const { data } = await sb.from('admin_settings').select('*').maybeSingle();
+    return data || { featured: [], blocked_jobs: [], blocked_candidates: [], blocked_employers: [] };
+  }
+  async function saveAdminSettings(d) {
+    await sb.from('admin_settings').upsert({ id: 1, ...d });
+  }
 
   // ── SECTIONS ──
   function showSection(name) {
