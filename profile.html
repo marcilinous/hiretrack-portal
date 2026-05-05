@@ -433,11 +433,15 @@ body { background:#f1f5f9; }
 
   // ── Tab switching ──
   function switchTab(tab, btn) {
-    // Pro gate for Interview Prep and Resume Builder
-    if ((tab === 'prep' || tab === 'resume-builder') && !isProCandidate()) {
+    // Resume Builder is fully Pro-gated
+    // Interview Prep: free users get 3/day — let them in, gate happens at generation
+    if (tab === 'resume-builder' && !isProCandidate()) {
       showProTabWall(tab);
       return;
     }
+    // Hide pro tab wall if visible
+    const ptw = document.getElementById('pro-tab-wall');
+    if (ptw) ptw.style.display = 'none';
     ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
       const el = document.getElementById('tab-'+t);
       if (el) el.style.display = 'none';
@@ -489,7 +493,7 @@ body { background:#f1f5f9; }
         <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem;margin:0 auto 1.5rem;max-width:360px;text-align:left;">
           <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Bundle — ₹49/month includes:</div>
           <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82rem;color:#374151;">
-            <span>📄 All 7 resume templates + AI optimization</span>
+            <span>📄 Resume Builder + AI keyword optimization</span>
             <span>🎯 Unlimited interview prep — all roles</span>
             <span>📧 Priority job alerts</span>
             <span>⚡ Profile boost — seen first by employers</span>
@@ -929,6 +933,8 @@ body { background:#f1f5f9; }
     renderSkillCategories();
     init();
     renderProSection();
+    // Pre-show prep banner if user is on prep tab
+    if (document.getElementById('tab-prep').style.display !== 'none') showPrepProBanner();
   }
 
   // ── Profile Photo Upload ──
@@ -1464,17 +1470,40 @@ body { background:#f1f5f9; }
   }
 
   function showPrepProBanner() {
-    if (isProCandidate()) return;
-    const used = getInterviewUsageToday();
-    const remaining = DAILY_FREE_LIMIT - used;
     const banner = document.getElementById('prep-usage-banner');
     if (!banner) return;
-    banner.innerHTML = remaining > 0
-      ? `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#15803d;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-          <span>⏱ Free sessions today: <strong>${used}/${DAILY_FREE_LIMIT} used</strong> · ${remaining} remaining</span>
-          <a href="/pricing-candidate.html" style="color:#3b82f6;font-weight:700;font-size:0.78rem;text-decoration:none;">Get unlimited →</a>
-         </div>`
-      : '';
+
+    if (isProCandidate()) {
+      banner.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#15803d;display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
+        <span>⭐ Pro Plan Active — Unlimited sessions</span>
+      </div>`;
+      return;
+    }
+
+    const used = getInterviewUsageToday();
+    const remaining = DAILY_FREE_LIMIT - used;
+
+    if (remaining > 0) {
+      // Show free usage counter — clear and actionable
+      banner.innerHTML = `
+        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;color:#1e40af;">🎯 Free Plan — ${remaining} session${remaining>1?'s':''} remaining today</div>
+            <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">
+              ${Array.from({length: DAILY_FREE_LIMIT}, (_,i) =>
+                `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${i < used ? '#94a3b8' : '#3b82f6'};margin-right:3px;"></span>`
+              ).join('')}
+              ${used}/${DAILY_FREE_LIMIT} used today · Resets at midnight
+            </div>
+          </div>
+          <a href="/pricing-candidate.html" style="background:#3b82f6;color:#fff;text-decoration:none;padding:0.4rem 0.85rem;border-radius:6px;font-size:0.78rem;font-weight:700;white-space:nowrap;">
+            ⭐ Go Unlimited →
+          </a>
+        </div>`;
+    } else {
+      // All 3 used — show wall
+      showPrepLimit(used);
+    }
   }
 
   function showPrepLimit_ifNeeded() {
