@@ -433,12 +433,6 @@ body { background:#f1f5f9; }
 
   // ── Tab switching ──
   function switchTab(tab, btn) {
-    // Resume Builder is fully Pro-gated
-    // Interview Prep: free users get 3/day — let them in, gate happens at generation
-    if (tab === 'resume-builder' && !isProCandidate()) {
-      showProTabWall(tab);
-      return;
-    }
     // Hide pro tab wall if visible
     const ptw = document.getElementById('pro-tab-wall');
     if (ptw) ptw.style.display = 'none';
@@ -487,9 +481,9 @@ body { background:#f1f5f9; }
         <p style="font-size:0.85rem;color:#64748b;margin:0 0 0.3rem;">
           ${tab === 'prep'
             ? 'Unlimited AI-generated, role-specific interview questions with instant feedback.'
-            : 'Build a professional resume with 7 templates and AI keyword optimization from live jobs.'}
+            : 'Build a professional resume with AI keyword optimization from live jobs.'}
         </p>
-        <p style="font-size:0.82rem;color:#94a3b8;margin:0 0 1.5rem;">Free plan: ${tab === 'prep' ? '3 sessions/day only' : 'Modern template only — upgrade for all 7'}</p>
+        <p style="font-size:0.82rem;color:#94a3b8;margin:0 0 1.5rem;">Free plan: ${tab === 'prep' ? '3 sessions/day only' : 'Free: Modern template · Pro: All templates + AI optimization'}</p>
         <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem;margin:0 auto 1.5rem;max-width:360px;text-align:left;">
           <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Bundle — ₹49/month includes:</div>
           <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82rem;color:#374151;">
@@ -539,38 +533,53 @@ body { background:#f1f5f9; }
   function renderResumeBuilderTab() {
     const el = document.getElementById('rb-tab-content');
     if (!el) return;
+    const isPro = isProCandidate();
     el.innerHTML = `
       <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:2rem;color:#fff;text-align:center;margin-bottom:1.5rem;">
         <div style="font-size:2.5rem;margin-bottom:0.75rem;">📄</div>
         <h2 style="font-size:1.1rem;font-weight:800;margin:0 0 0.4rem;">AI Resume Builder</h2>
-        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 1.2rem;">
-          7 professional templates · AI keyword optimization from live jobs · PDF download
+        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 0.5rem;">
+          Professional templates · AI keyword optimization · PDF download
         </p>
+        ${isPro
+          ? '<p style="color:#86efac;font-size:0.78rem;margin:0 0 1.2rem;">⭐ Pro Active — All templates + AI unlocked</p>'
+          : '<p style="color:#fbbf24;font-size:0.78rem;margin:0 0 1.2rem;">Free plan: Modern template available · <a href="/pricing-candidate.html" style="color:#93c5fd;font-weight:700;">Upgrade for all →</a></p>'
+        }
         <a href="/resume-builder.html"
            style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;
                   padding:0.75rem 2rem;border-radius:8px;font-size:0.92rem;font-weight:700;">
-          Open Resume Builder →
+          ${isPro ? 'Open Resume Builder →' : 'Build with Modern Template →'}
         </a>
       </div>
+      <div style="margin-bottom:0.75rem;font-size:0.8rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Templates</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
         ${[
-          {name:'Modern',free:true,emoji:'💼',color:'#1e3a5f'},
-          {name:'Executive',free:false,emoji:'🎯',color:'#0f172a'},
-          {name:'Creative',free:false,emoji:'🎨',color:'#4c1d95'},
-          {name:'Classic',free:false,emoji:'📋',color:'#374151'},
-          {name:'Minimal',free:false,emoji:'✨',color:'#0c4a6e'},
-          {name:'Simple',free:false,emoji:'📄',color:'#1c1917'},
+          {name:'Modern',  free:true,  emoji:'💼', color:'#1e3a5f'},
+          {name:'Executive',free:false, emoji:'🎯', color:'#0f172a'},
+          {name:'Creative', free:false, emoji:'🎨', color:'#4c1d95'},
+          {name:'Classic',  free:false, emoji:'📋', color:'#374151'},
+          {name:'Minimal',  free:false, emoji:'✨', color:'#0c4a6e'},
+          {name:'Simple',   free:false, emoji:'📄', color:'#1c1917'},
         ].map(t => `
-          <div style="border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;text-align:center;">
+          <div style="border:1.5px solid ${(!isPro && !t.free) ? '#e2e8f0' : (isPro ? '#e2e8f0' : '#3b82f6')};border-radius:10px;overflow:hidden;text-align:center;${(!isPro && !t.free) ? 'opacity:0.6;' : ''}">
             <div style="background:${t.color};padding:1.2rem;font-size:1.5rem;">${t.emoji}</div>
             <div style="padding:0.6rem 0.75rem;">
               <div style="font-size:0.82rem;font-weight:700;color:#0f172a;">${t.name}</div>
               ${t.free
                 ? '<div style="font-size:0.65rem;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">✓ Free</div>'
-                : '<div style="font-size:0.65rem;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">⭐ Pro</div>'}
+                : (isPro
+                    ? '<div style="font-size:0.65rem;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">✓ Unlocked</div>'
+                    : '<div style="font-size:0.65rem;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">⭐ Pro</div>'
+                  )
+              }
             </div>
           </div>`).join('')}
-      </div>`;
+      </div>
+      ${!isPro ? `
+      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:1rem;margin-top:1.2rem;text-align:center;">
+        <span style="font-size:0.85rem;color:#1e40af;">Unlock all templates + AI optimization with </span>
+        <a href="/pricing-candidate.html" style="color:#2563eb;font-weight:800;font-size:0.85rem;">Pro Plan — ₹49/month →</a>
+      </div>` : ''}`;
   }
 
   // ── Applications ──
@@ -1362,7 +1371,7 @@ body { background:#f1f5f9; }
               <div class="pro-lock-badge">🔒 Pro Feature</div>
               <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
               <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">AI Resume Builder</div>
-              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">7 professional templates + AI keyword optimization from live jobs. Free users get Modern template only.</div>
+              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">Professional templates + AI keyword optimization from live jobs. Free users get Modern template.</div>
               <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
             </div>
           </div>
