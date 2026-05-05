@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>body{padding-top:64px;}</style>
 <title>My Profile — HireTrack</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
@@ -319,6 +318,7 @@ body { background:#f1f5f9; }
 
   <!-- INTERVIEW PREP TAB -->
   <div id="tab-prep" style="display:none;">
+    <div id="prep-usage-banner"></div>
     <div class="prep-hero">
       <h2>🎯 AI Interview Prep</h2>
       <p>Get AI-generated questions for any role, or pick from our question bank</p>
@@ -689,6 +689,9 @@ body { background:#f1f5f9; }
   }
 
   async function generateAIQuestions() {
+    if (!checkInterviewPrepAccess()) return;
+    await incrementInterviewUsage(); // DB write before AI call
+    showPrepProBanner();
     const input = document.getElementById('prep-input').value.trim();
     if (!input) { showToast('Please enter a job role'); return; }
     const qa = document.getElementById('qa-box');
@@ -1209,7 +1212,7 @@ body { background:#f1f5f9; }
               <div class="pro-lock-badge">🔒 Pro Feature</div>
               <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
               <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">AI Resume Builder</div>
-              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">6 professional templates + AI keyword optimization from live jobs</div>
+              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">7 professional templates + AI keyword optimization from live jobs. Free users get Modern template only.</div>
               <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
             </div>
           </div>
@@ -1218,11 +1221,121 @@ body { background:#f1f5f9; }
               <div class="pro-lock-badge">🔒 Pro Feature</div>
               <div style="font-size:2rem;margin-bottom:0.5rem;">🎯</div>
               <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">Unlimited Interview Prep</div>
-              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">AI-generated role-specific questions with instant feedback. Free: 3/day.</div>
+              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">Role-specific AI questions, salary tips, industry prep. Free plan: 3 sessions/day only.</div>
               <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
             </div>
           </div>
         </div>`;
+    }
+  }
+
+
+  // ── Interview Prep Pro Gate — Supabase backed ──
+  const DAILY_FREE_LIMIT = 3;
+
+  // Get today's usage from candidate session (synced from DB)
+  function getInterviewUsageToday() {
+    if (!candidate) return 0;
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    if (!candidate.prep_usage_date || candidate.prep_usage_date !== today) return 0;
+    return candidate.prep_usage_count || 0;
+  }
+
+  // Increment usage in Supabase + update local session
+  async function incrementInterviewUsage() {
+    if (!candidate) return;
+    const today = new Date().toISOString().split('T')[0];
+    const isNewDay = !candidate.prep_usage_date || candidate.prep_usage_date !== today;
+    const newCount = isNewDay ? 1 : (candidate.prep_usage_count || 0) + 1;
+
+    const updates = { prep_usage_date: today, prep_usage_count: newCount };
+    await sb.from('candidates').update(updates).eq('id', candidate.id);
+
+    // Update local session so subsequent checks in same session are accurate
+    candidate.prep_usage_date = today;
+    candidate.prep_usage_count = newCount;
+    Session.setCandidate({ ...candidate, ...updates });
+  }
+
+  function checkInterviewPrepAccess() {
+    if (isProCandidate()) return true;
+    const used = getInterviewUsageToday();
+    if (used < DAILY_FREE_LIMIT) return true;
+    showPrepLimit(used);
+    return false;
+  }
+
+  function isProCandidate() {
+    if (!candidate || !candidate.pro_expires_at) return false;
+    return new Date() < new Date(candidate.pro_expires_at);
+  }
+
+  function showPrepLimit(used) {
+    const existing = document.getElementById('prep-limit-wall');
+    if (existing) return;
+    const wall = document.createElement('div');
+    wall.id = 'prep-limit-wall';
+    wall.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:2rem;text-align:center;margin-bottom:1.5rem;';
+    wall.innerHTML = `
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎯</div>
+      <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 0.4rem;">Daily Free Limit Reached</h3>
+      <p style="font-size:0.85rem;color:#64748b;margin:0 0 0.5rem;">
+        You've used <strong>${used}/${DAILY_FREE_LIMIT}</strong> free interview prep sessions today.
+      </p>
+      <p style="font-size:0.82rem;color:#94a3b8;margin:0 0 1.2rem;">
+        Resets tomorrow · Or upgrade to Pro for unlimited access
+      </p>
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:1.2rem;text-align:left;">
+        <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Plan includes:</div>
+        <div style="font-size:0.82rem;color:#334155;display:flex;flex-direction:column;gap:5px;">
+          <span>✓ Unlimited AI interview prep questions</span>
+          <span>✓ Role-specific question sets</span>
+          <span>✓ Salary negotiation tips</span>
+          <span>✓ All 7 resume templates + AI optimization</span>
+        </div>
+      </div>
+      <a href="/pricing-candidate.html" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:0.75rem 2rem;border-radius:8px;font-size:0.88rem;font-weight:700;">
+        Upgrade to Pro — ₹49/month →
+      </a>
+      <div style="font-size:0.75rem;color:#94a3b8;margin-top:0.75rem;">
+        ⏰ Free access resets in <span id="prep-reset-timer"></span>
+      </div>`;
+    
+    // Insert before prep-hero
+    const prepHero = document.querySelector('.prep-hero');
+    if (prepHero) prepHero.parentNode.insertBefore(wall, prepHero);
+
+    // Countdown to midnight
+    function updateTimer() {
+      const now = new Date();
+      const midnight = new Date(now); midnight.setHours(24,0,0,0);
+      const diff = midnight - now;
+      const h = Math.floor(diff/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      const el = document.getElementById('prep-reset-timer');
+      if (el) el.textContent = `${h}h ${m}m`;
+    }
+    updateTimer();
+    setInterval(updateTimer, 60000);
+  }
+
+  function showPrepProBanner() {
+    if (isProCandidate()) return;
+    const used = getInterviewUsageToday();
+    const remaining = DAILY_FREE_LIMIT - used;
+    const banner = document.getElementById('prep-usage-banner');
+    if (!banner) return;
+    banner.innerHTML = remaining > 0
+      ? `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#15803d;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <span>⏱ Free sessions today: <strong>${used}/${DAILY_FREE_LIMIT} used</strong> · ${remaining} remaining</span>
+          <a href="/pricing-candidate.html" style="color:#3b82f6;font-weight:700;font-size:0.78rem;text-decoration:none;">Get unlimited →</a>
+         </div>`
+      : '';
+  }
+
+  function showPrepLimit_ifNeeded() {
+    if (!isProCandidate() && getInterviewUsageToday() >= DAILY_FREE_LIMIT) {
+      setTimeout(() => showPrepLimit(getInterviewUsageToday()), 100);
     }
   }
 
