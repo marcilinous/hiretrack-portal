@@ -238,7 +238,8 @@ body { background:#f1f5f9; }
     <button class="tab active" onclick="switchTab('profile',this)">👤 Profile</button>
     <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
     <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
-    <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep</button>
+    <button class="tab pro-tab" onclick="switchTab('prep',this)">🎯 Interview Prep <span class="tab-pro-badge">PRO</span></button>
+    <button class="tab pro-tab" onclick="switchTab('resume-builder',this)">📄 Resume Builder <span class="tab-pro-badge">PRO</span></button>
   </div>
 </div>
 
@@ -319,6 +320,12 @@ body { background:#f1f5f9; }
   </div>
 
   <!-- INTERVIEW PREP TAB -->
+
+  <!-- Resume Builder Tab -->
+  <div id="tab-resume-builder" style="display:none;">
+    <div id="rb-tab-content"></div>
+  </div>
+
   <div id="tab-prep" style="display:none;">
     <div id="prep-usage-banner"></div>
     <div class="prep-hero">
@@ -426,12 +433,140 @@ body { background:#f1f5f9; }
 
   // ── Tab switching ──
   function switchTab(tab, btn) {
-    ['profile','applications','notifications','prep'].forEach(t => document.getElementById('tab-'+t).style.display='none');
+    // Pro gate for Interview Prep and Resume Builder
+    if ((tab === 'prep' || tab === 'resume-builder') && !isProCandidate()) {
+      showProTabWall(tab);
+      return;
+    }
+    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
+      const el = document.getElementById('tab-'+t);
+      if (el) el.style.display = 'none';
+    });
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-'+tab).style.display = 'block';
+    const tabEl = document.getElementById('tab-'+tab);
+    if (tabEl) tabEl.style.display = 'block';
     btn.classList.add('active');
     if (tab === 'applications') renderApps(myApps);
     if (tab === 'notifications') renderNotifs();
+    if (tab === 'prep') { showPrepProBanner(); showPrepLimit_ifNeeded(); }
+    if (tab === 'resume-builder') renderResumeBuilderTab();
+  }
+
+  function showProTabWall(tab) {
+    const feature = tab === 'prep' ? 'Interview Prep' : 'Resume Builder';
+    const icon = tab === 'prep' ? '🎯' : '📄';
+    // Show inline wall inside the tab area instead of modal
+    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
+      const el = document.getElementById('tab-'+t);
+      if (el) el.style.display = 'none';
+    });
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    // Reactivate clicked btn
+    event.target.closest('.tab').classList.add('active');
+
+    // Use a temporary div
+    let wall = document.getElementById('pro-tab-wall');
+    if (!wall) {
+      wall = document.createElement('div');
+      wall.id = 'pro-tab-wall';
+      document.querySelector('.content').appendChild(wall);
+    }
+    wall.style.display = 'block';
+    wall.innerHTML = `
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:2.5rem;text-align:center;margin-top:1rem;">
+        <div style="font-size:3rem;margin-bottom:0.75rem;">${icon}</div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:#fef3c7;color:#92400e;
+                    font-size:0.72rem;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:1rem;">
+          ⭐ PRO FEATURE
+        </div>
+        <h3 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem;">${feature}</h3>
+        <p style="font-size:0.85rem;color:#64748b;margin:0 0 0.3rem;">
+          ${tab === 'prep'
+            ? 'Unlimited AI-generated, role-specific interview questions with instant feedback.'
+            : 'Build a professional resume with 7 templates and AI keyword optimization from live jobs.'}
+        </p>
+        <p style="font-size:0.82rem;color:#94a3b8;margin:0 0 1.5rem;">Free plan: ${tab === 'prep' ? '3 sessions/day only' : 'Modern template only — upgrade for all 7'}</p>
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem;margin:0 auto 1.5rem;max-width:360px;text-align:left;">
+          <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Bundle — ₹49/month includes:</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82rem;color:#374151;">
+            <span>📄 All 7 resume templates + AI optimization</span>
+            <span>🎯 Unlimited interview prep — all roles</span>
+            <span>📧 Priority job alerts</span>
+            <span>⚡ Profile boost — seen first by employers</span>
+          </div>
+        </div>
+        <a href="/pricing-candidate.html"
+           style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;
+                  padding:0.85rem 2.5rem;border-radius:10px;font-size:0.95rem;font-weight:800;
+                  margin-bottom:0.75rem;">
+          Upgrade to Pro — ₹49/month →
+        </a>
+        <br>
+        <button onclick="
+          document.getElementById('pro-tab-wall').style.display='none';
+          switchTabDirect('profile');
+        " style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;margin-top:0.5rem;">
+          ← Back to Profile
+        </button>
+      </div>`;
+
+    // Hide other tab walls
+    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
+      const el = document.getElementById('tab-'+t);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  function switchTabDirect(tab) {
+    // Switch without Pro gate check
+    if (document.getElementById('pro-tab-wall'))
+      document.getElementById('pro-tab-wall').style.display = 'none';
+    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
+      const el = document.getElementById('tab-'+t);
+      if (el) el.style.display = 'none';
+    });
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    const tabEl = document.getElementById('tab-'+tab);
+    if (tabEl) tabEl.style.display = 'block';
+    const btn = document.querySelector(`.tab[onclick*="'${tab}'"]`);
+    if (btn) btn.classList.add('active');
+  }
+
+  function renderResumeBuilderTab() {
+    const el = document.getElementById('rb-tab-content');
+    if (!el) return;
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:2rem;color:#fff;text-align:center;margin-bottom:1.5rem;">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">📄</div>
+        <h2 style="font-size:1.1rem;font-weight:800;margin:0 0 0.4rem;">AI Resume Builder</h2>
+        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 1.2rem;">
+          7 professional templates · AI keyword optimization from live jobs · PDF download
+        </p>
+        <a href="/resume-builder.html"
+           style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;
+                  padding:0.75rem 2rem;border-radius:8px;font-size:0.92rem;font-weight:700;">
+          Open Resume Builder →
+        </a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+        ${[
+          {name:'Modern',free:true,emoji:'💼',color:'#1e3a5f'},
+          {name:'Executive',free:false,emoji:'🎯',color:'#0f172a'},
+          {name:'Creative',free:false,emoji:'🎨',color:'#4c1d95'},
+          {name:'Classic',free:false,emoji:'📋',color:'#374151'},
+          {name:'Minimal',free:false,emoji:'✨',color:'#0c4a6e'},
+          {name:'Simple',free:false,emoji:'📄',color:'#1c1917'},
+        ].map(t => `
+          <div style="border:1.5px solid #e2e8f0;border-radius:10px;overflow:hidden;text-align:center;">
+            <div style="background:${t.color};padding:1.2rem;font-size:1.5rem;">${t.emoji}</div>
+            <div style="padding:0.6rem 0.75rem;">
+              <div style="font-size:0.82rem;font-weight:700;color:#0f172a;">${t.name}</div>
+              ${t.free
+                ? '<div style="font-size:0.65rem;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">✓ Free</div>'
+                : '<div style="font-size:0.65rem;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">⭐ Pro</div>'}
+            </div>
+          </div>`).join('')}
+      </div>`;
   }
 
   // ── Applications ──
