@@ -361,8 +361,8 @@ footer span { color:var(--blue); }
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 2rem;
   align-items: center;
   text-align: left;
   position: relative;
@@ -398,7 +398,7 @@ footer span { color:var(--blue); }
 .btn-hero-secondary:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
 /* Right illustration */
-.hero-right { position: relative; height: 380px; }
+.hero-right { position: relative; height: 300px; max-width: 340px; justify-self: end; }
 .hero-illustration { position: relative; width: 100%; height: 100%; }
 
 /* Center card */
@@ -406,10 +406,10 @@ footer span { color:var(--blue); }
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 280px; height: 220px;
+  width: 200px; height: 160px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px;
+  border-radius: 16px;
   backdrop-filter: blur(4px);
   animation: heroCardFloat 6s ease-in-out infinite;
 }
@@ -421,11 +421,11 @@ footer span { color:var(--blue); }
 /* Floating job cards */
 .float-card {
   position: absolute;
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 12px;
-  padding: 8px 12px;
+  border-radius: 10px;
+  padding: 5px 9px;
   backdrop-filter: blur(8px);
   white-space: nowrap;
   animation: floatCard 5s ease-in-out infinite;
@@ -437,13 +437,13 @@ footer span { color:var(--blue); }
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-8px); }
 }
-.fc-1 { top: 2%;  left: -2%; }
-.fc-2 { top: 2%;  right: -2%; }
-.fc-3 { bottom: 22%; left: -4%; }
-.fc-4 { bottom: 22%; right: -4%; }
-.fc-avatar { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
-.fc-name { font-size: 0.78rem; font-weight: 700; color: #fff; }
-.fc-sub  { font-size: 0.65rem; color: rgba(255,255,255,0.6); }
+.fc-1 { top: 0%;   left: 0%; }
+.fc-2 { top: 0%;   right: 0%; }
+.fc-3 { bottom: 18%; left: 0%; }
+.fc-4 { bottom: 18%; right: 0%; }
+.fc-avatar { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+.fc-name { font-size: 0.7rem; font-weight: 700; color: #fff; }
+.fc-sub  { font-size: 0.6rem; color: rgba(255,255,255,0.6); }
 
 /* Stats left-aligned */
 .hero-stats { gap: 2rem; }
@@ -455,7 +455,7 @@ footer span { color:var(--blue); }
   .hero-left h1, .hero-left p { text-align: center; }
   .hero-left .hero-stats { justify-content: center; }
   .hero-ctas { justify-content: center; }
-  .hero-right { height: 280px; }
+  .hero-right { height: 220px; max-width: 100%; }
   .float-card { display: none; }
-  .hero-center-card { width: 220px; height: 170px; }
+  .hero-center-card { width: 180px; height: 140px; }
 }
