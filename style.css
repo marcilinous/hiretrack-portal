@@ -372,42 +372,60 @@ footer span { color:var(--blue); }
 /* LEFT */
 .hero-left {
   display: flex; flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 0;
+  text-align: center;
 }
-.hero-left .hero-badge { align-self: flex-start; margin-bottom: 1rem; }
-.hero-left h1 { text-align: center; margin-bottom: 0.6rem; font-size: clamp(1.8rem,4vw,2.8rem); }
-.hero-left p { text-align: center; margin: 0 0 1rem; max-width: 480px; }
-.hero-left .search-wrap { width: 100%; margin: 0 0 1rem; }
+
+/* Badge — properly centred, not misplaced */
+.hero-badge-wrap { width: 100%; display: flex; justify-content: center; margin-bottom: 1rem; }
+.hero-left h1 { text-align: center; margin-bottom: 0.6rem; font-size: clamp(1.8rem,4vw,2.8rem); width: 100%; }
+.hero-left p { text-align: center; margin: 0 0 1rem; max-width: 440px; color: rgba(255,255,255,0.75); }
+.hero-left .search-wrap { width: 100%; margin: 0 0 1.1rem; }
 
 /* CTA Buttons */
 .hero-ctas {
   display: flex; gap: 0.75rem;
-  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+  width: 100%;
 }
 .btn-hero-primary {
   display: inline-flex; align-items: center; gap: 8px;
   background: #fff; color: #1e3a5f;
-  padding: 0.75rem 1.6rem; border-radius: 10px;
+  padding: 0.8rem 1.8rem; border-radius: 10px;
   font-size: 0.92rem; font-weight: 800;
   text-decoration: none; white-space: nowrap;
   transition: all 0.2s;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  min-width: 140px; justify-content: center;
 }
-.btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
-.btn-hero-secondary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.12); color: #fff;
-  padding: 0.75rem 1.6rem; border-radius: 10px;
-  font-size: 0.92rem; font-weight: 700; white-space: nowrap;
-  text-decoration: none; border: 1.5px solid rgba(255,255,255,0.3);
-  transition: all 0.2s;
+.btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.btn-hero-employer {
+  background: #f59e0b; color: #1c1917;
 }
-.btn-hero-secondary:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+.btn-hero-employer:hover { background: #fbbf24; }
 
-.hero-left .hero-stats { justify-content: flex-start; gap: 2rem; }
+/* Stats — centred */
+.hero-left .hero-stats { justify-content: center; gap: 2rem; margin-bottom: 1rem; }
+
+/* Employer secondary bar */
+.hero-employer-bar {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex-wrap: wrap; justify-content: center;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.55);
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  width: 100%;
+}
+.hero-employer-bar a {
+  color: #93c5fd; font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.hero-employer-bar a:hover { color: #fff; text-decoration: underline; }
+.hero-bar-sep { color: rgba(255,255,255,0.3); }
 
 /* RIGHT */
 .hero-right {
