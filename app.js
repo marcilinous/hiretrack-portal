@@ -240,7 +240,7 @@ function renderNavbar(activePage) {
   // Mobile nav links
   let mobileLinks = '';
   if (candidate) {
-    mobileLinks = `<a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="/resume-builder.html" ${activePage==='resume-builder'?'class="active"':''}>📄 Build Resume</a><a href="/profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a><div class="nav-divider"></div><a href="#" onclick="CandidateAuth.logout()">Logout</a>`;
+    mobileLinks = `<a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="/profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a><div class="nav-divider"></div><a href="#" onclick="CandidateAuth.logout()">Logout</a>`;
   } else if (employer) {
     mobileLinks = `<a href="/employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="/post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="/pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="#" onclick="EmployerAuth.logout()">Logout</a>`;
   } else {
@@ -258,7 +258,6 @@ function renderNavbar(activePage) {
         <a href="/index.html" ${activePage==='home'?'class="active"':''}>Home</a>
         <a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
         <a href="/blog.html" ${activePage==='blog'?'class="active"':''}>Blog</a>
-        ${candidate ? `<a href="/resume-builder.html" ${activePage==='resume-builder'?'class="active"':''} style="color:var(--blue);font-weight:700;">📄 Build Resume</a>` : ''}
       `}
     </div>
     <div class="nav-right">${rightHTML}</div>
