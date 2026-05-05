@@ -33,18 +33,119 @@
 .rb-section.active { display: block; }
 
 /* ── Step 1: Template Selection ── */
-.template-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 1.5rem; }
-.template-card { border: 2.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; cursor: pointer; transition: all 0.2s; background: #fff; }
-.template-card:hover { border-color: #3b82f6; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(59,130,246,0.15); }
-.template-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
-.template-preview { height: 240px; overflow: hidden; position: relative; }
-.template-preview::after { content: ''; position: absolute; inset: 0; background: transparent; transition: all 0.2s; }
-.template-card.selected .template-preview::after { background: rgba(59,130,246,0.08); }
-.template-label { padding: 0.85rem 1rem; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-.template-label h3 { font-size: 0.88rem; font-weight: 700; color: #0f172a; margin: 0; }
-.template-label span { font-size: 0.72rem; color: #64748b; }
-.template-check { width: 22px; height: 22px; border-radius: 50%; background: #3b82f6; color: #fff; display: none; align-items: center; justify-content: center; font-size: 0.75rem; }
+/* ── Template Gallery ── */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+.template-card {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.25s ease,
+              border-color 0.2s ease;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+}
+.template-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(59,130,246,0.18);
+  border-color: #3b82f6;
+}
+.template-card.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.2), 0 8px 24px rgba(59,130,246,0.15);
+  transform: translateY(-2px);
+}
+.template-card.pro-locked:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 16px 40px rgba(245,158,11,0.2);
+}
+.template-preview {
+  height: 220px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+.template-card:hover .template-preview {
+  transform: scale(1.03);
+}
+.template-footer {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  flex-shrink: 0;
+}
+.template-footer-left h3 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+.template-footer-left p {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin: 0;
+}
+.template-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
 .template-card.selected .template-check { display: flex; }
+.tpl-free-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #dcfce7; color: #15803d;
+  font-size: 0.62rem; font-weight: 800;
+  padding: 2px 8px; border-radius: 10px;
+  border: 1px solid #86efac;
+}
+.tpl-pro-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: linear-gradient(135deg,#fef3c7,#fde68a);
+  color: #92400e; font-size: 0.62rem; font-weight: 800;
+  padding: 2px 8px; border-radius: 10px;
+  border: 1px solid #f59e0b;
+}
+.tpl-lock-overlay {
+  position: absolute; inset: 0;
+  background: rgba(15,23,42,0.5);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+.template-card.pro-locked:hover .tpl-lock-overlay { opacity: 1; }
+.tpl-lock-overlay .lock-icon { font-size: 2rem; }
+.tpl-lock-overlay .lock-label {
+  background: #f59e0b; color: #fff;
+  font-size: 0.75rem; font-weight: 800;
+  padding: 5px 16px; border-radius: 20px;
+}
+@media (max-width: 768px) {
+  .template-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .template-preview { height: 160px; }
+}
+@media (max-width: 480px) {
+  .template-grid { grid-template-columns: 1fr; }
+}
 
 /* ── Step 2: Form ── */
 .rb-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -346,42 +447,46 @@
   <div class="rb-section active" id="rb-step-1">
     <h2 style="font-size:1.2rem;font-weight:800;color:#0f172a;margin-bottom:0.25rem;">Choose Your Template</h2>
     <p style="color:#64748b;font-size:0.88rem;margin-bottom:0;">Pick the style that fits your industry and personality.</p>
+
     <div class="template-grid">
 
       <!-- Modern -->
       <div class="template-card selected" id="tpl-modern" onclick="selectTemplate('modern')">
-        <div class="template-preview">
-          <div style="background:#1e3a5f;padding:1rem;color:#fff;">
-            <div style="font-size:0.9rem;font-weight:800;">Your Name</div>
-            <div style="font-size:0.65rem;color:#93c5fd;margin-top:2px;">Software Engineer</div>
-            <div style="font-size:0.55rem;color:#cbd5e1;margin-top:4px;">📧 email@mail.com · 📞 9876543210</div>
+        <div class="template-preview" style="position:relative;">
+          <div style="background:#1e3a5f;padding:0.85rem;color:#fff;">
+            <div style="font-size:0.85rem;font-weight:800;letter-spacing:-0.3px;">Your Name</div>
+            <div style="font-size:0.58rem;color:#93c5fd;margin-top:2px;">Software Engineer</div>
+            <div style="font-size:0.5rem;color:#cbd5e1;margin-top:3px;">✉ email@mail.com · 📞 9876543210</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 2fr;background:#fff;height:180px;">
-            <div style="background:#f8fafc;padding:0.75rem;border-right:1px solid #e2e8f0;">
-              <div style="font-size:0.45rem;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;border-bottom:1px solid #3b82f6;padding-bottom:2px;">Skills</div>
-              <div style="font-size:0.45rem;background:#eff6ff;color:#1d4ed8;padding:1px 4px;border-radius:8px;display:inline-block;margin:1px;">Excel</div>
-              <div style="font-size:0.45rem;background:#eff6ff;color:#1d4ed8;padding:1px 4px;border-radius:8px;display:inline-block;margin:1px;">SQL</div>
-              <div style="font-size:0.45rem;background:#eff6ff;color:#1d4ed8;padding:1px 4px;border-radius:8px;display:inline-block;margin:1px;">Python</div>
-              <div style="font-size:0.45rem;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin:6px 0 4px;border-bottom:1px solid #3b82f6;padding-bottom:2px;">Education</div>
-              <div style="font-size:0.45rem;font-weight:700;color:#0f172a;">B.Com</div>
-              <div style="font-size:0.4rem;color:#64748b;">Bengaluru University</div>
+          <div style="display:grid;grid-template-columns:90px 1fr;background:#fff;height:175px;">
+            <div style="background:#f8fafc;padding:0.6rem;border-right:1px solid #e2e8f0;">
+              <div style="font-size:0.42rem;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;border-bottom:1px solid #3b82f6;padding-bottom:2px;">Skills</div>
+              <div style="font-size:0.42rem;background:#eff6ff;color:#1d4ed8;padding:1px 5px;border-radius:8px;display:inline-block;margin:1px;">Excel</div>
+              <div style="font-size:0.42rem;background:#eff6ff;color:#1d4ed8;padding:1px 5px;border-radius:8px;display:inline-block;margin:1px;">SQL</div>
+              <div style="font-size:0.42rem;background:#eff6ff;color:#1d4ed8;padding:1px 5px;border-radius:8px;display:inline-block;margin:1px;">Python</div>
+              <div style="font-size:0.42rem;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin:5px 0 3px;border-bottom:1px solid #3b82f6;padding-bottom:2px;">Education</div>
+              <div style="font-size:0.42rem;font-weight:700;color:#0f172a;">B.Com</div>
+              <div style="font-size:0.38rem;color:#64748b;">Bengaluru University</div>
             </div>
-            <div style="padding:0.75rem;">
-              <div style="font-size:0.45rem;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;border-bottom:1px solid #3b82f6;padding-bottom:2px;">Experience</div>
-              <div style="font-size:0.5rem;font-weight:700;">MIS Executive</div>
-              <div style="font-size:0.45rem;color:#3b82f6;">ABC Company · 2022–Present</div>
-              <div style="font-size:0.42rem;color:#64748b;margin-top:2px;line-height:1.4;">Managed MIS reports and data dashboards for 3 departments</div>
+            <div style="padding:0.6rem;">
+              <div style="font-size:0.42rem;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;border-bottom:1px solid #3b82f6;padding-bottom:2px;">Experience</div>
+              <div style="font-size:0.48rem;font-weight:700;margin-top:3px;">MIS Executive</div>
+              <div style="font-size:0.42rem;color:#3b82f6;">ABC Company · 2022–Present</div>
+              <div style="font-size:0.38rem;color:#64748b;margin-top:2px;line-height:1.4;">Managed data dashboards for 3 departments</div>
             </div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Modern</h3><span>Best for Tech & Finance</span></div>
-                    <div><h3>Modern</h3><span>Best for Tech & Finance</span></div>
-          <span class="tpl-free-badge">✓ Free</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Modern</h3>
+            <p>Tech & Finance</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-free-badge">✓ Free</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
       <!-- Classic -->
       <div class="template-card pro-locked" id="tpl-classic" onclick="selectTemplate('classic')">
         <div class="template-preview" style="position:relative;">
@@ -389,30 +494,33 @@
             <div class="lock-icon">🔒</div>
             <div class="lock-label">Unlock Pro</div>
           </div>
-          <div style="background:#fff;padding:1rem;text-align:center;border-bottom:2px solid #0f172a;">
-            <div style="font-size:1rem;font-weight:700;font-family:Georgia,serif;color:#0f172a;">Your Name</div>
-            <div style="font-size:0.6rem;color:#64748b;font-style:italic;margin-top:2px;">Sales Manager</div>
-            <div style="font-size:0.5rem;color:#64748b;margin-top:4px;">email@mail.com · 9876543210 · Bengaluru</div>
+          <div style="background:#fff;padding:0.85rem;text-align:center;border-bottom:2px solid #0f172a;">
+            <div style="font-size:0.9rem;font-weight:700;font-family:Georgia,serif;color:#0f172a;">Your Name</div>
+            <div style="font-size:0.55rem;color:#64748b;font-style:italic;margin-top:2px;">Sales Manager</div>
+            <div style="font-size:0.45rem;color:#64748b;margin-top:3px;">email@mail.com · 9876543210 · Bengaluru</div>
           </div>
-          <div style="background:#fff;padding:0.75rem;">
-            <div style="font-size:0.45rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #0f172a;padding-bottom:2px;margin-bottom:4px;">Professional Summary</div>
-            <div style="font-size:0.42rem;color:#374151;font-family:Georgia,serif;line-height:1.5;">Experienced professional with 5 years in sales and operations. Strong communication and leadership skills.</div>
-            <div style="font-size:0.45rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #0f172a;padding-bottom:2px;margin:6px 0 4px;">Experience</div>
+          <div style="background:#fff;padding:0.65rem;">
+            <div style="font-size:0.42rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #0f172a;padding-bottom:2px;margin-bottom:4px;">Professional Summary</div>
+            <div style="font-size:0.4rem;color:#374151;font-family:Georgia,serif;line-height:1.5;">Experienced professional with 5 years in sales. Strong communication and leadership skills.</div>
+            <div style="font-size:0.42rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #0f172a;padding-bottom:2px;margin:6px 0 4px;">Experience</div>
             <div style="display:flex;justify-content:space-between;">
-              <div style="font-size:0.48rem;font-weight:700;">Sales Manager</div>
-              <div style="font-size:0.42rem;color:#64748b;">2021–Present</div>
+              <div style="font-size:0.45rem;font-weight:700;">Sales Manager</div>
+              <div style="font-size:0.4rem;color:#64748b;">2021–Present</div>
             </div>
-            <div style="font-size:0.42rem;color:#64748b;font-style:italic;">XYZ Corp, Bengaluru</div>
+            <div style="font-size:0.4rem;color:#64748b;font-style:italic;">XYZ Corp, Bengaluru</div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Classic</h3><span>Best for Sales & HR</span></div>
-                    <div><h3>Classic</h3><span>Best for Sales & HR</span></div>
-          <span class="tpl-pro-badge">⭐ Pro</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Classic</h3>
+            <p>Sales & HR</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-pro-badge">⭐ Pro</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
       <!-- Minimal -->
       <div class="template-card pro-locked" id="tpl-minimal" onclick="selectTemplate('minimal')">
         <div class="template-preview" style="position:relative;">
@@ -420,39 +528,41 @@
             <div class="lock-icon">🔒</div>
             <div class="lock-label">Unlock Pro</div>
           </div>
-          <div style="background:#fff;padding:1rem;">
-            <div style="border-left:4px solid #3b82f6;padding-left:0.75rem;margin-bottom:1rem;">
-              <div style="font-size:1rem;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Your Name</div>
-              <div style="font-size:0.6rem;color:#3b82f6;font-weight:600;margin-top:1px;">Data Analyst</div>
-              <div style="font-size:0.45rem;color:#94a3b8;margin-top:3px;">📧 email · 📞 9876543210 · Bengaluru</div>
+          <div style="background:#fff;padding:0.85rem;">
+            <div style="border-left:4px solid #3b82f6;padding-left:0.65rem;margin-bottom:0.75rem;">
+              <div style="font-size:0.9rem;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Your Name</div>
+              <div style="font-size:0.55rem;color:#3b82f6;font-weight:600;margin-top:1px;">Data Analyst</div>
+              <div style="font-size:0.42rem;color:#94a3b8;margin-top:2px;">✉ email · 📞 9876 · 📍 Bengaluru</div>
             </div>
-            <div style="font-size:0.4rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:3px;">Experience</div>
-            <div style="height:1px;background:#e2e8f0;margin-bottom:5px;"></div>
-            <div style="display:grid;grid-template-columns:60px 1fr;gap:6px;margin-bottom:6px;">
-              <div style="font-size:0.38rem;color:#94a3b8;">2022–Now</div>
+            <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:3px;">Experience</div>
+            <div style="height:1px;background:#e2e8f0;margin-bottom:4px;"></div>
+            <div style="display:grid;grid-template-columns:55px 1fr;gap:5px;margin-bottom:5px;">
+              <div style="font-size:0.36rem;color:#94a3b8;">2022–Now</div>
               <div>
-                <div style="font-size:0.48rem;font-weight:700;color:#0f172a;">Data Analyst</div>
-                <div style="font-size:0.4rem;color:#64748b;">Tech Company</div>
+                <div style="font-size:0.45rem;font-weight:700;color:#0f172a;">Data Analyst</div>
+                <div style="font-size:0.38rem;color:#64748b;">Tech Company</div>
               </div>
             </div>
-            <div style="font-size:0.4rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:3px;margin-top:6px;">Skills</div>
-            <div style="height:1px;background:#e2e8f0;margin-bottom:5px;"></div>
+            <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:3px;">Skills</div>
+            <div style="height:1px;background:#e2e8f0;margin-bottom:4px;"></div>
             <div style="display:flex;flex-wrap:wrap;gap:2px;">
-              <span style="font-size:0.38rem;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">SQL</span>
-              <span style="font-size:0.38rem;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">Python</span>
-              <span style="font-size:0.38rem;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">Tableau</span>
+              <span style="font-size:0.36rem;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">SQL</span>
+              <span style="font-size:0.36rem;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">Python</span>
+              <span style="font-size:0.36rem;border:1px solid #e2e8f0;padding:1px 5px;border-radius:3px;">Tableau</span>
             </div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Minimal</h3><span>Best for All Industries</span></div>
-                    <div><h3>Minimal</h3><span>Best for All Industries</span></div>
-          <span class="tpl-pro-badge">⭐ Pro</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Minimal</h3>
+            <p>All Industries</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-pro-badge">⭐ Pro</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
-
       <!-- Executive -->
       <div class="template-card pro-locked" id="tpl-executive" onclick="selectTemplate('executive')">
         <div class="template-preview" style="position:relative;">
@@ -460,35 +570,38 @@
             <div class="lock-icon">🔒</div>
             <div class="lock-label">Unlock Pro</div>
           </div>
-          <div style="display:grid;grid-template-columns:70px 1fr;height:240px;">
-            <div style="background:#0f172a;padding:0.6rem;display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#fff;margin-bottom:2px;">YN</div>
-              <div style="font-size:0.4rem;color:#fff;font-weight:700;text-align:center;margin-bottom:4px;">Your Name</div>
-              <div style="font-size:0.32rem;color:#3b82f6;font-weight:800;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e3a5f;padding-bottom:2px;width:100%;margin-bottom:3px;">Skills</div>
-              <div style="font-size:0.35rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">Excel</div>
-              <div style="font-size:0.35rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">SQL</div>
-              <div style="font-size:0.35rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">Python</div>
+          <div style="display:grid;grid-template-columns:72px 1fr;height:220px;">
+            <div style="background:#0f172a;padding:0.6rem;display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <div style="width:30px;height:30px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;color:#fff;margin-bottom:2px;">YN</div>
+              <div style="font-size:0.38rem;color:#fff;font-weight:700;text-align:center;margin-bottom:3px;">Your Name</div>
+              <div style="font-size:0.3rem;color:#3b82f6;font-weight:800;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e3a5f;padding-bottom:2px;width:100%;margin-bottom:2px;">Skills</div>
+              <div style="font-size:0.33rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">Excel</div>
+              <div style="font-size:0.33rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">SQL</div>
+              <div style="font-size:0.33rem;background:#1e3a5f;color:#93c5fd;padding:1px 4px;border-radius:3px;margin:1px;">Python</div>
             </div>
-            <div style="background:#fff;padding:0.75rem;">
-              <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-bottom:5px;">Experience</div>
-              <div style="border-left:2px solid #e2e8f0;padding-left:5px;margin-bottom:5px;">
-                <div style="font-size:0.48rem;font-weight:700;">MIS Executive</div>
-                <div style="font-size:0.4rem;color:#3b82f6;">ABC Corp · 2022–Present</div>
+            <div style="background:#fff;padding:0.65rem;">
+              <div style="font-size:0.42rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-bottom:4px;">Experience</div>
+              <div style="border-left:2px solid #e2e8f0;padding-left:5px;margin-bottom:4px;">
+                <div style="font-size:0.45rem;font-weight:700;">MIS Executive</div>
+                <div style="font-size:0.38rem;color:#3b82f6;">ABC Corp · 2022–Present</div>
               </div>
-              <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-bottom:5px;margin-top:5px;">Education</div>
-              <div style="font-size:0.45rem;font-weight:700;">B.Com</div>
-              <div style="font-size:0.4rem;color:#64748b;">Bengaluru University · 2022</div>
+              <div style="font-size:0.42rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a;border-bottom:2px solid #3b82f6;padding-bottom:2px;margin-bottom:4px;">Education</div>
+              <div style="font-size:0.42rem;font-weight:700;">B.Com</div>
+              <div style="font-size:0.38rem;color:#64748b;">Bengaluru University · 2022</div>
             </div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Executive</h3><span>Best for Senior Roles</span></div>
-                    <div><h3>Executive</h3><span>Best for Senior Roles</span></div>
-          <span class="tpl-pro-badge">⭐ Pro</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Executive</h3>
+            <p>Senior Roles</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-pro-badge">⭐ Pro</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
       <!-- Creative -->
       <div class="template-card pro-locked" id="tpl-creative" onclick="selectTemplate('creative')">
         <div class="template-preview" style="position:relative;">
@@ -497,33 +610,36 @@
             <div class="lock-label">Unlock Pro</div>
           </div>
           <div style="background:linear-gradient(135deg,#6d28d9,#3b82f6);padding:0.85rem;color:#fff;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>
+            <div style="position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>
             <div style="font-size:0.85rem;font-weight:800;position:relative;">Your Name</div>
             <div style="font-size:0.55rem;color:#ddd6fe;position:relative;">Data Analyst</div>
-            <div style="font-size:0.45rem;color:#e0e7ff;margin-top:4px;position:relative;">✉ email · 📍 Bengaluru</div>
+            <div style="font-size:0.42rem;color:#e0e7ff;margin-top:3px;position:relative;">✉ email · 📍 Bengaluru</div>
           </div>
-          <div style="background:#fff;padding:0.75rem;">
-            <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;color:#6d28d9;margin-bottom:4px;display:flex;align-items:center;gap:4px;">Experience <span style="flex:1;height:1px;background:linear-gradient(to right,#6d28d9,transparent);margin-left:3px;"></span></div>
-            <div style="background:#faf5ff;border-left:3px solid #6d28d9;padding:4px 6px;border-radius:4px;margin-bottom:4px;">
-              <div style="font-size:0.45rem;font-weight:700;">Data Analyst</div>
-              <div style="font-size:0.38rem;color:#6d28d9;">TechCorp · 2021–Now</div>
+          <div style="background:#fff;padding:0.65rem;">
+            <div style="font-size:0.42rem;font-weight:800;text-transform:uppercase;color:#6d28d9;margin-bottom:3px;display:flex;align-items:center;gap:3px;">Experience <span style="flex:1;height:1px;background:linear-gradient(to right,#6d28d9,transparent);margin-left:3px;"></span></div>
+            <div style="background:#faf5ff;border-left:3px solid #6d28d9;padding:3px 6px;border-radius:4px;margin-bottom:3px;">
+              <div style="font-size:0.42rem;font-weight:700;">Data Analyst</div>
+              <div style="font-size:0.36rem;color:#6d28d9;">TechCorp · 2021–Now</div>
             </div>
-            <div style="font-size:0.45rem;font-weight:800;text-transform:uppercase;color:#6d28d9;margin-bottom:3px;">Skills</div>
+            <div style="font-size:0.42rem;font-weight:800;text-transform:uppercase;color:#6d28d9;margin-bottom:3px;">Skills</div>
             <div style="display:flex;flex-wrap:wrap;gap:2px;">
-              <span style="background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:8px;font-size:0.38rem;">SQL</span>
-              <span style="background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:8px;font-size:0.38rem;">Python</span>
-              <span style="background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:8px;font-size:0.38rem;">Tableau</span>
+              <span style="background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:8px;font-size:0.36rem;">SQL</span>
+              <span style="background:#dbeafe;color:#1d4ed8;padding:1px 5px;border-radius:8px;font-size:0.36rem;">Python</span>
+              <span style="background:#ede9fe;color:#5b21b6;padding:1px 5px;border-radius:8px;font-size:0.36rem;">Tableau</span>
             </div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Creative</h3><span>Best for Design & Marketing</span></div>
-                    <div><h3>Creative</h3><span>Best for Design & Marketing</span></div>
-          <span class="tpl-pro-badge">⭐ Pro</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Creative</h3>
+            <p>Design & Marketing</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-pro-badge">⭐ Pro</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
       <!-- Simple -->
       <div class="template-card pro-locked" id="tpl-simple" onclick="selectTemplate('simple')">
         <div class="template-preview" style="position:relative;">
@@ -531,29 +647,32 @@
             <div class="lock-icon">🔒</div>
             <div class="lock-label">Unlock Pro</div>
           </div>
-          <div style="background:#fff;padding:1rem;font-family:'Times New Roman',serif;">
-            <div style="font-size:1rem;font-weight:700;text-align:center;color:#000;">Your Name</div>
-            <div style="font-size:0.5rem;text-align:center;color:#333;margin-top:2px;">email@mail.com · 9876543210 · Bengaluru</div>
-            <hr style="border:none;border-top:1.5px solid #000;margin:6px 0 5px;">
-            <div style="font-size:0.45rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Professional Summary</div>
-            <div style="font-size:0.4rem;color:#222;font-family:'Times New Roman',serif;line-height:1.5;">Experienced professional with 5 years in data analysis and reporting. Strong communication and analytical skills.</div>
-            <hr style="border:none;border-top:1px solid #000;margin:5px 0 4px;">
-            <div style="font-size:0.45rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Experience</div>
+          <div style="background:#fff;padding:0.85rem;font-family:'Times New Roman',serif;">
+            <div style="font-size:0.9rem;font-weight:700;text-align:center;color:#000;">Your Name</div>
+            <div style="font-size:0.45rem;text-align:center;color:#333;margin-top:2px;">email@mail.com · 9876543210 · Bengaluru</div>
+            <hr style="border:none;border-top:1.5px solid #000;margin:5px 0 4px;">
+            <div style="font-size:0.42rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Professional Summary</div>
+            <div style="font-size:0.38rem;color:#222;line-height:1.5;">Experienced professional with 5 years in data analysis and reporting.</div>
+            <hr style="border:none;border-top:1px solid #000;margin:4px 0 3px;">
+            <div style="font-size:0.42rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Experience</div>
             <div style="display:flex;justify-content:space-between;">
-              <div style="font-size:0.45rem;font-weight:700;">MIS Executive</div>
-              <div style="font-size:0.4rem;color:#333;">2022–Present</div>
+              <div style="font-size:0.42rem;font-weight:700;">MIS Executive</div>
+              <div style="font-size:0.38rem;color:#333;">2022–Present</div>
             </div>
-            <div style="font-size:0.4rem;color:#333;font-style:italic;">ABC Company, Bengaluru</div>
+            <div style="font-size:0.38rem;color:#333;font-style:italic;">ABC Company, Bengaluru</div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Simple</h3><span>Best for Traditional Industries</span></div>
-                    <div><h3>Simple</h3><span>Best for Traditional Industries</span></div>
-          <span class="tpl-pro-badge">⭐ Pro</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Simple</h3>
+            <p>Traditional Industries</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-pro-badge">⭐ Pro</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
       <!-- Two Column -->
       <div class="template-card pro-locked" id="tpl-twocol" onclick="selectTemplate('twocol')">
         <div class="template-preview" style="position:relative;">
@@ -561,40 +680,42 @@
             <div class="lock-icon">🔒</div>
             <div class="lock-label">Unlock Pro</div>
           </div>
-          <div style="background:#f1f5f9;padding:0.75rem;border-bottom:3px solid #0ea5e9;">
-            <div style="font-size:0.85rem;font-weight:800;color:#0f172a;">Your Name</div>
-            <div style="font-size:0.55rem;color:#0ea5e9;font-weight:600;">Software Engineer</div>
-            <div style="font-size:0.42rem;color:#64748b;margin-top:2px;">email · phone · city</div>
+          <div style="background:#f1f5f9;padding:0.65rem;border-bottom:3px solid #0ea5e9;">
+            <div style="font-size:0.78rem;font-weight:800;color:#0f172a;">Your Name</div>
+            <div style="font-size:0.52rem;color:#0ea5e9;font-weight:600;">Software Engineer</div>
+            <div style="font-size:0.4rem;color:#64748b;margin-top:2px;">email · phone · city</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 2fr;height:170px;">
-            <div style="background:#f8fafc;padding:0.6rem;border-right:1px solid #e2e8f0;">
-              <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin-bottom:4px;">Skills</div>
-              <div style="margin-bottom:4px;"><div style="font-size:0.38rem;color:#334155;font-weight:600;margin-bottom:1px;">Python</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:85%;height:4px;border-radius:5px;"></div></div></div>
-              <div style="margin-bottom:4px;"><div style="font-size:0.38rem;color:#334155;font-weight:600;margin-bottom:1px;">SQL</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:90%;height:4px;border-radius:5px;"></div></div></div>
-              <div><div style="font-size:0.38rem;color:#334155;font-weight:600;margin-bottom:1px;">Excel</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:75%;height:4px;border-radius:5px;"></div></div></div>
+          <div style="display:grid;grid-template-columns:85px 1fr;height:155px;">
+            <div style="background:#f8fafc;padding:0.55rem;border-right:1px solid #e2e8f0;">
+              <div style="font-size:0.36rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin-bottom:3px;">Skills</div>
+              <div style="margin-bottom:3px;"><div style="font-size:0.36rem;color:#334155;font-weight:600;margin-bottom:1px;">Python</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:85%;height:4px;border-radius:5px;"></div></div></div>
+              <div style="margin-bottom:3px;"><div style="font-size:0.36rem;color:#334155;font-weight:600;margin-bottom:1px;">SQL</div><div style="background:#e2e8f0;border-radius:5px;height:4px;"><div style="background:#0ea5e9;width:90%;height:4px;border-radius:5px;"></div></div></div>
             </div>
-            <div style="padding:0.6rem;">
-              <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin-bottom:4px;">Experience</div>
-              <div style="margin-bottom:4px;">
-                <div style="font-size:0.45rem;font-weight:700;">Data Analyst</div>
-                <div style="font-size:0.38rem;color:#0ea5e9;">TechCorp · 2022–Now</div>
+            <div style="padding:0.55rem;">
+              <div style="font-size:0.36rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin-bottom:3px;">Experience</div>
+              <div style="margin-bottom:3px;">
+                <div style="font-size:0.42rem;font-weight:700;">Data Analyst</div>
+                <div style="font-size:0.36rem;color:#0ea5e9;">TechCorp · 2022–Now</div>
               </div>
-              <div style="font-size:0.38rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin:5px 0 4px;">Education</div>
-              <div style="font-size:0.42rem;font-weight:700;">B.Tech CS</div>
-              <div style="font-size:0.38rem;color:#64748b;">VTU · 2022</div>
+              <div style="font-size:0.36rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#0ea5e9;border-bottom:1px solid #0ea5e9;padding-bottom:1px;margin:4px 0 3px;">Education</div>
+              <div style="font-size:0.4rem;font-weight:700;">B.Tech CS</div>
+              <div style="font-size:0.36rem;color:#64748b;">VTU · 2022</div>
             </div>
           </div>
         </div>
-        <div class="template-label">
-          <h3>Two Column</h3><span>Best for IT & Engineering</span></div>
-                    <div><h3>Two Column</h3><span>Best for IT & Engineering</span></div>
-          <span class="tpl-pro-badge">⭐ Pro</span>
-          <div class="template-check">✓</div>
+        <div class="template-footer">
+          <div class="template-footer-left">
+            <h3>Two Column</h3>
+            <p>IT & Engineering</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="tpl-pro-badge">⭐ Pro</span>
+            <div class="template-check">✓</div>
+          </div>
         </div>
       </div>
-
     </div>
-    <div class="rb-nav">
+        <div class="rb-nav">
       <span></span>
       <button class="btn-rb-next" onclick="goStep(2)">Continue with Details →</button>
     </div>
