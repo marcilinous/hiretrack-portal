@@ -10,13 +10,9 @@
 body { background:#f1f5f9; }
 
 /* ── Profile Header ── */
-
-
-.avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); cursor:pointer; overflow:hidden; position:relative; transition:all 0.2s; }
-.avatar:hover { opacity:0.85; }
-.avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-.avatar-wrap { position:relative; display:inline-block; }
-.avatar-edit-hint { position:absolute; bottom:0; right:0; background:#3b82f6; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; border:2px solid #fff; cursor:pointer; }
+.profile-header { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:2rem; position:sticky; top:0; z-index:90; }
+.profile-header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; }
+.avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); }
 .profile-info { flex:1; }
 .profile-name { font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:0.2rem; }
 .profile-title { color:#bfdbfe; font-size:0.85rem; }
@@ -27,11 +23,11 @@ body { background:#f1f5f9; }
 .btn-edit-p { background:#fff; color:#2563eb; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
 /* ── Tabs ── */
-
-
-
-
-
+.tabs-wrap { background:#fff; border-bottom:2px solid #e2e8f0; position:sticky; top:132px; z-index:89; }
+.tabs-inner { max-width:900px; margin:0 auto; padding:0 1rem; display:flex; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; } .tabs-inner::-webkit-scrollbar{display:none;}
+.tab { padding:0.75rem 1rem; font-size:0.82rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; transition:all 0.15s; display:flex; align-items:center; gap:5px; flex-shrink:0; }
+.tab:hover { color:#2563eb; }
+.tab.active { color:#2563eb; border-bottom-color:#2563eb; }
 .notif-dot { background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
 
 /* ── Content ── */
@@ -146,407 +142,157 @@ body { background:#f1f5f9; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
-
-/* ── PRO Badge Animation ── */
-@keyframes pro-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.8); }
-  70%  { box-shadow: 0 0 0 7px rgba(245,158,11,0); }
-  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
-}
-@keyframes pro-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-.tab-pro-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: linear-gradient(100deg,#f59e0b 0%,#fde68a 45%,#f59e0b 55%,#d97706 100%);
-  background-size: 300% auto;
-  color: #7c2d12;
-  font-size: 0.58rem;
-  font-weight: 900;
-  padding: 2px 7px 2px 5px;
-  border-radius: 20px;
-  margin-left: 6px;
-  vertical-align: middle;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  border: 1.5px solid #f59e0b;
-  animation: pro-pulse 1.8s ease-out infinite, pro-shimmer 2.5s linear infinite;
-  position: relative;
-  top: -1px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.tab-pro-badge::before { content: '⭐'; font-size: 0.52rem; }
-.tab.pro-tab:hover .tab-pro-badge {
-  animation: none;
-  background: linear-gradient(135deg,#f59e0b,#d97706);
-  box-shadow: 0 0 14px rgba(245,158,11,0.7);
-  transform: scale(1.12);
-}
-
 </style>
-
-<style>
-/* ── Edit Profile Modal ── */
-.edit-modal{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;}
-.edit-modal.show{display:flex;}
-.edit-box{background:#fff;border-radius:16px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;position:relative;margin:auto;}
-.edit-box-header{padding:1.2rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;border-radius:16px 16px 0 0;}
-.edit-box-header h3{font-size:1rem;font-weight:800;margin:0;}
-.edit-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#94a3b8;line-height:1;}
-.edit-tabs{display:flex;border-bottom:2px solid #e2e8f0;padding:0 1.5rem;gap:0;overflow-x:auto;}
-.edit-tab{padding:0.7rem 1rem;font-size:0.8rem;font-weight:600;color:#64748b;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;white-space:nowrap;}
-.edit-tab.active{color:#2563eb;border-bottom-color:#2563eb;}
-.edit-body{padding:1.5rem;}
-.edit-section{display:none;}
-.edit-section.active{display:block;}
-.edit-fg{margin-bottom:1rem;}
-.edit-fg label{display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.4rem;}
-.edit-fg input,.edit-fg select,.edit-fg textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.88rem;font-family:inherit;outline:none;transition:border 0.2s;}
-.edit-fg input:focus,.edit-fg select:focus,.edit-fg textarea:focus{border-color:#2563eb;}
-.edit-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-.skills-input-wrap{display:flex;gap:8px;}
-.skills-input-wrap input{flex:1;}
-.skills-input-wrap button{padding:0.6rem 1rem;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
-.skill-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:0.75rem;}
-.skill-tag{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:20px;padding:4px 10px;font-size:0.78rem;font-weight:600;display:flex;align-items:center;gap:5px;}
-.skill-tag button{background:none;border:none;color:#93c5fd;cursor:pointer;font-size:0.85rem;line-height:1;padding:0;font-family:inherit;}
-.skill-tag button:hover{color:#ef4444;}
-.edit-footer{padding:1rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:0.75rem;justify-content:flex-end;position:sticky;bottom:0;background:#fff;border-radius:0 0 16px 16px;}
-.btn-save-edit{background:#2563eb;color:#fff;border:none;padding:0.65rem 1.5rem;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;}
-.btn-save-edit:hover{background:#1d4ed8;}
-.btn-cancel-edit{background:#f1f5f9;color:#374151;border:none;padding:0.65rem 1.2rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;}
-/* Toggle switch */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem;}
-.toggle-row-left h4{font-size:0.88rem;font-weight:700;color:#1e293b;margin:0 0 0.2rem;}
-.toggle-row-left p{font-size:0.78rem;color:#64748b;margin:0;}
-.toggle-switch{position:relative;width:48px;height:26px;flex-shrink:0;}
-.toggle-switch input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:26px;transition:0.3s;}
-.toggle-slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s;}
-.toggle-switch input:checked + .toggle-slider{background:#2563eb;}
-.toggle-switch input:checked + .toggle-slider:before{transform:translateX(22px);}
-</style>
-
-<style>
-/* Pro plan upsell */
-.pro-banner { background: linear-gradient(135deg,#1e3a5f,#0f172a); border-radius: 14px; padding: 1.5rem; margin: 1.5rem 0; color: #fff; display: flex; align-items: center; gap: 1.5rem; }
-.pro-banner-icon { font-size: 2.5rem; flex-shrink: 0; }
-.pro-banner-text h3 { font-size: 1rem; font-weight: 800; margin: 0 0 0.3rem; }
-.pro-banner-text p { font-size: 0.82rem; color: #94a3b8; margin: 0 0 0.75rem; }
-.btn-get-pro { background: #3b82f6; color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
-.pro-feature-locked { background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 1.5rem; text-align: center; position: relative; overflow: hidden; margin-bottom: 1rem; }
-.pro-feature-locked::before { content: ''; position: absolute; inset: 0; background: rgba(248,250,252,0.7); backdrop-filter: blur(2px); z-index: 1; }
-.pro-feature-locked-inner { position: relative; z-index: 2; }
-.pro-lock-badge { display: inline-flex; align-items: center; gap: 6px; background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 0.75rem; }
-.pro-upsell-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
-
-/* ══ SIDEBAR LAYOUT ══════════════════════════════ */
-.profile-layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  height: calc(100vh - 64px);
-  background: #f8fafc;
-  overflow: hidden;
-}
-.profile-sidebar {
-  background: #fff;
-  border-right: 1.5px solid #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 64px;
-  height: calc(100vh - 64px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  z-index: 10;
-}
-.profile-sidebar::-webkit-scrollbar { width: 3px; }
-.profile-sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; }
-
-/* Avatar & summary */
-.sb-profile-summary {
-  padding: 1.25rem 1rem 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-.sb-avatar-wrap {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 0.6rem;
-  cursor: pointer;
-}
-.sb-avatar {
-  width: 68px; height: 68px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #e2e8f0;
-  display: block;
-}
-.sb-avatar-edit {
-  position: absolute; bottom: 1px; right: 1px;
-  background: #3b82f6; color: #fff;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.6rem;
-}
-.sb-name { font-size: 0.88rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem; }
-.sb-role { font-size: 0.72rem; color: #64748b; margin-bottom: 0.5rem; }
-.sb-score-bar {
-  width: 100%; height: 5px;
-  background: #f1f5f9; border-radius: 10px;
-  margin-bottom: 0.2rem; overflow: hidden;
-}
-.sb-score-fill {
-  height: 100%;
-  background: linear-gradient(to right, #3b82f6, #22c55e);
-  border-radius: 10px;
-  width: 0%;
-  transition: width 0.8s ease;
-}
-.sb-score-label { font-size: 0.68rem; color: #94a3b8; }
-
-/* Nav */
-.sb-nav { flex: 1; padding: 0.5rem 0; }
-.sb-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.65rem 1rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
-  border-left: 3px solid transparent;
-  transition: all 0.15s;
-  user-select: none;
-}
-.sb-nav-item:hover { background: #f8fafc; color: #1d4ed8; }
-.sb-nav-item.active {
-  background: #eff6ff;
-  color: #2563eb;
-  border-left-color: #2563eb;
-}
-.sb-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
-.sb-badge {
-  margin-left: auto;
-  font-size: 0.55rem;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 8px;
-  background: linear-gradient(100deg,#f59e0b,#fcd34d,#f59e0b);
-  background-size: 200% auto;
-  color: #7c2d12;
-  border: 1px solid rgba(245,158,11,0.5);
-  animation: pro-pulse 2s ease-out infinite;
-  flex-shrink: 0;
-}
-@keyframes pro-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.7); }
-  70%  { box-shadow: 0 0 0 5px rgba(245,158,11,0); }
-  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
-}
-.sb-divider { height: 1px; background: #f1f5f9; margin: 0.4rem 1rem; }
-
-/* Bottom buttons */
-.sb-bottom {
-  padding: 0.85rem 1rem;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.sb-edit-btn {
-  background: #3b82f6; color: #fff; border: none;
-  padding: 0.6rem; border-radius: 8px;
-  font-size: 0.8rem; font-weight: 700;
-  cursor: pointer; font-family: inherit; width: 100%;
-}
-.sb-logout-btn {
-  background: none; color: #94a3b8;
-  border: 1px solid #e2e8f0;
-  padding: 0.55rem; border-radius: 8px;
-  font-size: 0.75rem; font-weight: 600;
-  cursor: pointer; font-family: inherit; width: 100%;
-}
-.sb-logout-btn:hover { color: #ef4444; border-color: #fecaca; }
-
-/* Main content */
-.profile-main { min-height: calc(100vh - 64px); overflow-y: auto; height: calc(100vh - 64px); }
-.profile-main-inner { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
-
-/* Tab panels */
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* Related jobs */
-.related-jobs-widget {
-  background: #fff; border: 1.5px solid #e2e8f0;
-  border-radius: 12px; padding: 1rem; margin-top: 1.25rem;
-}
-.related-jobs-widget h4 {
-  font-size: 0.82rem; font-weight: 800;
-  color: #0f172a; margin: 0 0 0.75rem;
-}
-.rj-card {
-  padding: 0.6rem 0; border-bottom: 1px solid #f1f5f9; cursor: pointer;
-}
-.rj-card:last-child { border-bottom: none; }
-.rj-card:hover .rj-title { color: #3b82f6; }
-.rj-title { font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; }
-.rj-meta { font-size: 0.7rem; color: #94a3b8; }
-
-/* Mobile */
-@media (max-width: 860px) {
-  .profile-layout { grid-template-columns: 1fr; }
-  .profile-sidebar {
-    position: static; height: auto;
-    border-right: none; border-bottom: 1.5px solid #e2e8f0;
-  }
-  .sb-profile-summary {
-    flex-direction: row; text-align: left; gap: 0.75rem; align-items: center;
-  }
-  .sb-score-bar, .sb-score-label { display: none; }
-  .sb-nav {
-    display: flex; flex-wrap: nowrap;
-    overflow-x: auto; padding: 0;
-    scrollbar-width: none;
-  }
-  .sb-nav::-webkit-scrollbar { display: none; }
-  .sb-nav-item {
-    border-left: none; border-bottom: 3px solid transparent;
-    padding: 0.6rem 0.85rem; flex-shrink: 0;
-    font-size: 0.76rem;
-  }
-  .sb-nav-item.active { border-bottom-color: #2563eb; border-left: none; background: none; }
-  .sb-bottom { flex-direction: row; }
-  .sb-edit-btn, .sb-logout-btn { padding: 0.5rem 0.75rem; font-size: 0.75rem; }
-  .profile-main-inner { padding: 1rem 0.75rem; }
-}
-
-</style>
-
 </head>
 <body>
 <div id="navbar"></div>
 
 <!-- Profile Header -->
-<div class="profile-layout">
-
-  <!-- ── LEFT SIDEBAR ── -->
-  <aside class="profile-sidebar" id="profile-sidebar">
-
-    <!-- Profile Summary -->
-    <div class="sb-profile-summary">
-      <div class="sb-avatar-wrap" onclick="document.getElementById('photo-upload').click()">
-        <img class="sb-avatar" id="sb-avatar-img" src="https://ui-avatars.com/api/?name=User&background=1e3a5f&color=fff&size=128" alt="Profile"/>
-        <div class="sb-avatar-edit">✏️</div>
-        <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="uploadPhoto(this)"/>
+<div class="profile-header">
+  <div class="profile-header-inner">
+    <div class="avatar" id="p-avatar">?</div>
+    <div class="profile-info">
+      <div style="display:flex;align-items:center;gap:0.75rem;"><div class="profile-name" id="p-name">Loading...</div><span id="p-score-badge" style="background:rgba(255,255,255,0.2);color:#fff;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;"></span></div>
+      <div class="profile-title" id="p-title">Job Seeker</div>
+      <div class="profile-meta">
+        <span id="p-city">📍 —</span>
+        <span id="p-exp">🎓 —</span>
+        <span id="p-mobile">📞 —</span>
       </div>
+    </div>
+    <div class="profile-actions">
+      <button class="btn-edit-p" onclick="openEditModal()">✏️ Edit Profile</button>
+      <button class="btn-logout-p" onclick="CandidateAuth.logout()">Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs-inner">
+    <button class="tab active" onclick="switchTab('profile',this)">👤 Profile</button>
+    <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
+    <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
+    <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep <span style="font-size:0.6rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#d97706);color:#7c2d12;padding:2px 6px;border-radius:8px;margin-left:2px;">PRO</span></button>
+    <button class="tab" onclick="switchTab('resume-builder',this)">📄 Resume Builder <span style="font-size:0.6rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#d97706);color:#7c2d12;padding:2px 6px;border-radius:8px;margin-left:2px;">PRO</span></button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- PROFILE TAB -->
+  <div id="tab-profile">
+    <!-- Profile Score Card -->
+    <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
+
+    <div class="profile-grid">
       <div>
-        <div class="sb-name" id="sb-name">Loading...</div>
-        <div class="sb-role" id="sb-role">—</div>
-        <div class="sb-score-bar"><div class="sb-score-fill" id="sb-score-fill" style="width:0%"></div></div>
-        <div class="sb-score-label" id="sb-score-label">Profile score: 0%</div>
-      </div>
-    </div>
-
-    <!-- Nav Items -->
-    <nav class="sb-nav">
-      <div class="sb-nav-item active" id="nav-profile" onclick="switchTab('profile',this)">
-        <span class="sb-icon">👤</span> Profile
-        <span id="sb-score-chip" style="margin-left:auto;font-size:0.62rem;font-weight:700;background:#eff6ff;color:#1d4ed8;padding:2px 7px;border-radius:10px;display:none;">0%</span>
-      </div>
-      <div class="sb-nav-item" id="nav-applications" onclick="switchTab('applications',this)">
-        <span class="sb-icon">📋</span> My Applications
-      </div>
-      <div class="sb-nav-item" id="nav-notifications" onclick="switchTab('notifications',this)">
-        <span class="sb-icon">🔔</span> Notifications
-      </div>
-      <div class="sb-divider"></div>
-      <div class="sb-nav-item" id="nav-prep" onclick="switchTab('prep',this)">
-        <span class="sb-icon">🎯</span> Interview Prep
-        <span class="sb-badge">PRO</span>
-      </div>
-      <div class="sb-nav-item" id="nav-resume-builder" onclick="switchTab('resume-builder',this)">
-        <span class="sb-icon">📄</span> Resume Builder
-        <span class="sb-badge">PRO</span>
-      </div>
-    </nav>
-
-    <!-- Bottom actions -->
-    <div class="sb-bottom">
-      <button class="sb-edit-btn" onclick="openEditModal()">✏️ Edit Profile</button>
-      <button class="sb-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
-    </div>
-  </aside>
-
-  <!-- ── MAIN CONTENT ── -->
-  <main class="profile-main">
-    <div class="profile-main-inner">
-
-      <!-- Pro Upsell -->
-      <div id="pro-upsell-section"></div>
-
-      <!-- Profile Tab -->
-      <div class="tab-panel active" id="tab-profile">
-        <!-- Score + details rendered by JS -->
-        <div class="related-jobs-widget" id="related-jobs-widget" style="display:none;">
-          <h4>💼 Jobs Matching Your Profile</h4>
-          <div style="font-size:0.8rem;color:#94a3b8;padding:0.5rem 0;">Loading...</div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Personal Info</h3>
+          <div class="info-row"><span class="label">Email</span><span class="value" id="d-email">—</span></div>
+          <div class="info-row"><span class="label">Mobile</span><span class="value" id="d-mobile">—</span></div>
+          <div class="info-row"><span class="label">City</span><span class="value" id="d-city">—</span></div>
+          <div class="info-row"><span class="label">Experience</span><span class="value" id="d-exp">—</span></div>
+          <div class="info-row"><span class="label">Current Role</span><span class="value" id="d-title">—</span></div>
+          <div class="info-row"><span class="label">Company</span><span class="value" id="d-company">—</span></div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Job Preferences</h3>
+          <div class="info-row"><span class="label">Job Type</span><span class="value" id="d-jobtype">—</span></div>
+          <div class="info-row"><span class="label">Expected Salary</span><span class="value" id="d-salary">—</span></div>
+          <div class="info-row"><span class="label">Notice Period</span><span class="value" id="d-notice">—</span></div>
+        </div>
+        <div class="card">
+          <h3>Resume</h3>
+          <div id="resume-section">
+            <p style="font-size:0.82rem;color:#94a3b8;">No resume uploaded</p>
+          </div>
         </div>
       </div>
-
-      <!-- Applications Tab -->
-      <div class="tab-panel" id="tab-applications">
-        <h2 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 1rem;">My Applications</h2>
-        <div id="apps-list"></div>
+      <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>About</h3>
+          <div id="d-about" style="font-size:0.85rem;color:#64748b;line-height:1.6;">—</div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Skills</h3>
+          <div id="d-skills"><p style="font-size:0.82rem;color:#94a3b8;">No skills added</p></div>
+        </div>
+        <div class="card">
+          <h3>Activity Summary</h3>
+          <div class="info-row"><span class="label">Total Applications</span><span class="value" id="sum-total">0</span></div>
+          <div class="info-row"><span class="label">Shortlisted</span><span class="value" style="color:#d97706;" id="sum-short">0</span></div>
+          <div class="info-row"><span class="label">Interviews</span><span class="value" style="color:#0e7490;" id="sum-inter">0</span></div>
+          <div class="info-row"><span class="label">Hired</span><span class="value" style="color:#15803d;" id="sum-hired">0</span></div>
+          <div class="info-row"><span class="label">Member since</span><span class="value" id="sum-since">—</span></div>
+        </div>
       </div>
-
-      <!-- Notifications Tab -->
-      <div class="tab-panel" id="tab-notifications">
-        <h2 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 1rem;">Notifications</h2>
-        <div id="notifs-list"></div>
-      </div>
-
-      <!-- Interview Prep Tab -->
-      <div class="tab-panel" id="tab-prep">
-        <div id="prep-usage-banner"></div>
-        <!-- Prep content rendered by JS -->
-      </div>
-
-      <!-- Resume Builder Tab -->
-      <div class="tab-panel" id="tab-resume-builder">
-        <div id="rb-tab-content"></div>
-      </div>
-
     </div>
-  </main>
+  </div>
+
+  <!-- APPLICATIONS TAB -->
+  <div id="tab-applications" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="font-size:1rem;font-weight:800;">My Applications</h2>
+      <select id="app-filter" onchange="filterApps()" style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.4rem 0.8rem;font-size:0.82rem;font-family:inherit;outline:none;">
+        <option value="">All Status</option>
+        <option>Applied</option><option>Viewed</option><option>Shortlisted</option>
+        <option>Interview</option><option>Hired</option><option>Rejected</option>
+      </select>
+    </div>
+    <div id="apps-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- NOTIFICATIONS TAB -->
+  <div id="tab-notifications" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="font-size:1rem;font-weight:800;">Notifications</h2>
+      <button onclick="markAllRead()" style="background:none;border:none;color:#2563eb;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Mark all as read</button>
+    </div>
+    <div id="notif-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- INTERVIEW PREP TAB -->
+  <div id="tab-prep" style="display:none;">
+    <div class="prep-hero">
+      <h2>🎯 AI Interview Prep</h2>
+      <p>Get AI-generated questions for any role, or pick from our question bank</p>
+      <div class="prep-ai-row">
+        <input type="text" id="prep-input" placeholder="e.g. MIS Executive at Infosys, Data Analyst at Wipro..." />
+        <button onclick="generateAIQuestions()">Generate Questions</button>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
+    <div class="prep-categories" id="skill-categories">
+      <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
+    </div>
+
+    <div class="qa-box" id="qa-box" style="display:none;">
+      <div class="qa-header">
+        <h3 id="qa-title">Interview Questions</h3>
+        <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
+      </div>
+      <div id="qa-list"></div>
+    </div>
+  </div>
+
+  <!-- RESUME BUILDER TAB -->
+  <div id="tab-resume-builder" style="display:none;">
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:2rem;color:#fff;text-align:center;margin-bottom:1.5rem;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">📄</div>
+      <h2 style="font-size:1.1rem;font-weight:800;margin:0 0 0.4rem;">AI Resume Builder</h2>
+      <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 1.2rem;">Professional templates · AI keyword optimization from live jobs · PDF download</p>
+      <a href="/resume-builder.html" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:0.75rem 2rem;border-radius:8px;font-size:0.92rem;font-weight:700;">Open Resume Builder →</a>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
-
-  // ── Populate sidebar profile summary ──
-  function initSidebar(c) {
-    if (!c) return;
-    const nameEl = document.getElementById('sb-name');
-    const roleEl = document.getElementById('sb-role');
-    const avatarEl = document.getElementById('sb-avatar-img');
-    if (nameEl) nameEl.textContent = c.name || 'Your Name';
-    if (roleEl) roleEl.textContent = c.jobtitle || (c.city ? '📍 '+c.city : 'Complete your profile');
-    if (avatarEl && c.profile_photo) avatarEl.src = c.profile_photo;
-    else if (avatarEl && c.name) avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=1e3a5f&color=fff&size=128`;
-  }
   const candidate = Session.getCandidate();
   if (!candidate) { window.location.href = 'login.html'; }
 
@@ -555,18 +301,17 @@ body { background:#f1f5f9; }
 
   // ── Init ──
   async function init() {
-    // ── Sidebar profile summary ──
+    const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
     if (candidate.profile_photo) {
-      const sbAvatar = document.getElementById('sb-avatar-img');
-      if (sbAvatar) sbAvatar.src = candidate.profile_photo;
-    } else if (candidate.name) {
-      const sbAvatar = document.getElementById('sb-avatar-img');
-      if (sbAvatar) sbAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=1e3a5f&color=fff&size=128`;
+      document.getElementById('p-avatar').innerHTML = '<img src="'+candidate.profile_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+    } else {
+      document.getElementById('p-avatar').textContent = initials;
     }
-    const sbName = document.getElementById('sb-name');
-    const sbRole = document.getElementById('sb-role');
-    if (sbName) sbName.textContent = candidate.name || 'Your Name';
-    if (sbRole) sbRole.textContent = candidate.jobtitle || (candidate.city ? '📍 '+candidate.city : 'Complete your profile');
+    document.getElementById('p-name').textContent = candidate.name;
+    document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
+    document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
+    document.getElementById('p-exp').textContent = '🎓 ' + (candidate.experience||'—');
+    document.getElementById('p-mobile').textContent = '📞 ' + (candidate.mobile||'—');
     document.getElementById('d-email').textContent = candidate.email||'—';
     document.getElementById('d-mobile').textContent = candidate.mobile||'—';
     document.getElementById('d-city').textContent = candidate.city||'—';
@@ -610,7 +355,7 @@ body { background:#f1f5f9; }
     document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
 
     // Render profile score after apps are loaded (needs myApps.length)
-    // Score rendered inside renderProfileTabContent()
+    renderProfileScore();
 
     // Load notifications
     const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
@@ -624,155 +369,17 @@ body { background:#f1f5f9; }
 
   // ── Tab switching ──
   function switchTab(tab, btn) {
-    // Hide pro tab wall if visible
-    const ptw = document.getElementById('pro-tab-wall');
-    if (ptw) ptw.style.display = 'none';
-    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
-      const el = document.getElementById('tab-'+t);
-      if (el) el.style.display = 'none';
-    });
-    document.querySelectorAll('.sb-nav-item').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    const tabEl = document.getElementById('tab-'+tab);
-    if (tabEl) tabEl.classList.add('active');
-    const navEl = document.getElementById('nav-'+tab);
-    if (navEl) navEl.classList.add('active');
+    // Pro gate
+    if ((tab === 'prep' || tab === 'resume-builder') && !isProCandidate()) {
+      showProWall(tab);
+      return;
+    }
+    ['profile','applications','notifications','prep','resume-builder'].forEach(t => { const e=document.getElementById('tab-'+t); if(e) e.style.display='none'; });
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-'+tab).style.display = 'block';
+    btn.classList.add('active');
     if (tab === 'applications') renderApps(myApps);
     if (tab === 'notifications') renderNotifs();
-    if (tab === 'prep') { showPrepProBanner(); showPrepLimit_ifNeeded(); }
-    if (tab === 'resume-builder') renderResumeBuilderTab();
-  }
-
-  function showProTabWall(tab) {
-    const feature = tab === 'prep' ? 'Interview Prep' : 'Resume Builder';
-    const icon = tab === 'prep' ? '🎯' : '📄';
-    // Show inline wall inside the tab area instead of modal
-    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
-      const el = document.getElementById('tab-'+t);
-      if (el) el.style.display = 'none';
-    });
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    // Reactivate clicked btn
-    event.target.closest('.tab').classList.add('active');
-
-    // Use a temporary div
-    let wall = document.getElementById('pro-tab-wall');
-    if (!wall) {
-      wall = document.createElement('div');
-      wall.id = 'pro-tab-wall';
-      document.querySelector('.content').appendChild(wall);
-    }
-    wall.style.display = 'block';
-    wall.innerHTML = `
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:2.5rem;text-align:center;margin-top:1rem;">
-        <div style="font-size:3rem;margin-bottom:0.75rem;">${icon}</div>
-        <div style="display:inline-flex;align-items:center;gap:6px;background:#fef3c7;color:#92400e;
-                    font-size:0.72rem;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:1rem;">
-          ⭐ PRO FEATURE
-        </div>
-        <h3 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem;">${feature}</h3>
-        <p style="font-size:0.85rem;color:#64748b;margin:0 0 0.3rem;">
-          ${tab === 'prep'
-            ? 'Unlimited AI-generated, role-specific interview questions with instant feedback.'
-            : 'Build a professional resume with AI keyword optimization from live jobs.'}
-        </p>
-        <p style="font-size:0.82rem;color:#94a3b8;margin:0 0 1.5rem;">Free plan: ${tab === 'prep' ? '3 sessions/day only' : 'Free: Modern template · Pro: All templates + AI optimization'}</p>
-        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem;margin:0 auto 1.5rem;max-width:360px;text-align:left;">
-          <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Bundle — ₹49/month includes:</div>
-          <div style="display:flex;flex-direction:column;gap:6px;font-size:0.82rem;color:#374151;">
-            <span>📄 Resume Builder + AI keyword optimization</span>
-            <span>🎯 Unlimited interview prep — all roles</span>
-            <span>📧 Priority job alerts</span>
-            <span>⚡ Profile boost — seen first by employers</span>
-          </div>
-        </div>
-        <a href="/pricing-candidate.html"
-           style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;
-                  padding:0.85rem 2.5rem;border-radius:10px;font-size:0.95rem;font-weight:800;
-                  margin-bottom:0.75rem;">
-          Upgrade to Pro — ₹49/month →
-        </a>
-        <br>
-        <button onclick="
-          document.getElementById('pro-tab-wall').style.display='none';
-          switchTabDirect('profile');
-        " style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;margin-top:0.5rem;">
-          ← Back to Profile
-        </button>
-      </div>`;
-
-    // Hide other tab walls
-    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
-      const el = document.getElementById('tab-'+t);
-      if (el) el.style.display = 'none';
-    });
-  }
-
-  function switchTabDirect(tab) {
-    // Switch without Pro gate check
-    if (document.getElementById('pro-tab-wall'))
-      document.getElementById('pro-tab-wall').style.display = 'none';
-    ['profile','applications','notifications','prep','resume-builder'].forEach(t => {
-      const el = document.getElementById('tab-'+t);
-      if (el) el.style.display = 'none';
-    });
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    const tabEl = document.getElementById('tab-'+tab);
-    if (tabEl) tabEl.style.display = 'block';
-    const btn = document.querySelector(`.tab[onclick*="'${tab}'"]`);
-    if (btn) btn.classList.add('active');
-  }
-
-  function renderResumeBuilderTab() {
-    const el = document.getElementById('rb-tab-content');
-    if (!el) return;
-    const isPro = isProCandidate();
-    el.innerHTML = `
-      <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:2rem;color:#fff;text-align:center;margin-bottom:1.5rem;">
-        <div style="font-size:2.5rem;margin-bottom:0.75rem;">📄</div>
-        <h2 style="font-size:1.1rem;font-weight:800;margin:0 0 0.4rem;">AI Resume Builder</h2>
-        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 0.5rem;">
-          Professional templates · AI keyword optimization · PDF download
-        </p>
-        ${isPro
-          ? '<p style="color:#86efac;font-size:0.78rem;margin:0 0 1.2rem;">⭐ Pro Active — All templates + AI unlocked</p>'
-          : '<p style="color:#fbbf24;font-size:0.78rem;margin:0 0 1.2rem;">Free plan: Modern template available · <a href="/pricing-candidate.html" style="color:#93c5fd;font-weight:700;">Upgrade for all →</a></p>'
-        }
-        <a href="/resume-builder.html"
-           style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;
-                  padding:0.75rem 2rem;border-radius:8px;font-size:0.92rem;font-weight:700;">
-          ${isPro ? 'Open Resume Builder →' : 'Build with Modern Template →'}
-        </a>
-      </div>
-      <div style="margin-bottom:0.75rem;font-size:0.8rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Templates</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
-        ${[
-          {name:'Modern',  free:true,  emoji:'💼', color:'#1e3a5f'},
-          {name:'Executive',free:false, emoji:'🎯', color:'#0f172a'},
-          {name:'Creative', free:false, emoji:'🎨', color:'#4c1d95'},
-          {name:'Classic',  free:false, emoji:'📋', color:'#374151'},
-          {name:'Minimal',  free:false, emoji:'✨', color:'#0c4a6e'},
-          {name:'Simple',   free:false, emoji:'📄', color:'#1c1917'},
-        ].map(t => `
-          <div style="border:1.5px solid ${(!isPro && !t.free) ? '#e2e8f0' : (isPro ? '#e2e8f0' : '#3b82f6')};border-radius:10px;overflow:hidden;text-align:center;${(!isPro && !t.free) ? 'opacity:0.6;' : ''}">
-            <div style="background:${t.color};padding:1.2rem;font-size:1.5rem;">${t.emoji}</div>
-            <div style="padding:0.6rem 0.75rem;">
-              <div style="font-size:0.82rem;font-weight:700;color:#0f172a;">${t.name}</div>
-              ${t.free
-                ? '<div style="font-size:0.65rem;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">✓ Free</div>'
-                : (isPro
-                    ? '<div style="font-size:0.65rem;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">✓ Unlocked</div>'
-                    : '<div style="font-size:0.65rem;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px;">⭐ Pro</div>'
-                  )
-              }
-            </div>
-          </div>`).join('')}
-      </div>
-      ${!isPro ? `
-      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:1rem;margin-top:1.2rem;text-align:center;">
-        <span style="font-size:0.85rem;color:#1e40af;">Unlock all templates + AI optimization with </span>
-        <a href="/pricing-candidate.html" style="color:#2563eb;font-weight:800;font-size:0.85rem;">Pro Plan — ₹49/month →</a>
-      </div>` : ''}`;
   }
 
   // ── Applications ──
@@ -870,8 +477,6 @@ body { background:#f1f5f9; }
   }
 
   function renderProfileScore() {
-    // Score chip next to Profile nav item
-    const chip = document.getElementById('sb-score-chip');
     const skillCount = (candidate.skills||[]).length;
     const skillPts = getSkillPts(skillCount);
     const checks = [
@@ -1034,9 +639,6 @@ body { background:#f1f5f9; }
   }
 
   async function generateAIQuestions() {
-    if (!checkInterviewPrepAccess()) return;
-    await incrementInterviewUsage(); // DB write before AI call
-    showPrepProBanner();
     const input = document.getElementById('prep-input').value.trim();
     if (!input) { showToast('Please enter a job role'); return; }
     const qa = document.getElementById('qa-box');
@@ -1133,768 +735,42 @@ body { background:#f1f5f9; }
     const a = document.createElement('a'); a.href = candidate.resume_data; a.download = candidate.resume_name || 'resume.pdf'; a.click();
   }
 
-  if (candidate) {
-    renderSkillCategories();
-    renderProSection();
-    initSidebar(candidate);
-    // await init() so apps/notifs are loaded before rendering profile tab
-    init().then(() => {
-      initSidebar(candidate);
-      renderProfileTabContent();
-      loadRelatedJobs();
-    });
-    // Pre-show prep banner if user is on prep tab
-    if (document.getElementById('tab-prep').style.display !== 'none') showPrepProBanner();
-  }
-
-  // ── Profile Photo Upload ──
-  async function handlePhotoUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { showToast('Photo must be under 2MB.'); return; }
-    if (!file.type.startsWith('image/')) { showToast('Please select an image file.'); return; }
-    showToast('Uploading photo...');
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target.result;
-      // Show photo immediately
-      const sbav=document.getElementById('sb-avatar-img'); if(sbav) sbav.src=base64;
-      // Save to Supabase
-      try {
-        const { error } = await sb.from('candidates').update({ profile_photo: base64 }).eq('id', candidate.id);
-        if (error) { showToast('❌ Save failed: ' + error.message); return; }
-        candidate.profile_photo = base64;
-        Session.setCandidate({ ...candidate, profile_photo: base64 });
-        showToast('✅ Profile photo updated!');
-      } catch(err) {
-        showToast('❌ Error: ' + err.message);
-      }
-    };
-    reader.onerror = () => showToast('Failed to read file.');
-    reader.readAsDataURL(file);
-  }
-</script>
-<footer class="ht-footer">
-  <div class="ht-footer-top">
-    <p class="ht-follow-label">Follow Us</p>
-    <div class="ht-underline"></div>
-    <div class="ht-socials">
-      <a class="ht-social" href="#" title="Facebook">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="LinkedIn">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Twitter / X">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="YouTube">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Instagram">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-      </a>
-    </div>
-    <nav class="ht-nav-links">
-      <a href="about.html">About</a><span class="ht-sep">·</span>
-      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
-      <a href="culture.html">Culture</a><span class="ht-sep">·</span>
-      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
-      <a href="pricing.html">Pricing</a><span class="ht-sep">·</span>
-      <a href="interview-tips.html">Interview Tips</a><span class="ht-sep">·</span>
-      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
-      <a href="refund.html">Refund Policy</a><span class="ht-sep">·</span>
-      <a href="terms.html">Terms of Use</a><span class="ht-sep">·</span>
-      <a href="job-alerts.html">Free Job Alerts</a>
-    </nav>
-  </div>
-  <div class="ht-footer-bottom">
-    <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
-  </div>
-</footer>
-
-
-<!-- ── Edit Profile Modal ── -->
-<div class="edit-modal" id="edit-modal" onclick="closeEditModal(event)">
-  <div class="edit-box" id="edit-box">
-    <div class="edit-box-header">
-      <h3>✏️ Edit Profile</h3>
-      <button class="edit-close" onclick="closeEditModalDirect()">✕</button>
-    </div>
-    <div class="edit-tabs">
-      <button class="edit-tab active" onclick="switchEditTab('basic',this)">Basic Info</button>
-      <button class="edit-tab" onclick="switchEditTab('about',this)">About</button>
-      <button class="edit-tab" onclick="switchEditTab('skills',this)">Skills</button>
-      <button class="edit-tab" onclick="switchEditTab('prefs',this)">Preferences</button>
-      <button class="edit-tab" onclick="switchEditTab('resume',this)">Resume</button>
-    </div>
-    <div class="edit-body">
-
-      <!-- Basic Info -->
-      <div class="edit-section active" id="es-basic">
-        <div class="edit-row">
-          <div class="edit-fg"><label>Full Name *</label><input type="text" id="e-name" placeholder="Your full name"/></div>
-          <div class="edit-fg"><label>Mobile *</label><input type="tel" id="e-mobile" placeholder="10-digit mobile" maxlength="10"/></div>
-        </div>
-        <div class="edit-row">
-          <div class="edit-fg"><label>City</label>
-            <select id="e-city">
-              <option value="">Select city</option>
-              <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
-              <option>Hyderabad</option><option>Chennai</option><option>Pune</option>
-              <option>Kolkata</option><option>Ahmedabad</option><option>Mysuru</option>
-              <option>Mangaluru</option><option>Other</option>
-            </select>
-          </div>
-          <div class="edit-fg"><label>Experience</label>
-            <select id="e-experience">
-              <option value="">Select experience</option>
-              <option>Fresher (0 years)</option><option>0–1 years</option>
-              <option>1–3 years</option><option>3–5 years</option>
-              <option>5–8 years</option><option>8+ years</option>
-            </select>
-          </div>
-        </div>
-        <div class="edit-row">
-          <div class="edit-fg"><label>Current Job Title</label><input type="text" id="e-jobtitle" placeholder="e.g. MIS Executive"/></div>
-          <div class="edit-fg"><label>Current Company</label><input type="text" id="e-company" placeholder="e.g. Infosys"/></div>
-        </div>
-      </div>
-
-      <!-- About -->
-      <div class="edit-section" id="es-about">
-        <div class="edit-fg">
-          <label>About Yourself</label>
-          <textarea id="e-about" rows="6" placeholder="Write a short professional summary..."></textarea>
-          <small id="e-about-count" style="font-size:0.75rem;color:#94a3b8;margin-top:4px;display:block;">0 / 500 characters</small>
-        </div>
-      </div>
-
-      <!-- Skills -->
-      <div class="edit-section" id="es-skills">
-        <div class="edit-fg">
-          <label>Add Skills</label>
-          <div class="skills-input-wrap">
-            <input type="text" id="e-skill-input" placeholder="e.g. Excel, SQL, Python..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSkillTag();}"/>
-            <button onclick="addSkillTag()">+ Add</button>
-          </div>
-          <div class="skill-tags" id="e-skill-tags"></div>
-        </div>
-        <p style="font-size:0.78rem;color:#94a3b8;margin-top:0.5rem;">Press Enter or click Add after each skill. Click × to remove.</p>
-      </div>
-
-      <!-- Preferences -->
-      <div class="edit-section" id="es-prefs">
-        <div class="edit-fg"><label>Preferred Job Type</label>
-          <select id="e-jobtype">
-            <option value="">Select preference</option>
-            <option>Full Time</option><option>Part Time</option>
-            <option>Remote</option><option>Contract</option><option>Internship</option>
-          </select>
-        </div>
-        <div class="edit-row">
-          <div class="edit-fg"><label>Expected Salary</label>
-            <select id="e-salary">
-              <option value="">Select range</option>
-              <option>Below ₹3 LPA</option><option>₹3–5 LPA</option>
-              <option>₹5–8 LPA</option><option>₹8–12 LPA</option>
-              <option>₹12–18 LPA</option><option>₹18–25 LPA</option>
-              <option>Above ₹25 LPA</option>
-            </select>
-          </div>
-          <div class="edit-fg"><label>Notice Period</label>
-            <select id="e-notice">
-              <option value="">Select notice period</option>
-              <option>Immediate</option><option>15 days</option>
-              <option>1 month</option><option>2 months</option>
-              <option>3 months</option>
-            </select>
-          </div>
-        </div>
-        <!-- Job Alerts Toggle -->
-        <div class="toggle-row">
-          <div class="toggle-row-left">
-            <h4>🔔 Job Alerts</h4>
-            <p>Get email notifications when matching jobs are posted</p>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="e-job-alerts" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Resume -->
-      <div class="edit-section" id="es-resume">
-        <div id="current-resume-display" style="margin-bottom:1.2rem;"></div>
-        <div class="edit-fg">
-          <label>Upload New Resume</label>
-          <div id="resume-drop-zone" style="border:2px dashed #cbd5e1;border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:#f8fafc;" onclick="document.getElementById('e-resume-file').click()" ondragover="event.preventDefault();this.style.borderColor='#2563eb'" ondragleave="this.style.borderColor='#cbd5e1'" ondrop="handleResumeDrop(event)">
-            <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
-            <p style="font-size:0.88rem;font-weight:600;color:#374151;margin:0 0 0.25rem;">Click to upload or drag & drop</p>
-            <p style="font-size:0.78rem;color:#94a3b8;margin:0;">PDF, DOC, DOCX — Max 5MB</p>
-          </div>
-          <input type="file" id="e-resume-file" accept=".pdf,.doc,.docx" style="display:none;" onchange="handleResumeFile(this)"/>
-        </div>
-        <div id="resume-preview" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:1rem;align-items:center;justify-content:space-between;margin-top:0.75rem;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:1.5rem;">📄</span>
-            <div>
-              <div id="resume-preview-name" style="font-size:0.88rem;font-weight:700;color:#15803d;"></div>
-              <div id="resume-preview-size" style="font-size:0.75rem;color:#64748b;"></div>
-            </div>
-          </div>
-          <button onclick="clearResumeSelection()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
-        </div>
-      </div>
-
-    </div>
-    <div class="edit-footer">
-      <button class="btn-cancel-edit" onclick="closeEditModalDirect()">Cancel</button>
-      <button class="btn-save-edit" onclick="saveProfile()">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  // ── Edit Profile Modal ──
-  let editSkills = [];
-  let pendingResumeData = null;
-  let pendingResumeName = null;
-
-  function openEditModal(section) {
-    const c = Session.getCandidate();
-    if (!c) return;
-    document.getElementById('e-name').value = c.name || '';
-    document.getElementById('e-mobile').value = c.mobile || '';
-    document.getElementById('e-city').value = c.city || '';
-    document.getElementById('e-experience').value = c.experience || '';
-    document.getElementById('e-jobtitle').value = c.jobtitle || '';
-    document.getElementById('e-company').value = c.current_company || '';
-    document.getElementById('e-about').value = c.about || '';
-    document.getElementById('e-jobtype').value = c.preferred_job_type || '';
-    document.getElementById('e-salary').value = c.expected_salary || '';
-    document.getElementById('e-notice').value = c.notice_period || '';
-    document.getElementById('e-job-alerts').checked = c.job_alerts_enabled !== false;
-    updateAboutCount();
-    editSkills = Array.isArray(c.skills) ? [...c.skills] : [];
-    renderSkillTags();
-    pendingResumeData = null; pendingResumeName = null;
-    const tabMap = { about:'about', skills:'skills', preferences:'prefs', prefs:'prefs', resume:'resume' };
-    const targetTab = section && tabMap[section] ? tabMap[section] : 'basic';
-    document.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('es-' + targetTab).classList.add('active');
-    document.querySelector(`.edit-tab[onclick*="${targetTab}"]`).classList.add('active');
-    if (targetTab === 'resume') initResumeTab();
-    document.getElementById('edit-modal').classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeEditModal(e) {
-    if (e.target === document.getElementById('edit-modal')) closeEditModalDirect();
-  }
-  function closeEditModalDirect() {
-    document.getElementById('edit-modal').classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  function switchEditTab(tab, el) {
-    document.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.edit-section').forEach(s => s.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('es-' + tab).classList.add('active');
-    if (tab === 'resume') initResumeTab();
-  }
-
-  function updateAboutCount() {
-    const len = (document.getElementById('e-about')?.value || '').length;
-    const el = document.getElementById('e-about-count');
-    if (el) { el.textContent = len + ' / 500 characters'; el.style.color = len >= 50 ? '#22c55e' : '#94a3b8'; }
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('e-about')?.addEventListener('input', updateAboutCount);
-  });
-
-  function addSkillTag() {
-    const input = document.getElementById('e-skill-input');
-    const val = input.value.trim();
-    if (!val) return;
-    val.split(',').map(s => s.trim()).filter(Boolean).forEach(s => { if (!editSkills.includes(s)) editSkills.push(s); });
-    input.value = '';
-    renderSkillTags();
-    input.focus();
-  }
-  function removeSkillTag(skill) {
-    editSkills = editSkills.filter(s => s !== skill);
-    renderSkillTags();
-  }
-  function renderSkillTags() {
-    document.getElementById('e-skill-tags').innerHTML = editSkills.map(s =>
-      `<div class="skill-tag">${s}<button onclick="removeSkillTag('${s.replace(/'/g,"\'")}')">×</button></div>`
-    ).join('');
-  }
-
-  // Resume tab
-  function initResumeTab() {
-    const c = Session.getCandidate();
-    const display = document.getElementById('current-resume-display');
-    if (c.resume_name) {
-      display.innerHTML = `<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:1rem;display:flex;align-items:center;gap:10px;"><span style="font-size:1.3rem;">📄</span><div><div style="font-size:0.85rem;font-weight:700;color:#1d4ed8;">Current: ${c.resume_name}</div><div style="font-size:0.75rem;color:#64748b;">Upload a new file below to replace it</div></div></div>`;
-    } else {
-      display.innerHTML = `<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:0.75rem 1rem;font-size:0.82rem;color:#c2410c;">⚠️ No resume uploaded yet. Upload one to boost your profile score!</div>`;
-    }
-    pendingResumeData = null; pendingResumeName = null;
-    document.getElementById('resume-preview').style.display = 'none';
-    document.getElementById('e-resume-file').value = '';
-  }
-  function handleResumeFile(input) {
-    const file = input.files[0]; if (file) processResumeFile(file);
-  }
-  function handleResumeDrop(event) {
-    event.preventDefault();
-    document.getElementById('resume-drop-zone').style.borderColor = '#cbd5e1';
-    const file = event.dataTransfer.files[0]; if (file) processResumeFile(file);
-  }
-  function processResumeFile(file) {
-    if (file.size > 5*1024*1024) { showToast('File too large. Max 5MB.'); return; }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      pendingResumeData = e.target.result; pendingResumeName = file.name;
-      const preview = document.getElementById('resume-preview');
-      document.getElementById('resume-preview-name').textContent = file.name;
-      document.getElementById('resume-preview-size').textContent = (file.size/1024).toFixed(1) + ' KB';
-      preview.style.display = 'flex';
-    };
-    reader.readAsDataURL(file);
-  }
-  function clearResumeSelection() {
-    pendingResumeData = null; pendingResumeName = null;
-    document.getElementById('resume-preview').style.display = 'none';
-    document.getElementById('e-resume-file').value = '';
-  }
-
-  async function saveProfile() {
-    const name = document.getElementById('e-name').value.trim();
-    const mobile = document.getElementById('e-mobile').value.trim();
-    if (!name) { showToast('Name is required.'); return; }
-    if (mobile && (mobile.length !== 10 || !/^\d+$/.test(mobile))) { showToast('Enter a valid 10-digit mobile.'); return; }
-
-    const btn = document.querySelector('.btn-save-edit');
-    btn.textContent = 'Saving...'; btn.disabled = true;
-
-    const updates = {
-      name, mobile,
-      city: document.getElementById('e-city').value,
-      experience: document.getElementById('e-experience').value,
-      jobtitle: document.getElementById('e-jobtitle').value.trim(),
-      current_company: document.getElementById('e-company').value.trim(),
-      about: document.getElementById('e-about').value.trim(),
-      preferred_job_type: document.getElementById('e-jobtype').value,
-      expected_salary: document.getElementById('e-salary').value,
-      notice_period: document.getElementById('e-notice').value,
-      job_alerts_enabled: document.getElementById('e-job-alerts').checked,
-      skills: editSkills
-    };
-    if (pendingResumeData && pendingResumeName) {
-      updates.resume_data = pendingResumeData;
-      updates.resume_name = pendingResumeName;
-    }
-
-    const { error } = await sb.from('candidates').update(updates).eq('id', candidate.id);
-    if (error) { showToast('Failed to save. Try again.'); btn.textContent = 'Save Changes'; btn.disabled = false; return; }
-
-    const updated = { ...candidate, ...updates };
-    Session.setCandidate(updated);
-    candidate = updated;
-
-    // Refresh sidebar + profile tab
-    candidate = updated;
-    renderProfileTabContent();
-    const sbName=document.getElementById('sb-name'); if(sbName) sbName.textContent=updated.name||'';
-    const sbRole=document.getElementById('sb-role'); if(sbRole) sbRole.textContent=updated.jobtitle||(updated.city?'📍 '+updated.city:'');
-    const initials = updated.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-
-    if (updated.resume_name && document.getElementById('resume-section')) {
-      document.getElementById('resume-section').innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${updated.resume_name}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
-    }
-
-    btn.textContent = 'Save Changes'; btn.disabled = false;
-    closeEditModalDirect();
-    showToast('✅ Profile updated successfully!');
-  }
-
-  // ── Pro Plan Check & Upsell ──
-  function isProCandidate() {
-    const c = Session.getCandidate();
-    if (!c || !c.pro_expires_at) return false;
-    return new Date() < new Date(c.pro_expires_at);
-  }
-
-  function renderProSection() {
-    const isPro = isProCandidate();
-    let proSection = document.getElementById('pro-upsell-section');
-    // Create it if missing
-    if (!proSection) {
-      proSection = document.createElement('div');
-      proSection.id = 'pro-upsell-section';
-      const tabProfile = document.getElementById('tab-profile');
-      if (tabProfile) tabProfile.insertBefore(proSection, tabProfile.firstChild);
-      else return;
-    }
-
-    if (isPro) {
-      const expiry = new Date(candidate.pro_expires_at);
-      proSection.innerHTML = `
-        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;">
-          <span style="font-size:1.5rem;">⭐</span>
-          <div>
-            <div style="font-size:0.88rem;font-weight:700;color:#15803d;">Pro Plan Active</div>
-            <div style="font-size:0.75rem;color:#64748b;">Expires ${expiry.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
-          </div>
-          <a href="/resume-builder.html" style="margin-left:auto;background:#22c55e;color:#fff;text-decoration:none;padding:0.5rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:700;">Build Resume →</a>
-        </div>`;
-    } else {
-      proSection.innerHTML = `
-        <div class="pro-banner">
-          <div class="pro-banner-icon">⭐</div>
-          <div class="pro-banner-text">
-            <h3>Upgrade to Pro — ₹49/month</h3>
-            <p>Unlock AI resume builder, all templates, unlimited interview prep and priority job alerts.</p>
-            <button class="btn-get-pro" onclick="window.location.href='/pricing-candidate.html'">Upgrade to Pro →</button>
-          </div>
-        </div>
-        <div class="pro-upsell-grid">
-          <div class="pro-feature-locked">
-            <div class="pro-feature-locked-inner">
-              <div class="pro-lock-badge">🔒 Pro Feature</div>
-              <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
-              <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">AI Resume Builder</div>
-              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">Professional templates + AI keyword optimization from live jobs. Free users get Modern template.</div>
-              <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
-            </div>
-          </div>
-          <div class="pro-feature-locked">
-            <div class="pro-feature-locked-inner">
-              <div class="pro-lock-badge">🔒 Pro Feature</div>
-              <div style="font-size:2rem;margin-bottom:0.5rem;">🎯</div>
-              <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:0.3rem;">Unlimited Interview Prep</div>
-              <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;">Role-specific AI questions, salary tips, industry prep. Free plan: 3 sessions/day only.</div>
-              <button onclick="window.location.href='/pricing-candidate.html'" style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Unlock →</button>
-            </div>
-          </div>
-        </div>`;
-    }
-  }
-
-
-  // ── Interview Prep Pro Gate — Supabase backed ──
-  const DAILY_FREE_LIMIT = 3;
-
-  // Get today's usage from candidate session (synced from DB)
-  function getInterviewUsageToday() {
-    if (!candidate) return 0;
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    if (!candidate.prep_usage_date || candidate.prep_usage_date !== today) return 0;
-    return candidate.prep_usage_count || 0;
-  }
-
-  // Increment usage in Supabase + update local session
-  async function incrementInterviewUsage() {
-    if (!candidate) return;
-    const today = new Date().toISOString().split('T')[0];
-    const isNewDay = !candidate.prep_usage_date || candidate.prep_usage_date !== today;
-    const newCount = isNewDay ? 1 : (candidate.prep_usage_count || 0) + 1;
-
-    const updates = { prep_usage_date: today, prep_usage_count: newCount };
-    await sb.from('candidates').update(updates).eq('id', candidate.id);
-
-    // Update local session so subsequent checks in same session are accurate
-    candidate.prep_usage_date = today;
-    candidate.prep_usage_count = newCount;
-    Session.setCandidate({ ...candidate, ...updates });
-  }
-
-  function checkInterviewPrepAccess() {
-    if (isProCandidate()) return true;
-    const used = getInterviewUsageToday();
-    if (used < DAILY_FREE_LIMIT) return true;
-    showPrepLimit(used);
-    return false;
-  }
 
   function isProCandidate() {
     if (!candidate || !candidate.pro_expires_at) return false;
     return new Date() < new Date(candidate.pro_expires_at);
   }
 
-  function showPrepLimit(used) {
-    const existing = document.getElementById('prep-limit-wall');
-    if (existing) return;
-    const wall = document.createElement('div');
-    wall.id = 'prep-limit-wall';
-    wall.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:2rem;text-align:center;margin-bottom:1.5rem;';
-    wall.innerHTML = `
-      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎯</div>
-      <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 0.4rem;">Daily Free Limit Reached</h3>
-      <p style="font-size:0.85rem;color:#64748b;margin:0 0 0.5rem;">
-        You've used <strong>${used}/${DAILY_FREE_LIMIT}</strong> free interview prep sessions today.
-      </p>
-      <p style="font-size:0.82rem;color:#94a3b8;margin:0 0 1.2rem;">
-        Resets tomorrow · Or upgrade to Pro for unlimited access
-      </p>
-      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:1.2rem;text-align:left;">
-        <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Plan includes:</div>
-        <div style="font-size:0.82rem;color:#334155;display:flex;flex-direction:column;gap:5px;">
-          <span>✓ Unlimited AI interview prep questions</span>
-          <span>✓ Role-specific question sets</span>
-          <span>✓ Salary negotiation tips</span>
-          <span>✓ All 7 resume templates + AI optimization</span>
-        </div>
-      </div>
-      <a href="/pricing-candidate.html" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:0.75rem 2rem;border-radius:8px;font-size:0.88rem;font-weight:700;">
-        Upgrade to Pro — ₹49/month →
-      </a>
-      <div style="font-size:0.75rem;color:#94a3b8;margin-top:0.75rem;">
-        ⏰ Free access resets in <span id="prep-reset-timer"></span>
-      </div>`;
-    
-    // Insert before prep-hero
-    const prepHero = document.querySelector('.prep-hero');
-    if (prepHero) prepHero.parentNode.insertBefore(wall, prepHero);
-
-    // Countdown to midnight
-    function updateTimer() {
-      const now = new Date();
-      const midnight = new Date(now); midnight.setHours(24,0,0,0);
-      const diff = midnight - now;
-      const h = Math.floor(diff/3600000);
-      const m = Math.floor((diff%3600000)/60000);
-      const el = document.getElementById('prep-reset-timer');
-      if (el) el.textContent = `${h}h ${m}m`;
-    }
-    updateTimer();
-    setInterval(updateTimer, 60000);
-  }
-
-  function showPrepProBanner() {
-    const banner = document.getElementById('prep-usage-banner');
-    if (!banner) return;
-
-    if (isProCandidate()) {
-      banner.innerHTML = `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#15803d;display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
-        <span>⭐ Pro Plan Active — Unlimited sessions</span>
-      </div>`;
-      return;
-    }
-
-    const used = getInterviewUsageToday();
-    const remaining = DAILY_FREE_LIMIT - used;
-
-    if (remaining > 0) {
-      // Show free usage counter — clear and actionable
-      banner.innerHTML = `
-        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
-          <div>
-            <div style="font-size:0.85rem;font-weight:700;color:#1e40af;">🎯 Free Plan — ${remaining} session${remaining>1?'s':''} remaining today</div>
-            <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">
-              ${Array.from({length: DAILY_FREE_LIMIT}, (_,i) =>
-                `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${i < used ? '#94a3b8' : '#3b82f6'};margin-right:3px;"></span>`
-              ).join('')}
-              ${used}/${DAILY_FREE_LIMIT} used today · Resets at midnight
+  function showProWall(tab) {
+    const feature = tab === 'prep' ? 'Interview Prep' : 'Resume Builder';
+    const desc = tab === 'prep'
+      ? 'Unlimited AI-generated, role-specific interview questions. Free: 3/day.'
+      : 'All professional templates + AI keyword optimization from live jobs.';
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="pro-wall" onclick="if(event.target===this)this.remove()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;">
+        <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;padding:2rem;max-width:400px;width:100%;text-align:center;">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">${tab==='prep'?'🎯':'📄'}</div>
+          <div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:0.72rem;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:0.75rem;">⭐ PRO FEATURE</div>
+          <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 0.4rem;">${feature}</h3>
+          <p style="font-size:0.82rem;color:#64748b;margin:0 0 1.25rem;">${desc}</p>
+          <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:1.25rem;text-align:left;">
+            <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Plan — ₹49/month includes:</div>
+            <div style="font-size:0.8rem;color:#374151;display:flex;flex-direction:column;gap:5px;">
+              <span>📄 Resume Builder + AI optimization</span>
+              <span>🎯 Unlimited interview prep</span>
+              <span>📧 Priority job alerts</span>
             </div>
           </div>
-          <a href="/pricing-candidate.html" style="background:#3b82f6;color:#fff;text-decoration:none;padding:0.4rem 0.85rem;border-radius:6px;font-size:0.78rem;font-weight:700;white-space:nowrap;">
-            ⭐ Go Unlimited →
-          </a>
-        </div>`;
-    } else {
-      // All 3 used — show wall
-      showPrepLimit(used);
-    }
+          <button onclick="window.location.href='/pricing-candidate.html'" style="width:100%;background:#3b82f6;color:#fff;border:none;padding:0.85rem;border-radius:10px;font-size:0.92rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button>
+          <button onclick="document.getElementById('pro-wall').remove()" style="width:100%;background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0.4rem;">Maybe later</button>
+        </div>
+      </div>`);
   }
 
-  function showPrepLimit_ifNeeded() {
-    if (!isProCandidate() && getInterviewUsageToday() >= DAILY_FREE_LIMIT) {
-      setTimeout(() => showPrepLimit(getInterviewUsageToday()), 100);
-    }
+  if (candidate) {
+    renderSkillCategories();
+    init();
   }
-
-
-  // ── Related Jobs Widget ──
-  async function loadRelatedJobs() {
-    if (!candidate) return;
-    try {
-      const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
-      const city = candidate.city || '';
-      // Fetch jobs matching candidate skills/city
-      let query = sb.from('jobs').select('id,title,company,location,salary,job_type').eq('status','active').limit(6);
-      const { data: jobs } = await query;
-      if (!jobs || !jobs.length) return;
-      // Score by relevance
-      const scored = jobs.map(j => {
-        const hay = (j.title+' '+(j.skills||'')).toLowerCase();
-        const score = skills.filter(s => hay.includes(s.toLowerCase())).length;
-        return { ...j, score };
-      }).sort((a,b) => b.score - a.score);
-      renderRelatedJobs(scored.slice(0,5));
-    } catch(e) {}
-  }
-
-  function renderRelatedJobs(jobs) {
-    const widget = document.getElementById('related-jobs-widget');
-    if (!widget || !jobs.length) return;
-    widget.innerHTML = `
-      <h4>💼 Jobs Matching Your Profile</h4>
-      ${jobs.map(j => `
-        <div class="rj-card" onclick="window.location.href='/jobs.html'">
-          <div class="rj-title">${j.title}</div>
-          <div class="rj-meta">${j.company} · ${j.location||'India'} · ${j.salary||'Negotiable'}</div>
-        </div>`).join('')}
-      <a href="/jobs.html" style="display:block;text-align:center;font-size:0.78rem;color:#3b82f6;font-weight:600;margin-top:0.75rem;text-decoration:none;">View all jobs →</a>`;
-  }
-
-
-  // ── Render Profile Tab Content ──
-  function renderProfileTabContent() {
-    const tab = document.getElementById('tab-profile');
-    if (!tab || !candidate) return;
-
-    const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
-    const since = candidate.created_at
-      ? new Date(candidate.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'})
-      : '—';
-
-    tab.innerHTML = `
-      <!-- Profile Score -->
-      <div id="profile-score-card" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-          <div style="font-size:0.88rem;font-weight:800;color:#0f172a;">Profile Score</div>
-          <div id="score-pct" style="font-size:1.1rem;font-weight:800;color:#3b82f6;">—%</div>
-        </div>
-        <div style="background:#f1f5f9;border-radius:10px;height:8px;overflow:hidden;margin-bottom:0.5rem;">
-          <div id="score-bar-fill" style="height:100%;background:linear-gradient(to right,#3b82f6,#22c55e);border-radius:10px;width:0%;transition:width 0.8s ease;"></div>
-        </div>
-        <div id="score-tips" style="font-size:0.75rem;color:#64748b;"></div>
-      </div>
-
-      <!-- Candidate Details -->
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
-        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
-          About Me
-          <button onclick="openEditModal()" style="font-size:0.75rem;color:#3b82f6;background:none;border:none;font-weight:600;cursor:pointer;font-family:inherit;">Edit ✏️</button>
-        </div>
-        <div style="font-size:0.85rem;color:#475569;line-height:1.7;margin-bottom:1rem;">${candidate.about || '<span style="color:#94a3b8">Add a professional summary to your profile.</span>'}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-          ${[
-            ['📍','Location', candidate.city || '—'],
-            ['🎓','Experience', candidate.experience || '—'],
-            ['📞','Mobile', candidate.mobile || '—'],
-            ['💼','Current Company', candidate.current_company || '—'],
-            ['🎯','Preferred Role', candidate.preferred_job_type || '—'],
-            ['💰','Expected Salary', candidate.expected_salary || '—'],
-            ['⏰','Notice Period', candidate.notice_period || '—'],
-            ['📅','Member Since', since],
-          ].map(([icon,label,val]) => `
-            <div style="padding:0.6rem;background:#f8fafc;border-radius:8px;">
-              <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:2px;">${icon} ${label}</div>
-              <div style="font-size:0.82rem;font-weight:600;color:#1e293b;" id="d-${label.toLowerCase().replace(/\s+/g,'-')}">${val}</div>
-            </div>`).join('')}
-        </div>
-      </div>
-
-      <!-- Skills -->
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
-        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.75rem;">Skills</div>
-        <div id="d-skills" style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-          ${skills.length
-            ? skills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">${s}</span>`).join('')
-            : '<span style="color:#94a3b8;font-size:0.82rem;">No skills added yet.</span>'}
-        </div>
-      </div>
-
-      <!-- Application Stats -->
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
-        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.75rem;">Application Summary</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;">
-          ${[
-            ['Total','sum-total','#3b82f6'],
-            ['Shortlisted','sum-short','#f59e0b'],
-            ['Interview','sum-inter','#8b5cf6'],
-            ['Hired','sum-hired','#22c55e'],
-          ].map(([label,id,color]) => `
-            <div style="text-align:center;padding:0.75rem;background:#f8fafc;border-radius:10px;">
-              <div id="${id}" style="font-size:1.3rem;font-weight:800;color:${color};">0</div>
-              <div style="font-size:0.68rem;color:#94a3b8;">${label}</div>
-            </div>`).join('')}
-        </div>
-      </div>
-
-      <!-- Resume -->
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
-        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.75rem;">Resume</div>
-        <div id="resume-section">
-          <label for="resume-upload" style="display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:10px;padding:0.75rem 1.25rem;cursor:pointer;font-size:0.85rem;color:#64748b;font-family:inherit;">
-            📄 Upload Resume (PDF)
-          </label>
-          <input type="file" id="resume-upload" accept=".pdf,.doc,.docx" style="display:none;" onchange="uploadResume(this)" />
-        </div>
-      </div>
-
-      <!-- Related Jobs -->
-      <div class="related-jobs-widget" id="related-jobs-widget">
-        <h4>💼 Jobs Matching Your Profile</h4>
-        <div style="font-size:0.8rem;color:#94a3b8;">Loading...</div>
-      </div>
-    `;
-
-    // Populate resume if exists
-    if (candidate.resume_name) {
-      document.getElementById('resume-section').innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0.75rem 1rem;">
-          <div style="font-size:0.85rem;font-weight:600;">📄 ${candidate.resume_name}</div>
-          <button onclick="downloadResume()" style="background:#3b82f6;color:#fff;border:none;padding:0.4rem 0.85rem;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Download</button>
-        </div>`;
-    }
-
-    // Render score ring after tab content is in DOM
-    // Score rendered inside renderProfileTabContent()
-    loadRelatedJobs();
-  }
-
-  // ── Render profile score bar ──
-  function renderProfileScore() {
-    // Score chip next to Profile nav item
-    const chip = document.getElementById('sb-score-chip');
-    const checks = [
-      candidate.name, candidate.mobile, candidate.city,
-      candidate.jobtitle, candidate.about, candidate.experience,
-      candidate.skills?.length, candidate.resume_name,
-      myApps?.length
-    ];
-    const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
-
-    if (chip) { chip.textContent = score + '%'; chip.style.display = 'inline'; }
-    const fill = document.getElementById('score-bar-fill');
-    const pct  = document.getElementById('score-pct');
-    const tips = document.getElementById('score-tips');
-    const sbFill  = document.getElementById('sb-score-fill');
-    const sbLabel = document.getElementById('sb-score-label');
-
-    if (fill) fill.style.width = score + '%';
-    if (pct)  pct.textContent = score + '%';
-    if (sbFill)  sbFill.style.width = score + '%';
-    if (sbLabel) sbLabel.textContent = 'Profile: ' + score + '%';
-
-    const missing = [];
-    if (!candidate.about)          missing.push('Add professional summary');
-    if (!candidate.skills?.length) missing.push('Add skills');
-    if (!candidate.resume_name)    missing.push('Upload resume');
-    if (!candidate.jobtitle)       missing.push('Add job title');
-    if (tips && missing.length) tips.innerHTML = '💡 ' + missing.slice(0,2).join(' · ');
-  }
-
 </script>
-
 </body>
 </html>
