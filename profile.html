@@ -244,6 +244,193 @@ body { background:#f1f5f9; }
 .pro-lock-badge { display: inline-flex; align-items: center; gap: 6px; background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 0.75rem; }
 .pro-upsell-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
 </style>
+
+/* ══ SIDEBAR LAYOUT ══════════════════════════════ */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 64px);
+  background: #f8fafc;
+}
+.profile-sidebar {
+  background: #fff;
+  border-right: 1.5px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  z-index: 10;
+}
+.profile-sidebar::-webkit-scrollbar { width: 3px; }
+.profile-sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; }
+
+/* Avatar & summary */
+.sb-profile-summary {
+  padding: 1.25rem 1rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.sb-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+}
+.sb-avatar {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e2e8f0;
+  display: block;
+}
+.sb-avatar-edit {
+  position: absolute; bottom: 1px; right: 1px;
+  background: #3b82f6; color: #fff;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem;
+}
+.sb-name { font-size: 0.88rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem; }
+.sb-role { font-size: 0.72rem; color: #64748b; margin-bottom: 0.5rem; }
+.sb-score-bar {
+  width: 100%; height: 5px;
+  background: #f1f5f9; border-radius: 10px;
+  margin-bottom: 0.2rem; overflow: hidden;
+}
+.sb-score-fill {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #22c55e);
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.8s ease;
+}
+.sb-score-label { font-size: 0.68rem; color: #94a3b8; }
+
+/* Nav */
+.sb-nav { flex: 1; padding: 0.5rem 0; }
+.sb-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+.sb-nav-item:hover { background: #f8fafc; color: #1d4ed8; }
+.sb-nav-item.active {
+  background: #eff6ff;
+  color: #2563eb;
+  border-left-color: #2563eb;
+}
+.sb-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+.sb-badge {
+  margin-left: auto;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: linear-gradient(100deg,#f59e0b,#fcd34d,#f59e0b);
+  background-size: 200% auto;
+  color: #7c2d12;
+  border: 1px solid rgba(245,158,11,0.5);
+  animation: pro-pulse 2s ease-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pro-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.7); }
+  70%  { box-shadow: 0 0 0 5px rgba(245,158,11,0); }
+  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+}
+.sb-divider { height: 1px; background: #f1f5f9; margin: 0.4rem 1rem; }
+
+/* Bottom buttons */
+.sb-bottom {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.sb-edit-btn {
+  background: #3b82f6; color: #fff; border: none;
+  padding: 0.6rem; border-radius: 8px;
+  font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; font-family: inherit; width: 100%;
+}
+.sb-logout-btn {
+  background: none; color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  padding: 0.55rem; border-radius: 8px;
+  font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; width: 100%;
+}
+.sb-logout-btn:hover { color: #ef4444; border-color: #fecaca; }
+
+/* Main content */
+.profile-main { min-height: calc(100vh - 64px); overflow-y: auto; }
+.profile-main-inner { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
+
+/* Tab panels */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Related jobs */
+.related-jobs-widget {
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 12px; padding: 1rem; margin-top: 1.25rem;
+}
+.related-jobs-widget h4 {
+  font-size: 0.82rem; font-weight: 800;
+  color: #0f172a; margin: 0 0 0.75rem;
+}
+.rj-card {
+  padding: 0.6rem 0; border-bottom: 1px solid #f1f5f9; cursor: pointer;
+}
+.rj-card:last-child { border-bottom: none; }
+.rj-card:hover .rj-title { color: #3b82f6; }
+.rj-title { font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-bottom: 0.1rem; }
+.rj-meta { font-size: 0.7rem; color: #94a3b8; }
+
+/* Mobile */
+@media (max-width: 860px) {
+  .profile-layout { grid-template-columns: 1fr; }
+  .profile-sidebar {
+    position: static; height: auto;
+    border-right: none; border-bottom: 1.5px solid #e2e8f0;
+  }
+  .sb-profile-summary {
+    flex-direction: row; text-align: left; gap: 0.75rem; align-items: center;
+  }
+  .sb-score-bar, .sb-score-label { display: none; }
+  .sb-nav {
+    display: flex; flex-wrap: nowrap;
+    overflow-x: auto; padding: 0;
+    scrollbar-width: none;
+  }
+  .sb-nav::-webkit-scrollbar { display: none; }
+  .sb-nav-item {
+    border-left: none; border-bottom: 3px solid transparent;
+    padding: 0.6rem 0.85rem; flex-shrink: 0;
+    font-size: 0.76rem;
+  }
+  .sb-nav-item.active { border-bottom-color: #2563eb; border-left: none; background: none; }
+  .sb-bottom { flex-direction: row; }
+  .sb-edit-btn, .sb-logout-btn { padding: 0.5rem 0.75rem; font-size: 0.75rem; }
+  .profile-main-inner { padding: 1rem 0.75rem; }
+}
+
 </head>
 <body>
 <div id="navbar"></div>
@@ -941,13 +1128,13 @@ body { background:#f1f5f9; }
 
   if (candidate) {
     renderSkillCategories();
-    init();
     renderProSection();
     initSidebar(candidate);
-    renderProfileTabContent();
-    const rjw = document.getElementById('related-jobs-widget');
-    if (rjw) rjw.style.display = 'block';
-    loadRelatedJobs();
+    // await init() so apps/notifs are loaded before rendering profile tab
+    init().then(() => {
+      renderProfileTabContent();
+      loadRelatedJobs();
+    });
     // Pre-show prep banner if user is on prep tab
     if (document.getElementById('tab-prep').style.display !== 'none') showPrepProBanner();
   }
