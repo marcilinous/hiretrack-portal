@@ -10,8 +10,8 @@
 body { background:#f1f5f9; }
 
 /* ── Profile Header ── */
-.profile-header { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:2rem; }
-.profile-header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; }
+
+
 .avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); cursor:pointer; overflow:hidden; position:relative; transition:all 0.2s; }
 .avatar:hover { opacity:0.85; }
 .avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
@@ -27,11 +27,11 @@ body { background:#f1f5f9; }
 .btn-edit-p { background:#fff; color:#2563eb; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
 /* ── Tabs ── */
-.tabs-wrap { background:#fff; border-bottom:2px solid #e2e8f0; }
-.tabs-inner { max-width:900px; margin:0 auto; padding:0 1.5rem; display:flex; }
-.tab { padding:0.9rem 1.1rem; font-size:0.85rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
-.tab:hover { color:#2563eb; }
-.tab.active { color:#2563eb; border-bottom-color:#2563eb; }
+
+
+
+
+
 .notif-dot { background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
 
 /* ── Content ── */
@@ -365,17 +365,18 @@ body { background:#f1f5f9; }
 
   // ── Init ──
   async function init() {
-    const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+    // ── Sidebar profile summary ──
     if (candidate.profile_photo) {
-      document.getElementById('p-avatar').innerHTML = `<img src="${candidate.profile_photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-    } else {
-      document.getElementById('p-avatar').textContent = initials;
+      const sbAvatar = document.getElementById('sb-avatar-img');
+      if (sbAvatar) sbAvatar.src = candidate.profile_photo;
+    } else if (candidate.name) {
+      const sbAvatar = document.getElementById('sb-avatar-img');
+      if (sbAvatar) sbAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=1e3a5f&color=fff&size=128`;
     }
-    document.getElementById('p-name').textContent = candidate.name;
-    document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
-    document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
-    document.getElementById('p-exp').textContent = '🎓 ' + (candidate.experience||'—');
-    document.getElementById('p-mobile').textContent = '📞 ' + (candidate.mobile||'—');
+    const sbName = document.getElementById('sb-name');
+    const sbRole = document.getElementById('sb-role');
+    if (sbName) sbName.textContent = candidate.name || 'Your Name';
+    if (sbRole) sbRole.textContent = candidate.jobtitle || (candidate.city ? '📍 '+candidate.city : 'Complete your profile');
     document.getElementById('d-email').textContent = candidate.email||'—';
     document.getElementById('d-mobile').textContent = candidate.mobile||'—';
     document.getElementById('d-city').textContent = candidate.city||'—';
@@ -419,7 +420,7 @@ body { background:#f1f5f9; }
     document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
 
     // Render profile score after apps are loaded (needs myApps.length)
-    renderProfileScore();
+    // Score rendered inside renderProfileTabContent()
 
     // Load notifications
     const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
@@ -943,6 +944,7 @@ body { background:#f1f5f9; }
     init();
     renderProSection();
     initSidebar(candidate);
+    renderProfileTabContent();
     const rjw = document.getElementById('related-jobs-widget');
     if (rjw) rjw.style.display = 'block';
     loadRelatedJobs();
@@ -961,7 +963,7 @@ body { background:#f1f5f9; }
     reader.onload = async (e) => {
       const base64 = e.target.result;
       // Show photo immediately
-      document.getElementById('p-avatar').innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+      const sbav=document.getElementById('sb-avatar-img'); if(sbav) sbav.src=base64;
       // Save to Supabase
       try {
         const { error } = await sb.from('candidates').update({ profile_photo: base64 }).eq('id', candidate.id);
@@ -1311,14 +1313,12 @@ body { background:#f1f5f9; }
     Session.setCandidate(updated);
     candidate = updated;
 
-    // Refresh displayed values
-    if (document.getElementById('p-name')) document.getElementById('p-name').textContent = updated.name;
-    if (document.getElementById('p-title')) document.getElementById('p-title').textContent = updated.jobtitle || 'Job Seeker';
-    if (document.getElementById('p-city')) document.getElementById('p-city').textContent = '📍 ' + (updated.city || '—');
-    if (document.getElementById('p-exp')) document.getElementById('p-exp').textContent = '🎓 ' + (updated.experience || '—');
-    if (document.getElementById('p-mobile')) document.getElementById('p-mobile').textContent = '📞 ' + (updated.mobile || '—');
+    // Refresh sidebar + profile tab
+    candidate = updated;
+    renderProfileTabContent();
+    const sbName=document.getElementById('sb-name'); if(sbName) sbName.textContent=updated.name||'';
+    const sbRole=document.getElementById('sb-role'); if(sbRole) sbRole.textContent=updated.jobtitle||(updated.city?'📍 '+updated.city:'');
     const initials = updated.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-    if (!updated.profile_photo) document.getElementById('p-avatar').textContent = initials;
 
     if (updated.resume_name && document.getElementById('resume-section')) {
       document.getElementById('resume-section').innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${updated.resume_name}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
@@ -1557,6 +1557,143 @@ body { background:#f1f5f9; }
           <div class="rj-meta">${j.company} · ${j.location||'India'} · ${j.salary||'Negotiable'}</div>
         </div>`).join('')}
       <a href="/jobs.html" style="display:block;text-align:center;font-size:0.78rem;color:#3b82f6;font-weight:600;margin-top:0.75rem;text-decoration:none;">View all jobs →</a>`;
+  }
+
+
+  // ── Render Profile Tab Content ──
+  function renderProfileTabContent() {
+    const tab = document.getElementById('tab-profile');
+    if (!tab || !candidate) return;
+
+    const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
+    const since = candidate.created_at
+      ? new Date(candidate.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'})
+      : '—';
+
+    tab.innerHTML = `
+      <!-- Profile Score -->
+      <div id="profile-score-card" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+          <div style="font-size:0.88rem;font-weight:800;color:#0f172a;">Profile Score</div>
+          <div id="score-pct" style="font-size:1.1rem;font-weight:800;color:#3b82f6;">—%</div>
+        </div>
+        <div style="background:#f1f5f9;border-radius:10px;height:8px;overflow:hidden;margin-bottom:0.5rem;">
+          <div id="score-bar-fill" style="height:100%;background:linear-gradient(to right,#3b82f6,#22c55e);border-radius:10px;width:0%;transition:width 0.8s ease;"></div>
+        </div>
+        <div id="score-tips" style="font-size:0.75rem;color:#64748b;"></div>
+      </div>
+
+      <!-- Candidate Details -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
+          About Me
+          <button onclick="openEditModal()" style="font-size:0.75rem;color:#3b82f6;background:none;border:none;font-weight:600;cursor:pointer;font-family:inherit;">Edit ✏️</button>
+        </div>
+        <div style="font-size:0.85rem;color:#475569;line-height:1.7;margin-bottom:1rem;">${candidate.about || '<span style="color:#94a3b8">Add a professional summary to your profile.</span>'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          ${[
+            ['📍','Location', candidate.city || '—'],
+            ['🎓','Experience', candidate.experience || '—'],
+            ['📞','Mobile', candidate.mobile || '—'],
+            ['💼','Current Company', candidate.current_company || '—'],
+            ['🎯','Preferred Role', candidate.preferred_job_type || '—'],
+            ['💰','Expected Salary', candidate.expected_salary || '—'],
+            ['⏰','Notice Period', candidate.notice_period || '—'],
+            ['📅','Member Since', since],
+          ].map(([icon,label,val]) => `
+            <div style="padding:0.6rem;background:#f8fafc;border-radius:8px;">
+              <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:2px;">${icon} ${label}</div>
+              <div style="font-size:0.82rem;font-weight:600;color:#1e293b;" id="d-${label.toLowerCase().replace(/\s+/g,'-')}">${val}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.75rem;">Skills</div>
+        <div id="d-skills" style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+          ${skills.length
+            ? skills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;">${s}</span>`).join('')
+            : '<span style="color:#94a3b8;font-size:0.82rem;">No skills added yet.</span>'}
+        </div>
+      </div>
+
+      <!-- Application Stats -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.75rem;">Application Summary</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;">
+          ${[
+            ['Total','sum-total','#3b82f6'],
+            ['Shortlisted','sum-short','#f59e0b'],
+            ['Interview','sum-inter','#8b5cf6'],
+            ['Hired','sum-hired','#22c55e'],
+          ].map(([label,id,color]) => `
+            <div style="text-align:center;padding:0.75rem;background:#f8fafc;border-radius:10px;">
+              <div id="${id}" style="font-size:1.3rem;font-weight:800;color:${color};">0</div>
+              <div style="font-size:0.68rem;color:#94a3b8;">${label}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Resume -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.75rem;">Resume</div>
+        <div id="resume-section">
+          <label for="resume-upload" style="display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:10px;padding:0.75rem 1.25rem;cursor:pointer;font-size:0.85rem;color:#64748b;font-family:inherit;">
+            📄 Upload Resume (PDF)
+          </label>
+          <input type="file" id="resume-upload" accept=".pdf,.doc,.docx" style="display:none;" onchange="uploadResume(this)" />
+        </div>
+      </div>
+
+      <!-- Related Jobs -->
+      <div class="related-jobs-widget" id="related-jobs-widget">
+        <h4>💼 Jobs Matching Your Profile</h4>
+        <div style="font-size:0.8rem;color:#94a3b8;">Loading...</div>
+      </div>
+    `;
+
+    // Populate resume if exists
+    if (candidate.resume_name) {
+      document.getElementById('resume-section').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0.75rem 1rem;">
+          <div style="font-size:0.85rem;font-weight:600;">📄 ${candidate.resume_name}</div>
+          <button onclick="downloadResume()" style="background:#3b82f6;color:#fff;border:none;padding:0.4rem 0.85rem;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;">Download</button>
+        </div>`;
+    }
+
+    // Render score ring after tab content is in DOM
+    // Score rendered inside renderProfileTabContent()
+    loadRelatedJobs();
+  }
+
+  // ── Render profile score bar ──
+  function renderProfileScore() {
+    const checks = [
+      candidate.name, candidate.mobile, candidate.city,
+      candidate.jobtitle, candidate.about, candidate.experience,
+      candidate.skills?.length, candidate.resume_name,
+      myApps?.length
+    ];
+    const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+
+    const fill = document.getElementById('score-bar-fill');
+    const pct  = document.getElementById('score-pct');
+    const tips = document.getElementById('score-tips');
+    const sbFill  = document.getElementById('sb-score-fill');
+    const sbLabel = document.getElementById('sb-score-label');
+
+    if (fill) fill.style.width = score + '%';
+    if (pct)  pct.textContent = score + '%';
+    if (sbFill)  sbFill.style.width = score + '%';
+    if (sbLabel) sbLabel.textContent = 'Profile: ' + score + '%';
+
+    const missing = [];
+    if (!candidate.about)          missing.push('Add professional summary');
+    if (!candidate.skills?.length) missing.push('Add skills');
+    if (!candidate.resume_name)    missing.push('Upload resume');
+    if (!candidate.jobtitle)       missing.push('Add job title');
+    if (tips && missing.length) tips.innerHTML = '💡 ' + missing.slice(0,2).join(' · ');
   }
 
 </script>
