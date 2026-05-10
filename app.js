@@ -255,7 +255,7 @@ function renderNavbar(activePage) {
         <a href="/post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
         <a href="/pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>
       ` : `
-        <a href="/index.html" ${activePage==='home'?'class="active"':''}>Home</a>
+        ${activePage !== 'profile' ? `<a href="/index.html" ${activePage==='home'?'class="active"':''}>Home</a>` : ''}
         <a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a>
         <a href="/blog.html" ${activePage==='blog'?'class="active"':''}>Blog</a>
       `}
