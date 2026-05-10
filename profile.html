@@ -249,155 +249,114 @@ body { background:#f1f5f9; }
 <div id="navbar"></div>
 
 <!-- Profile Header -->
-<div class="profile-header">
-  <div class="profile-header-inner">
-    <div class="avatar-wrap">
-          <div class="avatar" id="p-avatar" onclick="document.getElementById('photo-upload').click()" title="Click to change photo">?</div>
-          <div class="avatar-edit-hint" onclick="document.getElementById('photo-upload').click()" title="Upload photo">📷</div>
-          <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
-        </div>
-    <div class="profile-info">
-      <div class="profile-name" id="p-name">Loading...</div>
-      <div class="profile-title" id="p-title">Job Seeker</div>
-      <div class="profile-meta">
-        <span id="p-city">📍 —</span>
-        <span id="p-exp">🎓 —</span>
-        <span id="p-mobile">📞 —</span>
-        <span id="p-score-badge" style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">⭐ Score: —</span>
-      </div>
-    </div>
-    <div class="profile-actions">
-      <button class="btn-logout-p" onclick="CandidateAuth.logout()">Logout</button>
-      <button class="btn-edit-p" onclick="openEditModal()">✏️ Edit Profile</button>
-    </div>
-  </div>
-</div>
+<div class="profile-layout">
 
-<!-- Tabs -->
-<div class="tabs-wrap">
-  <div class="tabs-inner">
-    <button class="tab active" onclick="switchTab('profile',this)">👤 Profile</button>
-    <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
-    <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
-    <button class="tab pro-tab" onclick="switchTab('prep',this)">🎯 Interview Prep <span class="tab-pro-badge">PRO</span></button>
-    <button class="tab pro-tab" onclick="switchTab('resume-builder',this)">📄 Resume Builder <span class="tab-pro-badge">PRO</span></button>
-  </div>
-</div>
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="profile-sidebar" id="profile-sidebar">
 
-<div class="content">
-
-  <!-- PROFILE TAB -->
-  <div id="tab-profile">
-    <!-- Pro Plan Upsell -->
-    <div id="pro-upsell-section"></div>
-    <!-- Profile Score Card -->
-    <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
-
-    <div class="profile-grid">
-      <div>
-        <div class="card" style="margin-bottom:1rem;">
-          <h3>Personal Info</h3>
-          <div class="info-row"><span class="label">Email</span><span class="value" id="d-email">—</span></div>
-          <div class="info-row"><span class="label">Mobile</span><span class="value" id="d-mobile">—</span></div>
-          <div class="info-row"><span class="label">City</span><span class="value" id="d-city">—</span></div>
-          <div class="info-row"><span class="label">Experience</span><span class="value" id="d-exp">—</span></div>
-          <div class="info-row"><span class="label">Current Role</span><span class="value" id="d-title">—</span></div>
-          <div class="info-row"><span class="label">Company</span><span class="value" id="d-company">—</span></div>
-        </div>
-        <div class="card" style="margin-bottom:1rem;">
-          <h3>Job Preferences</h3>
-          <div class="info-row"><span class="label">Job Type</span><span class="value" id="d-jobtype">—</span></div>
-          <div class="info-row"><span class="label">Expected Salary</span><span class="value" id="d-salary">—</span></div>
-          <div class="info-row"><span class="label">Notice Period</span><span class="value" id="d-notice">—</span></div>
-        </div>
-        <div class="card">
-          <h3>Resume</h3>
-          <div id="resume-section">
-            <p style="font-size:0.82rem;color:#94a3b8;">No resume uploaded</p>
-          </div>
-        </div>
+    <!-- Profile Summary -->
+    <div class="sb-profile-summary">
+      <div class="sb-avatar-wrap" onclick="document.getElementById('photo-upload').click()">
+        <img class="sb-avatar" id="sb-avatar-img" src="https://ui-avatars.com/api/?name=User&background=1e3a5f&color=fff&size=128" alt="Profile"/>
+        <div class="sb-avatar-edit">✏️</div>
+        <input type="file" id="photo-upload" accept="image/*" style="display:none;" onchange="uploadPhoto(this)"/>
       </div>
       <div>
-        <div class="card" style="margin-bottom:1rem;">
-          <h3>About</h3>
-          <div id="d-about" style="font-size:0.85rem;color:#64748b;line-height:1.6;">—</div>
-        </div>
-        <div class="card" style="margin-bottom:1rem;">
-          <h3>Skills</h3>
-          <div id="d-skills"><p style="font-size:0.82rem;color:#94a3b8;">No skills added</p></div>
-        </div>
-        <div class="card">
-          <h3>Activity Summary</h3>
-          <div class="info-row"><span class="label">Total Applications</span><span class="value" id="sum-total">0</span></div>
-          <div class="info-row"><span class="label">Shortlisted</span><span class="value" style="color:#d97706;" id="sum-short">0</span></div>
-          <div class="info-row"><span class="label">Interviews</span><span class="value" style="color:#0e7490;" id="sum-inter">0</span></div>
-          <div class="info-row"><span class="label">Hired</span><span class="value" style="color:#15803d;" id="sum-hired">0</span></div>
-          <div class="info-row"><span class="label">Member since</span><span class="value" id="sum-since">—</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- APPLICATIONS TAB -->
-  <div id="tab-applications" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <h2 style="font-size:1rem;font-weight:800;">My Applications</h2>
-      <select id="app-filter" onchange="filterApps()" style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.4rem 0.8rem;font-size:0.82rem;font-family:inherit;outline:none;">
-        <option value="">All Status</option>
-        <option>Applied</option><option>Viewed</option><option>Shortlisted</option>
-        <option>Interview</option><option>Hired</option><option>Rejected</option>
-      </select>
-    </div>
-    <div id="apps-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
-  </div>
-
-  <!-- NOTIFICATIONS TAB -->
-  <div id="tab-notifications" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <h2 style="font-size:1rem;font-weight:800;">Notifications</h2>
-      <button onclick="markAllRead()" style="background:none;border:none;color:#2563eb;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Mark all as read</button>
-    </div>
-    <div id="notif-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
-  </div>
-
-  <!-- INTERVIEW PREP TAB -->
-
-  <!-- Resume Builder Tab -->
-  <div id="tab-resume-builder" style="display:none;">
-    <div id="rb-tab-content"></div>
-  </div>
-
-  <div id="tab-prep" style="display:none;">
-    <div id="prep-usage-banner"></div>
-    <div class="prep-hero">
-      <h2>🎯 AI Interview Prep</h2>
-      <p>Get AI-generated questions for any role, or pick from our question bank</p>
-      <div class="prep-ai-row">
-        <input type="text" id="prep-input" placeholder="e.g. MIS Executive at Infosys, Data Analyst at Wipro..." />
-        <button onclick="generateAIQuestions()">Generate Questions</button>
+        <div class="sb-name" id="sb-name">Loading...</div>
+        <div class="sb-role" id="sb-role">—</div>
+        <div class="sb-score-bar"><div class="sb-score-fill" id="sb-score-fill" style="width:0%"></div></div>
+        <div class="sb-score-label" id="sb-score-label">Profile score: 0%</div>
       </div>
     </div>
 
-    <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
-    <div class="prep-categories" id="skill-categories">
-      <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
-    </div>
-
-    <div class="qa-box" id="qa-box" style="display:none;">
-      <div class="qa-header">
-        <h3 id="qa-title">Interview Questions</h3>
-        <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
+    <!-- Nav Items -->
+    <nav class="sb-nav">
+      <div class="sb-nav-item active" id="nav-profile" onclick="switchTab('profile',this)">
+        <span class="sb-icon">👤</span> Profile
       </div>
-      <div id="qa-list"></div>
-    </div>
-  </div>
+      <div class="sb-nav-item" id="nav-applications" onclick="switchTab('applications',this)">
+        <span class="sb-icon">📋</span> My Applications
+      </div>
+      <div class="sb-nav-item" id="nav-notifications" onclick="switchTab('notifications',this)">
+        <span class="sb-icon">🔔</span> Notifications
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-nav-item" id="nav-prep" onclick="switchTab('prep',this)">
+        <span class="sb-icon">🎯</span> Interview Prep
+        <span class="sb-badge">PRO</span>
+      </div>
+      <div class="sb-nav-item" id="nav-resume-builder" onclick="switchTab('resume-builder',this)">
+        <span class="sb-icon">📄</span> Resume Builder
+        <span class="sb-badge">PRO</span>
+      </div>
+    </nav>
 
+    <!-- Bottom actions -->
+    <div class="sb-bottom">
+      <button class="sb-edit-btn" onclick="openEditModal()">✏️ Edit Profile</button>
+      <button class="sb-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="profile-main">
+    <div class="profile-main-inner">
+
+      <!-- Pro Upsell -->
+      <div id="pro-upsell-section"></div>
+
+      <!-- Profile Tab -->
+      <div class="tab-panel active" id="tab-profile">
+        <!-- Score + details rendered by JS -->
+        <div class="related-jobs-widget" id="related-jobs-widget" style="display:none;">
+          <h4>💼 Jobs Matching Your Profile</h4>
+          <div style="font-size:0.8rem;color:#94a3b8;padding:0.5rem 0;">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Applications Tab -->
+      <div class="tab-panel" id="tab-applications">
+        <h2 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 1rem;">My Applications</h2>
+        <div id="apps-list"></div>
+      </div>
+
+      <!-- Notifications Tab -->
+      <div class="tab-panel" id="tab-notifications">
+        <h2 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 1rem;">Notifications</h2>
+        <div id="notifs-list"></div>
+      </div>
+
+      <!-- Interview Prep Tab -->
+      <div class="tab-panel" id="tab-prep">
+        <div id="prep-usage-banner"></div>
+        <!-- Prep content rendered by JS -->
+      </div>
+
+      <!-- Resume Builder Tab -->
+      <div class="tab-panel" id="tab-resume-builder">
+        <div id="rb-tab-content"></div>
+      </div>
+
+    </div>
+  </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
+
+  // ── Populate sidebar profile summary ──
+  function initSidebar(c) {
+    if (!c) return;
+    const nameEl = document.getElementById('sb-name');
+    const roleEl = document.getElementById('sb-role');
+    const avatarEl = document.getElementById('sb-avatar-img');
+    if (nameEl) nameEl.textContent = c.name || 'Your Name';
+    if (roleEl) roleEl.textContent = c.jobtitle || (c.city ? '📍 '+c.city : 'Complete your profile');
+    if (avatarEl && c.profile_photo) avatarEl.src = c.profile_photo;
+    else if (avatarEl && c.name) avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=1e3a5f&color=fff&size=128`;
+  }
   const candidate = Session.getCandidate();
   if (!candidate) { window.location.href = 'login.html'; }
 
@@ -983,6 +942,10 @@ body { background:#f1f5f9; }
     renderSkillCategories();
     init();
     renderProSection();
+    initSidebar(candidate);
+    const rjw = document.getElementById('related-jobs-widget');
+    if (rjw) rjw.style.display = 'block';
+    loadRelatedJobs();
     // Pre-show prep banner if user is on prep tab
     if (document.getElementById('tab-prep').style.display !== 'none') showPrepProBanner();
   }
@@ -1560,6 +1523,40 @@ body { background:#f1f5f9; }
     if (!isProCandidate() && getInterviewUsageToday() >= DAILY_FREE_LIMIT) {
       setTimeout(() => showPrepLimit(getInterviewUsageToday()), 100);
     }
+  }
+
+
+  // ── Related Jobs Widget ──
+  async function loadRelatedJobs() {
+    if (!candidate) return;
+    try {
+      const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
+      const city = candidate.city || '';
+      // Fetch jobs matching candidate skills/city
+      let query = sb.from('jobs').select('id,title,company,location,salary,job_type').eq('status','active').limit(6);
+      const { data: jobs } = await query;
+      if (!jobs || !jobs.length) return;
+      // Score by relevance
+      const scored = jobs.map(j => {
+        const hay = (j.title+' '+(j.skills||'')).toLowerCase();
+        const score = skills.filter(s => hay.includes(s.toLowerCase())).length;
+        return { ...j, score };
+      }).sort((a,b) => b.score - a.score);
+      renderRelatedJobs(scored.slice(0,5));
+    } catch(e) {}
+  }
+
+  function renderRelatedJobs(jobs) {
+    const widget = document.getElementById('related-jobs-widget');
+    if (!widget || !jobs.length) return;
+    widget.innerHTML = `
+      <h4>💼 Jobs Matching Your Profile</h4>
+      ${jobs.map(j => `
+        <div class="rj-card" onclick="window.location.href='/jobs.html'">
+          <div class="rj-title">${j.title}</div>
+          <div class="rj-meta">${j.company} · ${j.location||'India'} · ${j.salary||'Negotiable'}</div>
+        </div>`).join('')}
+      <a href="/jobs.html" style="display:block;text-align:center;font-size:0.78rem;color:#3b82f6;font-weight:600;margin-top:0.75rem;text-decoration:none;">View all jobs →</a>`;
   }
 
 </script>
