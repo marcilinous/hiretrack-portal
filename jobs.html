@@ -3,26 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>body{padding-top:64px;}</style>
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Find the latest job openings across India. Filter by city, category and job type. Apply via WhatsApp in one tap. Free for candidates.">
-  <meta name="keywords" content="jobs in bangalore, jobs in mumbai, jobs in delhi, data analyst jobs, sales jobs india, HR jobs india, fresher jobs">
-  <meta name="author" content="HireTrack">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.hiretrack.co.in/jobs.html">
-  <!-- Open Graph (WhatsApp, LinkedIn previews) -->
-  <meta property="og:title" content="Browse Jobs in India — IT, Sales, Finance, HR & More | HireTrack">
-  <meta property="og:description" content="Find the latest job openings across India. Filter by city, category and job type. Apply via WhatsApp in one tap. Free for candidates.">
-  <meta property="og:url" content="https://www.hiretrack.co.in/jobs.html">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="HireTrack">
-  <meta property="og:image" content="https://www.hiretrack.co.in/og-image.png">
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Browse Jobs in India — IT, Sales, Finance, HR & More | HireTrack">
-  <meta name="twitter:description" content="Find the latest job openings across India. Filter by city, category and job type. Apply via WhatsApp in one tap. Free for candidates.">
-  <meta name="twitter:image" content="https://www.hiretrack.co.in/og-image.png">
-<title>Browse Jobs in India — IT, Sales, Finance, HR & More | HireTrack</title>
+<title>Browse Jobs — HireTrack</title>
+<meta name="description" content="Browse MIS, Data, Excel, SQL and IT jobs across India. Apply via WhatsApp in one tap.">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
@@ -37,44 +19,171 @@
 .jd-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.2rem;}
 .jd-desc{font-size:0.92rem;line-height:1.75;color:var(--navy2);white-space:pre-wrap;border-top:1px solid var(--gray3);padding-top:1rem;margin-bottom:1.2rem;}
 .jd-actions{display:flex;gap:10px;}
+
+/* Filter bar */
+.filter-topbar{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0.7rem 1.5rem;position:sticky;top:64px;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.filter-topbar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+.filter-search-box{display:flex;align-items:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:0 0.75rem;flex:1;min-width:180px;max-width:300px;}
+.filter-search-box input{border:none;background:none;padding:0.5rem 0.4rem;font-size:0.85rem;font-family:inherit;outline:none;width:100%;color:#0f172a;}
+.fdivider{width:1px;height:26px;background:#e2e8f0;flex-shrink:0;}
+.fchip{display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.42rem 0.8rem;font-size:0.8rem;font-weight:600;color:#374151;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s;position:relative;}
+.fchip:hover{border-color:#3b82f6;color:#1d4ed8;background:#eff6ff;}
+.fchip.active{background:#3b82f6;color:#fff;border-color:#3b82f6;}
+.fdd{display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:0.4rem;min-width:170px;z-index:500;}
+.fchip.open .fdd{display:block;}
+.fdd-item{padding:0.5rem 0.8rem;font-size:0.8rem;color:#374151;cursor:pointer;border-radius:6px;white-space:nowrap;}
+.fdd-item:hover{background:#eff6ff;color:#1d4ed8;}
+.fdd-item.sel{background:#3b82f6;color:#fff;}
+.fresults{font-size:0.78rem;color:#64748b;margin-left:auto;white-space:nowrap;}
+.fclear{background:none;border:1.5px solid #fecaca;border-radius:8px;padding:0.42rem 0.8rem;font-size:0.78rem;font-weight:600;color:#dc2626;cursor:pointer;font-family:inherit;display:none;}
+.fclear.show{display:block;}
+
+/* Category tabs */
+.cat-bar{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:116px;z-index:99;}
+.cat-bar-inner{max-width:1200px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none;padding:0 1.5rem;}
+.cat-bar-inner::-webkit-scrollbar{display:none;}
+.ctab{flex-shrink:0;padding:0.7rem 1.1rem;font-size:0.82rem;font-weight:600;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.ctab:hover{color:#1d4ed8;}
+.ctab.active{color:#2563eb;border-bottom-color:#2563eb;}
+
+/* Page */
+.jpage{max-width:1200px;margin:0 auto;padding:1.5rem;}
+
+/* Category sections */
+.csec{margin-bottom:2.5rem;}
+.csec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.85rem;}
+.csec-title{font-size:0.95rem;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;}
+.csec-count{font-size:0.72rem;font-weight:600;color:#94a3b8;background:#f1f5f9;padding:2px 9px;border-radius:20px;}
+.csec-vall{font-size:0.78rem;color:#3b82f6;font-weight:600;cursor:pointer;}
+.csec-vall:hover{text-decoration:underline;}
+
+/* Horizontal scroll */
+.hswrap{position:relative;}
+.hscroll{display:flex;gap:0.85rem;overflow-x:auto;scroll-behavior:smooth;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.hscroll::-webkit-scrollbar{display:none;}
+.sbtn{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:#fff;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.1);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;z-index:10;transition:all 0.2s;}
+.sbtn:hover{background:#3b82f6;color:#fff;border-color:#3b82f6;}
+.sbtn.sl{left:-14px;}
+.sbtn.sr{right:-14px;}
+
+/* Job card */
+.jcard{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem 1.1rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;width:268px;display:flex;flex-direction:column;}
+.jcard:hover{border-color:#3b82f6;box-shadow:0 6px 20px rgba(59,130,246,0.12);transform:translateY(-2px);}
+.jcard-title{font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.2rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3;}
+.jcard-co{font-size:0.75rem;color:#3b82f6;font-weight:600;margin-bottom:0.45rem;}
+.jcard-meta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.5rem;}
+.jcard-meta span{font-size:0.68rem;color:#64748b;background:#f8fafc;padding:2px 7px;border-radius:5px;}
+.jcard-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:0.6rem;flex:1;}
+.jtag{font-size:0.65rem;background:#eff6ff;color:#1d4ed8;padding:2px 7px;border-radius:8px;font-weight:600;}
+.jcard-ft{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:0.5rem;margin-top:auto;}
+.jcard-sal{font-size:0.75rem;font-weight:700;color:#059669;}
+.jbadge{font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:7px;}
+.badge-full{background:#dcfce7;color:#15803d;}
+.badge-contract{background:#fef3c7;color:#92400e;}
+.badge-remote{background:#ede9fe;color:#6d28d9;}
+
+/* Grid view */
+.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:0.85rem;}
+
+.empty-state{text-align:center;padding:3rem;color:#94a3b8;}
+.es-icon{font-size:3rem;margin-bottom:1rem;}
+
+@media(max-width:768px){
+  .filter-topbar{top:56px;padding:0.55rem 0.75rem;}
+  .cat-bar{top:106px;}
+  .filter-search-box{max-width:100%;}
+  .jpage{padding:1rem 0.75rem;}
+  .sbtn{display:none;}
+  .jcard{width:230px;}
+}
 </style>
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-76H5XQV27B');
-</script>
 </head>
 <body>
 <div id="navbar"></div>
-<div class="page-hd"><h1>Browse All Jobs</h1><p>MIS, Data, Excel & Office Tech roles across Karnataka</p></div>
 
-<div class="jobs-layout">
-  <aside class="filter-panel">
-    <h3>Filter Jobs</h3>
-    <div class="fg"><label>Keyword</label><input type="text" id="f-keyword" placeholder="Title or skill..." /></div>
-    <div class="fg"><label>Location</label>
-      <select id="f-location"><option value="">All Karnataka</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Manipal</option><option>Remote</option></select>
+<!-- Filter Bar -->
+<div class="filter-topbar">
+  <div class="filter-topbar-inner">
+    <div class="filter-search-box">
+      <span style="color:#94a3b8;">🔍</span>
+      <input type="text" id="f-kw" placeholder="Title, skill, company...">
     </div>
-    <div class="fg"><label>Job Type</label>
-      <select id="f-type"><option value="">All Types</option><option>Full Time</option><option>Contract</option><option>Remote</option></select>
-    </div>
-    <div class="fg"><label>Category</label>
-      <select id="f-category"><option value="">All Categories</option><option value="MIS">MIS</option><option value="Data Analyst">Data Analyst</option><option value="Excel">Excel</option><option value="SQL">SQL</option><option value="BI">Business Intelligence</option><option value="Automation">Automation & AI</option></select>
-    </div>
-    <button id="clear-btn" class="btn-filter" style="background:var(--gray3);color:var(--navy);margin-top:0.5rem;" onclick="clearFilters()">Clear Filters</button>
-  </aside>
+    <div class="fdivider"></div>
 
-  <main>
-    <div class="results-hd"><span id="results-count">Loading...</span></div>
-    <div class="jobs-grid" id="jobs-container"></div>
-  </main>
+    <div class="fchip" id="chip-loc" onclick="toggleDD(this)">
+      📍 <span id="loc-label">Location</span> ▾
+      <div class="fdd">
+        <div class="fdd-item sel" onclick="pickFilter(event,'loc','','Location','chip-loc','loc-label')">All Locations</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Bengaluru','Bengaluru','chip-loc','loc-label')">Bengaluru</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Mumbai','Mumbai','chip-loc','loc-label')">Mumbai</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Delhi','Delhi','chip-loc','loc-label')">Delhi</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Hyderabad','Hyderabad','chip-loc','loc-label')">Hyderabad</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Mysuru','Mysuru','chip-loc','loc-label')">Mysuru</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Mangaluru','Mangaluru','chip-loc','loc-label')">Mangaluru</div>
+        <div class="fdd-item" onclick="pickFilter(event,'loc','Remote','Remote','chip-loc','loc-label')">🌐 Remote</div>
+      </div>
+    </div>
+
+    <div class="fchip" id="chip-type" onclick="toggleDD(this)">
+      💼 <span id="type-label">Job Type</span> ▾
+      <div class="fdd">
+        <div class="fdd-item sel" onclick="pickFilter(event,'type','','Job Type','chip-type','type-label')">All Types</div>
+        <div class="fdd-item" onclick="pickFilter(event,'type','Full Time','Full Time','chip-type','type-label')">Full Time</div>
+        <div class="fdd-item" onclick="pickFilter(event,'type','Contract','Contract','chip-type','type-label')">Contract</div>
+        <div class="fdd-item" onclick="pickFilter(event,'type','Remote','Remote','chip-type','type-label')">Remote</div>
+        <div class="fdd-item" onclick="pickFilter(event,'type','Part Time','Part Time','chip-type','type-label')">Part Time</div>
+      </div>
+    </div>
+
+    <div class="fchip" id="chip-exp" onclick="toggleDD(this)">
+      🎯 <span id="exp-label">Experience</span> ▾
+      <div class="fdd">
+        <div class="fdd-item sel" onclick="pickFilter(event,'exp','','Experience','chip-exp','exp-label')">Any Experience</div>
+        <div class="fdd-item" onclick="pickFilter(event,'exp','fresher','Fresher','chip-exp','exp-label')">Fresher / 0–1 yr</div>
+        <div class="fdd-item" onclick="pickFilter(event,'exp','1-3','1–3 yrs','chip-exp','exp-label')">1–3 years</div>
+        <div class="fdd-item" onclick="pickFilter(event,'exp','3-5','3–5 yrs','chip-exp','exp-label')">3–5 years</div>
+        <div class="fdd-item" onclick="pickFilter(event,'exp','5+','5+ yrs','chip-exp','exp-label')">5+ years</div>
+      </div>
+    </div>
+
+    <div class="fchip" id="chip-sal" onclick="toggleDD(this)">
+      💰 <span id="sal-label">Salary</span> ▾
+      <div class="fdd">
+        <div class="fdd-item sel" onclick="pickFilter(event,'sal','','Salary','chip-sal','sal-label')">Any Salary</div>
+        <div class="fdd-item" onclick="pickFilter(event,'sal','0-3','&lt;₹3L','chip-sal','sal-label')">Under ₹3 LPA</div>
+        <div class="fdd-item" onclick="pickFilter(event,'sal','3-6','₹3–6L','chip-sal','sal-label')">₹3–6 LPA</div>
+        <div class="fdd-item" onclick="pickFilter(event,'sal','6-10','₹6–10L','chip-sal','sal-label')">₹6–10 LPA</div>
+        <div class="fdd-item" onclick="pickFilter(event,'sal','10+','₹10L+','chip-sal','sal-label')">Above ₹10 LPA</div>
+      </div>
+    </div>
+
+    <button class="fclear" id="fclear" onclick="clearAll()">✕ Clear all</button>
+    <span class="fresults" id="fresults">Loading...</span>
+  </div>
 </div>
 
-<!-- Job Modal -->
-<div class="jd-modal" id="jd-modal" onclick="closeJobModal(event)">
+<!-- Category Tabs -->
+<div class="cat-bar">
+  <div class="cat-bar-inner" id="cat-bar">
+    <div class="ctab active" data-cat="all" onclick="pickCat('all',this)">All Jobs</div>
+    <div class="ctab" data-cat="MIS" onclick="pickCat('MIS',this)">📊 MIS</div>
+    <div class="ctab" data-cat="Data" onclick="pickCat('Data',this)">📈 Data Analyst</div>
+    <div class="ctab" data-cat="Excel" onclick="pickCat('Excel',this)">📋 Excel</div>
+    <div class="ctab" data-cat="SQL" onclick="pickCat('SQL',this)">🗄️ SQL</div>
+    <div class="ctab" data-cat="IT" onclick="pickCat('IT',this)">💻 IT</div>
+    <div class="ctab" data-cat="Sales" onclick="pickCat('Sales',this)">🤝 Sales</div>
+    <div class="ctab" data-cat="HR" onclick="pickCat('HR',this)">👥 HR</div>
+    <div class="ctab" data-cat="Finance" onclick="pickCat('Finance',this)">💰 Finance</div>
+    <div class="ctab" data-cat="Marketing" onclick="pickCat('Marketing',this)">📢 Marketing</div>
+    <div class="ctab" data-cat="Operations" onclick="pickCat('Operations',this)">⚙️ Operations</div>
+    <div class="ctab" data-cat="Remote" onclick="pickCat('Remote',this)">🌐 Remote</div>
+  </div>
+</div>
+
+<div class="jpage" id="jpage"></div>
+
+<!-- Modal -->
+<div class="jd-modal" id="jd-modal" onclick="if(event.target===this){this.classList.remove('show');document.body.style.overflow='';}">
   <div class="jd-box">
     <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';">✕</button>
     <div class="jd-title" id="jd-title"></div>
@@ -86,134 +195,249 @@
   </div>
 </div>
 
-<footer class="ht-footer">
-  <div class="ht-footer-top">
-    <p class="ht-follow-label">Follow Us</p>
-    <div class="ht-underline"></div>
-    <div class="ht-socials">
-      <a class="ht-social" href="#" title="Facebook">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="LinkedIn">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Twitter / X">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="YouTube">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Instagram">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-      </a>
-    </div>
-    <nav class="ht-nav-links">
-      <a href="about.html">About</a><span class="ht-sep">·</span>
-      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
-      <a href="culture.html">Culture</a><span class="ht-sep">·</span>
-      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
-      <a href="pricing.html">Pricing</a><span class="ht-sep">·</span>
-      <a href="interview-tips.html">Interview Tips</a><span class="ht-sep">·</span>
-      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
-      <a href="refund.html">Refund Policy</a><span class="ht-sep">·</span>
-      <a href="terms.html">Terms of Use</a><span class="ht-sep">·</span>
-      <a href="job-alerts.html">Free Job Alerts</a>
-    </nav>
-  </div>
-    </footer>
+<footer style="text-align:center;padding:2rem;color:#94a3b8;font-size:0.82rem;border-top:1px solid #e2e8f0;margin-top:2rem;">
+  © 2025 <strong style="color:#3b82f6;">HireTrack</strong> — Jobs across India
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
-  document.getElementById('navbar').innerHTML = renderNavbar('jobs');
-  let allJobs = [], candidateApps = [];
+document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
-  async function loadJobs() {
-    const dbJobs = await JobsDB.getAllPublicJobs();
-    window._employerJobs = dbJobs;
-    allJobs = [...JOBS, ...dbJobs.map(j=>({...j,type:j.job_type}))];
-    const candidate = Session.getCandidate();
-    if (candidate) candidateApps = await ApplicationsDB.getCandidateApplications(candidate.id);
-    applyFilters();
+// ── State ──
+let allJobs=[], candidateApps=[];
+let F={kw:'',loc:'',type:'',exp:'',sal:''};
+let activeCat='all';
+
+const CATS=[
+  {k:'MIS',   label:'📊 MIS & Reporting',     kw:['mis','report','dashboard','management information']},
+  {k:'Data',  label:'📈 Data & Analytics',     kw:['data analyst','analytics','bi analyst','business intelligence','tableau','power bi']},
+  {k:'Excel', label:'📋 Excel & Office',       kw:['excel','vlookup','pivot','spreadsheet','ms office']},
+  {k:'SQL',   label:'🗄️ SQL & Database',       kw:['sql','database','mysql','postgresql','mongodb']},
+  {k:'IT',    label:'💻 IT & Software',        kw:['software','developer','engineer','python','java','react','node','frontend','backend']},
+  {k:'Sales', label:'🤝 Sales & BD',           kw:['sales','business development','account manager','revenue']},
+  {k:'HR',    label:'👥 HR & Recruitment',     kw:['hr','human resource','recruiter','talent acquisition']},
+  {k:'Finance',label:'💰 Finance & Accounts',  kw:['finance','accounts','accountant','audit','tax','ca']},
+  {k:'Marketing',label:'📢 Marketing',         kw:['marketing','digital marketing','seo','content','social media']},
+  {k:'Operations',label:'⚙️ Operations',       kw:['operations','supply chain','logistics','procurement','warehouse']},
+];
+
+// ── Load ──
+async function loadJobs(){
+  const db=await JobsDB.getAllPublicJobs();
+  allJobs=[...JOBS,...db.map(j=>({...j,type:j.job_type}))];
+  const c=Session.getCandidate();
+  if(c) candidateApps=await ApplicationsDB.getCandidateApplications(c.id);
+  // URL params
+  const p=new URLSearchParams(location.search);
+  if(p.get('search')){document.getElementById('f-kw').value=p.get('search');F.kw=p.get('search').toLowerCase();}
+  if(p.get('cat')){
+    const t=document.querySelector(`.ctab[data-cat="${p.get('cat')}"]`);
+    if(t) pickCat(p.get('cat'),t);
   }
+  render();
+}
 
-  function applyFilters() {
-    const keyword=document.getElementById('f-keyword').value.toLowerCase();
-    const location=document.getElementById('f-location').value;
-    const type=document.getElementById('f-type').value;
-    const category=document.getElementById('f-category').value.toLowerCase();
-    const filtered=allJobs.filter(j=>{
-      const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
-      const haystack=(j.title+j.company+tags.join(' ')).toLowerCase();
-      const jtype=j.type||j.job_type||'';
-      return(!keyword||haystack.includes(keyword))&&(!location||j.location===location)&&(!type||jtype===type)&&(!category||haystack.includes(category));
-    });
-    document.getElementById('results-count').textContent=`${filtered.length} job${filtered.length!==1?'s':''} found`;
-    renderJobsWithModal(filtered, candidateApps);
-    updateClearBtn();
-  }
+// ── Filter chip ──
+function toggleDD(chip){
+  const isOpen=chip.classList.contains('open');
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('open'));
+  if(!isOpen) chip.classList.add('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.fchip')) document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('open'));
+});
 
-  function renderJobsWithModal(jobs, apps) {
-    const container=document.getElementById('jobs-container');
-    if(!jobs.length){container.innerHTML='<div class="empty-state"><div class="es-icon">🔍</div><p>No jobs found.</p></div>';return;}
-    container.innerHTML=jobs.map(j=>renderJobCard(j,apps)).join('');
-  }
+function pickFilter(e,key,val,label,chipId,labelId){
+  e.stopPropagation();
+  F[key]=val;
+  document.getElementById(labelId).textContent=label;
+  const chip=document.getElementById(chipId);
+  chip.classList.toggle('active',!!val);
+  chip.classList.remove('open');
+  chip.querySelectorAll('.fdd-item').forEach(i=>i.classList.remove('sel'));
+  e.target.classList.add('sel');
+  updateClear(); render();
+}
 
-  function clearFilters() {
-    ['f-keyword','f-location','f-type','f-category'].forEach(id=>{const el=document.getElementById(id);el.tagName==='INPUT'?el.value='':el.selectedIndex=0;});
-    applyFilters();
-  }
+document.getElementById('f-kw').addEventListener('input',e=>{
+  F.kw=e.target.value.toLowerCase(); updateClear(); render();
+});
 
-  function updateClearBtn() {
-    const btn=document.getElementById('clear-btn');
-    const isActive=document.getElementById('f-keyword').value||document.getElementById('f-location').value||document.getElementById('f-type').value||document.getElementById('f-category').value;
-    btn.style.background=isActive?'var(--blue)':'var(--gray3)';
-    btn.style.color=isActive?'#fff':'var(--navy)';
-    btn.textContent='Clear Filters';
-  }
+function pickCat(cat,el){
+  activeCat=cat;
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  updateClear(); render();
+}
 
-  document.getElementById('f-keyword').addEventListener('input',applyFilters);
-  document.getElementById('f-location').addEventListener('change',applyFilters);
-  document.getElementById('f-type').addEventListener('change',applyFilters);
-  document.getElementById('f-category').addEventListener('change',applyFilters);
+function clearAll(){
+  F={kw:'',loc:'',type:'',exp:'',sal:''};
+  activeCat='all';
+  document.getElementById('f-kw').value='';
+  document.querySelectorAll('.fchip').forEach(c=>{c.classList.remove('active','open');});
+  document.getElementById('loc-label').textContent='Location';
+  document.getElementById('type-label').textContent='Job Type';
+  document.getElementById('exp-label').textContent='Experience';
+  document.getElementById('sal-label').textContent='Salary';
+  document.querySelectorAll('.fdd-item').forEach(i=>i.classList.remove('sel'));
+  document.querySelectorAll('.fdd').forEach(dd=>dd.querySelectorAll('.fdd-item')[0]?.classList.add('sel'));
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.ctab').classList.add('active');
+  updateClear(); render();
+}
 
-  function openJobModal(jobId) {
-    const job=allJobs.find(j=>String(j.id)===String(jobId)); if(!job) return;
-    // Track view for employer-posted jobs
-    if (job.employer_id) {
-      const currentViews = job.views || 0;
-      sb.from('jobs').update({ views: currentViews + 1 }).eq('id', jobId);
-      job.views = currentViews + 1;
+function updateClear(){
+  const has=F.kw||F.loc||F.type||F.exp||F.sal||activeCat!=='all';
+  document.getElementById('fclear').classList.toggle('show',!!has);
+}
+
+// ── Filter logic ──
+function filtered(){
+  return allJobs.filter(j=>{
+    const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
+    const hay=(j.title+' '+j.company+' '+tags.join(' ')+' '+(j.description||'')).toLowerCase();
+    const jtype=(j.type||j.job_type||'').toLowerCase();
+    const jloc=(j.location||'').toLowerCase();
+    if(F.kw && !hay.includes(F.kw)) return false;
+    if(F.loc && !jloc.includes(F.loc.toLowerCase())) return false;
+    if(F.type && !jtype.includes(F.type.toLowerCase())) return false;
+    if(F.exp && !matchExp(j,F.exp)) return false;
+    if(activeCat!=='all'){
+      const cat=CATS.find(c=>c.k===activeCat);
+      if(cat && !cat.kw.some(k=>hay.includes(k))){
+        if(activeCat==='Remote') return jtype==='remote'||jloc.includes('remote');
+        return false;
+      }
     }
-    const candidate=Session.getCandidate();
-    const alreadyApplied=candidate&&candidateApps.find(a=>a.job_id===String(jobId));
-    const typeClass={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
-    const waMsg=encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`);
-    const tags=Array.isArray(job.tags)?job.tags:(job.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
-    const expired=isJobExpired(job);
-    document.getElementById('jd-title').textContent=job.title;
-    document.getElementById('jd-company').textContent=`🏢 ${job.company}`;
-    document.getElementById('jd-meta').innerHTML=`<span class="jd-meta-item">📍 ${job.location}</span><span class="jd-meta-item">💰 ${job.salary||'Negotiable'}</span><span class="jd-meta-item badge ${typeClass[job.type||job.job_type]||'badge-full'}">${job.type||job.job_type}</span>`;
-    document.getElementById('jd-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
-    document.getElementById('jd-desc').textContent=job.description||'Contact employer for full job description.';
-    document.getElementById('jd-actions').innerHTML=`
-      <button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${waMsg}')">WhatsApp Apply</button>
-      <button class="btn-apply ${alreadyApplied?'applied':''} ${expired?'expired-btn':''}" style="flex:1;padding:0.8rem;" onclick="${expired?`showToast('This job has expired.')`:`applyJob('${job.id}',this)`}">${expired?'⚠ Expired':alreadyApplied?'✓ Applied':'Apply Now'}</button>`;
-    document.getElementById('jd-modal').classList.add('show');
-    document.body.style.overflow='hidden';
+    return true;
+  });
+}
+
+function matchExp(j,ef){
+  const e=(j.experience||'').toLowerCase();
+  if(!e) return true;
+  if(ef==='fresher') return /fresher|0|1\s*year/.test(e);
+  if(ef==='1-3') return /[1-3]\s*(year|yr)/.test(e);
+  if(ef==='3-5') return /[3-5]\s*(year|yr)/.test(e);
+  if(ef==='5+') return /[5-9]\s*(year|yr)|10/.test(e);
+  return true;
+}
+
+// ── Render ──
+function render(){
+  const jobs=filtered();
+  document.getElementById('fresults').textContent=`${jobs.length} job${jobs.length!==1?'s':''} found`;
+  const el=document.getElementById('jpage');
+
+  if(!jobs.length){
+    el.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No jobs match your filters.</p><button onclick="clearAll()" style="margin-top:1rem;background:#3b82f6;color:#fff;border:none;padding:0.65rem 1.5rem;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">Clear Filters</button></div>`;
+    return;
   }
 
-  function closeJobModal(e) {
-    if(e.target===document.getElementById('jd-modal')){document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';}
+  // Flat grid when filtered
+  if(activeCat!=='all'||F.kw||F.loc||F.type||F.exp||F.sal){
+    el.innerHTML=`<div class="jgrid">${jobs.map(j=>card(j)).join('')}</div>`;
+    return;
   }
 
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';}});
+  // Categorised horizontal scroll sections
+  let html=''; const used=new Set();
+  CATS.forEach(cat=>{
+    const cjobs=jobs.filter(j=>{
+      const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
+      const hay=(j.title+' '+j.company+' '+tags.join(' ')+' '+(j.description||'')).toLowerCase();
+      return cat.kw.some(k=>hay.includes(k));
+    });
+    if(!cjobs.length) return;
+    cjobs.forEach(j=>used.add(j.id));
+    const sid='hs-'+cat.k;
+    html+=`<div class="csec">
+      <div class="csec-hd">
+        <div class="csec-title">${cat.label}<span class="csec-count">${cjobs.length}</span></div>
+        <span class="csec-vall" onclick="pickCat('${cat.k}',document.querySelector('.ctab[data-cat=\\'${cat.k}\\']'))">View all →</span>
+      </div>
+      <div class="hswrap">
+        <button class="sbtn sl" onclick="scroll('${sid}',-1)">‹</button>
+        <div class="hscroll" id="${sid}">${cjobs.map(j=>card(j)).join('')}</div>
+        <button class="sbtn sr" onclick="scroll('${sid}',1)">›</button>
+      </div>
+    </div>`;
+  });
 
-  const p=new URLSearchParams(window.location.search);
-  if(p.get('search')) document.getElementById('f-keyword').value=p.get('search');
-  if(p.get('cat')){const sel=document.getElementById('f-category');for(let o of sel.options)if(o.value.toLowerCase()===p.get('cat').toLowerCase()){sel.value=o.value;break;}}
+  const other=jobs.filter(j=>!used.has(j.id));
+  if(other.length) html+=`<div class="csec">
+    <div class="csec-hd"><div class="csec-title">🗂️ Other Roles<span class="csec-count">${other.length}</span></div></div>
+    <div class="hswrap">
+      <button class="sbtn sl" onclick="scroll('hs-other',-1)">‹</button>
+      <div class="hscroll" id="hs-other">${other.map(j=>card(j)).join('')}</div>
+      <button class="sbtn sr" onclick="scroll('hs-other',1)">›</button>
+    </div>
+  </div>`;
 
-  loadJobs();
+  el.innerHTML=html;
+}
+
+function scroll(id,dir){
+  const el=document.getElementById(id);
+  if(el) el.scrollBy({left:dir*580,behavior:'smooth'});
+}
+
+function card(j){
+  const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
+  const tm={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
+  const tc=tm[j.type||j.job_type]||'badge-full';
+  const applied=candidateApps.find(a=>String(a.job_id)===String(j.id));
+  return `<div class="jcard" onclick="openModal('${j.id}')">
+    <div class="jcard-title">${j.title}</div>
+    <div class="jcard-co">🏢 ${j.company}</div>
+    <div class="jcard-meta">
+      <span>📍 ${j.location||'India'}</span>
+      ${j.experience?`<span>🎯 ${j.experience}</span>`:''}
+    </div>
+    ${tags.length?`<div class="jcard-tags">${tags.map(t=>`<span class="jtag">${t}</span>`).join('')}</div>`:'<div class="jcard-tags"></div>'}
+    <div class="jcard-ft">
+      <span class="jcard-sal">${j.salary||'Negotiable'}</span>
+      <div style="display:flex;align-items:center;gap:5px;">
+        ${applied?'<span style="font-size:0.65rem;color:#22c55e;font-weight:700;">✓ Applied</span>':''}
+        <span class="jbadge ${tc}">${j.type||j.job_type||'Full Time'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openModal(jobId){
+  const j=allJobs.find(x=>String(x.id)===String(jobId)); if(!j) return;
+  if(j.employer_id) sb.from('jobs').update({views:(j.views||0)+1}).eq('id',jobId);
+  const c=Session.getCandidate();
+  const applied=c&&candidateApps.find(a=>String(a.job_id)===String(jobId));
+  const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
+  const expired=isJobExpired(j);
+  const wa=encodeURIComponent(`Hi, I found your job posting for *${j.title}* at *${j.company}* on HireTrack. I would like to apply.`);
+  const tm={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
+  document.getElementById('jd-title').textContent=j.title;
+  document.getElementById('jd-company').textContent=`🏢 ${j.company}`;
+  document.getElementById('jd-meta').innerHTML=`
+    <span class="jd-meta-item">📍 ${j.location||'India'}</span>
+    <span class="jd-meta-item">💰 ${j.salary||'Negotiable'}</span>
+    ${j.experience?`<span class="jd-meta-item">🎯 ${j.experience}</span>`:''}
+    <span class="jd-meta-item badge ${tm[j.type||j.job_type]||'badge-full'}">${j.type||j.job_type||'Full Time'}</span>`;
+  document.getElementById('jd-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
+  document.getElementById('jd-desc').textContent=j.description||'Contact employer for full job description.';
+  document.getElementById('jd-actions').innerHTML=`
+    <button class="btn-whatsapp" onclick="whatsappApply('${j.phone}','${wa}')">WhatsApp Apply</button>
+    <button class="btn-apply ${applied?'applied':''} ${expired?'expired-btn':''}" style="flex:1;padding:0.8rem;" onclick="${expired?`showToast('This job has expired.')`:`applyJob('${j.id}',this)`}">
+      ${expired?'⚠ Expired':applied?'✓ Applied':'Apply Now'}
+    </button>`;
+  document.getElementById('jd-modal').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';}
+});
+
+loadJobs();
 </script>
 </body>
 </html>
