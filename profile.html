@@ -10,7 +10,7 @@
 body { background:#f1f5f9; }
 
 /* ── Profile Header ── */
-.profile-header { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:2rem; position:sticky; top:0; z-index:90; }
+.profile-header { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:2rem; }
 .profile-header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; }
 .avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); }
 .profile-info { flex:1; }
@@ -23,9 +23,9 @@ body { background:#f1f5f9; }
 .btn-edit-p { background:#fff; color:#2563eb; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
 /* ── Tabs ── */
-.tabs-wrap { background:#fff; border-bottom:2px solid #e2e8f0; position:sticky; top:132px; z-index:89; }
-.tabs-inner { max-width:900px; margin:0 auto; padding:0 1rem; display:flex; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; } .tabs-inner::-webkit-scrollbar{display:none;}
-.tab { padding:0.75rem 1rem; font-size:0.82rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; transition:all 0.15s; display:flex; align-items:center; gap:5px; flex-shrink:0; }
+.tabs-wrap { background:#fff; border-bottom:2px solid #e2e8f0; }
+.tabs-inner { max-width:900px; margin:0 auto; padding:0 1.5rem; display:flex; }
+.tab { padding:0.9rem 1.1rem; font-size:0.85rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
 .tab:hover { color:#2563eb; }
 .tab.active { color:#2563eb; border-bottom-color:#2563eb; }
 .notif-dot { background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
@@ -142,6 +142,50 @@ body { background:#f1f5f9; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
+
+/* ── Slide-in Drawer ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;backdrop-filter:blur(4px);}
+.drawer-overlay.open{opacity:1;visibility:visible;}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:300px;background:#fff;z-index:201;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.15);}
+.drawer.open{transform:translateX(0);}
+.drawer-head{background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.5rem 1.25rem 1.25rem;flex-shrink:0;}
+.drawer-head-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem;}
+.drawer-avatar{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0;}
+.drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.drawer-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.drawer-name{font-size:1rem;font-weight:800;color:#fff;margin-bottom:0.1rem;}
+.drawer-role{font-size:0.78rem;color:#bfdbfe;margin-bottom:0.75rem;}
+.drawer-score-row{display:flex;align-items:center;gap:8px;}
+.drawer-score-bar{flex:1;height:5px;background:rgba(255,255,255,0.2);border-radius:10px;overflow:hidden;}
+.drawer-score-fill{height:100%;background:#fff;border-radius:10px;transition:width 0.8s ease;}
+.drawer-score-label{font-size:0.72rem;color:#bfdbfe;font-weight:600;}
+.drawer-section{padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;}
+.drawer-section-title{font-size:0.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;}
+.drawer-row{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;}
+.drawer-row-label{font-size:0.8rem;color:#64748b;}
+.drawer-row-value{font-size:0.8rem;font-weight:600;color:#0f172a;max-width:160px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.drawer-skills{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.drawer-skill{background:#eff6ff;color:#1d4ed8;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+.drawer-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.drawer-stat{background:#f8fafc;border-radius:8px;padding:0.6rem;text-align:center;}
+.drawer-stat-num{font-size:1.3rem;font-weight:800;}
+.drawer-stat-label{font-size:0.65rem;color:#94a3b8;}
+.drawer-foot{padding:1rem 1.25rem;margin-top:auto;display:flex;flex-direction:column;gap:0.5rem;}
+.drawer-edit-btn{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.7rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+.drawer-logout-btn{background:none;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;}
+.drawer-logout-btn:hover{border-color:#fecaca;color:#ef4444;}
+/* Hamburger menu btn in header */
+.btn-menu{background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.25);color:#fff;width:36px;height:36px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-menu:hover{background:rgba(255,255,255,0.25);}
+/* Edit modal blur */
+.edit-modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+/* Tabs scrollable */
+.tabs-inner{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.tabs-inner::-webkit-scrollbar{display:none;}
+/* Sticky header + tabs */
+.profile-header{position:sticky;top:0;z-index:100;}
+.tabs-wrap{position:sticky;top:132px;z-index:99;}
+@media(max-width:640px){.tabs-wrap{top:118px;}.drawer{width:85%;max-width:300px;}}
 </style>
 </head>
 <body>
@@ -152,17 +196,17 @@ body { background:#f1f5f9; }
   <div class="profile-header-inner">
     <div class="avatar" id="p-avatar">?</div>
     <div class="profile-info">
-      <div style="display:flex;align-items:center;gap:0.75rem;"><div class="profile-name" id="p-name">Loading...</div><span id="p-score-badge" style="background:rgba(255,255,255,0.2);color:#fff;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;"></span></div>
+      <div class="profile-name" id="p-name">Loading...</div>
       <div class="profile-title" id="p-title">Job Seeker</div>
       <div class="profile-meta">
         <span id="p-city">📍 —</span>
         <span id="p-exp">🎓 —</span>
         <span id="p-mobile">📞 —</span>
+        <span id="p-score-badge" style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">⭐ Score: —</span>
       </div>
     </div>
     <div class="profile-actions">
-      <button class="btn-edit-p" onclick="openEditModal()">✏️ Edit Profile</button>
-      <button class="btn-logout-p" onclick="CandidateAuth.logout()">Logout</button>
+      <button class="btn-menu" onclick="openDrawer()" aria-label="Open profile">&#9776;</button>
     </div>
   </div>
 </div>
@@ -173,8 +217,7 @@ body { background:#f1f5f9; }
     <button class="tab active" onclick="switchTab('profile',this)">👤 Profile</button>
     <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
     <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
-    <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep <span style="font-size:0.6rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#d97706);color:#7c2d12;padding:2px 6px;border-radius:8px;margin-left:2px;">PRO</span></button>
-    <button class="tab" onclick="switchTab('resume-builder',this)">📄 Resume Builder <span style="font-size:0.6rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#d97706);color:#7c2d12;padding:2px 6px;border-radius:8px;margin-left:2px;">PRO</span></button>
+    <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep</button>
   </div>
 </div>
 
@@ -277,16 +320,6 @@ body { background:#f1f5f9; }
     </div>
   </div>
 
-  <!-- RESUME BUILDER TAB -->
-  <div id="tab-resume-builder" style="display:none;">
-    <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:2rem;color:#fff;text-align:center;margin-bottom:1.5rem;">
-      <div style="font-size:2.5rem;margin-bottom:0.75rem;">📄</div>
-      <h2 style="font-size:1.1rem;font-weight:800;margin:0 0 0.4rem;">AI Resume Builder</h2>
-      <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 1.2rem;">Professional templates · AI keyword optimization from live jobs · PDF download</p>
-      <a href="/resume-builder.html" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:0.75rem 2rem;border-radius:8px;font-size:0.92rem;font-weight:700;">Open Resume Builder →</a>
-    </div>
-  </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -369,12 +402,7 @@ body { background:#f1f5f9; }
 
   // ── Tab switching ──
   function switchTab(tab, btn) {
-    // Pro gate
-    if ((tab === 'prep' || tab === 'resume-builder') && !isProCandidate()) {
-      showProWall(tab);
-      return;
-    }
-    ['profile','applications','notifications','prep','resume-builder'].forEach(t => { const e=document.getElementById('tab-'+t); if(e) e.style.display='none'; });
+    ['profile','applications','notifications','prep'].forEach(t => document.getElementById('tab-'+t).style.display='none');
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-'+tab).style.display = 'block';
     btn.classList.add('active');
@@ -519,6 +547,7 @@ body { background:#f1f5f9; }
 
     const badge = document.getElementById('p-score-badge');
     if(badge) badge.textContent = `⭐ ${score}%`;
+    updateDrawerScore(score);
 
     // Render check items separately to avoid nested template literal issues
     const itemsEl = document.getElementById('score-items-list');
@@ -736,41 +765,130 @@ body { background:#f1f5f9; }
   }
 
 
-  function isProCandidate() {
-    if (!candidate || !candidate.pro_expires_at) return false;
-    return new Date() < new Date(candidate.pro_expires_at);
+  // ── Drawer ──
+  function openDrawer() {
+    document.getElementById('profile-drawer').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer() {
+    document.getElementById('profile-drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
+
+  function populateDrawer() {
+    if (!candidate) return;
+    // Avatar
+    const av = document.getElementById('dr-avatar');
+    if (candidate.profile_photo) {
+      av.innerHTML = '<img src="'+candidate.profile_photo+'" alt="Profile"/>';
+    } else {
+      const initials = candidate.name ? candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2) : '?';
+      av.textContent = initials;
+    }
+    // Header info
+    const nameEl = document.getElementById('dr-name');
+    const roleEl = document.getElementById('dr-role');
+    if (nameEl) nameEl.textContent = candidate.name || '—';
+    if (roleEl) roleEl.textContent = (candidate.jobtitle || 'Job Seeker') + (candidate.city ? ' · ' + candidate.city : '');
+    // Personal info
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = val||'—'; };
+    set('dr-email',   candidate.email);
+    set('dr-mobile',  candidate.mobile);
+    set('dr-city',    candidate.city);
+    set('dr-exp',     candidate.experience);
+    set('dr-company', candidate.current_company);
+    set('dr-jobtype', candidate.preferred_job_type);
+    set('dr-salary',  candidate.expected_salary);
+    set('dr-notice',  candidate.notice_period);
+    // Skills
+    const skillsEl = document.getElementById('dr-skills');
+    if (skillsEl) {
+      const skills = candidate.skills || [];
+      skillsEl.innerHTML = skills.length
+        ? skills.map(s=>'<span class="drawer-skill">'+s+'</span>').join('')
+        : '<span style="font-size:0.78rem;color:#94a3b8;">No skills added</span>';
+    }
   }
 
-  function showProWall(tab) {
-    const feature = tab === 'prep' ? 'Interview Prep' : 'Resume Builder';
-    const desc = tab === 'prep'
-      ? 'Unlimited AI-generated, role-specific interview questions. Free: 3/day.'
-      : 'All professional templates + AI keyword optimization from live jobs.';
-    document.body.insertAdjacentHTML('beforeend', `
-      <div id="pro-wall" onclick="if(event.target===this)this.remove()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;">
-        <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;padding:2rem;max-width:400px;width:100%;text-align:center;">
-          <div style="font-size:2.5rem;margin-bottom:0.75rem;">${tab==='prep'?'🎯':'📄'}</div>
-          <div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:0.72rem;font-weight:800;padding:4px 12px;border-radius:20px;margin-bottom:0.75rem;">⭐ PRO FEATURE</div>
-          <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin:0 0 0.4rem;">${feature}</h3>
-          <p style="font-size:0.82rem;color:#64748b;margin:0 0 1.25rem;">${desc}</p>
-          <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:1.25rem;text-align:left;">
-            <div style="font-size:0.78rem;font-weight:700;color:#0f172a;margin-bottom:0.5rem;">Pro Plan — ₹49/month includes:</div>
-            <div style="font-size:0.8rem;color:#374151;display:flex;flex-direction:column;gap:5px;">
-              <span>📄 Resume Builder + AI optimization</span>
-              <span>🎯 Unlimited interview prep</span>
-              <span>📧 Priority job alerts</span>
-            </div>
-          </div>
-          <button onclick="window.location.href='/pricing-candidate.html'" style="width:100%;background:#3b82f6;color:#fff;border:none;padding:0.85rem;border-radius:10px;font-size:0.92rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button>
-          <button onclick="document.getElementById('pro-wall').remove()" style="width:100%;background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;padding:0.4rem;">Maybe later</button>
-        </div>
-      </div>`);
+  function updateDrawerStats() {
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = val; };
+    set('dr-total', myApps.length);
+    set('dr-short', myApps.filter(a=>a.status==='Shortlisted').length);
+    set('dr-inter', myApps.filter(a=>a.status==='Interview').length);
+    set('dr-hired', myApps.filter(a=>a.status==='Hired').length);
+  }
+
+  function updateDrawerScore(score) {
+    const fill  = document.getElementById('dr-score-fill');
+    const label = document.getElementById('dr-score-label');
+    if (fill)  fill.style.width = score + '%';
+    if (label) label.textContent = score + '%';
   }
 
   if (candidate) {
+    populateDrawer();
     renderSkillCategories();
-    init();
+    init().then ? init().then(updateDrawerStats) : (init(), setTimeout(updateDrawerStats, 2000));
   }
 </script>
+
+<!-- Profile Drawer Overlay -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- Profile Drawer -->
+<div class="drawer" id="profile-drawer">
+  <div class="drawer-head">
+    <div class="drawer-head-top">
+      <div class="drawer-avatar" id="dr-avatar">?</div>
+      <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="drawer-name" id="dr-name">Loading...</div>
+    <div class="drawer-role" id="dr-role">—</div>
+    <div class="drawer-score-row">
+      <div class="drawer-score-bar"><div class="drawer-score-fill" id="dr-score-fill" style="width:0%"></div></div>
+      <span class="drawer-score-label" id="dr-score-label">0%</span>
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Personal info</div>
+    <div class="drawer-row"><span class="drawer-row-label">📧 Email</span><span class="drawer-row-value" id="dr-email">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">📞 Mobile</span><span class="drawer-row-value" id="dr-mobile">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">📍 City</span><span class="drawer-row-value" id="dr-city">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">🎓 Experience</span><span class="drawer-row-value" id="dr-exp">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">🏢 Company</span><span class="drawer-row-value" id="dr-company">—</span></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Job preferences</div>
+    <div class="drawer-row"><span class="drawer-row-label">💼 Job type</span><span class="drawer-row-value" id="dr-jobtype">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">💰 Expected salary</span><span class="drawer-row-value" id="dr-salary">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">⏰ Notice period</span><span class="drawer-row-value" id="dr-notice">—</span></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Skills</div>
+    <div class="drawer-skills" id="dr-skills"><span style="font-size:0.78rem;color:#94a3b8;">No skills added</span></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-section-title">Activity</div>
+    <div class="drawer-stats">
+      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-total" style="color:#2563eb;">0</div><div class="drawer-stat-label">Applied</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-short" style="color:#d97706;">0</div><div class="drawer-stat-label">Shortlisted</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-inter" style="color:#6d28d9;">0</div><div class="drawer-stat-label">Interviews</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-hired" style="color:#15803d;">0</div><div class="drawer-stat-label">Hired</div></div>
+    </div>
+  </div>
+
+  <div class="drawer-foot">
+    <button class="drawer-edit-btn" onclick="closeDrawer(); openEditModal();">✏️ Edit Profile</button>
+    <button class="drawer-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
+  </div>
+</div>
+
 </body>
 </html>
