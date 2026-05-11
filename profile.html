@@ -954,14 +954,18 @@ body { padding-top:108px !important; }
       const tags = (Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim())).filter(Boolean).slice(0,3);
       const applied = myApps.find(a=>String(a.job_id)===String(j.id));
       const wa = encodeURIComponent('Hi, I found your job posting for *'+j.title+'* at *'+j.company+'* on HireTrack. I would like to apply.');
+      const applyBtn = applied
+        ? '<span style="font-size:0.7rem;color:#22c55e;font-weight:700;">✓ Applied</span>'
+        : '<button data-phone="'+j.phone+'" data-msg="'+wa+'" onclick="whatsappApply(this.dataset.phone,this.dataset.msg)" style="background:#25d366;color:#fff;border:none;padding:4px 10px;border-radius:7px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">WhatsApp</button>';
+      const tagsHtml = tags.length ? '<div class="ij-tags">'+tags.map(t=>'<span class="ij-tag">'+t+'</span>').join('')+'</div>' : '';
       return '<div class="inline-jcard">'
         +'<div class="ij-title">'+j.title+'</div>'
         +'<div class="ij-co">🏢 '+j.company+'</div>'
         +'<div class="ij-meta"><span>📍 '+(j.location||'India')+'</span>'+(j.experience?'<span>🎯 '+j.experience+'</span>':'')+'</div>'
-        +(tags.length?'<div class="ij-tags">'+tags.map(t=>'<span class="ij-tag">'+t+'</span>').join('')+'</div>':'')
+        +tagsHtml
         +'<div class="ij-foot">'
         +'<span class="ij-sal">'+(j.salary||'Negotiable')+'</span>'
-        +(applied?'<span style="font-size:0.7rem;color:#22c55e;font-weight:700;">✓ Applied</span>':'<button onclick="whatsappApply(''+j.phone+'',''+wa+'')" style="background:#25d366;color:#fff;border:none;padding:4px 10px;border-radius:7px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">WhatsApp</button>')
+        +applyBtn
         +'</div></div>';
     }).join('');
   }
