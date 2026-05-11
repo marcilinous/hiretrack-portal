@@ -906,6 +906,7 @@ body { padding-top:108px !important; }
           const sk = document.getElementById('d-skills');
           if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
         }
+        renderSkillCategories();
       }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
@@ -967,161 +968,132 @@ body { padding-top:108px !important; }
   }
 
 
-  // ── Edit Profile Modal ──
-  function openEditModal() {
-    const existing = document.getElementById('edit-modal-overlay');
-    if (existing) existing.remove();
+  // ── Edit Profile ──
+  let _editSkills = [];
 
-    const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
+  function openEditModal() {
+    const existing = document.getElementById('edit-overlay');
+    if (existing) existing.remove();
+    _editSkills = Array.isArray(candidate.skills) ? [...candidate.skills] : [];
+
+    const expOpts = ['Fresher','Less than 1 year','1-2 years','2-3 years','3-5 years','5-7 years','7-10 years','10+ years']
+      .map(o => `<option${candidate.experience===o?' selected':''}>${o}</option>`).join('');
+    const jtOpts  = ['Full Time','Part Time','Contract','Remote','Hybrid']
+      .map(o => `<option${candidate.preferred_job_type===o?' selected':''}>${o}</option>`).join('');
+    const npOpts  = ['Immediate','15 days','30 days','45 days','60 days','90 days']
+      .map(o => `<option${candidate.notice_period===o?' selected':''}>${o}</option>`).join('');
+    const skillChips = _editSkills.map(s =>
+      `<span class="e-chip" data-skill="${s}">${s} <span onclick="removeEditSkill('${s}')" style="cursor:pointer;margin-left:4px;">✕</span></span>`
+    ).join('');
 
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="edit-modal-overlay" onclick="if(event.target===this)closeEditModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;">
-        <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;width:100%;max-width:560px;margin:auto;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.2);">
-          <!-- Header -->
-          <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;">
-            <h2 style="color:#fff;font-size:1rem;font-weight:800;margin:0;">Edit Profile</h2>
-            <button onclick="closeEditModal()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:30px;height:30px;border-radius:8px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-          </div>
-
-          <!-- Edit tabs -->
-          <div style="display:flex;border-bottom:1.5px solid #e2e8f0;overflow-x:auto;scrollbar-width:none;">
-            ${['Personal','Professional','Skills','Preferences','About'].map((t,i)=>`
-              <button onclick="switchEditTab(${i})" id="etab-${i}" style="flex-shrink:0;padding:0.65rem 1rem;font-size:0.8rem;font-weight:600;color:${i===0?'#2563eb':'#64748b'};border:none;background:none;border-bottom:2px solid ${i===0?'#2563eb':'transparent'};cursor:pointer;font-family:inherit;white-space:nowrap;">${t}</button>`).join('')}
-          </div>
-
-          <form id="edit-form" style="padding:1.5rem;" onsubmit="return false;">
-
-            <!-- Personal -->
-            <div id="epanel-0">
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Full Name</label>
-                <input id="e-name" value="${candidate.name||''}" placeholder="Your full name" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-              </div>
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Mobile</label>
-                <input id="e-mobile" value="${candidate.mobile||''}" placeholder="+91 XXXXX XXXXX" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-              </div>
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">City</label>
-                <input id="e-city" value="${candidate.city||''}" placeholder="Bengaluru" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-              </div>
-            </div>
-
-            <!-- Professional -->
-            <div id="epanel-1" style="display:none;">
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Job Title</label>
-                <input id="e-jobtitle" value="${candidate.jobtitle||''}" placeholder="MIS Executive" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-              </div>
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Current Company</label>
-                <input id="e-company" value="${candidate.current_company||''}" placeholder="Company name" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-              </div>
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Experience</label>
-                <select id="e-experience" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;background:#fff;">
-                  ${['Fresher','Less than 1 year','1-2 years','2-3 years','3-5 years','5-7 years','7-10 years','10+ years'].map(o=>`<option ${candidate.experience===o?'selected':''}>${o}</option>`).join('')}
-                </select>
-              </div>
-            </div>
-
-            <!-- Skills -->
-            <div id="epanel-2" style="display:none;">
-              <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:8px;">Your Skills</label>
-              <div id="skill-chips-edit" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:0.75rem;">
-                ${skills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;" onclick="removeSkill(this,'${s}')">${s} ✕</span>`).join('')}
-              </div>
-              <div style="display:flex;gap:8px;">
-                <input id="skill-input" placeholder="Type a skill and press Add" style="flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSkill();}">
-                <button type="button" onclick="addSkill()" style="background:#2563eb;color:#fff;border:none;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Add</button>
-              </div>
-              <p style="font-size:0.75rem;color:#94a3b8;margin-top:0.5rem;">Click a skill to remove it</p>
-            </div>
-
-            <!-- Preferences -->
-            <div id="epanel-3" style="display:none;">
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Preferred Job Type</label>
-                <select id="e-jobtype" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;background:#fff;">
-                  ${['Full Time','Part Time','Contract','Remote','Hybrid'].map(o=>`<option ${candidate.preferred_job_type===o?'selected':''}>${o}</option>`).join('')}
-                </select>
-              </div>
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Expected Salary</label>
-                <input id="e-salary" value="${candidate.expected_salary||''}" placeholder="e.g. ₹6-8 LPA" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-              </div>
-              <div style="margin-bottom:1rem;">
-                <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Notice Period</label>
-                <select id="e-notice" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;background:#fff;">
-                  ${['Immediate','15 days','30 days','45 days','60 days','90 days'].map(o=>`<option ${candidate.notice_period===o?'selected':''}>${o}</option>`).join('')}
-                </select>
-              </div>
-            </div>
-
-            <!-- About -->
-            <div id="epanel-4" style="display:none;">
-              <label style="font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;">About Yourself</label>
-              <textarea id="e-about" rows="5" placeholder="Write a short professional summary..." style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box;">${candidate.about||''}</textarea>
-              <p style="font-size:0.75rem;color:#94a3b8;margin-top:0.4rem;">Minimum 50 characters for profile score</p>
-            </div>
-
-            <!-- Save -->
-            <div style="display:flex;gap:0.75rem;margin-top:1.5rem;padding-top:1rem;border-top:1.5px solid #f1f5f9;">
-              <button type="button" onclick="saveEdit()" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">Save Changes</button>
-              <button type="button" onclick="closeEditModal()" style="background:#f1f5f9;color:#374151;border:none;padding:0.75rem 1.25rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
-            </div>
-
-            <div id="edit-msg" style="text-align:center;font-size:0.8rem;margin-top:0.75rem;min-height:18px;"></div>
-          </form>
+    <div id="edit-overlay" onclick="if(event.target===this)closeEditModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;">
+      <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;width:100%;max-width:540px;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,0.2);overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="color:#fff;font-size:0.95rem;font-weight:800;">Edit Profile</span>
+          <button onclick="closeEditModal()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:7px;font-size:1rem;cursor:pointer;">✕</button>
         </div>
-      </div>`);
-
+        <div style="display:flex;border-bottom:1.5px solid #e2e8f0;overflow-x:auto;scrollbar-width:none;">
+          <button class="etab active" id="etab-0" onclick="showEPanel(0)">Personal</button>
+          <button class="etab" id="etab-1" onclick="showEPanel(1)">Professional</button>
+          <button class="etab" id="etab-2" onclick="showEPanel(2)">Skills</button>
+          <button class="etab" id="etab-3" onclick="showEPanel(3)">Preferences</button>
+          <button class="etab" id="etab-4" onclick="showEPanel(4)">About</button>
+        </div>
+        <style>
+          .etab{flex-shrink:0;padding:0.6rem 1rem;font-size:0.8rem;font-weight:600;color:#64748b;border:none;background:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;}
+          .etab.active{color:#2563eb;border-bottom-color:#2563eb;}
+          .efield{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;}
+          .efield:focus{border-color:#2563eb;}
+          .elabel{font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;}
+          .erow{margin-bottom:1rem;}
+          .e-chip{display:inline-flex;align-items:center;background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;margin:3px;}
+        </style>
+        <form style="padding:1.5rem;" onsubmit="return false;">
+          <div id="epanel-0">
+            <div class="erow"><label class="elabel">Full Name</label><input class="efield" id="e-name" value="${candidate.name||''}"></div>
+            <div class="erow"><label class="elabel">Mobile</label><input class="efield" id="e-mobile" value="${candidate.mobile||''}" placeholder="+91 XXXXX XXXXX"></div>
+            <div class="erow"><label class="elabel">City</label><input class="efield" id="e-city" value="${candidate.city||''}" placeholder="Bengaluru"></div>
+          </div>
+          <div id="epanel-1" style="display:none;">
+            <div class="erow"><label class="elabel">Job Title</label><input class="efield" id="e-jobtitle" value="${candidate.jobtitle||''}" placeholder="MIS Executive"></div>
+            <div class="erow"><label class="elabel">Current Company</label><input class="efield" id="e-company" value="${candidate.current_company||''}" placeholder="Company name"></div>
+            <div class="erow"><label class="elabel">Experience</label><select class="efield" id="e-experience">${expOpts}</select></div>
+          </div>
+          <div id="epanel-2" style="display:none;">
+            <div class="erow">
+              <label class="elabel">Skills <span style="color:#94a3b8;font-weight:400;">(click to remove)</span></label>
+              <div id="skill-chips-wrap" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.75rem;min-height:32px;">${skillChips}</div>
+              <div style="display:flex;gap:8px;">
+                <input class="efield" id="skill-inp" placeholder="Type skill and press Add" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSkill();}">
+                <button type="button" onclick="addEditSkill()" style="background:#2563eb;color:#fff;border:none;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Add</button>
+              </div>
+            </div>
+          </div>
+          <div id="epanel-3" style="display:none;">
+            <div class="erow"><label class="elabel">Preferred Job Type</label><select class="efield" id="e-jobtype">${jtOpts}</select></div>
+            <div class="erow"><label class="elabel">Expected Salary</label><input class="efield" id="e-salary" value="${candidate.expected_salary||''}" placeholder="e.g. ₹6–8 LPA"></div>
+            <div class="erow"><label class="elabel">Notice Period</label><select class="efield" id="e-notice">${npOpts}</select></div>
+          </div>
+          <div id="epanel-4" style="display:none;">
+            <div class="erow">
+              <label class="elabel">About Yourself <span style="color:#94a3b8;font-weight:400;">(min 50 chars for score)</span></label>
+              <textarea class="efield" id="e-about" rows="5" placeholder="Write a short professional summary...">${candidate.about||''}</textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #f1f5f9;">
+            <button type="button" onclick="saveEdit()" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">Save Changes</button>
+            <button type="button" onclick="closeEditModal()" style="background:#f1f5f9;color:#374151;border:none;padding:0.75rem 1.25rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          </div>
+          <div id="edit-msg" style="text-align:center;font-size:0.8rem;margin-top:0.75rem;min-height:18px;"></div>
+        </form>
+      </div>
+    </div>`);
     document.body.style.overflow = 'hidden';
   }
 
   function closeEditModal() {
-    const el = document.getElementById('edit-modal-overlay');
+    const el = document.getElementById('edit-overlay');
     if (el) el.remove();
     document.body.style.overflow = '';
   }
 
-  let editSkills = Array.isArray(candidate?.skills) ? [...candidate.skills] : [];
-
-  function switchEditTab(idx) {
+  function showEPanel(idx) {
     [0,1,2,3,4].forEach(i => {
-      const panel = document.getElementById('epanel-'+i);
-      const tab   = document.getElementById('etab-'+i);
-      if (panel) panel.style.display = i===idx ? 'block' : 'none';
-      if (tab) {
-        tab.style.color = i===idx ? '#2563eb' : '#64748b';
-        tab.style.borderBottomColor = i===idx ? '#2563eb' : 'transparent';
-      }
+      const p = document.getElementById('epanel-'+i);
+      const t = document.getElementById('etab-'+i);
+      if (p) p.style.display = i===idx ? 'block' : 'none';
+      if (t) { t.classList.toggle('active', i===idx); }
     });
   }
 
-  function addSkill() {
-    const input = document.getElementById('skill-input');
-    const val = input.value.trim();
-    if (!val || editSkills.includes(val)) { input.value=''; return; }
-    editSkills.push(val);
-    input.value = '';
+  function addEditSkill() {
+    const inp = document.getElementById('skill-inp');
+    const val = inp.value.trim();
+    if (!val || _editSkills.includes(val)) { inp.value=''; return; }
+    _editSkills.push(val);
+    inp.value = '';
+    const wrap = document.getElementById('skill-chips-wrap');
     const chip = document.createElement('span');
-    chip.style.cssText = 'background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;';
-    chip.textContent = val + ' ✕';
-    chip.onclick = () => removeSkill(chip, val);
-    document.getElementById('skill-chips-edit').appendChild(chip);
+    chip.className = 'e-chip';
+    chip.dataset.skill = val;
+    chip.innerHTML = val+' <span onclick="removeEditSkill(''+val+'')" style="cursor:pointer;margin-left:4px;">✕</span>';
+    wrap.appendChild(chip);
   }
 
-  function removeSkill(el, skill) {
-    editSkills = editSkills.filter(s => s !== skill);
-    el.remove();
+  function removeEditSkill(skill) {
+    _editSkills = _editSkills.filter(s => s !== skill);
+    const wrap = document.getElementById('skill-chips-wrap');
+    if (wrap) {
+      const chip = wrap.querySelector('[data-skill="'+skill+'"]');
+      if (chip) chip.remove();
+    }
   }
 
   async function saveEdit() {
     const msg = document.getElementById('edit-msg');
     msg.style.color = '#64748b';
     msg.textContent = 'Saving...';
-
     const updates = {
       name:               (document.getElementById('e-name')?.value||'').trim(),
       mobile:             (document.getElementById('e-mobile')?.value||'').trim(),
@@ -1133,52 +1105,44 @@ body { padding-top:108px !important; }
       expected_salary:    (document.getElementById('e-salary')?.value||'').trim(),
       notice_period:      document.getElementById('e-notice')?.value||'',
       about:              (document.getElementById('e-about')?.value||'').trim(),
-      skills:             editSkills,
+      skills:             _editSkills,
     };
-
+    // Save to Supabase candidates table
     const { error } = await sb.from('candidates').update(updates).eq('id', candidate.id);
     if (error) {
       msg.style.color = '#dc2626';
-      msg.textContent = 'Error saving. Please try again.';
+      msg.textContent = 'Save failed: ' + error.message;
       return;
     }
-
-    // Update local candidate object and session
+    // Update local object + sessionStorage
     Object.assign(candidate, updates);
     Session.setCandidate(candidate);
-
-    // Refresh all UI
+    // Refresh all UI without page reload
     syncDrawer(candidate);
-    renderSkillCategories();
     renderProfileScore();
-
-    // Update profile tab fields
-    const fields = {
-      'd-email': candidate.email, 'd-mobile': candidate.mobile,
-      'd-city': candidate.city, 'd-exp': candidate.experience,
-      'd-title': candidate.jobtitle, 'd-company': candidate.current_company,
-      'd-jobtype': candidate.preferred_job_type, 'd-salary': candidate.expected_salary,
-      'd-notice': candidate.notice_period, 'd-about': candidate.about
+    renderSkillCategories();
+    const el = document.getElementById('slim-name');
+    if (el) el.textContent = candidate.name||'';
+    const fieldMap = {
+      'd-email':candidate.email,'d-mobile':candidate.mobile,'d-city':candidate.city,
+      'd-exp':candidate.experience,'d-title':candidate.jobtitle,
+      'd-company':candidate.current_company,'d-jobtype':candidate.preferred_job_type,
+      'd-salary':candidate.expected_salary,'d-notice':candidate.notice_period,
+      'd-about':candidate.about
     };
-    Object.entries(fields).forEach(([id,val]) => {
-      const el = document.getElementById(id); if(el) el.textContent = val||'—';
+    Object.entries(fieldMap).forEach(([id,val])=>{
+      const el=document.getElementById(id); if(el) el.textContent=val||'—';
     });
     if (candidate.skills?.length) {
-      const sk = document.getElementById('d-skills');
-      if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
+      const sk=document.getElementById('d-skills');
+      if(sk) sk.innerHTML=candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
     }
-    // Update slim bar name
-    const sn = document.getElementById('slim-name'); if(sn) sn.textContent = candidate.name||'';
-    // Update p-name (hidden header)
-    const pn = document.getElementById('p-name'); if(pn) pn.textContent = candidate.name||'';
-
     msg.style.color = '#16a34a';
-    msg.textContent = '✅ Saved successfully!';
-    setTimeout(() => closeEditModal(), 1200);
+    msg.textContent = '✅ Saved!';
+    setTimeout(closeEditModal, 1000);
   }
 
-
-  // ── Pro / Prep usage gate ──
+  // ── Pro / Prep gate ──
   function isProCandidate() {
     if (!candidate.pro_expires_at) return false;
     return new Date() < new Date(candidate.pro_expires_at);
@@ -1188,7 +1152,7 @@ body { padding-top:108px !important; }
     if (isProCandidate()) return true;
     const today = new Date().toISOString().slice(0,10);
     if (candidate.prep_usage_date === today && (candidate.prep_usage_count||0) >= 3) {
-      showPrepLimitWall(); return false;
+      showPrepWall(); return false;
     }
     return true;
   }
@@ -1196,28 +1160,25 @@ body { padding-top:108px !important; }
   async function incrementPrepUsage() {
     if (isProCandidate()) return;
     const today = new Date().toISOString().slice(0,10);
-    const isToday = candidate.prep_usage_date === today;
-    const newCount = isToday ? (candidate.prep_usage_count||0)+1 : 1;
+    const sameDay = candidate.prep_usage_date === today;
+    const newCount = sameDay ? (candidate.prep_usage_count||0)+1 : 1;
     candidate.prep_usage_date = today;
     candidate.prep_usage_count = newCount;
     Session.setCandidate(candidate);
-    await sb.from('candidates').update({ prep_usage_date: today, prep_usage_count: newCount }).eq('id', candidate.id);
+    await sb.from('candidates').update({prep_usage_date:today,prep_usage_count:newCount}).eq('id',candidate.id);
   }
 
-  function showPrepLimitWall() {
+  function showPrepWall() {
     const qa = document.getElementById('qa-box');
     document.getElementById('qa-title').textContent = 'Daily Limit Reached';
-    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><div style="font-size:2.5rem;margin-bottom:1rem;">🎯</div><h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:0.5rem;">3 Free Sessions Used Today</h3><p style="font-size:0.82rem;color:#64748b;margin-bottom:1.25rem;">Upgrade to Pro for unlimited AI interview prep, all resume templates and priority alerts.</p><button onclick="window.location.href='/pricing-candidate.html'" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 2rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button><button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Maybe later</button></div>';
-    qa.style.display = 'block';
-    qa.scrollIntoView({ behavior:'smooth' });
+    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><div style="font-size:2.5rem;margin-bottom:1rem;">🎯</div><h3 style="font-size:1rem;font-weight:800;margin-bottom:0.5rem;">3 Free Sessions Used Today</h3><p style="font-size:0.82rem;color:#64748b;margin-bottom:1.25rem;">Upgrade to Pro for unlimited AI interview prep, all resume templates and priority alerts.</p><button onclick="window.location.href='/pricing-candidate.html'" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 2rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button><button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Maybe later</button></div>';
+    qa.style.display='block'; qa.scrollIntoView({behavior:'smooth'});
   }
 
   if (candidate) {
-    // Show name immediately from session if available
-    syncDrawer(candidate);
+    syncDrawer(candidate);        // immediate: show whatever is in session
     renderSkillCategories();
-    // freshSync runs first to get latest DB data, then init uses fresh candidate
-    freshSync().then(() => {
+    freshSync().then(() => {      // fetch fresh from Supabase, then render
       init();
     });
   }
