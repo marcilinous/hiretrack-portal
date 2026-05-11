@@ -900,13 +900,12 @@ body { padding-top:108px !important; }
           'd-jobtype':candidate.preferred_job_type,'d-salary':candidate.expected_salary,
           'd-notice':candidate.notice_period,'d-about':candidate.about
         };
-        Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el&&val) el.textContent=val; });
+        Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=val||'—'; });
         // Skills
         if (candidate.skills?.length) {
           const sk = document.getElementById('d-skills');
           if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
         }
-        renderSkillCategories();
       }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
@@ -968,7 +967,7 @@ body { padding-top:108px !important; }
   }
 
 
-  // ── Edit Profile ──
+  // ── Edit Profile Modal ──
   let _editSkills = [];
 
   function openEditModal() {
@@ -976,77 +975,61 @@ body { padding-top:108px !important; }
     if (existing) existing.remove();
     _editSkills = Array.isArray(candidate.skills) ? [...candidate.skills] : [];
 
-    const expOpts = ['Fresher','Less than 1 year','1-2 years','2-3 years','3-5 years','5-7 years','7-10 years','10+ years']
-      .map(o => `<option${candidate.experience===o?' selected':''}>${o}</option>`).join('');
-    const jtOpts  = ['Full Time','Part Time','Contract','Remote','Hybrid']
-      .map(o => `<option${candidate.preferred_job_type===o?' selected':''}>${o}</option>`).join('');
-    const npOpts  = ['Immediate','15 days','30 days','45 days','60 days','90 days']
-      .map(o => `<option${candidate.notice_period===o?' selected':''}>${o}</option>`).join('');
-    const skillChips = _editSkills.map(s =>
-      `<span class="e-chip" data-skill="${s}">${s} <span onclick="removeEditSkill('${s}')" style="cursor:pointer;margin-left:4px;">✕</span></span>`
-    ).join('');
+    const mk = (opts, sel) => opts.map(o=>`<option${sel===o?' selected':''}>${o}</option>`).join('');
+    const expOpts = mk(['Fresher','Less than 1 year','1-2 years','2-3 years','3-5 years','5-7 years','7-10 years','10+ years'], candidate.experience);
+    const jtOpts  = mk(['Full Time','Part Time','Contract','Remote','Hybrid'], candidate.preferred_job_type);
+    const npOpts  = mk(['Immediate','15 days','30 days','45 days','60 days','90 days'], candidate.notice_period);
+    const chips   = () => _editSkills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:2px;" onclick="removeEditSkill('${s}')">${s} ✕</span>`).join('');
 
-    document.body.insertAdjacentHTML('beforeend', `
-    <div id="edit-overlay" onclick="if(event.target===this)closeEditModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;">
-      <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;width:100%;max-width:540px;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,0.2);overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;">
+    document.body.insertAdjacentHTML('beforeend', `<div id="edit-overlay" onclick="if(event.target===this)closeEditModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;">
+      <div onclick="event.stopPropagation()" style="background:#fff;border-radius:16px;width:100%;max-width:540px;margin:auto;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;">
           <span style="color:#fff;font-size:0.95rem;font-weight:800;">Edit Profile</span>
           <button onclick="closeEditModal()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:7px;font-size:1rem;cursor:pointer;">✕</button>
         </div>
         <div style="display:flex;border-bottom:1.5px solid #e2e8f0;overflow-x:auto;scrollbar-width:none;">
-          <button class="etab active" id="etab-0" onclick="showEPanel(0)">Personal</button>
-          <button class="etab" id="etab-1" onclick="showEPanel(1)">Professional</button>
-          <button class="etab" id="etab-2" onclick="showEPanel(2)">Skills</button>
-          <button class="etab" id="etab-3" onclick="showEPanel(3)">Preferences</button>
-          <button class="etab" id="etab-4" onclick="showEPanel(4)">About</button>
+          <button class="etab" id="etab-0" onclick="showETab(0)" style="color:#2563eb;border-bottom:2px solid #2563eb;">Personal</button>
+          <button class="etab" id="etab-1" onclick="showETab(1)">Professional</button>
+          <button class="etab" id="etab-2" onclick="showETab(2)">Skills</button>
+          <button class="etab" id="etab-3" onclick="showETab(3)">Preferences</button>
+          <button class="etab" id="etab-4" onclick="showETab(4)">About</button>
         </div>
-        <style>
-          .etab{flex-shrink:0;padding:0.6rem 1rem;font-size:0.8rem;font-weight:600;color:#64748b;border:none;background:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;}
-          .etab.active{color:#2563eb;border-bottom-color:#2563eb;}
-          .efield{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;}
-          .efield:focus{border-color:#2563eb;}
-          .elabel{font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;}
-          .erow{margin-bottom:1rem;}
-          .e-chip{display:inline-flex;align-items:center;background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;margin:3px;}
-        </style>
-        <form style="padding:1.5rem;" onsubmit="return false;">
-          <div id="epanel-0">
-            <div class="erow"><label class="elabel">Full Name</label><input class="efield" id="e-name" value="${candidate.name||''}"></div>
-            <div class="erow"><label class="elabel">Mobile</label><input class="efield" id="e-mobile" value="${candidate.mobile||''}" placeholder="+91 XXXXX XXXXX"></div>
-            <div class="erow"><label class="elabel">City</label><input class="efield" id="e-city" value="${candidate.city||''}" placeholder="Bengaluru"></div>
+        <style>.etab{flex-shrink:0;padding:0.6rem 1rem;font-size:0.8rem;font-weight:600;color:#64748b;border:none;background:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;}.ef{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;}.ef:focus{border-color:#2563eb;}.er{margin-bottom:1rem;}.el{font-size:0.78rem;font-weight:600;color:#374151;display:block;margin-bottom:4px;}</style>
+        <div style="padding:1.5rem;" id="edit-form-wrap">
+          <div id="ep-0">
+            <div class="er"><label class="el">Full Name</label><input class="ef" id="e-name" value="${candidate.name||''}"></div>
+            <div class="er"><label class="el">Mobile</label><input class="ef" id="e-mobile" value="${candidate.mobile||''}"></div>
+            <div class="er"><label class="el">City</label><input class="ef" id="e-city" value="${candidate.city||''}"></div>
           </div>
-          <div id="epanel-1" style="display:none;">
-            <div class="erow"><label class="elabel">Job Title</label><input class="efield" id="e-jobtitle" value="${candidate.jobtitle||''}" placeholder="MIS Executive"></div>
-            <div class="erow"><label class="elabel">Current Company</label><input class="efield" id="e-company" value="${candidate.current_company||''}" placeholder="Company name"></div>
-            <div class="erow"><label class="elabel">Experience</label><select class="efield" id="e-experience">${expOpts}</select></div>
+          <div id="ep-1" style="display:none;">
+            <div class="er"><label class="el">Job Title</label><input class="ef" id="e-jobtitle" value="${candidate.jobtitle||''}"></div>
+            <div class="er"><label class="el">Current Company</label><input class="ef" id="e-company" value="${candidate.current_company||''}"></div>
+            <div class="er"><label class="el">Experience</label><select class="ef" id="e-experience">${expOpts}</select></div>
           </div>
-          <div id="epanel-2" style="display:none;">
-            <div class="erow">
-              <label class="elabel">Skills <span style="color:#94a3b8;font-weight:400;">(click to remove)</span></label>
-              <div id="skill-chips-wrap" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.75rem;min-height:32px;">${skillChips}</div>
+          <div id="ep-2" style="display:none;">
+            <div class="er">
+              <label class="el">Skills <span style="color:#94a3b8;font-weight:400;">(tap to remove)</span></label>
+              <div id="esc-wrap" style="min-height:32px;margin-bottom:0.75rem;">${chips()}</div>
               <div style="display:flex;gap:8px;">
-                <input class="efield" id="skill-inp" placeholder="Type skill and press Add" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSkill();}">
-                <button type="button" onclick="addEditSkill()" style="background:#2563eb;color:#fff;border:none;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Add</button>
+                <input class="ef" id="e-skill-inp" placeholder="Type skill, press Enter or Add" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSkill();}">
+                <button type="button" onclick="addEditSkill()" style="background:#2563eb;color:#fff;border:none;padding:0.6rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;font-size:0.82rem;">Add</button>
               </div>
             </div>
           </div>
-          <div id="epanel-3" style="display:none;">
-            <div class="erow"><label class="elabel">Preferred Job Type</label><select class="efield" id="e-jobtype">${jtOpts}</select></div>
-            <div class="erow"><label class="elabel">Expected Salary</label><input class="efield" id="e-salary" value="${candidate.expected_salary||''}" placeholder="e.g. ₹6–8 LPA"></div>
-            <div class="erow"><label class="elabel">Notice Period</label><select class="efield" id="e-notice">${npOpts}</select></div>
+          <div id="ep-3" style="display:none;">
+            <div class="er"><label class="el">Preferred Job Type</label><select class="ef" id="e-jobtype">${jtOpts}</select></div>
+            <div class="er"><label class="el">Expected Salary</label><input class="ef" id="e-salary" value="${candidate.expected_salary||''}" placeholder="e.g. ₹6–8 LPA"></div>
+            <div class="er"><label class="el">Notice Period</label><select class="ef" id="e-notice">${npOpts}</select></div>
           </div>
-          <div id="epanel-4" style="display:none;">
-            <div class="erow">
-              <label class="elabel">About Yourself <span style="color:#94a3b8;font-weight:400;">(min 50 chars for score)</span></label>
-              <textarea class="efield" id="e-about" rows="5" placeholder="Write a short professional summary...">${candidate.about||''}</textarea>
-            </div>
+          <div id="ep-4" style="display:none;">
+            <div class="er"><label class="el">About <span style="color:#94a3b8;font-weight:400;">(min 50 chars)</span></label><textarea class="ef" id="e-about" rows="5">${candidate.about||''}</textarea></div>
           </div>
-          <div style="display:flex;gap:0.75rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #f1f5f9;">
-            <button type="button" onclick="saveEdit()" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">Save Changes</button>
-            <button type="button" onclick="closeEditModal()" style="background:#f1f5f9;color:#374151;border:none;padding:0.75rem 1.25rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          <div style="display:flex;gap:0.75rem;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #f1f5f9;">
+            <button type="button" onclick="saveEdit()" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.7rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">Save Changes</button>
+            <button type="button" onclick="closeEditModal()" style="background:#f1f5f9;color:#374151;border:none;padding:0.7rem 1.25rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
           </div>
           <div id="edit-msg" style="text-align:center;font-size:0.8rem;margin-top:0.75rem;min-height:18px;"></div>
-        </form>
+        </div>
       </div>
     </div>`);
     document.body.style.overflow = 'hidden';
@@ -1058,42 +1041,39 @@ body { padding-top:108px !important; }
     document.body.style.overflow = '';
   }
 
-  function showEPanel(idx) {
-    [0,1,2,3,4].forEach(i => {
-      const p = document.getElementById('epanel-'+i);
-      const t = document.getElementById('etab-'+i);
-      if (p) p.style.display = i===idx ? 'block' : 'none';
-      if (t) { t.classList.toggle('active', i===idx); }
+  function showETab(i) {
+    [0,1,2,3,4].forEach(j => {
+      const p = document.getElementById('ep-'+j);
+      const t = document.getElementById('etab-'+j);
+      if (p) p.style.display = (j===i) ? 'block' : 'none';
+      if (t) { t.style.color = (j===i) ? '#2563eb' : '#64748b'; t.style.borderBottomColor = (j===i) ? '#2563eb' : 'transparent'; }
     });
   }
 
   function addEditSkill() {
-    const inp = document.getElementById('skill-inp');
-    const val = inp.value.trim();
+    const inp = document.getElementById('e-skill-inp');
+    const val = (inp.value||'').trim();
     if (!val || _editSkills.includes(val)) { inp.value=''; return; }
     _editSkills.push(val);
     inp.value = '';
-    const wrap = document.getElementById('skill-chips-wrap');
-    const chip = document.createElement('span');
-    chip.className = 'e-chip';
-    chip.dataset.skill = val;
-    chip.innerHTML = val+' <span onclick="removeEditSkill(''+val+'')" style="cursor:pointer;margin-left:4px;">✕</span>';
-    wrap.appendChild(chip);
+    refreshSkillChips();
   }
 
   function removeEditSkill(skill) {
     _editSkills = _editSkills.filter(s => s !== skill);
-    const wrap = document.getElementById('skill-chips-wrap');
-    if (wrap) {
-      const chip = wrap.querySelector('[data-skill="'+skill+'"]');
-      if (chip) chip.remove();
-    }
+    refreshSkillChips();
+  }
+
+  function refreshSkillChips() {
+    const wrap = document.getElementById('esc-wrap');
+    if (!wrap) return;
+    wrap.innerHTML = _editSkills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:2px;" onclick="removeEditSkill('${s}')">${s} ✕</span>`).join('');
   }
 
   async function saveEdit() {
     const msg = document.getElementById('edit-msg');
-    msg.style.color = '#64748b';
-    msg.textContent = 'Saving...';
+    if (!msg) return;
+    msg.style.color = '#64748b'; msg.textContent = 'Saving...';
     const updates = {
       name:               (document.getElementById('e-name')?.value||'').trim(),
       mobile:             (document.getElementById('e-mobile')?.value||'').trim(),
@@ -1107,45 +1087,32 @@ body { padding-top:108px !important; }
       about:              (document.getElementById('e-about')?.value||'').trim(),
       skills:             _editSkills,
     };
-    // Save to Supabase candidates table
     const { error } = await sb.from('candidates').update(updates).eq('id', candidate.id);
-    if (error) {
-      msg.style.color = '#dc2626';
-      msg.textContent = 'Save failed: ' + error.message;
-      return;
-    }
-    // Update local object + sessionStorage
+    if (error) { msg.style.color='#dc2626'; msg.textContent='Error: '+error.message; return; }
     Object.assign(candidate, updates);
     Session.setCandidate(candidate);
-    // Refresh all UI without page reload
     syncDrawer(candidate);
     renderProfileScore();
     renderSkillCategories();
-    const el = document.getElementById('slim-name');
-    if (el) el.textContent = candidate.name||'';
+    const sn = document.getElementById('slim-name'); if(sn) sn.textContent = candidate.name||'';
     const fieldMap = {
       'd-email':candidate.email,'d-mobile':candidate.mobile,'d-city':candidate.city,
-      'd-exp':candidate.experience,'d-title':candidate.jobtitle,
-      'd-company':candidate.current_company,'d-jobtype':candidate.preferred_job_type,
-      'd-salary':candidate.expected_salary,'d-notice':candidate.notice_period,
-      'd-about':candidate.about
+      'd-exp':candidate.experience,'d-title':candidate.jobtitle,'d-company':candidate.current_company,
+      'd-jobtype':candidate.preferred_job_type,'d-salary':candidate.expected_salary,
+      'd-notice':candidate.notice_period,'d-about':candidate.about
     };
-    Object.entries(fieldMap).forEach(([id,val])=>{
-      const el=document.getElementById(id); if(el) el.textContent=val||'—';
-    });
+    Object.entries(fieldMap).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=val||'—'; });
     if (candidate.skills?.length) {
       const sk=document.getElementById('d-skills');
       if(sk) sk.innerHTML=candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
     }
-    msg.style.color = '#16a34a';
-    msg.textContent = '✅ Saved!';
+    msg.style.color='#16a34a'; msg.textContent='✅ Saved!';
     setTimeout(closeEditModal, 1000);
   }
 
   // ── Pro / Prep gate ──
   function isProCandidate() {
-    if (!candidate.pro_expires_at) return false;
-    return new Date() < new Date(candidate.pro_expires_at);
+    return !!(candidate.pro_expires_at && new Date() < new Date(candidate.pro_expires_at));
   }
 
   async function checkPrepAccess() {
@@ -1165,22 +1132,28 @@ body { padding-top:108px !important; }
     candidate.prep_usage_date = today;
     candidate.prep_usage_count = newCount;
     Session.setCandidate(candidate);
-    await sb.from('candidates').update({prep_usage_date:today,prep_usage_count:newCount}).eq('id',candidate.id);
+    await sb.from('candidates').update({prep_usage_date:today, prep_usage_count:newCount}).eq('id', candidate.id);
   }
 
   function showPrepWall() {
     const qa = document.getElementById('qa-box');
+    if (!qa) return;
+    qa.style.display = 'block';
     document.getElementById('qa-title').textContent = 'Daily Limit Reached';
-    document.getElementById('qa-list').innerHTML = '<div style="padding:2rem;text-align:center;"><div style="font-size:2.5rem;margin-bottom:1rem;">🎯</div><h3 style="font-size:1rem;font-weight:800;margin-bottom:0.5rem;">3 Free Sessions Used Today</h3><p style="font-size:0.82rem;color:#64748b;margin-bottom:1.25rem;">Upgrade to Pro for unlimited AI interview prep, all resume templates and priority alerts.</p><button onclick="window.location.href='/pricing-candidate.html'" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 2rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button><button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Maybe later</button></div>';
-    qa.style.display='block'; qa.scrollIntoView({behavior:'smooth'});
+    document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🎯</div>
+      <h3 style="font-size:1rem;font-weight:800;margin-bottom:0.5rem;">3 Free Sessions Used Today</h3>
+      <p style="font-size:0.82rem;color:#64748b;margin-bottom:1.25rem;">Upgrade to Pro for unlimited AI interview prep + all resume templates + priority alerts.</p>
+      <button onclick="window.location.href='/pricing-candidate.html'" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 2rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button>
+      <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Maybe later</button>
+    </div>`;
+    qa.scrollIntoView({behavior:'smooth'});
   }
 
   if (candidate) {
-    syncDrawer(candidate);        // immediate: show whatever is in session
+    syncDrawer(candidate);
     renderSkillCategories();
-    freshSync().then(() => {      // fetch fresh from Supabase, then render
-      init();
-    });
+    freshSync().then(() => init());
   }
 </script>
 
