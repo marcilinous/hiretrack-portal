@@ -1036,7 +1036,7 @@ body { padding-top:108px !important; }
           '<label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Skills <span style="font-weight:400;color:#94a3b8;">(click chip to remove)</span></label>' +
           '<div id="skill-chips-edit" style="display:flex;flex-wrap:wrap;gap:5px;min-height:28px;margin-bottom:0.75rem;"></div>' +
           '<div style="display:flex;gap:8px;">' +
-          '<input id="skill-add-input" placeholder="Type skill, press Enter or Add" onkeydown="if(event.key==='Enter'){event.preventDefault();addEditSkill();}" style="flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;font-family:inherit;outline:none;">' +
+          '<input id="skill-add-input" placeholder="Type skill, press Enter or Add" style="flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;font-family:inherit;outline:none;">' +
           '<button type="button" onclick="addEditSkill()" style="background:#2563eb;color:#fff;border:none;padding:0.6rem 1rem;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;">Add</button>' +
           '</div>' +
         '</div>' +
@@ -1064,6 +1064,13 @@ body { padding-top:108px !important; }
     );
     renderEditSkillChips();
     document.body.style.overflow = 'hidden';
+    // Wire Enter key for skill input safely
+    setTimeout(() => {
+      const si = document.getElementById('skill-add-input');
+      if (si) si.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); addEditSkill(); }
+      });
+    }, 100);
   }
 
   function closeEditModal() {
