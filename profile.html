@@ -144,7 +144,7 @@ body { background:#f1f5f9; }
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
 
 /* ── Slim Bar (fixed — never scrolls) ── */
-.slim-bar { position:fixed; top:64px; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; gap:0.75rem; padding:0.55rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.slim-bar { position:fixed; top:64px; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; gap:0.75rem; padding:0.55rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.3); will-change:transform; }
 .slim-menu-btn { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.15rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; }
 .slim-menu-btn:hover { background:rgba(255,255,255,0.22); }
 .slim-name { font-size:0.88rem; font-weight:700; color:#fff; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -211,7 +211,7 @@ body { padding-top:108px !important; }
 .ij-sal { font-size:0.75rem; font-weight:700; color:#059669; }
 .ij-badge { font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:7px; background:#dcfce7; color:#15803d; }
 
-@media(max-width:640px) { .slim-bar { top:56px; } body { padding-top:100px !important; } .tabs-wrap { top:100px; } .drawer { width:88%; max-width:300px; } }
+@media(max-width:640px) { .slim-bar { top:56px; } body { padding-top:100px !important; } .tabs-wrap { top:100px; } .drawer { width:88%; max-width:300px; } } @media(max-width:768px) { .slim-bar { top:56px; } body { padding-top:100px !important; } .tabs-wrap { top:100px; } }
 
 </style>
 </head>
@@ -701,6 +701,8 @@ body { padding-top:108px !important; }
   }
 
   async function loadSkillQuestions(skill) {
+    const allowed = await checkPrepAccess(); if (!allowed) return;
+    await incrementPrepUsage();
     const qa = document.getElementById('qa-box');
     document.getElementById('qa-title').textContent = `Practice: ${skill}`;
     document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Preparing ${skill} questions...</span></div>`;
@@ -721,6 +723,8 @@ body { padding-top:108px !important; }
   async function generateAIQuestions() {
     const input = document.getElementById('prep-input').value.trim();
     if (!input) { showToast('Please enter a job role'); return; }
+    const allowed = await checkPrepAccess(); if (!allowed) return;
+    await incrementPrepUsage();
     const qa = document.getElementById('qa-box');
     document.getElementById('qa-title').textContent = `Interview Prep: ${input}`;
     document.getElementById('qa-list').innerHTML = `<div style="padding:2rem;text-align:center;"><span class="ai-loading">🤖 Generating questions for ${input}...</span></div>`;
@@ -896,12 +900,16 @@ body { padding-top:108px !important; }
           'd-jobtype':candidate.preferred_job_type,'d-salary':candidate.expected_salary,
           'd-notice':candidate.notice_period,'d-about':candidate.about
         };
-        Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el&&val) el.textContent=val; });
+        Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=val||'—'; });
         // Skills
         if (candidate.skills?.length) {
           const sk = document.getElementById('d-skills');
           if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
         }
+        // Re-render score with fresh data
+        renderProfileScore();
+        // Re-render skill categories for prep tab
+        renderSkillCategories();
       }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
@@ -960,6 +968,50 @@ body { padding-top:108px !important; }
         +(applied?'<span style="font-size:0.7rem;color:#22c55e;font-weight:700;">✓ Applied</span>':'<button onclick="whatsappApply(''+j.phone+'',''+wa+'')" style="background:#25d366;color:#fff;border:none;padding:4px 10px;border-radius:7px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">WhatsApp</button>')
         +'</div></div>';
     }).join('');
+  }
+
+
+  // ── Pro / Prep usage gate ──
+  function isProCandidate() {
+    if (!candidate.pro_expires_at) return false;
+    return new Date() < new Date(candidate.pro_expires_at);
+  }
+
+  async function checkPrepAccess() {
+    if (isProCandidate()) return true;
+    // Free: 3 AI sessions per day tracked in DB
+    const today = new Date().toISOString().slice(0,10);
+    if (candidate.prep_usage_date === today && (candidate.prep_usage_count||0) >= 3) {
+      showPrepLimitWall();
+      return false;
+    }
+    return true;
+  }
+
+  async function incrementPrepUsage() {
+    if (isProCandidate()) return;
+    const today = new Date().toISOString().slice(0,10);
+    const isToday = candidate.prep_usage_date === today;
+    const newCount = isToday ? (candidate.prep_usage_count||0)+1 : 1;
+    candidate.prep_usage_date = today;
+    candidate.prep_usage_count = newCount;
+    Session.setCandidate(candidate);
+    await sb.from('candidates').update({ prep_usage_date: today, prep_usage_count: newCount }).eq('id', candidate.id);
+  }
+
+  function showPrepLimitWall() {
+    const qa = document.getElementById('qa-box');
+    document.getElementById('qa-title').textContent = 'Daily Limit Reached';
+    document.getElementById('qa-list').innerHTML = `
+      <div style="padding:2rem;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🎯</div>
+        <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:0.5rem;">3 Free Sessions Used Today</h3>
+        <p style="font-size:0.82rem;color:#64748b;margin-bottom:1.25rem;">Upgrade to Pro for unlimited AI interview prep sessions, all resume templates, and priority job alerts.</p>
+        <button onclick="window.location.href='/pricing-candidate.html'" style="background:#2563eb;color:#fff;border:none;padding:0.75rem 2rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:0.5rem;">Upgrade to Pro — ₹49/month →</button>
+        <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Maybe later</button>
+      </div>`;
+    qa.style.display = 'block';
+    qa.scrollIntoView({ behavior:'smooth' });
   }
 
   if (candidate) {
