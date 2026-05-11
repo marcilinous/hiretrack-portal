@@ -1115,9 +1115,7 @@ body { padding-top:108px !important; }
     const wrap = document.getElementById('skill-chips-edit');
     if (!wrap) return;
     wrap.innerHTML = _editSkills.map(s =>
-      '<span onclick="removeEditSkill('' + s + '')" style="background:#eff6ff;color:#1d4ed8;' +
-      'padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;' +
-      'display:inline-flex;align-items:center;gap:5px;margin:2px;">' + s + ' ✕</span>'
+      `<span onclick="removeEditSkill(this)" data-skill="${s}" style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin:2px;">${s} ✕</span>`
     ).join('');
   }
 
@@ -1131,7 +1129,8 @@ body { padding-top:108px !important; }
     renderEditSkillChips();
   }
 
-  function removeEditSkill(skill) {
+  function removeEditSkill(el) {
+    const skill = el.dataset.skill;
     _editSkills = _editSkills.filter(s => s !== skill);
     renderEditSkillChips();
   }
