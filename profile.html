@@ -143,72 +143,66 @@ body { background:#f1f5f9; }
 
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
 
-/* ── Slide-in Drawer ── */
-.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;backdrop-filter:blur(4px);}
-.drawer-overlay.open{opacity:1;visibility:visible;}
-.drawer{position:fixed;top:0;left:0;bottom:0;width:300px;background:#fff;z-index:201;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.15);}
-.drawer.open{transform:translateX(0);}
-.drawer-head{background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.5rem 1.25rem 1.25rem;flex-shrink:0;}
-.drawer-head-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem;}
-.drawer-avatar{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0;}
-.drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.drawer-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
-.drawer-name{font-size:1rem;font-weight:800;color:#fff;margin-bottom:0.1rem;}
-.drawer-role{font-size:0.78rem;color:#bfdbfe;margin-bottom:0.75rem;}
-.drawer-score-row{display:flex;align-items:center;gap:8px;}
-.drawer-score-bar{flex:1;height:5px;background:rgba(255,255,255,0.2);border-radius:10px;overflow:hidden;}
-.drawer-score-fill{height:100%;background:#fff;border-radius:10px;transition:width 0.8s ease;}
-.drawer-score-label{font-size:0.72rem;color:#bfdbfe;font-weight:600;}
-.drawer-section{padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;}
-.drawer-section-title{font-size:0.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;}
-.drawer-row{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;}
-.drawer-row-label{font-size:0.8rem;color:#64748b;}
-.drawer-row-value{font-size:0.8rem;font-weight:600;color:#0f172a;max-width:160px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.drawer-skills{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
-.drawer-skill{background:#eff6ff;color:#1d4ed8;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:20px;}
-.drawer-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.drawer-stat{background:#f8fafc;border-radius:8px;padding:0.6rem;text-align:center;}
-.drawer-stat-num{font-size:1.3rem;font-weight:800;}
-.drawer-stat-label{font-size:0.65rem;color:#94a3b8;}
-.drawer-foot{padding:1rem 1.25rem;margin-top:auto;display:flex;flex-direction:column;gap:0.5rem;}
-.drawer-edit-btn{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.7rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
-.drawer-logout-btn{background:none;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;}
-.drawer-logout-btn:hover{border-color:#fecaca;color:#ef4444;}
-/* Hamburger menu btn in header */
-.btn-menu{background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.25);color:#fff;width:36px;height:36px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.btn-menu:hover{background:rgba(255,255,255,0.25);}
-/* Edit modal blur */
-.edit-modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-/* Tabs scrollable */
-.tabs-inner{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.tabs-inner::-webkit-scrollbar{display:none;}
-/* Sticky header + tabs */
-.profile-header{position:sticky;top:0;z-index:100;}
-.tabs-wrap{position:sticky;top:132px;z-index:99;}
-@media(max-width:640px){.tabs-wrap{top:118px;}.drawer{width:85%;max-width:300px;}}
+  /* ── Slim Bar ── */
+  .slim-bar{background:#0f172a;display:flex;align-items:center;gap:0.75rem;padding:0.6rem 1rem;position:sticky;top:0;z-index:100;}
+  .slim-menu-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;width:34px;height:34px;border-radius:8px;font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .slim-menu-btn:hover{background:rgba(255,255,255,0.2);}
+  .slim-info{flex:1;display:flex;align-items:center;gap:0.6rem;overflow:hidden;}
+  .slim-name{font-size:0.88rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .slim-score{font-size:0.7rem;font-weight:700;background:#1e3a5f;color:#60a5fa;padding:2px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+  .slim-edit-btn{background:none;border:1px solid rgba(255,255,255,0.25);color:#fff;padding:0.35rem 0.8rem;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;}
+  .slim-edit-btn:hover{background:rgba(255,255,255,0.12);}
+  /* ── Tabs sticky below slim bar ── */
+  .tabs-wrap{background:#fff;border-bottom:2px solid #e2e8f0;position:sticky;top:50px;z-index:99;}
+  .tabs-inner{max-width:900px;margin:0 auto;padding:0 0.5rem;display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .tabs-inner::-webkit-scrollbar{display:none;}
+  /* ── Drawer ── */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;backdrop-filter:blur(4px);}
+  .drawer-overlay.open{opacity:1;visibility:visible;}
+  .drawer{position:fixed;top:0;left:0;bottom:0;width:300px;background:#fff;z-index:201;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.15);}
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.5rem 1.25rem 1.25rem;flex-shrink:0;}
+  .drawer-head-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem;}
+  .drawer-avatar{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0;}
+  .drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .drawer-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .drawer-name{font-size:1rem;font-weight:800;color:#fff;margin-bottom:0.1rem;}
+  .drawer-role{font-size:0.78rem;color:#bfdbfe;margin-bottom:0.75rem;}
+  .drawer-score-row{display:flex;align-items:center;gap:8px;}
+  .drawer-score-bar{flex:1;height:5px;background:rgba(255,255,255,0.2);border-radius:10px;overflow:hidden;}
+  .drawer-score-fill{height:100%;background:#fff;border-radius:10px;transition:width 0.8s ease;}
+  .drawer-score-label{font-size:0.72rem;color:#bfdbfe;font-weight:600;}
+  .drawer-section{padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;}
+  .drawer-section-title{font-size:0.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;}
+  .drawer-row{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;}
+  .drawer-row-label{font-size:0.8rem;color:#64748b;}
+  .drawer-row-value{font-size:0.8rem;font-weight:600;color:#0f172a;max-width:160px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .drawer-skills{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+  .drawer-skill{background:#eff6ff;color:#1d4ed8;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+  .drawer-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .drawer-stat{background:#f8fafc;border-radius:8px;padding:0.6rem;text-align:center;}
+  .drawer-stat-num{font-size:1.3rem;font-weight:800;}
+  .drawer-stat-label{font-size:0.65rem;color:#94a3b8;}
+  .drawer-foot{padding:1rem 1.25rem;margin-top:auto;display:flex;flex-direction:column;gap:0.5rem;}
+  .drawer-edit-btn{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.7rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+  .drawer-logout-btn{background:none;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;}
+  .drawer-logout-btn:hover{border-color:#fecaca;color:#ef4444;}
+  .edit-modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+  @media(max-width:640px){.tabs-wrap{top:46px;}.drawer{width:85%;max-width:300px;}}
+
 </style>
 </head>
 <body>
 <div id="navbar"></div>
 
-<!-- Profile Header -->
-<div class="profile-header">
-  <div class="profile-header-inner">
-    <div class="avatar" id="p-avatar">?</div>
-    <div class="profile-info">
-      <div class="profile-name" id="p-name">Loading...</div>
-      <div class="profile-title" id="p-title">Job Seeker</div>
-      <div class="profile-meta">
-        <span id="p-city">📍 —</span>
-        <span id="p-exp">🎓 —</span>
-        <span id="p-mobile">📞 —</span>
-        <span id="p-score-badge" style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">⭐ Score: —</span>
-      </div>
-    </div>
-    <div class="profile-actions">
-      <button class="btn-menu" onclick="openDrawer()" aria-label="Open profile">&#9776;</button>
-    </div>
+<!-- Slim Profile Bar -->
+<div class="slim-bar">
+  <button class="slim-menu-btn" onclick="openDrawer()" aria-label="Open profile">&#9776;</button>
+  <div class="slim-info">
+    <span class="slim-name" id="p-name">Loading...</span>
+    <span class="slim-score" id="p-score-badge">0%</span>
   </div>
+  <button class="slim-edit-btn" onclick="openEditModal()">✏️ Edit</button>
 </div>
 
 <!-- Tabs -->
@@ -326,8 +320,25 @@ body { background:#f1f5f9; }
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
-  const candidate = Session.getCandidate();
+  let candidate = Session.getCandidate();
   if (!candidate) { window.location.href = 'login.html'; }
+
+  // Fresh sync from Supabase on every page load
+  (async () => {
+    try {
+      const { data } = await sb.from('candidates').select('*').eq('id', candidate.id).maybeSingle();
+      if (data) {
+        candidate = data;
+        Session.setCandidate(data);
+        // Re-populate everything that already rendered from stale session
+        populateDrawer();
+        const nameEl = document.getElementById('p-name');
+        if (nameEl) nameEl.textContent = data.name || '';
+        const badgeEl = document.getElementById('p-score-badge');
+        // score will be recalculated by renderProfileScore
+      }
+    } catch(e) { console.warn('Sync failed, using session data', e); }
+  })();
 
   let myApps = [], myNotifs = [];
   let quizData = [], quizIdx = 0;
@@ -335,11 +346,7 @@ body { background:#f1f5f9; }
   // ── Init ──
   async function init() {
     const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-    if (candidate.profile_photo) {
-      document.getElementById('p-avatar').innerHTML = '<img src="'+candidate.profile_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
-    } else {
-      document.getElementById('p-avatar').textContent = initials;
-    }
+    // avatar in slim bar is removed; drawer handles it via populateDrawer()
     document.getElementById('p-name').textContent = candidate.name;
     document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
     document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
@@ -367,6 +374,7 @@ body { background:#f1f5f9; }
     // Load applications — fetch apps then match with jobs separately
     const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
     myApps = apps || [];
+    updateDrawerStats();
 
     // Fetch job details for each application
     for (const app of myApps) {
@@ -546,7 +554,7 @@ body { background:#f1f5f9; }
       </div>`;
 
     const badge = document.getElementById('p-score-badge');
-    if(badge) badge.textContent = `⭐ ${score}%`;
+    if(badge) badge.textContent = score + '%';
     updateDrawerScore(score);
 
     // Render check items separately to avoid nested template literal issues
@@ -765,7 +773,6 @@ body { background:#f1f5f9; }
   }
 
 
-  // ── Drawer ──
   function openDrawer() {
     document.getElementById('profile-drawer').classList.add('open');
     document.getElementById('drawer-overlay').classList.add('open');
@@ -776,25 +783,24 @@ body { background:#f1f5f9; }
     document.getElementById('drawer-overlay').classList.remove('open');
     document.body.style.overflow = '';
   }
-  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+  function set(id, val) { const el = document.getElementById(id); if (el) el.textContent = val || '—'; }
 
   function populateDrawer() {
     if (!candidate) return;
     // Avatar
     const av = document.getElementById('dr-avatar');
-    if (candidate.profile_photo) {
-      av.innerHTML = '<img src="'+candidate.profile_photo+'" alt="Profile"/>';
-    } else {
-      const initials = candidate.name ? candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2) : '?';
-      av.textContent = initials;
+    if (av) {
+      if (candidate.profile_photo) {
+        av.innerHTML = '<img src="' + candidate.profile_photo + '" alt="Profile"/>';
+      } else {
+        av.textContent = (candidate.name || '?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+      }
     }
-    // Header info
-    const nameEl = document.getElementById('dr-name');
-    const roleEl = document.getElementById('dr-role');
-    if (nameEl) nameEl.textContent = candidate.name || '—';
-    if (roleEl) roleEl.textContent = (candidate.jobtitle || 'Job Seeker') + (candidate.city ? ' · ' + candidate.city : '');
-    // Personal info
-    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = val||'—'; };
+    set('dr-name',    candidate.name);
+    const roleStr = (candidate.jobtitle || 'Job Seeker') + (candidate.city ? ' · ' + candidate.city : '');
+    set('dr-role',    roleStr);
     set('dr-email',   candidate.email);
     set('dr-mobile',  candidate.mobile);
     set('dr-city',    candidate.city);
@@ -804,41 +810,42 @@ body { background:#f1f5f9; }
     set('dr-salary',  candidate.expected_salary);
     set('dr-notice',  candidate.notice_period);
     // Skills
-    const skillsEl = document.getElementById('dr-skills');
-    if (skillsEl) {
-      const skills = candidate.skills || [];
-      skillsEl.innerHTML = skills.length
-        ? skills.map(s=>'<span class="drawer-skill">'+s+'</span>').join('')
-        : '<span style="font-size:0.78rem;color:#94a3b8;">No skills added</span>';
+    const sk = document.getElementById('dr-skills');
+    if (sk) {
+      const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
+      sk.innerHTML = skills.length
+        ? skills.map(s => '<span class="drawer-skill">' + s + '</span>').join('')
+        : '<span style="font-size:0.78rem;color:#94a3b8;">Add skills in Edit Profile</span>';
     }
+    // Slim bar name
+    const sn = document.getElementById('p-name');
+    if (sn) sn.textContent = candidate.name || '';
+  }
+
+  function updateDrawerScore(score) {
+    const fill = document.getElementById('dr-score-fill');
+    const label = document.getElementById('dr-score-label');
+    const badge = document.getElementById('p-score-badge');
+    if (fill)  fill.style.width = score + '%';
+    if (label) label.textContent = score + '%';
+    if (badge) badge.textContent = score + '%';
   }
 
   function updateDrawerStats() {
-    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent = val; };
     set('dr-total', myApps.length);
     set('dr-short', myApps.filter(a=>a.status==='Shortlisted').length);
     set('dr-inter', myApps.filter(a=>a.status==='Interview').length);
     set('dr-hired', myApps.filter(a=>a.status==='Hired').length);
   }
 
-  function updateDrawerScore(score) {
-    const fill  = document.getElementById('dr-score-fill');
-    const label = document.getElementById('dr-score-label');
-    if (fill)  fill.style.width = score + '%';
-    if (label) label.textContent = score + '%';
-  }
-
   if (candidate) {
     populateDrawer();
     renderSkillCategories();
-    init().then ? init().then(updateDrawerStats) : (init(), setTimeout(updateDrawerStats, 2000));
+    init();
   }
 </script>
 
-<!-- Profile Drawer Overlay -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-
-<!-- Profile Drawer -->
 <div class="drawer" id="profile-drawer">
   <div class="drawer-head">
     <div class="drawer-head-top">
@@ -852,7 +859,6 @@ body { background:#f1f5f9; }
       <span class="drawer-score-label" id="dr-score-label">0%</span>
     </div>
   </div>
-
   <div class="drawer-section">
     <div class="drawer-section-title">Personal info</div>
     <div class="drawer-row"><span class="drawer-row-label">📧 Email</span><span class="drawer-row-value" id="dr-email">—</span></div>
@@ -861,19 +867,16 @@ body { background:#f1f5f9; }
     <div class="drawer-row"><span class="drawer-row-label">🎓 Experience</span><span class="drawer-row-value" id="dr-exp">—</span></div>
     <div class="drawer-row"><span class="drawer-row-label">🏢 Company</span><span class="drawer-row-value" id="dr-company">—</span></div>
   </div>
-
   <div class="drawer-section">
     <div class="drawer-section-title">Job preferences</div>
     <div class="drawer-row"><span class="drawer-row-label">💼 Job type</span><span class="drawer-row-value" id="dr-jobtype">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">💰 Expected salary</span><span class="drawer-row-value" id="dr-salary">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">⏰ Notice period</span><span class="drawer-row-value" id="dr-notice">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">💰 Salary</span><span class="drawer-row-value" id="dr-salary">—</span></div>
+    <div class="drawer-row"><span class="drawer-row-label">⏰ Notice</span><span class="drawer-row-value" id="dr-notice">—</span></div>
   </div>
-
   <div class="drawer-section">
     <div class="drawer-section-title">Skills</div>
-    <div class="drawer-skills" id="dr-skills"><span style="font-size:0.78rem;color:#94a3b8;">No skills added</span></div>
+    <div class="drawer-skills" id="dr-skills"></div>
   </div>
-
   <div class="drawer-section">
     <div class="drawer-section-title">Activity</div>
     <div class="drawer-stats">
@@ -883,12 +886,10 @@ body { background:#f1f5f9; }
       <div class="drawer-stat"><div class="drawer-stat-num" id="dr-hired" style="color:#15803d;">0</div><div class="drawer-stat-label">Hired</div></div>
     </div>
   </div>
-
   <div class="drawer-foot">
-    <button class="drawer-edit-btn" onclick="closeDrawer(); openEditModal();">✏️ Edit Profile</button>
+    <button class="drawer-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
     <button class="drawer-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
   </div>
 </div>
-
 </body>
 </html>
