@@ -143,66 +143,106 @@ body { background:#f1f5f9; }
 
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
 
-  /* ── Slim Bar ── */
-  .slim-bar{background:#0f172a;display:flex;align-items:center;gap:0.75rem;padding:0.6rem 1rem;position:sticky;top:0;z-index:100;}
-  .slim-menu-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;width:34px;height:34px;border-radius:8px;font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-  .slim-menu-btn:hover{background:rgba(255,255,255,0.2);}
-  .slim-info{flex:1;display:flex;align-items:center;gap:0.6rem;overflow:hidden;}
-  .slim-name{font-size:0.88rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .slim-score{font-size:0.7rem;font-weight:700;background:#1e3a5f;color:#60a5fa;padding:2px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
-  .slim-edit-btn{background:none;border:1px solid rgba(255,255,255,0.25);color:#fff;padding:0.35rem 0.8rem;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0;}
-  .slim-edit-btn:hover{background:rgba(255,255,255,0.12);}
-  /* ── Tabs sticky below slim bar ── */
-  .tabs-wrap{background:#fff;border-bottom:2px solid #e2e8f0;position:sticky;top:50px;z-index:99;}
-  .tabs-inner{max-width:900px;margin:0 auto;padding:0 0.5rem;display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-  .tabs-inner::-webkit-scrollbar{display:none;}
-  /* ── Drawer ── */
-  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;backdrop-filter:blur(4px);}
-  .drawer-overlay.open{opacity:1;visibility:visible;}
-  .drawer{position:fixed;top:0;left:0;bottom:0;width:300px;background:#fff;z-index:201;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.15);}
-  .drawer.open{transform:translateX(0);}
-  .drawer-head{background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.5rem 1.25rem 1.25rem;flex-shrink:0;}
-  .drawer-head-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem;}
-  .drawer-avatar{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0;}
-  .drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-  .drawer-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .drawer-name{font-size:1rem;font-weight:800;color:#fff;margin-bottom:0.1rem;}
-  .drawer-role{font-size:0.78rem;color:#bfdbfe;margin-bottom:0.75rem;}
-  .drawer-score-row{display:flex;align-items:center;gap:8px;}
-  .drawer-score-bar{flex:1;height:5px;background:rgba(255,255,255,0.2);border-radius:10px;overflow:hidden;}
-  .drawer-score-fill{height:100%;background:#fff;border-radius:10px;transition:width 0.8s ease;}
-  .drawer-score-label{font-size:0.72rem;color:#bfdbfe;font-weight:600;}
-  .drawer-section{padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;}
-  .drawer-section-title{font-size:0.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;}
-  .drawer-row{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;}
-  .drawer-row-label{font-size:0.8rem;color:#64748b;}
-  .drawer-row-value{font-size:0.8rem;font-weight:600;color:#0f172a;max-width:160px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .drawer-skills{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
-  .drawer-skill{background:#eff6ff;color:#1d4ed8;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:20px;}
-  .drawer-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .drawer-stat{background:#f8fafc;border-radius:8px;padding:0.6rem;text-align:center;}
-  .drawer-stat-num{font-size:1.3rem;font-weight:800;}
-  .drawer-stat-label{font-size:0.65rem;color:#94a3b8;}
-  .drawer-foot{padding:1rem 1.25rem;margin-top:auto;display:flex;flex-direction:column;gap:0.5rem;}
-  .drawer-edit-btn{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.7rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
-  .drawer-logout-btn{background:none;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;width:100%;}
-  .drawer-logout-btn:hover{border-color:#fecaca;color:#ef4444;}
-  .edit-modal{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-  @media(max-width:640px){.tabs-wrap{top:46px;}.drawer{width:85%;max-width:300px;}}
+/* ── Slim Bar (fixed — never scrolls) ── */
+.slim-bar { position:fixed; top:64px; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; gap:0.75rem; padding:0.55rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.slim-menu-btn { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.15rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; }
+.slim-menu-btn:hover { background:rgba(255,255,255,0.22); }
+.slim-name { font-size:0.88rem; font-weight:700; color:#fff; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slim-score { font-size:0.7rem; font-weight:700; background:#1e3a5f; color:#60a5fa; padding:2px 10px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
+.slim-edit-btn { background:none; border:1px solid rgba(255,255,255,0.25); color:#fff; padding:0.3rem 0.75rem; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; flex-shrink:0; }
+.slim-edit-btn:hover { background:rgba(255,255,255,0.12); }
+/* body offset: navbar(64) + slim bar(44) = 108px; tabs just below slim bar */
+body { padding-top:108px !important; }
+.tabs-wrap { position:fixed; top:108px; left:0; right:0; z-index:149; background:#fff; border-bottom:2px solid #e2e8f0; }
+.tabs-inner { max-width:900px; margin:0 auto; padding:0 0.5rem; display:flex; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.tabs-inner::-webkit-scrollbar { display:none; }
+/* content must clear fixed slim bar + tabs (44+44=88 extra) */
+.content { padding-top:1rem; }
+/* hide old header since slim bar replaces it */
+.profile-header { display:none !important; }
+
+/* ── Drawer ── */
+.drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; opacity:0; visibility:hidden; transition:opacity 0.28s,visibility 0.28s; backdrop-filter:blur(4px); }
+.drawer-overlay.open { opacity:1; visibility:visible; }
+.drawer { position:fixed; top:0; left:0; bottom:0; width:300px; background:#fff; z-index:301; transform:translateX(-100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1); overflow-y:auto; display:flex; flex-direction:column; box-shadow:4px 0 32px rgba(0,0,0,0.2); }
+.drawer.open { transform:translateX(0); }
+.dr-head { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:1.5rem 1.25rem 1.25rem; flex-shrink:0; }
+.dr-head-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem; }
+.dr-avatar { width:66px; height:66px; border-radius:50%; border:3px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; color:#fff; overflow:hidden; flex-shrink:0; }
+.dr-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.dr-close { background:rgba(255,255,255,0.15); border:none; color:#fff; width:30px; height:30px; border-radius:8px; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.dr-name { font-size:1rem; font-weight:800; color:#fff; margin-bottom:0.1rem; }
+.dr-role { font-size:0.78rem; color:#bfdbfe; margin-bottom:0.75rem; }
+.dr-score-row { display:flex; align-items:center; gap:8px; }
+.dr-score-bar { flex:1; height:5px; background:rgba(255,255,255,0.2); border-radius:10px; overflow:hidden; }
+.dr-score-fill { height:100%; background:#fff; border-radius:10px; width:0%; transition:width 0.8s ease; }
+.dr-score-lbl { font-size:0.72rem; color:#bfdbfe; font-weight:600; white-space:nowrap; }
+.dr-sec { padding:0.9rem 1.25rem; border-bottom:1px solid #f1f5f9; }
+.dr-sec-title { font-size:0.65rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.55rem; }
+.dr-row { display:flex; justify-content:space-between; align-items:center; padding:0.28rem 0; }
+.dr-lbl { font-size:0.78rem; color:#64748b; }
+.dr-val { font-size:0.78rem; font-weight:600; color:#0f172a; max-width:155px; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dr-skills { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+.dr-skill { background:#eff6ff; color:#1d4ed8; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:20px; }
+.dr-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.dr-stat { background:#f8fafc; border-radius:8px; padding:0.55rem; text-align:center; }
+.dr-stat-num { font-size:1.25rem; font-weight:800; }
+.dr-stat-lbl { font-size:0.62rem; color:#94a3b8; }
+.dr-foot { padding:1rem 1.25rem; margin-top:auto; display:flex; flex-direction:column; gap:0.5rem; }
+.dr-edit-btn { background:#2563eb; color:#fff; border:none; border-radius:8px; padding:0.65rem; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; width:100%; }
+.dr-logout-btn { background:none; color:#64748b; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.55rem; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; width:100%; }
+.dr-logout-btn:hover { border-color:#fecaca; color:#ef4444; }
+
+/* ── Browse Jobs inline tab ── */
+.jobs-filter-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:1rem; }
+.jf-input { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
+.jf-select { border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.82rem; font-family:inherit; outline:none; background:#fff; color:#374151; cursor:pointer; }
+.jf-select:focus { border-color:#3b82f6; }
+.inline-jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.85rem; }
+.inline-jcard { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.1rem; cursor:pointer; transition:all 0.18s; }
+.inline-jcard:hover { border-color:#3b82f6; box-shadow:0 4px 16px rgba(59,130,246,0.1); transform:translateY(-1px); }
+.ij-title { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
+.ij-co { font-size:0.75rem; color:#3b82f6; font-weight:600; margin-bottom:0.45rem; }
+.ij-meta { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:0.5rem; }
+.ij-meta span { font-size:0.68rem; color:#64748b; background:#f8fafc; padding:2px 7px; border-radius:5px; }
+.ij-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:0.6rem; }
+.ij-tag { font-size:0.65rem; background:#eff6ff; color:#1d4ed8; padding:2px 7px; border-radius:8px; font-weight:600; }
+.ij-foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f5f9; padding-top:0.5rem; }
+.ij-sal { font-size:0.75rem; font-weight:700; color:#059669; }
+.ij-badge { font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:7px; background:#dcfce7; color:#15803d; }
+
+@media(max-width:640px) { .slim-bar { top:56px; } body { padding-top:100px !important; } .tabs-wrap { top:100px; } .drawer { width:88%; max-width:300px; } }
 
 </style>
 </head>
 <body>
 <div id="navbar"></div>
 
-<!-- Slim Profile Bar -->
+<!-- Slim Bar (fixed) -->
 <div class="slim-bar">
   <button class="slim-menu-btn" onclick="openDrawer()" aria-label="Open profile">&#9776;</button>
-  <div class="slim-info">
-    <span class="slim-name" id="p-name">Loading...</span>
-    <span class="slim-score" id="p-score-badge">0%</span>
-  </div>
+  <span class="slim-name" id="slim-name">Loading...</span>
+  <span class="slim-score" id="slim-score">0%</span>
   <button class="slim-edit-btn" onclick="openEditModal()">✏️ Edit</button>
+</div>
+
+<!-- Profile Header (hidden by CSS, kept for JS targets) -->
+<div class="profile-header">
+  <div class="profile-header-inner">
+    <div class="avatar" id="p-avatar">?</div>
+    <div class="profile-info">
+      <div class="profile-name" id="p-name">Loading...</div>
+      <div class="profile-title" id="p-title">Job Seeker</div>
+      <div class="profile-meta">
+        <span id="p-city">📍 —</span>
+        <span id="p-exp">🎓 —</span>
+        <span id="p-mobile">📞 —</span>
+        <span id="p-score-badge" style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">⭐ Score: —</span>
+      </div>
+    </div>
+    <div class="profile-actions">
+    </div>
+  </div>
 </div>
 
 <!-- Tabs -->
@@ -212,6 +252,7 @@ body { background:#f1f5f9; }
     <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
     <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
     <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep</button>
+    <button class="tab" onclick="switchTab('jobs',this)">💼 Browse Jobs</button>
   </div>
 </div>
 
@@ -314,31 +355,32 @@ body { background:#f1f5f9; }
     </div>
   </div>
 
+  <!-- BROWSE JOBS TAB -->
+  <div id="tab-jobs" style="display:none;">
+    <div class="jobs-filter-bar">
+      <input class="jf-input" type="text" id="jf-kw" placeholder="🔍  Search title, skill, company..." oninput="filterInlineJobs()">
+      <select class="jf-select" id="jf-loc" onchange="filterInlineJobs()">
+        <option value="">📍 All Locations</option>
+        <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
+        <option>Hyderabad</option><option>Mysuru</option><option>Remote</option>
+      </select>
+      <select class="jf-select" id="jf-type" onchange="filterInlineJobs()">
+        <option value="">💼 All Types</option>
+        <option>Full Time</option><option>Contract</option><option>Remote</option><option>Part Time</option>
+      </select>
+    </div>
+    <div id="inline-jobs-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;"></div>
+    <div class="inline-jobs-grid" id="inline-jobs-grid"></div>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
-  let candidate = Session.getCandidate();
+  const candidate = Session.getCandidate();
   if (!candidate) { window.location.href = 'login.html'; }
-
-  // Fresh sync from Supabase on every page load
-  (async () => {
-    try {
-      const { data } = await sb.from('candidates').select('*').eq('id', candidate.id).maybeSingle();
-      if (data) {
-        candidate = data;
-        Session.setCandidate(data);
-        // Re-populate everything that already rendered from stale session
-        populateDrawer();
-        const nameEl = document.getElementById('p-name');
-        if (nameEl) nameEl.textContent = data.name || '';
-        const badgeEl = document.getElementById('p-score-badge');
-        // score will be recalculated by renderProfileScore
-      }
-    } catch(e) { console.warn('Sync failed, using session data', e); }
-  })();
 
   let myApps = [], myNotifs = [];
   let quizData = [], quizIdx = 0;
@@ -346,7 +388,7 @@ body { background:#f1f5f9; }
   // ── Init ──
   async function init() {
     const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-    // avatar in slim bar is removed; drawer handles it via populateDrawer()
+    document.getElementById('p-avatar').textContent = initials;
     document.getElementById('p-name').textContent = candidate.name;
     document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
     document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
@@ -374,7 +416,7 @@ body { background:#f1f5f9; }
     // Load applications — fetch apps then match with jobs separately
     const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
     myApps = apps || [];
-    updateDrawerStats();
+    syncDrawerStats();
 
     // Fetch job details for each application
     for (const app of myApps) {
@@ -410,9 +452,10 @@ body { background:#f1f5f9; }
 
   // ── Tab switching ──
   function switchTab(tab, btn) {
-    ['profile','applications','notifications','prep'].forEach(t => document.getElementById('tab-'+t).style.display='none');
+    ['profile','applications','notifications','prep','jobs'].forEach(t => { const e=document.getElementById('tab-'+t); if(e) e.style.display='none'; });
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-'+tab).style.display = 'block';
+    const _tabEl = document.getElementById('tab-'+tab); if(_tabEl) _tabEl.style.display='block';
+    if(tab==='jobs') loadInlineJobs();
     btn.classList.add('active');
     if (tab === 'applications') renderApps(myApps);
     if (tab === 'notifications') renderNotifs();
@@ -554,8 +597,8 @@ body { background:#f1f5f9; }
       </div>`;
 
     const badge = document.getElementById('p-score-badge');
-    if(badge) badge.textContent = score + '%';
-    updateDrawerScore(score);
+    if(badge) badge.textContent = `⭐ ${score}%`;
+    syncDrawerScore(score);
 
     // Render check items separately to avoid nested template literal issues
     const itemsEl = document.getElementById('score-items-list');
@@ -773,123 +816,209 @@ body { background:#f1f5f9; }
   }
 
 
-  function openDrawer() {
-    document.getElementById('profile-drawer').classList.add('open');
-    document.getElementById('drawer-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeDrawer() {
-    document.getElementById('profile-drawer').classList.remove('open');
-    document.getElementById('drawer-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+  // ── Slim bar + Drawer helpers ──
+  function drSet(id, val) { const el=document.getElementById(id); if(el) el.textContent=(val||'—'); }
 
-  function set(id, val) { const el = document.getElementById(id); if (el) el.textContent = val || '—'; }
+  function openDrawer()  { document.getElementById('profile-drawer').classList.add('open'); document.getElementById('drawer-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeDrawer() { document.getElementById('profile-drawer').classList.remove('open'); document.getElementById('drawer-overlay').classList.remove('open'); document.body.style.overflow=''; }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
 
-  function populateDrawer() {
-    if (!candidate) return;
+  function syncDrawer(c) {
+    if (!c) return;
     // Avatar
     const av = document.getElementById('dr-avatar');
     if (av) {
-      if (candidate.profile_photo) {
-        av.innerHTML = '<img src="' + candidate.profile_photo + '" alt="Profile"/>';
+      if (c.profile_photo) {
+        av.innerHTML = '<img src="'+c.profile_photo+'" alt="photo"/>';
       } else {
-        av.textContent = (candidate.name || '?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+        av.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       }
     }
-    set('dr-name',    candidate.name);
-    const roleStr = (candidate.jobtitle || 'Job Seeker') + (candidate.city ? ' · ' + candidate.city : '');
-    set('dr-role',    roleStr);
-    set('dr-email',   candidate.email);
-    set('dr-mobile',  candidate.mobile);
-    set('dr-city',    candidate.city);
-    set('dr-exp',     candidate.experience);
-    set('dr-company', candidate.current_company);
-    set('dr-jobtype', candidate.preferred_job_type);
-    set('dr-salary',  candidate.expected_salary);
-    set('dr-notice',  candidate.notice_period);
+    // Slim bar
+    const sn = document.getElementById('slim-name'); if(sn) sn.textContent = c.name||'';
+    // Header elements (still in DOM, hidden)
+    const pa = document.getElementById('p-avatar');
+    if (pa) {
+      if (c.profile_photo) pa.innerHTML = '<img src="'+c.profile_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+      else pa.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+    }
+    // Drawer fields
+    drSet('dr-name',    c.name);
+    drSet('dr-role',    (c.jobtitle||'Job Seeker') + (c.city?' · '+c.city:''));
+    drSet('dr-email',   c.email);
+    drSet('dr-mobile',  c.mobile);
+    drSet('dr-city',    c.city);
+    drSet('dr-exp',     c.experience);
+    drSet('dr-company', c.current_company);
+    drSet('dr-jobtype', c.preferred_job_type);
+    drSet('dr-salary',  c.expected_salary);
+    drSet('dr-notice',  c.notice_period);
     // Skills
     const sk = document.getElementById('dr-skills');
     if (sk) {
-      const skills = Array.isArray(candidate.skills) ? candidate.skills : [];
+      const skills = Array.isArray(c.skills) ? c.skills : [];
       sk.innerHTML = skills.length
-        ? skills.map(s => '<span class="drawer-skill">' + s + '</span>').join('')
-        : '<span style="font-size:0.78rem;color:#94a3b8;">Add skills in Edit Profile</span>';
+        ? skills.map(s=>'<span class="dr-skill">'+s+'</span>').join('')
+        : '<span style="font-size:0.75rem;color:#94a3b8;">No skills added yet</span>';
     }
-    // Slim bar name
-    const sn = document.getElementById('p-name');
-    if (sn) sn.textContent = candidate.name || '';
   }
 
-  function updateDrawerScore(score) {
-    const fill = document.getElementById('dr-score-fill');
-    const label = document.getElementById('dr-score-label');
-    const badge = document.getElementById('p-score-badge');
-    if (fill)  fill.style.width = score + '%';
-    if (label) label.textContent = score + '%';
-    if (badge) badge.textContent = score + '%';
+  function syncDrawerScore(score) {
+    const fill  = document.getElementById('dr-score-fill');
+    const lbl   = document.getElementById('dr-score-lbl');
+    const slim  = document.getElementById('slim-score');
+    if (fill) fill.style.width = score+'%';
+    if (lbl)  lbl.textContent  = score+'%';
+    if (slim) slim.textContent = score+'%';
   }
 
-  function updateDrawerStats() {
-    set('dr-total', myApps.length);
-    set('dr-short', myApps.filter(a=>a.status==='Shortlisted').length);
-    set('dr-inter', myApps.filter(a=>a.status==='Interview').length);
-    set('dr-hired', myApps.filter(a=>a.status==='Hired').length);
+  function syncDrawerStats() {
+    drSet('dr-total', myApps.length);
+    drSet('dr-short', myApps.filter(a=>a.status==='Shortlisted').length);
+    drSet('dr-inter', myApps.filter(a=>a.status==='Interview').length);
+    drSet('dr-hired', myApps.filter(a=>a.status==='Hired').length);
+  }
+
+  // ── Fresh Supabase sync on load ──
+  async function freshSync() {
+    try {
+      const { data } = await sb.from('candidates').select('*').eq('id', candidate.id).maybeSingle();
+      if (data) {
+        // Update the candidate variable and session
+        Object.assign(candidate, data);
+        Session.setCandidate(candidate);
+        // Re-sync drawer and header with fresh data
+        syncDrawer(candidate);
+        // Also update the profile tab fields
+        const fields = {
+          'd-email':candidate.email,'d-mobile':candidate.mobile,'d-city':candidate.city,
+          'd-exp':candidate.experience,'d-title':candidate.jobtitle,'d-company':candidate.current_company,
+          'd-jobtype':candidate.preferred_job_type,'d-salary':candidate.expected_salary,
+          'd-notice':candidate.notice_period,'d-about':candidate.about
+        };
+        Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el&&val) el.textContent=val; });
+        // Skills
+        if (candidate.skills?.length) {
+          const sk = document.getElementById('d-skills');
+          if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
+        }
+      }
+    } catch(e) { console.warn('Fresh sync failed, using session', e); }
+  }
+
+  // ── Inline Jobs (Browse Jobs tab) ──
+  let allInlineJobs = [], inlineJobsLoaded = false;
+
+  async function loadInlineJobs() {
+    if (inlineJobsLoaded) { filterInlineJobs(); return; }
+    const grid = document.getElementById('inline-jobs-grid');
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#94a3b8;">Loading jobs...</div>';
+    try {
+      const { data } = await sb.from('jobs').select('*').eq('status','active').order('posted_at',{ascending:false}).limit(60);
+      allInlineJobs = [...(JOBS||[]), ...(data||[]).map(j=>({...j,type:j.job_type}))];
+      inlineJobsLoaded = true;
+    } catch(e) {
+      allInlineJobs = JOBS||[];
+      inlineJobsLoaded = true;
+    }
+    filterInlineJobs();
+  }
+
+  function filterInlineJobs() {
+    const kw   = (document.getElementById('jf-kw')?.value||'').toLowerCase();
+    const loc  = (document.getElementById('jf-loc')?.value||'').toLowerCase();
+    const type = (document.getElementById('jf-type')?.value||'').toLowerCase();
+    const filtered = allInlineJobs.filter(j => {
+      const tags = Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
+      const hay = (j.title+' '+j.company+' '+tags.join(' ')).toLowerCase();
+      const jloc = (j.location||'').toLowerCase();
+      const jtype= (j.type||j.job_type||'').toLowerCase();
+      if (kw   && !hay.includes(kw))   return false;
+      if (loc  && !jloc.includes(loc)) return false;
+      if (type && !jtype.includes(type)) return false;
+      return true;
+    });
+    const count = document.getElementById('inline-jobs-count');
+    if (count) count.textContent = filtered.length + ' job' + (filtered.length!==1?'s':'') + ' found';
+    const grid = document.getElementById('inline-jobs-grid');
+    if (!grid) return;
+    if (!filtered.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#94a3b8;">No jobs found. Try different filters.</div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(j => {
+      const tags = (Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim())).filter(Boolean).slice(0,3);
+      const applied = myApps.find(a=>String(a.job_id)===String(j.id));
+      const wa = encodeURIComponent('Hi, I found your job posting for *'+j.title+'* at *'+j.company+'* on HireTrack. I would like to apply.');
+      return '<div class="inline-jcard">'
+        +'<div class="ij-title">'+j.title+'</div>'
+        +'<div class="ij-co">🏢 '+j.company+'</div>'
+        +'<div class="ij-meta"><span>📍 '+(j.location||'India')+'</span>'+(j.experience?'<span>🎯 '+j.experience+'</span>':'')+'</div>'
+        +(tags.length?'<div class="ij-tags">'+tags.map(t=>'<span class="ij-tag">'+t+'</span>').join('')+'</div>':'')
+        +'<div class="ij-foot">'
+        +'<span class="ij-sal">'+(j.salary||'Negotiable')+'</span>'
+        +(applied?'<span style="font-size:0.7rem;color:#22c55e;font-weight:700;">✓ Applied</span>':'<button onclick="whatsappApply(''+j.phone+'',''+wa+'')" style="background:#25d366;color:#fff;border:none;padding:4px 10px;border-radius:7px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">WhatsApp</button>')
+        +'</div></div>';
+    }).join('');
   }
 
   if (candidate) {
-    populateDrawer();
+    syncDrawer(candidate);
     renderSkillCategories();
     init();
+    freshSync();
   }
 </script>
 
+<!-- Drawer Overlay -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- Profile Drawer -->
 <div class="drawer" id="profile-drawer">
-  <div class="drawer-head">
-    <div class="drawer-head-top">
-      <div class="drawer-avatar" id="dr-avatar">?</div>
-      <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">&#10005;</button>
+  <div class="dr-head">
+    <div class="dr-head-top">
+      <div class="dr-avatar" id="dr-avatar">?</div>
+      <button class="dr-close" onclick="closeDrawer()">&#10005;</button>
     </div>
-    <div class="drawer-name" id="dr-name">Loading...</div>
-    <div class="drawer-role" id="dr-role">—</div>
-    <div class="drawer-score-row">
-      <div class="drawer-score-bar"><div class="drawer-score-fill" id="dr-score-fill" style="width:0%"></div></div>
-      <span class="drawer-score-label" id="dr-score-label">0%</span>
-    </div>
-  </div>
-  <div class="drawer-section">
-    <div class="drawer-section-title">Personal info</div>
-    <div class="drawer-row"><span class="drawer-row-label">📧 Email</span><span class="drawer-row-value" id="dr-email">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">📞 Mobile</span><span class="drawer-row-value" id="dr-mobile">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">📍 City</span><span class="drawer-row-value" id="dr-city">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">🎓 Experience</span><span class="drawer-row-value" id="dr-exp">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">🏢 Company</span><span class="drawer-row-value" id="dr-company">—</span></div>
-  </div>
-  <div class="drawer-section">
-    <div class="drawer-section-title">Job preferences</div>
-    <div class="drawer-row"><span class="drawer-row-label">💼 Job type</span><span class="drawer-row-value" id="dr-jobtype">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">💰 Salary</span><span class="drawer-row-value" id="dr-salary">—</span></div>
-    <div class="drawer-row"><span class="drawer-row-label">⏰ Notice</span><span class="drawer-row-value" id="dr-notice">—</span></div>
-  </div>
-  <div class="drawer-section">
-    <div class="drawer-section-title">Skills</div>
-    <div class="drawer-skills" id="dr-skills"></div>
-  </div>
-  <div class="drawer-section">
-    <div class="drawer-section-title">Activity</div>
-    <div class="drawer-stats">
-      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-total" style="color:#2563eb;">0</div><div class="drawer-stat-label">Applied</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-short" style="color:#d97706;">0</div><div class="drawer-stat-label">Shortlisted</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-inter" style="color:#6d28d9;">0</div><div class="drawer-stat-label">Interviews</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-num" id="dr-hired" style="color:#15803d;">0</div><div class="drawer-stat-label">Hired</div></div>
+    <div class="dr-name" id="dr-name">Loading...</div>
+    <div class="dr-role" id="dr-role">&mdash;</div>
+    <div class="dr-score-row">
+      <div class="dr-score-bar"><div class="dr-score-fill" id="dr-score-fill"></div></div>
+      <span class="dr-score-lbl" id="dr-score-lbl">0%</span>
     </div>
   </div>
-  <div class="drawer-foot">
-    <button class="drawer-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
-    <button class="drawer-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
+  <div class="dr-sec">
+    <div class="dr-sec-title">Personal info</div>
+    <div class="dr-row"><span class="dr-lbl">📧 Email</span><span class="dr-val" id="dr-email">—</span></div>
+    <div class="dr-row"><span class="dr-lbl">📞 Mobile</span><span class="dr-val" id="dr-mobile">—</span></div>
+    <div class="dr-row"><span class="dr-lbl">📍 City</span><span class="dr-val" id="dr-city">—</span></div>
+    <div class="dr-row"><span class="dr-lbl">🎓 Experience</span><span class="dr-val" id="dr-exp">—</span></div>
+    <div class="dr-row"><span class="dr-lbl">🏢 Company</span><span class="dr-val" id="dr-company">—</span></div>
+  </div>
+  <div class="dr-sec">
+    <div class="dr-sec-title">Job preferences</div>
+    <div class="dr-row"><span class="dr-lbl">💼 Job type</span><span class="dr-val" id="dr-jobtype">—</span></div>
+    <div class="dr-row"><span class="dr-lbl">💰 Expected salary</span><span class="dr-val" id="dr-salary">—</span></div>
+    <div class="dr-row"><span class="dr-lbl">⏰ Notice period</span><span class="dr-val" id="dr-notice">—</span></div>
+  </div>
+  <div class="dr-sec">
+    <div class="dr-sec-title">Skills</div>
+    <div class="dr-skills" id="dr-skills"><span style="font-size:0.75rem;color:#94a3b8;">No skills added yet</span></div>
+  </div>
+  <div class="dr-sec">
+    <div class="dr-sec-title">Activity</div>
+    <div class="dr-stats">
+      <div class="dr-stat"><div class="dr-stat-num" id="dr-total" style="color:#2563eb;">0</div><div class="dr-stat-lbl">Applied</div></div>
+      <div class="dr-stat"><div class="dr-stat-num" id="dr-short" style="color:#d97706;">0</div><div class="dr-stat-lbl">Shortlisted</div></div>
+      <div class="dr-stat"><div class="dr-stat-num" id="dr-inter" style="color:#6d28d9;">0</div><div class="dr-stat-lbl">Interviews</div></div>
+      <div class="dr-stat"><div class="dr-stat-num" id="dr-hired" style="color:#15803d;">0</div><div class="dr-stat-lbl">Hired</div></div>
+    </div>
+  </div>
+  <div class="dr-foot">
+    <button class="dr-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
+    <button class="dr-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
   </div>
 </div>
+
 </body>
 </html>
