@@ -844,9 +844,11 @@ body { padding-top:108px !important; }
     const { error: upErr } = await sb.storage.from('profile-photos').upload(path, file, { upsert: true, contentType: file.type });
     if (upErr) { showToast('Upload failed: ' + upErr.message); return; }
     const { data: { publicUrl } } = sb.storage.from('profile-photos').getPublicUrl(path);
-    const { error: dbErr } = await sb.from('candidates').update({ photo_url: publicUrl }).eq('id', candidate.id);
+    const now = new Date().toISOString();
+    const { error: dbErr } = await sb.from('candidates').update({ photo_url: publicUrl, profile_photo_uploaded_at: now }).eq('id', candidate.id);
     if (dbErr) { showToast('Save failed: ' + dbErr.message); return; }
     candidate.photo_url = publicUrl;
+    candidate.profile_photo_uploaded_at = now;
     Session.setCandidate(candidate);
     syncDrawer(candidate);
     showToast('Photo updated!');
@@ -887,7 +889,9 @@ body { padding-top:108px !important; }
     // Avatar
     const av = document.getElementById('dr-avatar');
     if (av) {
-      const photoSrc = c.photo_url || c.profile_photo;
+      const photoSrc = c.photo_url
+        ? c.photo_url + (c.profile_photo_uploaded_at ? '?v=' + encodeURIComponent(c.profile_photo_uploaded_at) : '')
+        : c.profile_photo || null;
       if (photoSrc) {
         av.innerHTML = '<img src="'+photoSrc+'" alt="photo"/>';
       } else {
@@ -899,7 +903,9 @@ body { padding-top:108px !important; }
     // Header elements (still in DOM, hidden)
     const pa = document.getElementById('p-avatar');
     if (pa) {
-      const photoSrc = c.photo_url || c.profile_photo;
+      const photoSrc = c.photo_url
+        ? c.photo_url + (c.profile_photo_uploaded_at ? '?v=' + encodeURIComponent(c.profile_photo_uploaded_at) : '')
+        : c.profile_photo || null;
       if (photoSrc) pa.innerHTML = '<img src="'+photoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
       else pa.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
     }

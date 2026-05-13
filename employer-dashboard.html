@@ -432,6 +432,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     currentView === 'board' ? renderBoard(apps) : renderList(apps);
   }
 
+  function candidatePhotoUrl(c) {
+    if (c.photo_url) return c.photo_url + (c.profile_photo_uploaded_at ? '?v=' + encodeURIComponent(c.profile_photo_uploaded_at) : '');
+    return c.profile_photo || null;
+  }
+
   function renderBoard(apps) {
     const colClass = {Viewed:'k-viewed',Applied:'k-applied',Shortlisted:'k-shortlisted',Interview:'k-interview',Hired:'k-hired',Rejected:'k-rejected'};
     document.getElementById('pipeline-content').innerHTML = `<div class="kanban">${STATUSES.map(status => {
@@ -462,7 +467,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       const initials = c.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       const waMsg = encodeURIComponent(`Hi ${c.name}, regarding your application on HireTrack...`);
       return `<div class="pl-item" onclick="openCandidateProfile('${a.candidate_id}','${a.job_id}')" style="cursor:pointer;">
-        <div class="pl-avatar" style="overflow:hidden;">${(c.photo_url||c.profile_photo)?`<img src="${c.photo_url||c.profile_photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`:`${initials}`}</div>
+        <div class="pl-avatar" style="overflow:hidden;">${candidatePhotoUrl(c)?`<img src="${candidatePhotoUrl(c)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`:`${initials}`}</div>
         <div class="pl-info">
           <div class="pl-name">${c.name}</div>
           <div class="pl-meta">📍 ${c.city||'—'} · ${c.experience||'—'} · ${(c.skills||[]).slice(0,3).join(', ')} · Applied ${new Date(a.applied_at).toLocaleDateString('en-IN')}</div>
@@ -498,7 +503,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1.5rem;border-radius:16px 16px 0 0;position:relative;">
             <button onclick="closeCandidateProfile()" style="position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1;">✕</button>
             <div style="display:flex;align-items:center;gap:1rem;">
-              <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;font-weight:800;flex-shrink:0;overflow:hidden;">${(c.photo_url||c.profile_photo)?`<img src="${c.photo_url||c.profile_photo}" style="width:100%;height:100%;object-fit:cover;" />`:`${initials}`}</div>
+              <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;font-weight:800;flex-shrink:0;overflow:hidden;">${candidatePhotoUrl(c)?`<img src="${candidatePhotoUrl(c)}" style="width:100%;height:100%;object-fit:cover;" />`:`${initials}`}</div>
               <div>
                 <div style="color:#fff;font-size:1.1rem;font-weight:800;">${c.name}</div>
                 <div style="color:#bfdbfe;font-size:0.82rem;">${c.jobtitle||'Job Seeker'}</div>
