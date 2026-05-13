@@ -285,6 +285,10 @@ body { padding-top:108px !important; }
           <div id="resume-section">
             <p style="font-size:0.82rem;color:#94a3b8;">No resume uploaded</p>
           </div>
+          <label id="resume-upload-btn" style="display:inline-flex;align-items:center;gap:6px;margin-top:0.75rem;background:#f1f5f9;border:1.5px dashed #cbd5e1;border-radius:8px;padding:0.5rem 0.85rem;font-size:0.78rem;font-weight:600;color:#475569;cursor:pointer;">
+            📤 <span id="resume-upload-lbl">Upload Resume</span>
+            <input type="file" id="resume-file-input" accept=".pdf,.doc,.docx" style="display:none" onchange="handleResumeUpload(this)">
+          </label>
         </div>
       </div>
       <div>
@@ -409,9 +413,7 @@ body { padding-top:108px !important; }
     if (candidate.skills?.length) {
       document.getElementById('d-skills').innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
     }
-    if (candidate.resume_name) {
-      document.getElementById('resume-section').innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${candidate.resume_name}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
-    }
+    renderResumeSection();
 
     // Load applications — fetch apps then match with jobs separately
     const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
@@ -564,7 +566,7 @@ body { padding-top:108px !important; }
       { label:'Job title & experience', pts:10, earned:10, done:!!(candidate.jobtitle&&candidate.experience), fix:'professional' },
       { label:'About yourself (50+ chars)', pts:10, earned:10, done:!!(candidate.about&&candidate.about.length>=50), fix:'about' },
       { label:'Skills (3=10, 5=15, 8=20 pts)', pts:20, earned:skillPts, done:skillCount>=8, isPartial:skillCount>0&&skillCount<8, fix:'skills' },
-      { label:'Resume uploaded', pts:15, earned:15, done:!!candidate.resume_data, fix:'resume' },
+      { label:'Resume uploaded', pts:15, earned:15, done:!!(candidate.resume_url || candidate.resume_data), fix:'resume' },
       { label:'Job preferences set', pts:10, earned:10, done:!!(candidate.preferred_job_type&&candidate.expected_salary&&candidate.notice_period), fix:'preferences' },
       { label:'Applied to jobs (1=5, 3=8, 5=10 pts)', pts:10, earned:myApps.length>=5?10:myApps.length>=3?8:myApps.length>=1?5:0, done:myApps.length>=5, isPartial:myApps.length>0&&myApps.length<5, fix:'jobs.html' },
     ];
@@ -815,10 +817,63 @@ body { padding-top:108px !important; }
   }
 
   function downloadResume() {
+    if (candidate.resume_url) { window.open(candidate.resume_url, '_blank'); return; }
     if (!candidate.resume_data) return;
     const a = document.createElement('a'); a.href = candidate.resume_data; a.download = candidate.resume_name || 'resume.pdf'; a.click();
   }
 
+  function renderResumeSection() {
+    const sec = document.getElementById('resume-section');
+    if (!sec) return;
+    const name = candidate.resume_name || (candidate.resume_url ? 'Resume' : '');
+    if (candidate.resume_url || candidate.resume_name || candidate.resume_data) {
+      sec.innerHTML = `<div class="resume-box"><div><div style="font-size:0.85rem;font-weight:600;">📄 ${name || 'Resume'}</div></div><button class="btn-dl" onclick="downloadResume()">Download</button></div>`;
+    } else {
+      sec.innerHTML = `<p style="font-size:0.82rem;color:#94a3b8;">No resume uploaded</p>`;
+    }
+    const lbl = document.getElementById('resume-upload-lbl');
+    if (lbl) lbl.textContent = (candidate.resume_url || candidate.resume_data) ? 'Replace Resume' : 'Upload Resume';
+  }
+
+  async function handlePhotoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+    const path = `${candidate.id}/photo.${ext}`;
+    showToast('Uploading photo…');
+    const { error: upErr } = await sb.storage.from('profile-photos').upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { showToast('Upload failed: ' + upErr.message); return; }
+    const { data: { publicUrl } } = sb.storage.from('profile-photos').getPublicUrl(path);
+    const { error: dbErr } = await sb.from('candidates').update({ photo_url: publicUrl }).eq('id', candidate.id);
+    if (dbErr) { showToast('Save failed: ' + dbErr.message); return; }
+    candidate.photo_url = publicUrl;
+    Session.setCandidate(candidate);
+    syncDrawer(candidate);
+    showToast('Photo updated!');
+    input.value = '';
+  }
+
+  async function handleResumeUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase() || 'pdf';
+    const path = `${candidate.id}/resume.${ext}`;
+    const lbl = document.getElementById('resume-upload-lbl');
+    if (lbl) lbl.textContent = 'Uploading…';
+    const { error: upErr } = await sb.storage.from('resumes').upload(path, file, { upsert: true, contentType: file.type });
+    if (upErr) { if (lbl) lbl.textContent = 'Upload failed'; showToast('Upload failed: ' + upErr.message); return; }
+    const { data: { publicUrl } } = sb.storage.from('resumes').getPublicUrl(path);
+    const resumeName = file.name;
+    const { error: dbErr } = await sb.from('candidates').update({ resume_url: publicUrl, resume_name: resumeName }).eq('id', candidate.id);
+    if (dbErr) { if (lbl) lbl.textContent = 'Save failed'; showToast('Save failed: ' + dbErr.message); return; }
+    candidate.resume_url = publicUrl;
+    candidate.resume_name = resumeName;
+    Session.setCandidate(candidate);
+    renderResumeSection();
+    renderProfileScore();
+    showToast('Resume uploaded!');
+    input.value = '';
+  }
 
   // ── Slim bar + Drawer helpers ──
   function drSet(id, val) { const el=document.getElementById(id); if(el) el.textContent=(val||'—'); }
@@ -832,8 +887,9 @@ body { padding-top:108px !important; }
     // Avatar
     const av = document.getElementById('dr-avatar');
     if (av) {
-      if (c.profile_photo) {
-        av.innerHTML = '<img src="'+c.profile_photo+'" alt="photo"/>';
+      const photoSrc = c.photo_url || c.profile_photo;
+      if (photoSrc) {
+        av.innerHTML = '<img src="'+photoSrc+'" alt="photo"/>';
       } else {
         av.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       }
@@ -843,7 +899,8 @@ body { padding-top:108px !important; }
     // Header elements (still in DOM, hidden)
     const pa = document.getElementById('p-avatar');
     if (pa) {
-      if (c.profile_photo) pa.innerHTML = '<img src="'+c.profile_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+      const photoSrc = c.photo_url || c.profile_photo;
+      if (photoSrc) pa.innerHTML = '<img src="'+photoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
       else pa.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
     }
     // Drawer fields
@@ -906,6 +963,7 @@ body { padding-top:108px !important; }
           const sk = document.getElementById('d-skills');
           if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
         }
+        renderResumeSection();
       }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
@@ -1183,7 +1241,13 @@ body { padding-top:108px !important; }
 <div class="drawer" id="profile-drawer">
   <div class="dr-head">
     <div class="dr-head-top">
-      <div class="dr-avatar" id="dr-avatar">?</div>
+      <div style="position:relative;display:inline-block;">
+        <div class="dr-avatar" id="dr-avatar">?</div>
+        <label title="Change photo" style="position:absolute;bottom:0;right:0;width:20px;height:20px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.6rem;border:2px solid #fff;">
+          📷
+          <input type="file" id="photo-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handlePhotoUpload(this)">
+        </label>
+      </div>
       <button class="dr-close" onclick="closeDrawer()">&#10005;</button>
     </div>
     <div class="dr-name" id="dr-name">Loading...</div>

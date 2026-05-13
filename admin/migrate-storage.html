@@ -114,7 +114,7 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';   // ← FILL THIS IN
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
 const ADMIN_SECRET      = 'HIRETRACK2025';
 const BUCKET_PHOTO      = 'profile-photos';
 const BUCKET_RESUME     = 'resumes';
@@ -311,10 +311,6 @@ el('unlock-btn').addEventListener('click', () => {
   const v = el('secret').value.trim();
   if (v !== ADMIN_SECRET) {
     alert('Wrong secret');
-    return;
-  }
-  if (SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ') {
-    alert('⚠ Open this file and paste your Supabase anon key into SUPABASE_ANON_KEY before running.');
     return;
   }
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
