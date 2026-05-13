@@ -114,13 +114,15 @@
 <script>
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
-const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';   // ← FILL THIS IN
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';   // ← FILL THIS IN
 const ADMIN_SECRET      = 'HIRETRACK2025';
 const BUCKET_PHOTO      = 'profile-photos';
 const BUCKET_RESUME     = 'resumes';
 
 // ─── STATE ──────────────────────────────────────────────────────────────────
-let supabase = null;
+// Note: don't name this `supabase` — the CDN script registers window.supabase
+// and a top-level `let supabase` would collide with it.
+let sb = null;
 let stopRequested = false;
 const stats = { photo: 0, resume: 0, skipped: 0, failed: 0 };
 
@@ -190,12 +192,12 @@ async function uploadOne(bucket, candidateId, base64, fallbackMime, dryRun) {
     return { url: `[dry-run] ${bucket}/${path}`, size: decoded.buffer.length, path };
   }
 
-  const { error } = await supabase.storage
+  const { error } = await sb.storage
     .from(bucket)
     .upload(path, decoded.blob, { contentType: mime, upsert: false });
   if (error) return { error: error.message };
 
-  const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+  const { data: pub } = sb.storage.from(bucket).getPublicUrl(path);
   return { url: pub.publicUrl, size: decoded.buffer.length, path };
 }
 
@@ -212,7 +214,7 @@ async function runMigration() {
 
   logLine(`▶ Starting migration · ${dryRun ? 'DRY RUN' : 'LIVE'}`, 'info');
 
-  const { data: candidates, error } = await supabase
+  const { data: candidates, error } = await sb
     .from('candidates')
     .select('id, name, profile_photo, resume_data, photo_url, resume_url, resume_name');
 
@@ -279,7 +281,7 @@ async function runMigration() {
     }
 
     if (!dryRun && Object.keys(updates).length > 0) {
-      const { error: updErr } = await supabase
+      const { error: updErr } = await sb
         .from('candidates')
         .update(updates)
         .eq('id', c.id);
@@ -311,11 +313,11 @@ el('unlock-btn').addEventListener('click', () => {
     alert('Wrong secret');
     return;
   }
-  if (SUPABASE_ANON_KEY ==='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ') {
+  if (SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ') {
     alert('⚠ Open this file and paste your Supabase anon key into SUPABASE_ANON_KEY before running.');
     return;
   }
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   el('auth-panel').classList.add('hidden');
   el('run-panel').classList.remove('hidden');
   el('results-panel').classList.remove('hidden');
