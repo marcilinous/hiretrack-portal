@@ -194,7 +194,7 @@ async function uploadOne(bucket, candidateId, base64, fallbackMime, dryRun) {
 
   const { error } = await sb.storage
     .from(bucket)
-    .upload(path, decoded.blob, { contentType: mime, upsert: false });
+    .upload(path, decoded.blob, { contentType: mime, upsert: true });
   if (error) return { error: error.message };
 
   const { data: pub } = sb.storage.from(bucket).getPublicUrl(path);
