@@ -839,9 +839,9 @@ body { padding-top:108px !important; }
     const file = input.files[0];
     if (!file) return;
     const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
-    const path = `${candidate.id}/photo.${ext}`;
+    const path = `${candidate.id}/${crypto.randomUUID()}.${ext}`;
     showToast('Uploading photo…');
-    const { error: upErr } = await sb.storage.from('profile-photos').upload(path, file, { upsert: true, contentType: file.type });
+    const { error: upErr } = await sb.storage.from('profile-photos').upload(path, file, { upsert: false, contentType: file.type });
     if (upErr) { showToast('Upload failed: ' + upErr.message); return; }
     const { data: { publicUrl } } = sb.storage.from('profile-photos').getPublicUrl(path);
     const now = new Date().toISOString();
@@ -859,10 +859,10 @@ body { padding-top:108px !important; }
     const file = input.files[0];
     if (!file) return;
     const ext = file.name.split('.').pop().toLowerCase() || 'pdf';
-    const path = `${candidate.id}/resume.${ext}`;
+    const path = `${candidate.id}/${crypto.randomUUID()}.${ext}`;
     const lbl = document.getElementById('resume-upload-lbl');
     if (lbl) lbl.textContent = 'Uploading…';
-    const { error: upErr } = await sb.storage.from('resumes').upload(path, file, { upsert: true, contentType: file.type });
+    const { error: upErr } = await sb.storage.from('resumes').upload(path, file, { upsert: false, contentType: file.type });
     if (upErr) { if (lbl) lbl.textContent = 'Upload failed'; showToast('Upload failed: ' + upErr.message); return; }
     const { data: { publicUrl } } = sb.storage.from('resumes').getPublicUrl(path);
     const resumeName = file.name;
