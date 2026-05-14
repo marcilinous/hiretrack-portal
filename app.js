@@ -2,6 +2,7 @@
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+window.sb = sb;
 
 const WEB3FORMS_KEY = '30483d95-3da0-4a00-a262-944b2e82b3b2';
 
