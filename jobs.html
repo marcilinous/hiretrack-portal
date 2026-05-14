@@ -8,189 +8,401 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
-.jd-modal{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;}
-.jd-modal.show{display:flex;}
-.jd-box{background:#fff;border-radius:16px;width:100%;max-width:660px;padding:2rem;position:relative;margin:auto;}
-.jd-close{position:absolute;top:1rem;right:1rem;background:var(--gray2);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;}
-.jd-title{font-size:1.3rem;font-weight:800;margin-bottom:0.3rem;}
-.jd-company{color:var(--gray5);font-size:0.92rem;margin-bottom:1rem;}
-.jd-meta-row{display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;}
-.jd-meta-item{background:var(--gray2);padding:0.35rem 0.9rem;border-radius:20px;font-size:0.8rem;color:var(--gray5);font-weight:500;}
-.jd-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.2rem;}
-.jd-desc{font-size:0.92rem;line-height:1.75;color:var(--navy2);white-space:pre-wrap;border-top:1px solid var(--gray3);padding-top:1rem;margin-bottom:1.2rem;}
-.jd-actions{display:flex;gap:10px;}
+/* ── Filter bar ── */
+.filter-bar {
+  background: #fff;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding: 0.65rem 1.5rem;
+  position: sticky;
+  top: 64px;
+  z-index: 95;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.filter-bar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-bar-inner::-webkit-scrollbar { display: none; }
 
-/* Filter bar */
-.filter-topbar{background:#fff;border-bottom:1.5px solid #e2e8f0;padding:0.7rem 1.5rem;position:sticky;top:0;z-index:95;box-shadow:0 2px 6px rgba(0,0,0,0.06);will-change:transform;}
-.filter-topbar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
-.filter-search-box{display:flex;align-items:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:0 0.75rem;flex:1;min-width:180px;max-width:300px;}
-.filter-search-box input{border:none;background:none;padding:0.5rem 0.4rem;font-size:0.85rem;font-family:inherit;outline:none;width:100%;color:#0f172a;}
-.fdivider{width:1px;height:26px;background:#e2e8f0;flex-shrink:0;}
-.fchip{display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.42rem 0.8rem;font-size:0.8rem;font-weight:600;color:#374151;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s;position:relative;}
-.fchip:hover{border-color:#3b82f6;color:#1d4ed8;background:#eff6ff;}
-.fchip.active{background:#3b82f6;color:#fff;border-color:#3b82f6;}
-.fdd{display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:0.4rem;min-width:170px;z-index:500;}
-.fchip.open .fdd{display:block;}
-.fdd-item{padding:0.5rem 0.8rem;font-size:0.8rem;color:#374151;cursor:pointer;border-radius:6px;white-space:nowrap;}
-.fdd-item:hover{background:#eff6ff;color:#1d4ed8;}
-.fdd-item.sel{background:#3b82f6;color:#fff;}
-.fresults{font-size:0.78rem;color:#64748b;margin-left:auto;white-space:nowrap;}
-.fclear{background:none;border:1.5px solid #fecaca;border-radius:8px;padding:0.42rem 0.8rem;font-size:0.78rem;font-weight:600;color:#dc2626;cursor:pointer;font-family:inherit;display:none;}
-.fclear.show{display:block;}
+.fb-search-wrap {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 0.75rem;
+  flex-shrink: 0;
+  min-width: 195px;
+}
+.fb-search {
+  border: none;
+  background: none;
+  padding: 0.47rem 0.4rem;
+  font-size: 0.83rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  color: #0f172a;
+}
 
-/* Category tabs */
-.cat-bar{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:52px;z-index:94;will-change:transform;}
-.cat-bar-inner{max-width:1200px;margin:0 auto;display:flex;overflow-x:auto;scrollbar-width:none;padding:0 1.5rem;}
-.cat-bar-inner::-webkit-scrollbar{display:none;}
-.ctab{flex-shrink:0;padding:0.7rem 1.1rem;font-size:0.82rem;font-weight:600;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.15s;}
-.ctab:hover{color:#1d4ed8;}
-.ctab.active{color:#2563eb;border-bottom-color:#2563eb;}
+/* chip-style dropdown trigger */
+.fchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: border-color 0.15s;
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+}
+.fchip:hover { border-color: #93c5fd; }
+.fchip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+.fchip.open  { border-color: #3b82f6; }
+.fdd {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 0.35rem;
+  min-width: 175px;
+  z-index: 500;
+}
+.fchip.open .fdd { display: block; }
+.fdd-item {
+  padding: 0.48rem 0.8rem;
+  font-size: 0.79rem;
+  color: #374151;
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fdd-item:hover { background: #eff6ff; color: #1d4ed8; }
+.fdd-item.sel  { background: #2563eb; color: #fff; }
+.fdd-sep { height: 1px; background: #e2e8f0; margin: 0.3rem 0.4rem; }
+.fdd-item input[type="checkbox"] { accent-color: #2563eb; width: 14px; height: 14px; flex-shrink: 0; }
 
-/* Page */
-.jpage{max-width:1200px;margin:0 auto;padding:1.5rem;}
+/* Job-type pills (inline, single-select) */
+.type-pills { display: flex; gap: 4px; flex-shrink: 0; }
+.type-pill {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 0.35rem 0.72rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  background: #f8fafc;
+  color: #64748b;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.type-pill:hover  { border-color: #93c5fd; color: #1d4ed8; }
+.type-pill.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-/* Category sections */
-.csec{margin-bottom:2.5rem;}
-.csec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.85rem;}
-.csec-title{font-size:0.95rem;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;}
-.csec-count{font-size:0.72rem;font-weight:600;color:#94a3b8;background:#f1f5f9;padding:2px 9px;border-radius:20px;}
-.csec-vall{font-size:0.78rem;color:#3b82f6;font-weight:600;cursor:pointer;}
-.csec-vall:hover{text-decoration:underline;}
+/* Count / clear */
+.fb-count { font-size: 0.77rem; color: #64748b; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+.fb-clear { background: none; border: 1.5px solid #fecaca; border-radius: 8px; padding: 0.38rem 0.75rem; font-size: 0.77rem; font-weight: 600; color: #dc2626; cursor: pointer; font-family: inherit; flex-shrink: 0; white-space: nowrap; }
+.fb-clear:hover { background: #fef2f2; }
 
-/* Horizontal scroll */
-.hswrap{position:relative;}
-.hscroll{display:flex;gap:0.85rem;overflow-x:auto;scroll-behavior:smooth;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.hscroll::-webkit-scrollbar{display:none;}
-.sbtn{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:#fff;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.1);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;z-index:10;transition:all 0.2s;}
-.sbtn:hover{background:#3b82f6;color:#fff;border-color:#3b82f6;}
-.sbtn.sl{left:-14px;}
-.sbtn.sr{right:-14px;}
+/* Mobile "Filters" trigger — hidden on desktop */
+.fb-mobile-btn { display: none; }
 
-/* Job card */
-.jcard{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem 1.1rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;width:268px;display:flex;flex-direction:column;}
-.jcard:hover{border-color:#3b82f6;box-shadow:0 6px 20px rgba(59,130,246,0.12);transform:translateY(-2px);}
-.jcard-title{font-size:0.88rem;font-weight:800;color:#0f172a;margin-bottom:0.2rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3;}
-.jcard-co{font-size:0.75rem;color:#3b82f6;font-weight:600;margin-bottom:0.45rem;}
-.jcard-meta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.5rem;}
-.jcard-meta span{font-size:0.68rem;color:#64748b;background:#f8fafc;padding:2px 7px;border-radius:5px;}
-.jcard-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:0.6rem;flex:1;}
-.jtag{font-size:0.65rem;background:#eff6ff;color:#1d4ed8;padding:2px 7px;border-radius:8px;font-weight:600;}
-.jcard-ft{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f1f5f9;padding-top:0.5rem;margin-top:auto;}
-.jcard-sal{font-size:0.75rem;font-weight:700;color:#059669;}
-.jbadge{font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:7px;}
-.badge-full{background:#dcfce7;color:#15803d;}
-.badge-contract{background:#fef3c7;color:#92400e;}
-.badge-remote{background:#ede9fe;color:#6d28d9;}
+/* ── Mobile bottom sheet ── */
+.fs-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 490; opacity: 0; visibility: hidden;
+  transition: opacity 0.25s, visibility 0.25s;
+}
+.fs-backdrop.open { opacity: 1; visibility: visible; }
+.filter-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-radius: 18px 18px 0 0;
+  z-index: 491; transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  max-height: 88vh; display: flex; flex-direction: column;
+}
+.filter-sheet.open { transform: translateY(0); }
+.fs-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
+}
+.fs-head-title { font-size: 0.95rem; font-weight: 800; color: #0f172a; }
+.fs-close { background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 8px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.fs-body { overflow-y: auto; padding: 1rem 1.25rem; flex: 1; -webkit-overflow-scrolling: touch; }
+.fs-group { margin-bottom: 1.1rem; }
+.fs-label { font-size: 0.72rem; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.55rem; display: block; }
+.fs-input  { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.58rem 0.85rem; font-size: 0.88rem; font-family: inherit; outline: none; box-sizing: border-box; }
+.fs-select { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.58rem 0.85rem; font-size: 0.88rem; font-family: inherit; outline: none; background: #fff; box-sizing: border-box; }
+.fs-check-group { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.fs-check-label { display: flex; align-items: center; gap: 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 0.38rem 0.7rem; font-size: 0.82rem; cursor: pointer; }
+.fs-check-label input[type="checkbox"] { accent-color: #2563eb; }
+.fs-type-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.fs-foot { padding: 0.85rem 1.25rem; border-top: 1px solid #e2e8f0; display: flex; gap: 0.75rem; flex-shrink: 0; }
+.fs-apply { flex: 1; background: #2563eb; color: #fff; border: none; padding: 0.75rem; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+.fs-reset { background: #f1f5f9; color: #374151; border: none; padding: 0.75rem 1.1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
 
-/* Grid view */
-.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:0.85rem;}
+/* ── Jobs container ── */
+.jobs-wrap { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; }
 
-.empty-state{text-align:center;padding:3rem;color:#94a3b8;}
-.es-icon{font-size:3rem;margin-bottom:1rem;}
+/* ── Detail modal ── */
+.jd-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; display: none; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; }
+.jd-modal.show { display: flex; }
+.jd-box { background: #fff; border-radius: 16px; width: 100%; max-width: 660px; padding: 2rem; position: relative; margin: auto; }
+.jd-close { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; color: #64748b; }
+.jd-title { font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
+.jd-company { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
+.jd-meta-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
+.jd-meta-item { background: #f1f5f9; padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.79rem; color: #374151; font-weight: 500; }
+.jd-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.jd-desc { font-size: 0.9rem; line-height: 1.75; color: #334155; white-space: pre-wrap; border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-bottom: 1.2rem; }
+.jd-actions { display: flex; gap: 10px; }
 
-@media(max-width:768px){
-  .filter-topbar{top:0;padding:0.55rem 0.75rem;}
-  .cat-bar{top:50px;}
-  .filter-search-box{max-width:100%;}
-  .jpage{padding:1rem 0.75rem;}
-  .sbtn{display:none;}
-  .jcard{width:230px;}
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .filter-bar { top: 56px; padding: 0.55rem 0.85rem; }
+  /* Hide desktop controls; show mobile button */
+  .fb-search-wrap,
+  .fchip,
+  .type-pills,
+  .fb-count,
+  .fb-clear { display: none !important; }
+  .fb-mobile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 0.55rem 1.1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .fb-badge {
+    background: #fff;
+    color: #2563eb;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1.4;
+  }
+  .jobs-wrap { padding: 1rem 0.85rem; margin: 1rem auto; }
+  /* Cards go full-width on mobile (override bj-styles 85% width) */
+  .bj-job-card { width: 100% !important; }
 }
 </style>
 </head>
 <body>
 <div id="navbar"></div>
 
-<!-- Filter Bar -->
-<div class="filter-topbar">
-  <div class="filter-topbar-inner">
-    <div class="filter-search-box">
-      <span style="color:#94a3b8;">🔍</span>
-      <input type="text" id="f-kw" placeholder="Title, skill, company...">
-    </div>
-    <div class="fdivider"></div>
+<!-- ══ Filter Bar ══ -->
+<div class="filter-bar">
+  <div class="filter-bar-inner">
 
-    <div class="fchip" id="chip-loc" onclick="toggleDD(this)">
+    <!-- Keyword -->
+    <div class="fb-search-wrap">
+      <span style="color:#94a3b8;font-size:0.85rem;flex-shrink:0;">🔍</span>
+      <input type="text" id="f-kw" class="fb-search" placeholder="Title, skill, company…" autocomplete="off">
+    </div>
+
+    <!-- Location multi-select -->
+    <div class="fchip" id="chip-loc">
       📍 <span id="loc-label">Location</span> ▾
-      <div class="fdd">
-        <div class="fdd-item sel" onclick="pickFilter(event,'loc','','Location','chip-loc','loc-label')">All Locations</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Bengaluru','Bengaluru','chip-loc','loc-label')">Bengaluru</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Mumbai','Mumbai','chip-loc','loc-label')">Mumbai</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Delhi','Delhi','chip-loc','loc-label')">Delhi</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Hyderabad','Hyderabad','chip-loc','loc-label')">Hyderabad</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Mysuru','Mysuru','chip-loc','loc-label')">Mysuru</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Mangaluru','Mangaluru','chip-loc','loc-label')">Mangaluru</div>
-        <div class="fdd-item" onclick="pickFilter(event,'loc','Remote','Remote','chip-loc','loc-label')">🌐 Remote</div>
+      <div class="fdd" id="fdd-loc">
+        <label class="fdd-item"><input type="checkbox" value="Bengaluru"> Bengaluru</label>
+        <label class="fdd-item"><input type="checkbox" value="Mumbai"> Mumbai</label>
+        <label class="fdd-item"><input type="checkbox" value="Delhi"> Delhi</label>
+        <label class="fdd-item"><input type="checkbox" value="Hyderabad"> Hyderabad</label>
+        <label class="fdd-item"><input type="checkbox" value="Mysuru"> Mysuru</label>
+        <label class="fdd-item"><input type="checkbox" value="Mangaluru"> Mangaluru</label>
+        <div class="fdd-sep"></div>
+        <label class="fdd-item"><input type="checkbox" value="Remote"> 🌐 Remote</label>
       </div>
     </div>
 
-    <div class="fchip" id="chip-type" onclick="toggleDD(this)">
-      💼 <span id="type-label">Job Type</span> ▾
-      <div class="fdd">
-        <div class="fdd-item sel" onclick="pickFilter(event,'type','','Job Type','chip-type','type-label')">All Types</div>
-        <div class="fdd-item" onclick="pickFilter(event,'type','Full Time','Full Time','chip-type','type-label')">Full Time</div>
-        <div class="fdd-item" onclick="pickFilter(event,'type','Contract','Contract','chip-type','type-label')">Contract</div>
-        <div class="fdd-item" onclick="pickFilter(event,'type','Remote','Remote','chip-type','type-label')">Remote</div>
-        <div class="fdd-item" onclick="pickFilter(event,'type','Part Time','Part Time','chip-type','type-label')">Part Time</div>
-      </div>
+    <!-- Job type pills -->
+    <div class="type-pills" id="type-pills">
+      <button class="type-pill active" data-type="">All</button>
+      <button class="type-pill" data-type="Full Time">Full Time</button>
+      <button class="type-pill" data-type="Contract">Contract</button>
+      <button class="type-pill" data-type="Remote">Remote</button>
+      <button class="type-pill" data-type="Part Time">Part Time</button>
     </div>
 
-    <div class="fchip" id="chip-exp" onclick="toggleDD(this)">
+    <!-- Experience -->
+    <div class="fchip" id="chip-exp">
       🎯 <span id="exp-label">Experience</span> ▾
-      <div class="fdd">
-        <div class="fdd-item sel" onclick="pickFilter(event,'exp','','Experience','chip-exp','exp-label')">Any Experience</div>
-        <div class="fdd-item" onclick="pickFilter(event,'exp','fresher','Fresher','chip-exp','exp-label')">Fresher / 0–1 yr</div>
-        <div class="fdd-item" onclick="pickFilter(event,'exp','1-3','1–3 yrs','chip-exp','exp-label')">1–3 years</div>
-        <div class="fdd-item" onclick="pickFilter(event,'exp','3-5','3–5 yrs','chip-exp','exp-label')">3–5 years</div>
-        <div class="fdd-item" onclick="pickFilter(event,'exp','5+','5+ yrs','chip-exp','exp-label')">5+ years</div>
+      <div class="fdd" id="fdd-exp">
+        <div class="fdd-item sel" data-val="">Any Experience</div>
+        <div class="fdd-item" data-val="fresher">Fresher / 0–1 yr</div>
+        <div class="fdd-item" data-val="1-3">1–3 years</div>
+        <div class="fdd-item" data-val="3-5">3–5 years</div>
+        <div class="fdd-item" data-val="5+">5+ years</div>
       </div>
     </div>
 
-    <div class="fchip" id="chip-sal" onclick="toggleDD(this)">
+    <!-- Salary -->
+    <div class="fchip" id="chip-sal">
       💰 <span id="sal-label">Salary</span> ▾
-      <div class="fdd">
-        <div class="fdd-item sel" onclick="pickFilter(event,'sal','','Salary','chip-sal','sal-label')">Any Salary</div>
-        <div class="fdd-item" onclick="pickFilter(event,'sal','0-3','&lt;₹3L','chip-sal','sal-label')">Under ₹3 LPA</div>
-        <div class="fdd-item" onclick="pickFilter(event,'sal','3-6','₹3–6L','chip-sal','sal-label')">₹3–6 LPA</div>
-        <div class="fdd-item" onclick="pickFilter(event,'sal','6-10','₹6–10L','chip-sal','sal-label')">₹6–10 LPA</div>
-        <div class="fdd-item" onclick="pickFilter(event,'sal','10+','₹10L+','chip-sal','sal-label')">Above ₹10 LPA</div>
+      <div class="fdd" id="fdd-sal">
+        <div class="fdd-item sel" data-val="">Any Salary</div>
+        <div class="fdd-item" data-val="0-3">Under ₹3 LPA</div>
+        <div class="fdd-item" data-val="3-6">₹3–6 LPA</div>
+        <div class="fdd-item" data-val="6-10">₹6–10 LPA</div>
+        <div class="fdd-item" data-val="10+">Above ₹10 LPA</div>
       </div>
     </div>
 
-    <button class="fclear" id="fclear" onclick="clearAll()">✕ Clear all</button>
-    <span class="fresults" id="fresults">Loading...</span>
+    <!-- Recency -->
+    <div class="fchip" id="chip-rec">
+      🕒 <span id="rec-label">Any time</span> ▾
+      <div class="fdd" id="fdd-rec">
+        <div class="fdd-item" data-val="24h">Last 24 hours</div>
+        <div class="fdd-item" data-val="7d">Last 7 days</div>
+        <div class="fdd-item" data-val="30d">Last 30 days</div>
+        <div class="fdd-item sel" data-val="any">Any time</div>
+      </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="fchip" id="chip-sort">
+      ↕ <span id="sort-label">Most recent</span> ▾
+      <div class="fdd" id="fdd-sort">
+        <div class="fdd-item sel" data-val="recent">Most recent</div>
+        <div class="fdd-item" data-val="salary">Highest salary</div>
+      </div>
+    </div>
+
+    <span class="fb-count" id="f-count"></span>
+    <button class="fb-clear" id="fb-clear" style="display:none;" onclick="clearFilters()">✕ Clear</button>
+
+    <!-- Mobile only -->
+    <button class="fb-mobile-btn" onclick="openFilterSheet()">
+      ⚙️ Filters
+      <span class="fb-badge" id="fb-badge" style="display:none;"></span>
+    </button>
   </div>
 </div>
 
-<!-- Category Tabs -->
-<div class="cat-bar">
-  <div class="cat-bar-inner" id="cat-bar">
-    <div class="ctab active" data-cat="all" onclick="pickCat('all',this)">All Jobs</div>
-    <div class="ctab" data-cat="MIS" onclick="pickCat('MIS',this)">📊 MIS</div>
-    <div class="ctab" data-cat="Data" onclick="pickCat('Data',this)">📈 Data Analyst</div>
-    <div class="ctab" data-cat="Excel" onclick="pickCat('Excel',this)">📋 Excel</div>
-    <div class="ctab" data-cat="SQL" onclick="pickCat('SQL',this)">🗄️ SQL</div>
-    <div class="ctab" data-cat="IT" onclick="pickCat('IT',this)">💻 IT</div>
-    <div class="ctab" data-cat="Sales" onclick="pickCat('Sales',this)">🤝 Sales</div>
-    <div class="ctab" data-cat="HR" onclick="pickCat('HR',this)">👥 HR</div>
-    <div class="ctab" data-cat="Finance" onclick="pickCat('Finance',this)">💰 Finance</div>
-    <div class="ctab" data-cat="Marketing" onclick="pickCat('Marketing',this)">📢 Marketing</div>
-    <div class="ctab" data-cat="Operations" onclick="pickCat('Operations',this)">⚙️ Operations</div>
-    <div class="ctab" data-cat="Remote" onclick="pickCat('Remote',this)">🌐 Remote</div>
+<!-- ══ Mobile filter bottom sheet ══ -->
+<div class="fs-backdrop" id="fs-backdrop" onclick="closeFilterSheet()"></div>
+<div class="filter-sheet" id="filter-sheet">
+  <div class="fs-head">
+    <span class="fs-head-title">Filters</span>
+    <button class="fs-close" onclick="closeFilterSheet()">✕</button>
+  </div>
+  <div class="fs-body">
+    <div class="fs-group">
+      <label class="fs-label">Search</label>
+      <input type="text" id="fs-kw" class="fs-input" placeholder="Title, skill, company…" autocomplete="off">
+    </div>
+    <div class="fs-group">
+      <label class="fs-label">Location</label>
+      <div class="fs-check-group">
+        <label class="fs-check-label"><input type="checkbox" value="Bengaluru"> Bengaluru</label>
+        <label class="fs-check-label"><input type="checkbox" value="Mumbai"> Mumbai</label>
+        <label class="fs-check-label"><input type="checkbox" value="Delhi"> Delhi</label>
+        <label class="fs-check-label"><input type="checkbox" value="Hyderabad"> Hyderabad</label>
+        <label class="fs-check-label"><input type="checkbox" value="Mysuru"> Mysuru</label>
+        <label class="fs-check-label"><input type="checkbox" value="Mangaluru"> Mangaluru</label>
+        <label class="fs-check-label"><input type="checkbox" value="Remote"> 🌐 Remote</label>
+      </div>
+    </div>
+    <div class="fs-group">
+      <label class="fs-label">Job Type</label>
+      <div class="fs-type-pills" id="fs-type-pills">
+        <button class="type-pill active" data-type="">All</button>
+        <button class="type-pill" data-type="Full Time">Full Time</button>
+        <button class="type-pill" data-type="Contract">Contract</button>
+        <button class="type-pill" data-type="Remote">Remote</button>
+        <button class="type-pill" data-type="Part Time">Part Time</button>
+      </div>
+    </div>
+    <div class="fs-group">
+      <label class="fs-label">Experience</label>
+      <select id="fs-exp" class="fs-select">
+        <option value="">Any Experience</option>
+        <option value="fresher">Fresher / 0–1 yr</option>
+        <option value="1-3">1–3 years</option>
+        <option value="3-5">3–5 years</option>
+        <option value="5+">5+ years</option>
+      </select>
+    </div>
+    <div class="fs-group">
+      <label class="fs-label">Salary</label>
+      <select id="fs-sal" class="fs-select">
+        <option value="">Any Salary</option>
+        <option value="0-3">Under ₹3 LPA</option>
+        <option value="3-6">₹3–6 LPA</option>
+        <option value="6-10">₹6–10 LPA</option>
+        <option value="10+">Above ₹10 LPA</option>
+      </select>
+    </div>
+    <div class="fs-group">
+      <label class="fs-label">Posted</label>
+      <select id="fs-rec" class="fs-select">
+        <option value="any">Any time</option>
+        <option value="24h">Last 24 hours</option>
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+      </select>
+    </div>
+    <div class="fs-group">
+      <label class="fs-label">Sort by</label>
+      <select id="fs-sort" class="fs-select">
+        <option value="recent">Most recent</option>
+        <option value="salary">Highest salary</option>
+      </select>
+    </div>
+  </div>
+  <div class="fs-foot">
+    <button class="fs-reset" onclick="clearFilters(); closeFilterSheet();">Reset</button>
+    <button class="fs-apply" onclick="applySheetFilters()">Apply</button>
   </div>
 </div>
 
-<div class="jpage" id="jpage"></div>
+<!-- ══ Jobs list ══ -->
+<div class="jobs-wrap">
+  <div id="jobs-container"></div>
+</div>
 
-<!-- Modal -->
-<div class="jd-modal" id="jd-modal" onclick="if(event.target===this){this.classList.remove('show');document.body.style.overflow='';}">
+<!-- ══ Detail modal ══ -->
+<div class="jd-modal" id="jd-modal" onclick="if(event.target===this)closeModal()">
   <div class="jd-box">
-    <button class="jd-close" onclick="document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';">✕</button>
-    <div class="jd-title" id="jd-title"></div>
+    <button class="jd-close" onclick="closeModal()">✕</button>
+    <div class="jd-title"  id="jd-title"></div>
     <div class="jd-company" id="jd-company"></div>
     <div class="jd-meta-row" id="jd-meta"></div>
-    <div class="jd-tags" id="jd-tags"></div>
-    <div class="jd-desc" id="jd-desc"></div>
+    <div class="jd-tags"   id="jd-tags"></div>
+    <div class="jd-desc"   id="jd-desc"></div>
     <div class="jd-actions" id="jd-actions"></div>
   </div>
 </div>
@@ -201,243 +413,431 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
+<script src="js/browse-jobs.js"></script>
 <script>
 document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
-// ── State ──
-let allJobs=[], candidateApps=[];
-let F={kw:'',loc:'',type:'',exp:'',sal:''};
-let activeCat='all';
+// ─────────────────────────────────────────
+// State
+// ─────────────────────────────────────────
+const PAGE_SIZE = 20;
+let allFetched    = [];   // cumulative fetched jobs (grows with scroll)
+let currentOffset = 0;
+let teardownScroll = null;
+let appStatusMap  = {};   // { jobId: status } for logged-in candidate
+let sheetType     = '';   // tracks job type selection inside the bottom sheet
 
-const CATS=[
-  {k:'MIS',   label:'📊 MIS & Reporting',     kw:['mis','report','dashboard','management information']},
-  {k:'Data',  label:'📈 Data & Analytics',     kw:['data analyst','analytics','bi analyst','business intelligence','tableau','power bi']},
-  {k:'Excel', label:'📋 Excel & Office',       kw:['excel','vlookup','pivot','spreadsheet','ms office']},
-  {k:'SQL',   label:'🗄️ SQL & Database',       kw:['sql','database','mysql','postgresql','mongodb']},
-  {k:'IT',    label:'💻 IT & Software',        kw:['software','developer','engineer','python','java','react','node','frontend','backend']},
-  {k:'Sales', label:'🤝 Sales & BD',           kw:['sales','business development','account manager','revenue']},
-  {k:'HR',    label:'👥 HR & Recruitment',     kw:['hr','human resource','recruiter','talent acquisition']},
-  {k:'Finance',label:'💰 Finance & Accounts',  kw:['finance','accounts','accountant','audit','tax','ca']},
-  {k:'Marketing',label:'📢 Marketing',         kw:['marketing','digital marketing','seo','content','social media']},
-  {k:'Operations',label:'⚙️ Operations',       kw:['operations','supply chain','logistics','procurement','warehouse']},
-];
+const F = {
+  keyword:        '',
+  locations:      [],   // multi-select array
+  jobType:        '',   // single value
+  experienceBand: '',
+  salaryBand:     '',
+  recency:        'any',
+  sort:           'recent',
+};
 
-// ── Load ──
-async function loadJobs(){
-  const db=await JobsDB.getAllPublicJobs();
-  allJobs=[...JOBS,...db.map(j=>({...j,type:j.job_type}))];
-  const c=Session.getCandidate();
-  if(c) candidateApps=await ApplicationsDB.getCandidateApplications(c.id);
-  // URL params
-  const p=new URLSearchParams(location.search);
-  if(p.get('search')){document.getElementById('f-kw').value=p.get('search');F.kw=p.get('search').toLowerCase();}
-  if(p.get('cat')){
-    const t=document.querySelector(`.ctab[data-cat="${p.get('cat')}"]`);
-    if(t) pickCat(p.get('cat'),t);
+const container = document.getElementById('jobs-container');
+
+// ─────────────────────────────────────────
+// Sorting
+// ─────────────────────────────────────────
+function parseSalHigh(sal) {
+  const nums = (sal || '').match(/\d+(?:\.\d+)?/g);
+  return nums && nums.length ? parseFloat(nums[nums.length - 1]) : 0;
+}
+
+function applySortAndFilter(jobs) {
+  const filtered = BrowseJobs.applyClientFilters(jobs, {
+    keyword:        F.keyword     || null,
+    locations:      F.locations.length ? F.locations : null,
+    jobTypes:       F.jobType     ? [F.jobType]        : null,
+    experienceBands:F.experienceBand ? [F.experienceBand] : null,
+    salaryBands:    F.salaryBand  ? [F.salaryBand]     : null,
+    recency:        F.recency !== 'any' ? F.recency    : null,
+    minMatchScore:  null,
+  });
+
+  if (F.sort === 'salary') {
+    return filtered.sort((a, b) => parseSalHigh(b.salary) - parseSalHigh(a.salary));
   }
-  render();
+  return filtered.sort((a, b) => {
+    const ta = a.posted_at ? new Date(a.posted_at).getTime() : 0;
+    const tb = b.posted_at ? new Date(b.posted_at).getTime() : 0;
+    return tb - ta;
+  });
 }
 
-// ── Filter chip ──
-function toggleDD(chip){
-  const isOpen=chip.classList.contains('open');
-  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('open'));
-  if(!isOpen) chip.classList.add('open');
-}
-document.addEventListener('click',e=>{
-  if(!e.target.closest('.fchip')) document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('open'));
-});
-
-function pickFilter(e,key,val,label,chipId,labelId){
-  e.stopPropagation();
-  F[key]=val;
-  document.getElementById(labelId).textContent=label;
-  const chip=document.getElementById(chipId);
-  chip.classList.toggle('active',!!val);
-  chip.classList.remove('open');
-  chip.querySelectorAll('.fdd-item').forEach(i=>i.classList.remove('sel'));
-  e.target.classList.add('sel');
-  updateClear(); render();
-}
-
-document.getElementById('f-kw').addEventListener('input',e=>{
-  F.kw=e.target.value.toLowerCase(); updateClear(); render();
-});
-
-function pickCat(cat,el){
-  activeCat=cat;
-  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  updateClear(); render();
-}
-
-function clearAll(){
-  F={kw:'',loc:'',type:'',exp:'',sal:''};
-  activeCat='all';
-  document.getElementById('f-kw').value='';
-  document.querySelectorAll('.fchip').forEach(c=>{c.classList.remove('active','open');});
-  document.getElementById('loc-label').textContent='Location';
-  document.getElementById('type-label').textContent='Job Type';
-  document.getElementById('exp-label').textContent='Experience';
-  document.getElementById('sal-label').textContent='Salary';
-  document.querySelectorAll('.fdd-item').forEach(i=>i.classList.remove('sel'));
-  document.querySelectorAll('.fdd').forEach(dd=>dd.querySelectorAll('.fdd-item')[0]?.classList.add('sel'));
-  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('.ctab').classList.add('active');
-  updateClear(); render();
-}
-
-function updateClear(){
-  const has=F.kw||F.loc||F.type||F.exp||F.sal||activeCat!=='all';
-  document.getElementById('fclear').classList.toggle('show',!!has);
-}
-
-// ── Filter logic ──
-function filtered(){
-  return allJobs.filter(j=>{
-    const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
-    const hay=(j.title+' '+j.company+' '+tags.join(' ')+' '+(j.description||'')).toLowerCase();
-    const jtype=(j.type||j.job_type||'').toLowerCase();
-    const jloc=(j.location||'').toLowerCase();
-    if(F.kw && !hay.includes(F.kw)) return false;
-    if(F.loc && !jloc.includes(F.loc.toLowerCase())) return false;
-    if(F.type && !jtype.includes(F.type.toLowerCase())) return false;
-    if(F.exp && !matchExp(j,F.exp)) return false;
-    if(activeCat!=='all'){
-      const cat=CATS.find(c=>c.k===activeCat);
-      if(cat && !cat.kw.some(k=>hay.includes(k))){
-        if(activeCat==='Remote') return jtype==='remote'||jloc.includes('remote');
-        return false;
+// ─────────────────────────────────────────
+// Render helpers
+// ─────────────────────────────────────────
+function renderOpts() {
+  const candidate = Session.getCandidate();
+  return {
+    isLoggedIn: !!candidate,
+    applicationStatusMap: appStatusMap,
+    onApplyClick: (jobId, job) => {
+      // Phase E wires the unified apply modal; for now redirect to login if logged-out,
+      // or open the detail view if logged-in so they can apply from there.
+      if (!Session.getCandidate()) {
+        sessionStorage.setItem('redirect_after_login', window.location.href);
+        window.location.href = 'login.html';
+      } else {
+        openJobDetail(job);
       }
-    }
-    return true;
-  });
+    },
+    onViewApplicationClick: () => { window.location.href = 'profile.html#applications'; },
+  };
 }
 
-function matchExp(j,ef){
-  const e=(j.experience||'').toLowerCase();
-  if(!e) return true;
-  if(ef==='fresher') return /fresher|0|1\s*year/.test(e);
-  if(ef==='1-3') return /[1-3]\s*(year|yr)/.test(e);
-  if(ef==='3-5') return /[3-5]\s*(year|yr)/.test(e);
-  if(ef==='5+') return /[5-9]\s*(year|yr)|10/.test(e);
-  return true;
+function doRender() {
+  const toShow = applySortAndFilter(allFetched);
+  const countEl = document.getElementById('f-count');
+  if (countEl) countEl.textContent = `${toShow.length} job${toShow.length !== 1 ? 's' : ''} found`;
+  BrowseJobs.render(container, toShow, renderOpts());
+  updateClearBtn();
+  updateMobileBadge();
 }
 
-// ── Render ──
-function render(){
-  const jobs=filtered();
-  document.getElementById('fresults').textContent=`${jobs.length} job${jobs.length!==1?'s':''} found`;
-  const el=document.getElementById('jpage');
-
-  if(!jobs.length){
-    el.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No jobs match your filters.</p><button onclick="clearAll()" style="margin-top:1rem;background:#3b82f6;color:#fff;border:none;padding:0.65rem 1.5rem;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">Clear Filters</button></div>`;
-    return;
-  }
-
-  // Flat grid when filtered
-  if(activeCat!=='all'||F.kw||F.loc||F.type||F.exp||F.sal){
-    el.innerHTML=`<div class="jgrid">${jobs.map(j=>card(j)).join('')}</div>`;
-    return;
-  }
-
-  // Categorised horizontal scroll sections
-  let html=''; const used=new Set();
-  CATS.forEach(cat=>{
-    const cjobs=jobs.filter(j=>{
-      const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
-      const hay=(j.title+' '+j.company+' '+tags.join(' ')+' '+(j.description||'')).toLowerCase();
-      return cat.kw.some(k=>hay.includes(k));
-    });
-    if(!cjobs.length) return;
-    cjobs.forEach(j=>used.add(j.id));
-    const sid='hs-'+cat.k;
-    html+=`<div class="csec">
-      <div class="csec-hd">
-        <div class="csec-title">${cat.label}<span class="csec-count">${cjobs.length}</span></div>
-        <span class="csec-vall" onclick="pickCat('${cat.k}',document.querySelector('.ctab[data-cat=\\'${cat.k}\\']'))">View all →</span>
-      </div>
-      <div class="hswrap">
-        <button class="sbtn sl" onclick="scroll('${sid}',-1)">‹</button>
-        <div class="hscroll" id="${sid}">${cjobs.map(j=>card(j)).join('')}</div>
-        <button class="sbtn sr" onclick="scroll('${sid}',1)">›</button>
-      </div>
-    </div>`;
-  });
-
-  const other=jobs.filter(j=>!used.has(j.id));
-  if(other.length) html+=`<div class="csec">
-    <div class="csec-hd"><div class="csec-title">🗂️ Other Roles<span class="csec-count">${other.length}</span></div></div>
-    <div class="hswrap">
-      <button class="sbtn sl" onclick="scroll('hs-other',-1)">‹</button>
-      <div class="hscroll" id="hs-other">${other.map(j=>card(j)).join('')}</div>
-      <button class="sbtn sr" onclick="scroll('hs-other',1)">›</button>
-    </div>
-  </div>`;
-
-  el.innerHTML=html;
-}
-
-function scroll(id,dir){
-  const el=document.getElementById(id);
-  if(el) el.scrollBy({left:dir*580,behavior:'smooth'});
-}
-
-function card(j){
-  const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
-  const tm={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
-  const tc=tm[j.type||j.job_type]||'badge-full';
-  const applied=candidateApps.find(a=>String(a.job_id)===String(j.id));
-  return `<div class="jcard" onclick="openModal('${j.id}')">
-    <div class="jcard-title">${j.title}</div>
-    <div class="jcard-co">🏢 ${j.company}</div>
-    <div class="jcard-meta">
-      <span>📍 ${j.location||'India'}</span>
-      ${j.experience?`<span>🎯 ${j.experience}</span>`:''}
-    </div>
-    ${tags.length?`<div class="jcard-tags">${tags.map(t=>`<span class="jtag">${t}</span>`).join('')}</div>`:'<div class="jcard-tags"></div>'}
-    <div class="jcard-ft">
-      <span class="jcard-sal">${j.salary||'Negotiable'}</span>
-      <div style="display:flex;align-items:center;gap:5px;">
-        ${applied?'<span style="font-size:0.65rem;color:#22c55e;font-weight:700;">✓ Applied</span>':''}
-        <span class="jbadge ${tc}">${j.type||j.job_type||'Full Time'}</span>
-      </div>
-    </div>
-  </div>`;
-}
-
-function openModal(jobId){
-  const j=allJobs.find(x=>String(x.id)===String(jobId)); if(!j) return;
-  if(j.employer_id) sb.from('jobs').update({views:(j.views||0)+1}).eq('id',jobId);
-  const c=Session.getCandidate();
-  const applied=c&&candidateApps.find(a=>String(a.job_id)===String(jobId));
-  const tags=Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3);
-  const expired=isJobExpired(j);
-  const wa=encodeURIComponent(`Hi, I found your job posting for *${j.title}* at *${j.company}* on HireTrack. I would like to apply.`);
-  const tm={'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
-  document.getElementById('jd-title').textContent=j.title;
-  document.getElementById('jd-company').textContent=`🏢 ${j.company}`;
-  document.getElementById('jd-meta').innerHTML=`
-    <span class="jd-meta-item">📍 ${j.location||'India'}</span>
-    <span class="jd-meta-item">💰 ${j.salary||'Negotiable'}</span>
-    ${j.experience?`<span class="jd-meta-item">🎯 ${j.experience}</span>`:''}
-    <span class="jd-meta-item badge ${tm[j.type||j.job_type]||'badge-full'}">${j.type||j.job_type||'Full Time'}</span>`;
-  document.getElementById('jd-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
-  document.getElementById('jd-desc').textContent=j.description||'Contact employer for full job description.';
-  document.getElementById('jd-actions').innerHTML=`
-    <button class="btn-whatsapp" onclick="whatsappApply('${j.phone}','${wa}')">WhatsApp Apply</button>
-    <button class="btn-apply ${applied?'applied':''} ${expired?'expired-btn':''}" style="flex:1;padding:0.8rem;" onclick="${expired?`showToast('This job has expired.')`:`applyJob('${j.id}',this)`}">
-      ${expired?'⚠ Expired':applied?'✓ Applied':'Apply Now'}
-    </button>`;
-  document.getElementById('jd-modal').classList.add('show');
-  document.body.style.overflow='hidden';
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){document.getElementById('jd-modal').classList.remove('show');document.body.style.overflow='';}
+// ─────────────────────────────────────────
+// Card-body click → detail modal (wired once, persists across renders)
+// ─────────────────────────────────────────
+container.addEventListener('click', e => {
+  const card = e.target.closest('.bj-job-card');
+  if (!card || e.target.closest('.bj-btn')) return;
+  const jid = card.dataset.jid;
+  const job  = allFetched.find(j => String(j.id) === jid);
+  if (job) openJobDetail(job);
 });
 
-loadJobs();
+// ─────────────────────────────────────────
+// Data fetching
+// ─────────────────────────────────────────
+async function loadInitial() {
+  allFetched    = [];
+  currentOffset = 0;
+  if (teardownScroll) { teardownScroll(); teardownScroll = null; }
+
+  container.innerHTML = '<div class="bj-empty" style="padding:3rem;text-align:center;color:#94a3b8;"><p>Loading jobs…</p></div>';
+
+  try {
+    const { jobs, hasMore } = await BrowseJobs.fetchForGuest({ offset: 0, limit: PAGE_SIZE });
+    allFetched    = jobs;
+    currentOffset = PAGE_SIZE;
+    doRender();
+    if (hasMore) setupScroll();
+  } catch (err) {
+    container.innerHTML = '<div class="bj-empty" style="padding:3rem;text-align:center;color:#94a3b8;"><p>⚠️ Failed to load jobs. Please refresh.</p></div>';
+    console.error('fetchForGuest error:', err);
+  }
+}
+
+async function fetchNext() {
+  const { jobs: more, hasMore } = await BrowseJobs.fetchForGuest({ offset: currentOffset, limit: PAGE_SIZE });
+  allFetched     = [...allFetched, ...more];
+  currentOffset += PAGE_SIZE;
+  doRender();
+  if (hasMore) setupScroll();
+  return { hasMore };
+}
+
+function setupScroll() {
+  teardownScroll = BrowseJobs.setupInfiniteScroll(container, fetchNext);
+}
+
+// ─────────────────────────────────────────
+// Filter bar — dropdown open / close
+// ─────────────────────────────────────────
+function toggleDD(chip) {
+  const isOpen = chip.classList.contains('open');
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('open'));
+  if (!isOpen) chip.classList.add('open');
+}
+
+// Prevent clicks inside a dropdown from closing it via the global listener
+document.querySelectorAll('.fdd').forEach(fdd => {
+  fdd.addEventListener('click', e => e.stopPropagation());
+});
+
+// Wire chip clicks
+document.querySelectorAll('.fchip').forEach(chip => {
+  chip.addEventListener('click', function(e) {
+    // If click landed inside the fdd it was already stopped — this fires only for chip header
+    toggleDD(this);
+  });
+});
+
+// Close all on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('open'));
+});
+
+// ─────────────────────────────────────────
+// Keyword (debounced 300ms, triggers re-fetch)
+// ─────────────────────────────────────────
+let kwTimer;
+document.getElementById('f-kw').addEventListener('input', e => {
+  clearTimeout(kwTimer);
+  kwTimer = setTimeout(() => { F.keyword = e.target.value.trim(); loadInitial(); }, 300);
+});
+
+// ─────────────────────────────────────────
+// Location multi-select
+// ─────────────────────────────────────────
+document.getElementById('fdd-loc').addEventListener('change', e => {
+  if (e.target.type !== 'checkbox') return;
+  F.locations = Array.from(document.querySelectorAll('#fdd-loc input:checked')).map(cb => cb.value);
+  syncLocLabel();
+  loadInitial();
+});
+
+function syncLocLabel() {
+  const lbl  = document.getElementById('loc-label');
+  const chip = document.getElementById('chip-loc');
+  const n    = F.locations.length;
+  lbl.textContent = n === 0 ? 'Location' : n === 1 ? F.locations[0] : `${n} cities`;
+  chip.classList.toggle('active', n > 0);
+}
+
+// ─────────────────────────────────────────
+// Job type pills (desktop)
+// ─────────────────────────────────────────
+document.getElementById('type-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.type-pill');
+  if (!pill) return;
+  document.querySelectorAll('#type-pills .type-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  F.jobType = pill.dataset.type;
+  loadInitial();
+});
+
+// ─────────────────────────────────────────
+// Single-select dropdown items (exp / sal / rec)
+// ─────────────────────────────────────────
+const SINGLE_DD_MAP = {
+  'fdd-exp':  { fKey: 'experienceBand', labelId: 'exp-label', chipId: 'chip-exp', defaultLabel: 'Experience', refetch: true  },
+  'fdd-sal':  { fKey: 'salaryBand',     labelId: 'sal-label', chipId: 'chip-sal', defaultLabel: 'Salary',     refetch: true  },
+  'fdd-rec':  { fKey: 'recency',        labelId: 'rec-label', chipId: 'chip-rec', defaultLabel: 'Any time',   refetch: true  },
+  'fdd-sort': { fKey: 'sort',           labelId: 'sort-label',chipId: 'chip-sort',defaultLabel: 'Most recent', refetch: false },
+};
+
+Object.entries(SINGLE_DD_MAP).forEach(([ddId, cfg]) => {
+  document.getElementById(ddId).addEventListener('click', e => {
+    const item = e.target.closest('.fdd-item');
+    if (!item) return;
+    e.stopPropagation();
+
+    const val   = item.dataset.val;
+    const label = item.textContent.trim();
+    F[cfg.fKey] = val;
+
+    document.getElementById(cfg.labelId).textContent = label;
+    const chip = document.getElementById(cfg.chipId);
+    chip.querySelectorAll('.fdd-item').forEach(i => i.classList.remove('sel'));
+    item.classList.add('sel');
+    chip.classList.remove('open');
+
+    // Mark chip active when non-default
+    const isDefault = (cfg.fKey === 'recency' && val === 'any') ||
+                      (cfg.fKey === 'sort'     && val === 'recent') ||
+                      (val === '');
+    chip.classList.toggle('active', !isDefault);
+
+    if (cfg.refetch) loadInitial();
+    else doRender(); // sort: no re-fetch needed
+  });
+});
+
+// ─────────────────────────────────────────
+// Clear all filters
+// ─────────────────────────────────────────
+function clearFilters() {
+  F.keyword = ''; F.locations = []; F.jobType = '';
+  F.experienceBand = ''; F.salaryBand = ''; F.recency = 'any'; F.sort = 'recent';
+
+  document.getElementById('f-kw').value = '';
+  document.querySelectorAll('#fdd-loc input[type="checkbox"]').forEach(cb => cb.checked = false);
+  syncLocLabel();
+
+  document.querySelectorAll('#type-pills .type-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('#type-pills .type-pill[data-type=""]').classList.add('active');
+
+  // Reset chip labels and sel markers
+  [
+    ['chip-exp','exp-label','Experience','fdd-exp'],
+    ['chip-sal','sal-label','Salary',    'fdd-sal'],
+    ['chip-rec','rec-label','Any time',  'fdd-rec'],
+    ['chip-sort','sort-label','Most recent','fdd-sort'],
+  ].forEach(([chipId, labelId, label, ddId]) => {
+    document.getElementById(labelId).textContent = label;
+    document.getElementById(chipId).classList.remove('active', 'open');
+    const items = document.querySelectorAll(`#${ddId} .fdd-item`);
+    items.forEach(i => i.classList.remove('sel'));
+    // mark the "default" item (last for rec, first for sort, first for others)
+    const defItem = (ddId === 'fdd-rec') ? items[items.length - 1] : items[0];
+    if (defItem) defItem.classList.add('sel');
+  });
+
+  updateClearBtn();
+  updateMobileBadge();
+  loadInitial();
+}
+
+function hasActiveFilters() {
+  return !!(F.keyword || F.locations.length || F.jobType || F.experienceBand || F.salaryBand || F.recency !== 'any');
+}
+
+function updateClearBtn() {
+  const btn = document.getElementById('fb-clear');
+  if (btn) btn.style.display = hasActiveFilters() ? '' : 'none';
+}
+
+function updateMobileBadge() {
+  const badge = document.getElementById('fb-badge');
+  if (!badge) return;
+  const count = [F.keyword, ...F.locations, F.jobType, F.experienceBand, F.salaryBand,
+                 F.recency !== 'any' ? '1' : ''].filter(Boolean).length;
+  badge.textContent  = count;
+  badge.style.display = count > 0 ? 'inline' : 'none';
+}
+
+// ─────────────────────────────────────────
+// Mobile bottom sheet
+// ─────────────────────────────────────────
+function openFilterSheet() {
+  // Sync sheet inputs from current F
+  document.getElementById('fs-kw').value  = F.keyword || '';
+  document.querySelectorAll('.fs-check-group input[type="checkbox"]').forEach(cb => {
+    cb.checked = F.locations.includes(cb.value);
+  });
+  sheetType = F.jobType;
+  document.querySelectorAll('#fs-type-pills .type-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.type === F.jobType);
+  });
+  document.getElementById('fs-exp').value  = F.experienceBand || '';
+  document.getElementById('fs-sal').value  = F.salaryBand     || '';
+  document.getElementById('fs-rec').value  = F.recency        || 'any';
+  document.getElementById('fs-sort').value = F.sort           || 'recent';
+
+  document.getElementById('filter-sheet').classList.add('open');
+  document.getElementById('fs-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFilterSheet() {
+  document.getElementById('filter-sheet').classList.remove('open');
+  document.getElementById('fs-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('fs-type-pills').addEventListener('click', e => {
+  const pill = e.target.closest('.type-pill');
+  if (!pill) return;
+  document.querySelectorAll('#fs-type-pills .type-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  sheetType = pill.dataset.type;
+});
+
+function applySheetFilters() {
+  F.keyword        = document.getElementById('fs-kw').value.trim();
+  F.locations      = Array.from(document.querySelectorAll('.fs-check-group input:checked')).map(cb => cb.value);
+  F.jobType        = sheetType;
+  F.experienceBand = document.getElementById('fs-exp').value;
+  F.salaryBand     = document.getElementById('fs-sal').value;
+  F.recency        = document.getElementById('fs-rec').value;
+  F.sort           = document.getElementById('fs-sort').value;
+  closeFilterSheet();
+  loadInitial();
+}
+
+// ─────────────────────────────────────────
+// Detail modal
+// ─────────────────────────────────────────
+function openJobDetail(job) {
+  const skills = Array.isArray(job.tags)   ? job.tags
+               : Array.isArray(job.skills) ? job.skills
+               : (job.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  document.getElementById('jd-title').textContent   = job.title;
+  document.getElementById('jd-company').textContent = '🏢 ' + job.company;
+  document.getElementById('jd-meta').innerHTML = [
+    `<span class="jd-meta-item">📍 ${job.location || 'India'}</span>`,
+    job.salary     ? `<span class="jd-meta-item">💰 ${job.salary}</span>`      : '',
+    job.experience ? `<span class="jd-meta-item">🎯 ${job.experience}</span>`  : '',
+    (job.job_type||job.type) ? `<span class="jd-meta-item">${job.job_type||job.type}</span>` : '',
+  ].join('');
+  document.getElementById('jd-tags').innerHTML =
+    skills.slice(0, 6).map(s => `<span class="tag">${s}</span>`).join('');
+  document.getElementById('jd-desc').textContent =
+    job.description || 'Contact employer for full job description.';
+
+  const c  = Session.getCandidate();
+  const wa = encodeURIComponent(
+    `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
+  );
+  const alreadyApplied = appStatusMap[String(job.id)];
+
+  let actHtml = '';
+  if (c) {
+    actHtml = alreadyApplied
+      ? `<button class="btn-apply applied" style="flex:1;padding:0.8rem;" disabled>✓ ${alreadyApplied}</button>`
+      : `<button class="btn-apply" style="flex:1;padding:0.8rem;" onclick="applyFromModal('${job.id}',this)">Apply Now</button>`;
+    if (job.phone) actHtml += `<button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${wa}')">WhatsApp</button>`;
+  } else {
+    actHtml = `<button class="btn-apply" style="flex:1;padding:0.8rem;"
+      onclick="sessionStorage.setItem('redirect_after_login',location.href);location.href='login.html';">
+      Sign in to apply</button>`;
+    if (job.phone) actHtml += `<button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${wa}')">WhatsApp</button>`;
+  }
+  document.getElementById('jd-actions').innerHTML = actHtml;
+
+  document.getElementById('jd-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  if (job.employer_id) sb.from('jobs').update({ views: (job.views||0)+1 }).eq('id', job.id).then(()=>{});
+}
+
+async function applyFromModal(jobId, btn) {
+  const c = Session.getCandidate();
+  if (!c) { sessionStorage.setItem('redirect_after_login', location.href); location.href = 'login.html'; return; }
+  btn.textContent = 'Applying…'; btn.disabled = true;
+  const { data: ex } = await sb.from('applications').select('id').eq('candidate_id', c.id).eq('job_id', String(jobId)).maybeSingle();
+  if (ex) { btn.textContent = '✓ Applied'; btn.classList.add('applied'); showToast('Already applied.'); return; }
+  const { error } = await sb.from('applications').insert([{ candidate_id: c.id, job_id: String(jobId), status: 'Applied' }]);
+  if (!error) {
+    btn.textContent = '✓ Applied'; btn.classList.add('applied');
+    appStatusMap[String(jobId)] = 'Applied';
+    showToast('✅ Applied successfully!');
+    const job = allFetched.find(j => String(j.id) === String(jobId));
+    if (job?.email) sendEmailNotification(c, job, job.email);
+  } else {
+    btn.textContent = 'Apply Now'; btn.disabled = false; showToast('Failed. Try again.');
+  }
+}
+
+function closeModal() {
+  document.getElementById('jd-modal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ─────────────────────────────────────────
+// Start-up
+// ─────────────────────────────────────────
+
+// Pre-fill keyword from URL ?search= param
+(function() {
+  const search = new URLSearchParams(location.search).get('search');
+  if (search) { F.keyword = search; document.getElementById('f-kw').value = search; }
+})();
+
+// Fetch application statuses for logged-in candidates
+(async function() {
+  const c = Session.getCandidate();
+  if (c) appStatusMap = await BrowseJobs.fetchApplicationStatuses(c.id);
+  loadInitial();
+})();
 </script>
 </body>
 </html>
