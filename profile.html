@@ -9,26 +9,20 @@
 <style>
 body { background:#f1f5f9; }
 
-/* ── Profile Header ── */
-.profile-header { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:2rem; }
-.profile-header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; }
+/* ── Profile Header (hidden, kept for JS targets) ── */
+.profile-header { display:none !important; }
 .avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); }
-.profile-info { flex:1; }
-.profile-name { font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:0.2rem; }
-.profile-title { color:#bfdbfe; font-size:0.85rem; }
-.profile-meta { display:flex; gap:1rem; margin-top:0.5rem; flex-wrap:wrap; }
-.profile-meta span { color:#bfdbfe; font-size:0.78rem; display:flex; align-items:center; gap:4px; }
-.profile-actions { display:flex; gap:0.5rem; }
-.btn-logout-p { background:rgba(255,255,255,0.15); color:#fff; border:1.5px solid rgba(255,255,255,0.3); padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
-.btn-edit-p { background:#fff; color:#2563eb; border:none; padding:0.45rem 1rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
-/* ── Tabs ── */
-.tabs-wrap { background:#fff; border-bottom:2px solid #e2e8f0; }
-.tabs-inner { max-width:900px; margin:0 auto; padding:0 1.5rem; display:flex; }
-.tab { padding:0.9rem 1.1rem; font-size:0.85rem; font-weight:600; color:#64748b; cursor:pointer; border:none; background:none; border-bottom:3px solid transparent; margin-bottom:-2px; font-family:inherit; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
-.tab:hover { color:#2563eb; }
-.tab.active { color:#2563eb; border-bottom-color:#2563eb; }
-.notif-dot { background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; font-size:0.65rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+/* ── Top Bar ── */
+.topbar { position:fixed; top:64px; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.tb-hamburger { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.15rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; }
+.tb-hamburger:hover { background:rgba(255,255,255,0.22); }
+.tb-brand { flex:1; color:#fff; font-size:0.92rem; font-weight:800; padding-left:0.75rem; letter-spacing:-0.2px; }
+.tb-bell { position:relative; background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:8px; flex-shrink:0; }
+.tb-bell:hover { background:rgba(255,255,255,0.1); }
+.bell-badge { position:absolute; top:3px; right:3px; background:#ef4444; color:#fff; border-radius:50%; min-width:16px; height:16px; font-size:0.58rem; font-weight:800; display:flex; align-items:center; justify-content:center; line-height:1; padding:0 2px; }
+
+body { padding-top:114px !important; }
 
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
@@ -72,7 +66,7 @@ body { background:#f1f5f9; }
 .resume-box { background:#f8fafc; border-radius:10px; padding:1rem; display:flex; align-items:center; justify-content:space-between; margin-top:0.5rem; }
 .btn-dl { background:#2563eb; color:#fff; border:none; padding:0.4rem 1rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
-/* ── Applications Tab ── */
+/* ── Applications ── */
 .app-item { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1.2rem; margin-bottom:0.75rem; display:flex; gap:1rem; align-items:flex-start; transition:border-color 0.2s; }
 .app-item:hover { border-color:#2563eb; }
 .app-company-logo { width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.85rem; font-weight:800; flex-shrink:0; }
@@ -101,21 +95,33 @@ body { background:#f1f5f9; }
 .prog-label.current { color:#2563eb; font-weight:700; }
 .btn-prep { background:#f5f3ff; color:#6d28d9; border:none; padding:0.35rem 0.8rem; border-radius:7px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
-/* ── Notifications Tab ── */
-.notif-item { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1rem 1.2rem; margin-bottom:0.6rem; display:flex; gap:1rem; align-items:flex-start; transition:all 0.2s; }
+/* ── Notifications (popover items) ── */
+.notif-item { background:#fff; border-radius:10px; border:1.5px solid #e2e8f0; padding:0.85rem 1rem; margin-bottom:0.45rem; display:flex; gap:0.75rem; align-items:flex-start; transition:all 0.15s; cursor:pointer; }
+.notif-item:hover { border-color:#bfdbfe; background:#f8fbff; }
 .notif-item.unread { border-color:#bfdbfe; background:#f0f7ff; }
-.notif-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.notif-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
 .ni-status { background:#eff6ff; }
 .ni-shortlist { background:#fef3c7; }
 .ni-interview { background:#ecfeff; }
 .ni-hired { background:#dcfce7; }
 .ni-rejected { background:#fef2f2; }
-.notif-body { flex:1; }
-.notif-msg { font-size:0.85rem; font-weight:600; color:#0f172a; margin-bottom:0.2rem; }
-.notif-time { font-size:0.73rem; color:#94a3b8; }
-.unread-dot { width:8px; height:8px; border-radius:50%; background:#2563eb; flex-shrink:0; margin-top:4px; }
+.notif-body { flex:1; min-width:0; }
+.notif-msg { font-size:0.82rem; font-weight:600; color:#0f172a; margin-bottom:0.15rem; line-height:1.4; }
+.notif-time { font-size:0.7rem; color:#94a3b8; }
+.unread-dot { width:7px; height:7px; border-radius:50%; background:#2563eb; flex-shrink:0; margin-top:5px; }
 
-/* ── Interview Prep Tab ── */
+/* ── Notification Popover ── */
+.notif-backdrop { position:fixed; inset:0; z-index:399; display:none; }
+.notif-backdrop.open { display:block; }
+.notif-popover { position:fixed; top:114px; right:1rem; width:360px; max-height:480px; background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; box-shadow:0 8px 32px rgba(0,0,0,0.15); z-index:400; display:none; flex-direction:column; overflow:hidden; }
+.notif-popover.open { display:flex; }
+.np-head { display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1rem; border-bottom:1.5px solid #e2e8f0; flex-shrink:0; }
+.np-head-title { font-size:0.88rem; font-weight:800; }
+.np-mark-all { background:none; border:none; color:#2563eb; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
+.np-body { overflow-y:auto; padding:0.5rem; flex:1; -webkit-overflow-scrolling:touch; }
+.np-empty { text-align:center; padding:2rem; color:#94a3b8; font-size:0.85rem; }
+
+/* ── Interview Prep ── */
 .prep-hero { background:linear-gradient(135deg,#4f46e5,#7c3aed); border-radius:14px; padding:1.5rem; color:#fff; margin-bottom:1.5rem; }
 .prep-hero h2 { font-size:1.1rem; font-weight:800; margin-bottom:0.3rem; }
 .prep-hero p { font-size:0.82rem; color:#ddd6fe; margin-bottom:1rem; }
@@ -141,30 +147,32 @@ body { background:#f1f5f9; }
 .ai-loading { color:#6d28d9; font-size:0.85rem; animation:pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-@media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
+/* ── Pro Plan sub-tabs ── */
+.pro-tabs { display:flex; border-bottom:2px solid #e2e8f0; margin-bottom:1.25rem; background:#fff; border-radius:12px 12px 0 0; overflow:hidden; border:1.5px solid #e2e8f0; border-bottom:none; }
+.pro-tab { flex:1; padding:0.85rem; font-size:0.85rem; font-weight:600; color:#64748b; border:none; background:none; cursor:pointer; font-family:inherit; border-bottom:3px solid transparent; transition:all 0.2s; }
+.pro-tab.active { color:#2563eb; border-bottom-color:#2563eb; background:#f0f7ff; }
 
-/* ── Slim Bar (fixed — never scrolls) ── */
-.slim-bar { position:fixed; top:64px; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; gap:0.75rem; padding:0.55rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
-.slim-menu-btn { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.15rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; }
-.slim-menu-btn:hover { background:rgba(255,255,255,0.22); }
-.slim-name { font-size:0.88rem; font-weight:700; color:#fff; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.slim-score { font-size:0.7rem; font-weight:700; background:#1e3a5f; color:#60a5fa; padding:2px 10px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
-.slim-edit-btn { background:none; border:1px solid rgba(255,255,255,0.25); color:#fff; padding:0.3rem 0.75rem; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; flex-shrink:0; }
-.slim-edit-btn:hover { background:rgba(255,255,255,0.12); }
-/* body offset: navbar(64) + slim bar(44) = 108px; tabs just below slim bar */
-body { padding-top:108px !important; }
-.tabs-wrap { position:fixed; top:108px; left:0; right:0; z-index:149; background:#fff; border-bottom:2px solid #e2e8f0; }
-.tabs-inner { max-width:900px; margin:0 auto; padding:0 0.5rem; display:flex; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
-.tabs-inner::-webkit-scrollbar { display:none; }
-/* content must clear fixed slim bar + tabs (44+44=88 extra) */
-.content { padding-top:1rem; }
-/* hide old header since slim bar replaces it */
-.profile-header { display:none !important; }
+/* ── Browse Jobs ── */
+.jobs-filter-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:1rem; }
+.jf-input { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
+.jf-select { border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.82rem; font-family:inherit; outline:none; background:#fff; color:#374151; cursor:pointer; }
+.jf-select:focus { border-color:#3b82f6; }
+.inline-jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.85rem; }
+.inline-jcard { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.1rem; transition:all 0.18s; }
+.inline-jcard:hover { border-color:#3b82f6; box-shadow:0 4px 16px rgba(59,130,246,0.1); transform:translateY(-1px); }
+.ij-title { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
+.ij-co { font-size:0.75rem; color:#3b82f6; font-weight:600; margin-bottom:0.45rem; }
+.ij-meta { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:0.5rem; }
+.ij-meta span { font-size:0.68rem; color:#64748b; background:#f8fafc; padding:2px 7px; border-radius:5px; }
+.ij-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:0.6rem; }
+.ij-tag { font-size:0.65rem; background:#eff6ff; color:#1d4ed8; padding:2px 7px; border-radius:8px; font-weight:600; }
+.ij-foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f5f9; padding-top:0.5rem; }
+.ij-sal { font-size:0.75rem; font-weight:700; color:#059669; }
 
 /* ── Drawer ── */
-.drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; opacity:0; visibility:hidden; transition:opacity 0.28s,visibility 0.28s; backdrop-filter:blur(4px); }
+.drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:300; opacity:0; visibility:hidden; transition:opacity 0.28s,visibility 0.28s; }
 .drawer-overlay.open { opacity:1; visibility:visible; }
-.drawer { position:fixed; top:0; left:0; bottom:0; width:300px; background:#fff; z-index:301; transform:translateX(-100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1); overflow-y:auto; display:flex; flex-direction:column; box-shadow:4px 0 32px rgba(0,0,0,0.2); }
+.drawer { position:fixed; top:0; left:0; bottom:0; width:280px; background:#fff; z-index:301; transform:translateX(-100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; box-shadow:4px 0 32px rgba(0,0,0,0.18); overflow:hidden; }
 .drawer.open { transform:translateX(0); }
 .dr-head { background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:1.5rem 1.25rem 1.25rem; flex-shrink:0; }
 .dr-head-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem; }
@@ -177,56 +185,42 @@ body { padding-top:108px !important; }
 .dr-score-bar { flex:1; height:5px; background:rgba(255,255,255,0.2); border-radius:10px; overflow:hidden; }
 .dr-score-fill { height:100%; background:#fff; border-radius:10px; width:0%; transition:width 0.8s ease; }
 .dr-score-lbl { font-size:0.72rem; color:#bfdbfe; font-weight:600; white-space:nowrap; }
-.dr-sec { padding:0.9rem 1.25rem; border-bottom:1px solid #f1f5f9; }
-.dr-sec-title { font-size:0.65rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.55rem; }
-.dr-row { display:flex; justify-content:space-between; align-items:center; padding:0.28rem 0; }
-.dr-lbl { font-size:0.78rem; color:#64748b; }
-.dr-val { font-size:0.78rem; font-weight:600; color:#0f172a; max-width:155px; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.dr-skills { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
-.dr-skill { background:#eff6ff; color:#1d4ed8; font-size:0.7rem; font-weight:600; padding:3px 10px; border-radius:20px; }
-.dr-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.dr-stat { background:#f8fafc; border-radius:8px; padding:0.55rem; text-align:center; }
-.dr-stat-num { font-size:1.25rem; font-weight:800; }
-.dr-stat-lbl { font-size:0.62rem; color:#94a3b8; }
-.dr-foot { padding:1rem 1.25rem; margin-top:auto; display:flex; flex-direction:column; gap:0.5rem; }
+.dr-nav { flex:1; overflow-y:auto; padding:0.5rem 0; }
+.dr-nav-item { display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1.25rem; font-size:0.88rem; font-weight:600; color:#374151; text-decoration:none; border-left:3px solid transparent; transition:all 0.15s; }
+.dr-nav-item:hover { background:#f8fafc; color:#2563eb; border-left-color:#bfdbfe; }
+.dr-nav-item.active { background:#eff6ff; color:#2563eb; border-left-color:#2563eb; }
+.dr-foot { padding:1rem 1.25rem; flex-shrink:0; display:flex; flex-direction:column; gap:0.5rem; border-top:1px solid #f1f5f9; }
 .dr-edit-btn { background:#2563eb; color:#fff; border:none; border-radius:8px; padding:0.65rem; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; width:100%; }
 .dr-logout-btn { background:none; color:#64748b; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.55rem; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; width:100%; }
 .dr-logout-btn:hover { border-color:#fecaca; color:#ef4444; }
 
-/* ── Browse Jobs inline tab ── */
-.jobs-filter-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:1rem; }
-.jf-input { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
-.jf-select { border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.82rem; font-family:inherit; outline:none; background:#fff; color:#374151; cursor:pointer; }
-.jf-select:focus { border-color:#3b82f6; }
-.inline-jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.85rem; }
-.inline-jcard { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.1rem; cursor:pointer; transition:all 0.18s; }
-.inline-jcard:hover { border-color:#3b82f6; box-shadow:0 4px 16px rgba(59,130,246,0.1); transform:translateY(-1px); }
-.ij-title { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
-.ij-co { font-size:0.75rem; color:#3b82f6; font-weight:600; margin-bottom:0.45rem; }
-.ij-meta { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:0.5rem; }
-.ij-meta span { font-size:0.68rem; color:#64748b; background:#f8fafc; padding:2px 7px; border-radius:5px; }
-.ij-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:0.6rem; }
-.ij-tag { font-size:0.65rem; background:#eff6ff; color:#1d4ed8; padding:2px 7px; border-radius:8px; font-weight:600; }
-.ij-foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f5f9; padding-top:0.5rem; }
-.ij-sal { font-size:0.75rem; font-weight:700; color:#059669; }
-.ij-badge { font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:7px; background:#dcfce7; color:#15803d; }
-
-@media(max-width:640px) { .slim-bar { top:56px; } body { padding-top:100px !important; } .tabs-wrap { top:100px; } .drawer { width:88%; max-width:300px; } }
-
+/* ── Responsive ── */
+@media(max-width:768px) {
+  .notif-popover { width:calc(100% - 2rem); left:1rem; right:1rem; border-radius:0 0 14px 14px; }
+}
+@media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
+@media(max-width:640px) {
+  .topbar { top:56px; }
+  body { padding-top:106px !important; }
+  .notif-popover { top:106px; }
+  .drawer { width:80vw; max-width:300px; }
+}
 </style>
 </head>
 <body>
 <div id="navbar"></div>
 
-<!-- Slim Bar (fixed) -->
-<div class="slim-bar">
-  <button class="slim-menu-btn" onclick="openDrawer()" aria-label="Open profile">&#9776;</button>
-  <span class="slim-name" id="slim-name">Loading...</span>
-  <span class="slim-score" id="slim-score">0%</span>
-  <button class="slim-edit-btn" onclick="openEditModal()">✏️ Edit</button>
+<!-- Top Bar -->
+<div class="topbar">
+  <button class="tb-hamburger" onclick="openDrawer()" aria-label="Menu">&#9776;</button>
+  <span class="tb-brand">HireTrack</span>
+  <button class="tb-bell" id="bell-btn" onclick="toggleNotifPanel()" aria-label="Notifications">
+    🔔
+    <span class="bell-badge" id="bell-badge" style="display:none;"></span>
+  </button>
 </div>
 
-<!-- Profile Header (hidden by CSS, kept for JS targets) -->
+<!-- Profile Header (hidden, kept for JS targets) -->
 <div class="profile-header">
   <div class="profile-header-inner">
     <div class="avatar" id="p-avatar">?</div>
@@ -240,29 +234,82 @@ body { padding-top:108px !important; }
         <span id="p-score-badge" style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">⭐ Score: —</span>
       </div>
     </div>
-    <div class="profile-actions">
+  </div>
+</div>
+
+<!-- Notification Backdrop -->
+<div class="notif-backdrop" id="notif-backdrop" onclick="closeNotifPanel()"></div>
+
+<!-- Notification Popover -->
+<div class="notif-popover" id="notif-popover">
+  <div class="np-head">
+    <span class="np-head-title">Notifications</span>
+    <button class="np-mark-all" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div class="np-body" id="notif-list">
+    <div class="np-empty">Loading...</div>
+  </div>
+</div>
+
+<!-- Drawer Overlay -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- Navigation Drawer -->
+<div class="drawer" id="profile-drawer">
+  <div class="dr-head">
+    <div class="dr-head-top">
+      <div style="position:relative;display:inline-block;">
+        <div class="dr-avatar" id="dr-avatar">?</div>
+        <label title="Change photo" style="position:absolute;bottom:0;right:0;width:20px;height:20px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.6rem;border:2px solid #fff;">
+          📷
+          <input type="file" id="photo-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handlePhotoUpload(this)">
+        </label>
+      </div>
+      <button class="dr-close" onclick="closeDrawer()">&#10005;</button>
+    </div>
+    <div class="dr-name" id="dr-name">Loading...</div>
+    <div class="dr-role" id="dr-role">&mdash;</div>
+    <div class="dr-score-row">
+      <div class="dr-score-bar"><div class="dr-score-fill" id="dr-score-fill"></div></div>
+      <span class="dr-score-lbl" id="dr-score-lbl">0%</span>
     </div>
   </div>
-</div>
-
-<!-- Tabs -->
-<div class="tabs-wrap">
-  <div class="tabs-inner">
-    <button class="tab active" onclick="switchTab('profile',this)">👤 Profile</button>
-    <button class="tab" onclick="switchTab('applications',this)">📋 My Applications</button>
-    <button class="tab" onclick="switchTab('notifications',this)">🔔 Notifications <span class="notif-dot" id="notif-count" style="display:none;">0</span></button>
-    <button class="tab" onclick="switchTab('prep',this)">🎯 Interview Prep</button>
-    <button class="tab" onclick="switchTab('jobs',this)">💼 Browse Jobs</button>
+  <nav class="dr-nav">
+    <a class="dr-nav-item" href="#jobs">💼 Browse Jobs</a>
+    <a class="dr-nav-item" href="#profile">👤 My Profile</a>
+    <a class="dr-nav-item" href="#applications">📋 My Applications</a>
+    <a class="dr-nav-item" href="#pro">⭐ Pro Plan</a>
+  </nav>
+  <div class="dr-foot">
+    <button class="dr-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
+    <button class="dr-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
   </div>
 </div>
 
+<!-- Main Content -->
 <div class="content">
 
-  <!-- PROFILE TAB -->
-  <div id="tab-profile">
-    <!-- Profile Score Card -->
-    <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
+  <!-- VIEW: Browse Jobs (default #jobs) -->
+  <div id="view-jobs">
+    <div class="jobs-filter-bar">
+      <input class="jf-input" type="text" id="jf-kw" placeholder="🔍  Search title, skill, company..." oninput="filterInlineJobs()">
+      <select class="jf-select" id="jf-loc" onchange="filterInlineJobs()">
+        <option value="">📍 All Locations</option>
+        <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
+        <option>Hyderabad</option><option>Mysuru</option><option>Remote</option>
+      </select>
+      <select class="jf-select" id="jf-type" onchange="filterInlineJobs()">
+        <option value="">💼 All Types</option>
+        <option>Full Time</option><option>Contract</option><option>Remote</option><option>Part Time</option>
+      </select>
+    </div>
+    <div id="inline-jobs-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;"></div>
+    <div class="inline-jobs-grid" id="inline-jobs-grid"></div>
+  </div>
 
+  <!-- VIEW: My Profile (#profile) -->
+  <div id="view-profile" style="display:none;">
+    <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
     <div class="profile-grid">
       <div>
         <div class="card" style="margin-bottom:1rem;">
@@ -312,8 +359,8 @@ body { padding-top:108px !important; }
     </div>
   </div>
 
-  <!-- APPLICATIONS TAB -->
-  <div id="tab-applications" style="display:none;">
+  <!-- VIEW: My Applications (#applications) -->
+  <div id="view-applications" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <h2 style="font-size:1rem;font-weight:800;">My Applications</h2>
       <select id="app-filter" onchange="filterApps()" style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.4rem 0.8rem;font-size:0.82rem;font-family:inherit;outline:none;">
@@ -325,59 +372,48 @@ body { padding-top:108px !important; }
     <div id="apps-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
   </div>
 
-  <!-- NOTIFICATIONS TAB -->
-  <div id="tab-notifications" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <h2 style="font-size:1rem;font-weight:800;">Notifications</h2>
-      <button onclick="markAllRead()" style="background:none;border:none;color:#2563eb;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Mark all as read</button>
+  <!-- VIEW: Pro Plan (#pro) -->
+  <div id="view-pro" style="display:none;">
+    <div class="pro-tabs">
+      <button class="pro-tab active" data-sub="prep" onclick="switchProTab('prep',this)">🎯 Interview Prep</button>
+      <button class="pro-tab" data-sub="resume" onclick="switchProTab('resume',this)">📄 Resume Builder</button>
     </div>
-    <div id="notif-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
-  </div>
 
-  <!-- INTERVIEW PREP TAB -->
-  <div id="tab-prep" style="display:none;">
-    <div class="prep-hero">
-      <h2>🎯 AI Interview Prep</h2>
-      <p>Get AI-generated questions for any role, or pick from our question bank</p>
-      <div class="prep-ai-row">
-        <input type="text" id="prep-input" placeholder="e.g. MIS Executive at Infosys, Data Analyst at Wipro..." />
-        <button onclick="generateAIQuestions()">Generate Questions</button>
+    <!-- Pro: Interview Prep panel -->
+    <div id="pro-panel-prep">
+      <div class="prep-hero">
+        <h2>🎯 AI Interview Prep</h2>
+        <p>Get AI-generated questions for any role, or pick from our question bank</p>
+        <div class="prep-ai-row">
+          <input type="text" id="prep-input" placeholder="e.g. MIS Executive at Infosys, Data Analyst at Wipro..." />
+          <button onclick="generateAIQuestions()">Generate Questions</button>
+        </div>
+      </div>
+      <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
+      <div class="prep-categories" id="skill-categories">
+        <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
+      </div>
+      <div class="qa-box" id="qa-box" style="display:none;">
+        <div class="qa-header">
+          <h3 id="qa-title">Interview Questions</h3>
+          <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
+        </div>
+        <div id="qa-list"></div>
       </div>
     </div>
 
-    <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
-    <div class="prep-categories" id="skill-categories">
-      <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
-    </div>
-
-    <div class="qa-box" id="qa-box" style="display:none;">
-      <div class="qa-header">
-        <h3 id="qa-title">Interview Questions</h3>
-        <button onclick="document.getElementById('qa-box').style.display='none'" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.1rem;">✕</button>
+    <!-- Pro: Resume Builder panel -->
+    <div id="pro-panel-resume" style="display:none;">
+      <div style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:2.5rem 2rem;text-align:center;max-width:480px;margin:0 auto;">
+        <div style="font-size:3rem;margin-bottom:1rem;">📄</div>
+        <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:0.5rem;">Resume Builder</h3>
+        <p style="font-size:0.85rem;color:#64748b;margin-bottom:1.5rem;line-height:1.6;">Create a professional resume with our guided builder and ATS-friendly templates.</p>
+        <a href="resume-builder.html" style="display:inline-block;background:#2563eb;color:#fff;padding:0.75rem 2rem;border-radius:10px;font-size:0.9rem;font-weight:700;text-decoration:none;">Open Resume Builder →</a>
       </div>
-      <div id="qa-list"></div>
     </div>
   </div>
 
-  <!-- BROWSE JOBS TAB -->
-  <div id="tab-jobs" style="display:none;">
-    <div class="jobs-filter-bar">
-      <input class="jf-input" type="text" id="jf-kw" placeholder="🔍  Search title, skill, company..." oninput="filterInlineJobs()">
-      <select class="jf-select" id="jf-loc" onchange="filterInlineJobs()">
-        <option value="">📍 All Locations</option>
-        <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
-        <option>Hyderabad</option><option>Mysuru</option><option>Remote</option>
-      </select>
-      <select class="jf-select" id="jf-type" onchange="filterInlineJobs()">
-        <option value="">💼 All Types</option>
-        <option>Full Time</option><option>Contract</option><option>Remote</option><option>Part Time</option>
-      </select>
-    </div>
-    <div id="inline-jobs-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;"></div>
-    <div class="inline-jobs-grid" id="inline-jobs-grid"></div>
-  </div>
-
-</div>
+</div><!-- .content -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
@@ -388,6 +424,33 @@ body { padding-top:108px !important; }
 
   let myApps = [], myNotifs = [];
   let quizData = [], quizIdx = 0;
+
+  // ── Router ──
+  const VIEWS = ['jobs','profile','applications','pro'];
+
+  function route(raw) {
+    const hash = (raw || '#jobs').replace(/^#/, '');
+    const [view, sub] = hash.split('/');
+    const target = VIEWS.includes(view) ? view : 'jobs';
+
+    VIEWS.forEach(v => {
+      const el = document.getElementById('view-' + v);
+      if (el) el.style.display = v === target ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.dr-nav-item').forEach(a => {
+      const itemView = a.getAttribute('href').replace('#','');
+      a.classList.toggle('active', itemView === target);
+    });
+
+    if (target === 'pro') switchProTab(sub || 'prep', null);
+    if (target === 'jobs') loadInlineJobs();
+    if (target === 'applications') renderApps(myApps);
+
+    closeDrawer();
+  }
+
+  window.addEventListener('hashchange', () => route(location.hash));
 
   // ── Init ──
   async function init() {
@@ -415,52 +478,46 @@ body { padding-top:108px !important; }
     }
     renderResumeSection();
 
-    // Load applications — fetch apps then match with jobs separately
     const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
     myApps = apps || [];
     syncDrawerStats();
 
-    // Fetch job details for each application
     for (const app of myApps) {
-      // Try Supabase jobs first
       const { data: job } = await sb.from('jobs').select('title,company,location,salary').eq('id', app.job_id).maybeSingle();
       if (job) {
         app.jobs = job;
       } else {
-        // Fall back to static jobs
         const staticJob = JOBS.find(j => String(j.id) === String(app.job_id));
         if (staticJob) app.jobs = { title: staticJob.title, company: staticJob.company, location: staticJob.location, salary: staticJob.salary };
       }
     }
 
-    // Stats
     document.getElementById('sum-total').textContent = myApps.length;
     document.getElementById('sum-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
     document.getElementById('sum-inter').textContent = myApps.filter(a=>a.status==='Interview').length;
     document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
 
-    // Render profile score after apps are loaded (needs myApps.length)
     renderProfileScore();
 
-    // Load notifications
     const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
     myNotifs = notifs || [];
-    const unread = myNotifs.filter(n=>!n.is_read).length;
-    if (unread > 0) {
-      const dot = document.getElementById('notif-count');
-      dot.textContent = unread; dot.style.display = 'inline-flex';
-    }
+    updateNotifBadge();
+
+    // Re-render current view if data-dependent
+    const currentView = (location.hash || '#jobs').replace(/^#/,'').split('/')[0];
+    if (currentView === 'applications') renderApps(myApps);
+    if (currentView === 'jobs') loadInlineJobs();
   }
 
-  // ── Tab switching ──
-  function switchTab(tab, btn) {
-    ['profile','applications','notifications','prep','jobs'].forEach(t => { const e=document.getElementById('tab-'+t); if(e) e.style.display='none'; });
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    const _tabEl = document.getElementById('tab-'+tab); if(_tabEl) _tabEl.style.display='block';
-    if(tab==='jobs') loadInlineJobs();
-    btn.classList.add('active');
-    if (tab === 'applications') renderApps(myApps);
-    if (tab === 'notifications') renderNotifs();
+  // ── Pro Plan sub-tabs ──
+  function switchProTab(sub, btn) {
+    ['prep','resume'].forEach(s => {
+      const p = document.getElementById('pro-panel-' + s);
+      if (p) p.style.display = s === sub ? 'block' : 'none';
+    });
+    document.querySelectorAll('.pro-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.sub === sub);
+    });
   }
 
   // ── Applications ──
@@ -514,7 +571,7 @@ body { padding-top:108px !important; }
 
   function renderNotifs() {
     const el = document.getElementById('notif-list');
-    if (!myNotifs.length) { el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">🔔</div><p>No notifications yet.</p></div>'; return; }
+    if (!myNotifs.length) { el.innerHTML = '<div class="np-empty"><div style="font-size:2rem;margin-bottom:0.5rem;">🔔</div><p>No notifications yet.</p></div>'; return; }
     el.innerHTML = myNotifs.map(n => `
       <div class="notif-item ${n.is_read?'':'unread'}" onclick="markRead('${n.id}',this)">
         <div class="notif-icon ${NOTIF_CLASSES[n.status]||'ni-status'}">${NOTIF_ICONS[n.status]||'🔔'}</div>
@@ -534,19 +591,40 @@ body { padding-top:108px !important; }
     const n = myNotifs.find(x=>x.id===id);
     if (n) n.is_read = true;
     updateNotifBadge();
+    closeNotifPanel();
+    location.hash = '#applications';
   }
 
   async function markAllRead() {
     await sb.from('notifications').update({ is_read: true }).eq('candidate_id', candidate.id);
     myNotifs.forEach(n => n.is_read = true);
-    renderNotifs(); updateNotifBadge();
+    renderNotifs();
+    updateNotifBadge();
   }
 
   function updateNotifBadge() {
     const unread = myNotifs.filter(n=>!n.is_read).length;
-    const dot = document.getElementById('notif-count');
-    if (unread > 0) { dot.textContent = unread; dot.style.display = 'inline-flex'; }
-    else dot.style.display = 'none';
+    const badge = document.getElementById('bell-badge');
+    if (!badge) return;
+    if (unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
+    else { badge.style.display = 'none'; }
+  }
+
+  // ── Notification Popover ──
+  function openNotifPanel() {
+    renderNotifs();
+    document.getElementById('notif-popover').classList.add('open');
+    document.getElementById('notif-backdrop').classList.add('open');
+  }
+
+  function closeNotifPanel() {
+    document.getElementById('notif-popover').classList.remove('open');
+    document.getElementById('notif-backdrop').classList.remove('open');
+  }
+
+  function toggleNotifPanel() {
+    const open = document.getElementById('notif-popover').classList.contains('open');
+    open ? closeNotifPanel() : openNotifPanel();
   }
 
   // ── Interview Prep ──
@@ -602,7 +680,6 @@ body { padding-top:108px !important; }
     if(badge) badge.textContent = `⭐ ${score}%`;
     syncDrawerScore(score);
 
-    // Render check items separately to avoid nested template literal issues
     const itemsEl = document.getElementById('score-items-list');
     if(itemsEl) {
       itemsEl.innerHTML = checks.map(c => {
@@ -631,6 +708,7 @@ body { padding-top:108px !important; }
   }
 
   function scrollToEdit() { showToast('Use Edit Profile to update this section.'); }
+
   const SKILL_ICONS = {
     'excel':'📊','mis':'📋','sql':'🗄️','python':'🐍','power bi':'📈','tableau':'📉',
     'vba':'⚙️','sap':'🏢','tally':'🧾','automation':'🤖','data entry':'📝',
@@ -657,7 +735,6 @@ body { padding-top:108px !important; }
       return;
     }
 
-    // Always add HR & General
     const allCategories = [
       ...skills.map(s => ({ label: s, icon: getSkillIcon(s), isSkill: true })),
       { label: 'HR & Behavioural', icon: '🤝', isSkill: false },
@@ -683,13 +760,11 @@ body { padding-top:108px !important; }
       let text = data.answer || '';
       text = text.replace(/```json|```/g,'').trim();
 
-      // Try full parse first
       const fullMatch = text.match(/\[[\s\S]*\]/);
       if (fullMatch) {
         try { return JSON.parse(fullMatch[0]); } catch(e) {}
       }
 
-      // Try to salvage truncated JSON — extract complete objects only
       const objMatches = text.match(/\{"q"\s*:\s*"[^"]+"\s*,\s*"a"\s*:\s*"[^"]+"\s*\}/g);
       if (objMatches && objMatches.length >= 2) {
         return objMatches.map(o => JSON.parse(o));
@@ -756,25 +831,18 @@ body { padding-top:108px !important; }
 
     document.getElementById('qa-list').innerHTML = `
       <div style="padding:1.5rem;">
-        <!-- Progress -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
           <span style="font-size:0.78rem;color:#64748b;font-weight:600;">Question ${quizIdx+1} of ${total}</span>
           <div style="display:flex;gap:4px;">${quizData.map((_,i)=>`<div style="width:28px;height:4px;border-radius:2px;background:${i<quizIdx?'#2563eb':i===quizIdx?'#93c5fd':'#e2e8f0'};"></div>`).join('')}</div>
         </div>
-
-        <!-- Question Card -->
         <div style="background:#f0f7ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
           <div style="font-size:0.72rem;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">❓ Question ${quizIdx+1}</div>
           <div style="font-size:0.95rem;font-weight:700;color:#0f172a;line-height:1.6;">${q.q}</div>
         </div>
-
-        <!-- Answer (hidden initially) -->
         <div id="quiz-answer" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:1.5rem;margin-bottom:1rem;">
           <div style="font-size:0.72rem;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">✅ Model Answer</div>
           <div style="font-size:0.88rem;color:#166534;line-height:1.7;">${q.a}</div>
         </div>
-
-        <!-- Buttons -->
         <div style="display:flex;gap:0.75rem;">
           <button onclick="showQuizAnswer()" id="btn-show-ans" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;">
             💡 Show Answer
@@ -809,11 +877,11 @@ body { padding-top:108px !important; }
   }
 
   function prepForJob(title, company) {
-    switchTab('prep', document.querySelectorAll('.tab')[3]);
+    location.hash = '#pro/interview-prep';
     setTimeout(() => {
-      document.getElementById('prep-input').value = `${title} at ${company}`;
-      generateAIQuestions();
-    }, 100);
+      const inp = document.getElementById('prep-input');
+      if (inp) { inp.value = `${title} at ${company}`; generateAIQuestions(); }
+    }, 200);
   }
 
   function downloadResume() {
@@ -877,16 +945,27 @@ body { padding-top:108px !important; }
     input.value = '';
   }
 
-  // ── Slim bar + Drawer helpers ──
-  function drSet(id, val) { const el=document.getElementById(id); if(el) el.textContent=(val||'—'); }
+  // ── Drawer ──
+  function openDrawer()  {
+    document.getElementById('profile-drawer').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeNotifPanel();
+  }
+  function closeDrawer() {
+    document.getElementById('profile-drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
 
-  function openDrawer()  { document.getElementById('profile-drawer').classList.add('open'); document.getElementById('drawer-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
-  function closeDrawer() { document.getElementById('profile-drawer').classList.remove('open'); document.getElementById('drawer-overlay').classList.remove('open'); document.body.style.overflow=''; }
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeDrawer(); closeNotifPanel(); }
+  });
+
+  function drSet(id, val) { const el=document.getElementById(id); if(el) el.textContent=(val||'—'); }
 
   function syncDrawer(c) {
     if (!c) return;
-    // Avatar
     const av = document.getElementById('dr-avatar');
     if (av) {
       const photoSrc = c.photo_url
@@ -898,9 +977,6 @@ body { padding-top:108px !important; }
         av.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       }
     }
-    // Slim bar
-    const sn = document.getElementById('slim-name'); if(sn) sn.textContent = c.name||'';
-    // Header elements (still in DOM, hidden)
     const pa = document.getElementById('p-avatar');
     if (pa) {
       const photoSrc = c.photo_url
@@ -909,34 +985,15 @@ body { padding-top:108px !important; }
       if (photoSrc) pa.innerHTML = '<img src="'+photoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
       else pa.textContent = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
     }
-    // Drawer fields
-    drSet('dr-name',    c.name);
-    drSet('dr-role',    (c.jobtitle||'Job Seeker') + (c.city?' · '+c.city:''));
-    drSet('dr-email',   c.email);
-    drSet('dr-mobile',  c.mobile);
-    drSet('dr-city',    c.city);
-    drSet('dr-exp',     c.experience);
-    drSet('dr-company', c.current_company);
-    drSet('dr-jobtype', c.preferred_job_type);
-    drSet('dr-salary',  c.expected_salary);
-    drSet('dr-notice',  c.notice_period);
-    // Skills
-    const sk = document.getElementById('dr-skills');
-    if (sk) {
-      const skills = Array.isArray(c.skills) ? c.skills : [];
-      sk.innerHTML = skills.length
-        ? skills.map(s=>'<span class="dr-skill">'+s+'</span>').join('')
-        : '<span style="font-size:0.75rem;color:#94a3b8;">No skills added yet</span>';
-    }
+    drSet('dr-name', c.name);
+    drSet('dr-role', (c.jobtitle||'Job Seeker') + (c.city?' · '+c.city:''));
   }
 
   function syncDrawerScore(score) {
-    const fill  = document.getElementById('dr-score-fill');
-    const lbl   = document.getElementById('dr-score-lbl');
-    const slim  = document.getElementById('slim-score');
+    const fill = document.getElementById('dr-score-fill');
+    const lbl  = document.getElementById('dr-score-lbl');
     if (fill) fill.style.width = score+'%';
     if (lbl)  lbl.textContent  = score+'%';
-    if (slim) slim.textContent = score+'%';
   }
 
   function syncDrawerStats() {
@@ -951,12 +1008,9 @@ body { padding-top:108px !important; }
     try {
       const { data } = await sb.from('candidates').select('*').eq('id', candidate.id).maybeSingle();
       if (data) {
-        // Update the candidate variable and session
         Object.assign(candidate, data);
         Session.setCandidate(candidate);
-        // Re-sync drawer and header with fresh data
         syncDrawer(candidate);
-        // Also update the profile tab fields
         const fields = {
           'd-email':candidate.email,'d-mobile':candidate.mobile,'d-city':candidate.city,
           'd-exp':candidate.experience,'d-title':candidate.jobtitle,'d-company':candidate.current_company,
@@ -964,7 +1018,6 @@ body { padding-top:108px !important; }
           'd-notice':candidate.notice_period,'d-about':candidate.about
         };
         Object.entries(fields).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.textContent=val||'—'; });
-        // Skills
         if (candidate.skills?.length) {
           const sk = document.getElementById('d-skills');
           if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
@@ -974,7 +1027,7 @@ body { padding-top:108px !important; }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
 
-  // ── Inline Jobs (Browse Jobs tab) ──
+  // ── Inline Jobs ──
   let allInlineJobs = [], inlineJobsLoaded = false;
 
   async function loadInlineJobs() {
@@ -1035,14 +1088,17 @@ body { padding-top:108px !important; }
     }).join('');
   }
 
+  // ── Startup ──
   if (candidate) {
     syncDrawer(candidate);
     renderSkillCategories();
     freshSync().then(() => init());
   }
+
+  route(location.hash || '#jobs');
+
   // ════════════════════════════════════════════
   // EDIT PROFILE MODAL
-  // All data saved to: candidates table (Supabase)
   // ════════════════════════════════════════════
   let _editSkills = [];
 
@@ -1185,7 +1241,6 @@ body { padding-top:108px !important; }
     if (error) { if (msg) { msg.style.color = '#dc2626'; msg.textContent = 'Save failed: ' + error.message; } return; }
     Object.assign(candidate, updates);
     Session.setCandidate(candidate);
-    const sn = document.getElementById('slim-name'); if (sn) sn.textContent = candidate.name || '';
     syncDrawer(candidate);
     renderProfileScore();
     renderSkillCategories();
@@ -1198,7 +1253,6 @@ body { padding-top:108px !important; }
 
   // ════════════════════════════════════════════
   // PRO GATE — Interview Prep
-  // Usage tracked in: candidates table (Supabase)
   // ════════════════════════════════════════════
   function isProCandidate() {
     return !!(candidate.pro_expires_at && new Date() < new Date(candidate.pro_expires_at));
@@ -1236,65 +1290,6 @@ body { padding-top:108px !important; }
       </div>`;
     qa.scrollIntoView({ behavior: 'smooth' });
   }
-
-
 </script>
-
-<!-- Drawer Overlay -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-
-<!-- Profile Drawer -->
-<div class="drawer" id="profile-drawer">
-  <div class="dr-head">
-    <div class="dr-head-top">
-      <div style="position:relative;display:inline-block;">
-        <div class="dr-avatar" id="dr-avatar">?</div>
-        <label title="Change photo" style="position:absolute;bottom:0;right:0;width:20px;height:20px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.6rem;border:2px solid #fff;">
-          📷
-          <input type="file" id="photo-file-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handlePhotoUpload(this)">
-        </label>
-      </div>
-      <button class="dr-close" onclick="closeDrawer()">&#10005;</button>
-    </div>
-    <div class="dr-name" id="dr-name">Loading...</div>
-    <div class="dr-role" id="dr-role">&mdash;</div>
-    <div class="dr-score-row">
-      <div class="dr-score-bar"><div class="dr-score-fill" id="dr-score-fill"></div></div>
-      <span class="dr-score-lbl" id="dr-score-lbl">0%</span>
-    </div>
-  </div>
-  <div class="dr-sec">
-    <div class="dr-sec-title">Personal info</div>
-    <div class="dr-row"><span class="dr-lbl">📧 Email</span><span class="dr-val" id="dr-email">—</span></div>
-    <div class="dr-row"><span class="dr-lbl">📞 Mobile</span><span class="dr-val" id="dr-mobile">—</span></div>
-    <div class="dr-row"><span class="dr-lbl">📍 City</span><span class="dr-val" id="dr-city">—</span></div>
-    <div class="dr-row"><span class="dr-lbl">🎓 Experience</span><span class="dr-val" id="dr-exp">—</span></div>
-    <div class="dr-row"><span class="dr-lbl">🏢 Company</span><span class="dr-val" id="dr-company">—</span></div>
-  </div>
-  <div class="dr-sec">
-    <div class="dr-sec-title">Job preferences</div>
-    <div class="dr-row"><span class="dr-lbl">💼 Job type</span><span class="dr-val" id="dr-jobtype">—</span></div>
-    <div class="dr-row"><span class="dr-lbl">💰 Expected salary</span><span class="dr-val" id="dr-salary">—</span></div>
-    <div class="dr-row"><span class="dr-lbl">⏰ Notice period</span><span class="dr-val" id="dr-notice">—</span></div>
-  </div>
-  <div class="dr-sec">
-    <div class="dr-sec-title">Skills</div>
-    <div class="dr-skills" id="dr-skills"><span style="font-size:0.75rem;color:#94a3b8;">No skills added yet</span></div>
-  </div>
-  <div class="dr-sec">
-    <div class="dr-sec-title">Activity</div>
-    <div class="dr-stats">
-      <div class="dr-stat"><div class="dr-stat-num" id="dr-total" style="color:#2563eb;">0</div><div class="dr-stat-lbl">Applied</div></div>
-      <div class="dr-stat"><div class="dr-stat-num" id="dr-short" style="color:#d97706;">0</div><div class="dr-stat-lbl">Shortlisted</div></div>
-      <div class="dr-stat"><div class="dr-stat-num" id="dr-inter" style="color:#6d28d9;">0</div><div class="dr-stat-lbl">Interviews</div></div>
-      <div class="dr-stat"><div class="dr-stat-num" id="dr-hired" style="color:#15803d;">0</div><div class="dr-stat-lbl">Hired</div></div>
-    </div>
-  </div>
-  <div class="dr-foot">
-    <button class="dr-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
-    <button class="dr-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
-  </div>
-</div>
-
 </body>
 </html>
