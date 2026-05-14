@@ -823,21 +823,19 @@ function closeModal() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ─────────────────────────────────────────
-// Start-up
+// Start-up — runs after DOM + all scripts are parsed
 // ─────────────────────────────────────────
-
-// Pre-fill keyword from URL ?search= param
-(function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  // Pre-fill keyword from URL ?search= param
   const search = new URLSearchParams(location.search).get('search');
   if (search) { F.keyword = search; document.getElementById('f-kw').value = search; }
-})();
 
-// Fetch application statuses for logged-in candidates
-(async function() {
+  // Fetch application statuses for logged-in candidates
   const c = Session.getCandidate();
   if (c) appStatusMap = await BrowseJobs.fetchApplicationStatuses(c.id);
+
   loadInitial();
-})();
+});
 </script>
 </body>
 </html>
