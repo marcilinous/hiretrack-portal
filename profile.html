@@ -477,6 +477,7 @@ body { padding-top:114px !important; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script src="js/browse-jobs.js"></script>
+<script src="js/apply-modal.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
   const candidate = Session.getCandidate();
@@ -1091,8 +1092,6 @@ body { padding-top:114px !important; }
   const _pjf = { keyword:'', locations:[], jobTypes:[], expBand:'', salBand:'', recency:'any', minMatch:0, sort:'match' };
   let _pjfJobs = [], _pjfAppMap = {}, _pjfLoaded = false, _pjfTeardown = null, _pjfVisible = 20;
   const PJF_PAGE = 20;
-  let _pjfApplying = false;
-
   function _pjfDeriveFiltered() {
     return window.BrowseJobs.applyClientFilters(_pjfJobs, {
       keyword: _pjf.keyword,
@@ -1124,7 +1123,17 @@ body { padding-top:114px !important; }
     window.BrowseJobs.render(container, page, {
       applicationStatusMap: _pjfAppMap,
       isLoggedIn: true,
-      onApplyClick: profileApplyJob,
+      onApplyClick: (jid, job) => {
+        const wa = encodeURIComponent(
+          `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
+        );
+        window.ApplyModal.open(job, {
+          isLoggedIn: true,
+          applicationStatus: _pjfAppMap[String(jid)] || null,
+          onApply: () => profileApplyJob(jid, job),
+          onWhatsApp: () => whatsappApply(job.phone, wa),
+        });
+      },
       onViewApplicationClick: () => { location.hash = '#applications'; },
     });
     if (hasMore) {
@@ -1158,22 +1167,16 @@ body { padding-top:114px !important; }
   }
 
   async function profileApplyJob(jid, job) {
-    if (_pjfApplying) return;
-    _pjfApplying = true;
-    try {
-      const { error } = await ApplicationsDB.apply(candidate.id, jid);
-      if (error) { showToast('Could not apply: ' + error.message); return; }
-      _pjfAppMap[String(jid)] = 'Applied';
-      const newApp = { job_id: jid, status: 'Applied', applied_at: new Date().toISOString() };
-      if (job) newApp.jobs = { title: job.title, company: job.company, location: job.location, salary: job.salary };
-      myApps.unshift(newApp);
-      const sumEl = document.getElementById('sum-total');
-      if (sumEl) sumEl.textContent = myApps.length;
-      _renderPjf();
-      showToast('Applied successfully!');
-    } finally {
-      _pjfApplying = false;
-    }
+    const { error } = await ApplicationsDB.apply(candidate.id, jid);
+    if (error) throw error;
+    _pjfAppMap[String(jid)] = 'Applied';
+    const newApp = { job_id: jid, status: 'Applied', applied_at: new Date().toISOString() };
+    if (job) newApp.jobs = { title: job.title, company: job.company, location: job.location, salary: job.salary };
+    myApps.unshift(newApp);
+    const sumEl = document.getElementById('sum-total');
+    if (sumEl) sumEl.textContent = myApps.length;
+    _renderPjf();
+    showToast('Applied successfully!');
   }
 
   function _closePjfDDs(exceptId) {

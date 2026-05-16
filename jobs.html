@@ -169,18 +169,7 @@
 /* ── Jobs container ── */
 .jobs-wrap { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; }
 
-/* ── Detail modal ── */
-.jd-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; display: none; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; }
-.jd-modal.show { display: flex; }
-.jd-box { background: #fff; border-radius: 16px; width: 100%; max-width: 660px; padding: 2rem; position: relative; margin: auto; }
-.jd-close { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; color: #64748b; }
-.jd-title { font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
-.jd-company { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
-.jd-meta-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
-.jd-meta-item { background: #f1f5f9; padding: 0.3rem 0.85rem; border-radius: 20px; font-size: 0.79rem; color: #374151; font-weight: 500; }
-.jd-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.1rem; }
-.jd-desc { font-size: 0.9rem; line-height: 1.75; color: #334155; white-space: pre-wrap; border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-bottom: 1.2rem; }
-.jd-actions { display: flex; gap: 10px; }
+/* Detail modal styles live in js/apply-modal.js (injected at runtime) */
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
@@ -394,18 +383,6 @@
   <div id="jobs-container"></div>
 </div>
 
-<!-- ══ Detail modal ══ -->
-<div class="jd-modal" id="jd-modal" onclick="if(event.target===this)closeModal()">
-  <div class="jd-box">
-    <button class="jd-close" onclick="closeModal()">✕</button>
-    <div class="jd-title"  id="jd-title"></div>
-    <div class="jd-company" id="jd-company"></div>
-    <div class="jd-meta-row" id="jd-meta"></div>
-    <div class="jd-tags"   id="jd-tags"></div>
-    <div class="jd-desc"   id="jd-desc"></div>
-    <div class="jd-actions" id="jd-actions"></div>
-  </div>
-</div>
 
 <footer style="text-align:center;padding:2rem;color:#94a3b8;font-size:0.82rem;border-top:1px solid #e2e8f0;margin-top:2rem;">
   © 2025 <strong style="color:#3b82f6;">HireTrack</strong> — Jobs across India
@@ -414,6 +391,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script src="js/browse-jobs.js"></script>
+<script src="js/apply-modal.js"></script>
 <script>
 document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
@@ -471,21 +449,25 @@ function applySortAndFilter(jobs) {
 // ─────────────────────────────────────────
 // Render helpers
 // ─────────────────────────────────────────
+function _openApplyModal(job) {
+  const c = Session.getCandidate();
+  const wa = encodeURIComponent(
+    `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
+  );
+  ApplyModal.open(job, {
+    isLoggedIn: !!c,
+    applicationStatus: appStatusMap[String(job.id)] || null,
+    onApply: () => _doApply(job.id, job),
+    onWhatsApp: () => whatsappApply(job.phone, wa),
+  });
+}
+
 function renderOpts() {
   const candidate = Session.getCandidate();
   return {
     isLoggedIn: !!candidate,
     applicationStatusMap: appStatusMap,
-    onApplyClick: (jobId, job) => {
-      // Phase E wires the unified apply modal; for now redirect to login if logged-out,
-      // or open the detail view if logged-in so they can apply from there.
-      if (!Session.getCandidate()) {
-        sessionStorage.setItem('redirect_after_login', window.location.href);
-        window.location.href = 'login.html';
-      } else {
-        openJobDetail(job);
-      }
-    },
+    onApplyClick: (_jid, job) => _openApplyModal(job),
     onViewApplicationClick: () => { window.location.href = 'profile.html#applications'; },
   };
 }
@@ -507,7 +489,7 @@ container.addEventListener('click', e => {
   if (!card || e.target.closest('.bj-btn')) return;
   const jid = card.dataset.jid;
   const job  = allFetched.find(j => String(j.id) === jid);
-  if (job) openJobDetail(job);
+  if (job) _openApplyModal(job);
 });
 
 // ─────────────────────────────────────────
@@ -751,76 +733,26 @@ function applySheetFilters() {
 }
 
 // ─────────────────────────────────────────
-// Detail modal
+// Apply logic (called by ApplyModal's onApply callback)
 // ─────────────────────────────────────────
-function openJobDetail(job) {
-  const skills = Array.isArray(job.tags)   ? job.tags
-               : Array.isArray(job.skills) ? job.skills
-               : (job.skills || '').split(',').map(s => s.trim()).filter(Boolean);
-
-  document.getElementById('jd-title').textContent   = job.title;
-  document.getElementById('jd-company').textContent = '🏢 ' + job.company;
-  document.getElementById('jd-meta').innerHTML = [
-    `<span class="jd-meta-item">📍 ${job.location || 'India'}</span>`,
-    job.salary     ? `<span class="jd-meta-item">💰 ${job.salary}</span>`      : '',
-    job.experience ? `<span class="jd-meta-item">🎯 ${job.experience}</span>`  : '',
-    (job.job_type||job.type) ? `<span class="jd-meta-item">${job.job_type||job.type}</span>` : '',
-  ].join('');
-  document.getElementById('jd-tags').innerHTML =
-    skills.slice(0, 6).map(s => `<span class="tag">${s}</span>`).join('');
-  document.getElementById('jd-desc').textContent =
-    job.description || 'Contact employer for full job description.';
-
-  const c  = Session.getCandidate();
-  const wa = encodeURIComponent(
-    `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
-  );
-  const alreadyApplied = appStatusMap[String(job.id)];
-
-  let actHtml = '';
-  if (c) {
-    actHtml = alreadyApplied
-      ? `<button class="btn-apply applied" style="flex:1;padding:0.8rem;" disabled>✓ ${alreadyApplied}</button>`
-      : `<button class="btn-apply" style="flex:1;padding:0.8rem;" onclick="applyFromModal('${job.id}',this)">Apply Now</button>`;
-    if (job.phone) actHtml += `<button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${wa}')">WhatsApp</button>`;
-  } else {
-    actHtml = `<button class="btn-apply" style="flex:1;padding:0.8rem;"
-      onclick="sessionStorage.setItem('redirect_after_login',location.href);location.href='login.html';">
-      Sign in to apply</button>`;
-    if (job.phone) actHtml += `<button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${wa}')">WhatsApp</button>`;
-  }
-  document.getElementById('jd-actions').innerHTML = actHtml;
-
-  document.getElementById('jd-modal').classList.add('show');
-  document.body.style.overflow = 'hidden';
-
-  if (job.employer_id) sb.from('jobs').update({ views: (job.views||0)+1 }).eq('id', job.id).then(()=>{});
-}
-
-async function applyFromModal(jobId, btn) {
+async function _doApply(jobId, job) {
   const c = Session.getCandidate();
-  if (!c) { sessionStorage.setItem('redirect_after_login', location.href); location.href = 'login.html'; return; }
-  btn.textContent = 'Applying…'; btn.disabled = true;
-  const { data: ex } = await sb.from('applications').select('id').eq('candidate_id', c.id).eq('job_id', String(jobId)).maybeSingle();
-  if (ex) { btn.textContent = '✓ Applied'; btn.classList.add('applied'); showToast('Already applied.'); return; }
-  const { error } = await sb.from('applications').insert([{ candidate_id: c.id, job_id: String(jobId), status: 'Applied' }]);
-  if (!error) {
-    btn.textContent = '✓ Applied'; btn.classList.add('applied');
-    appStatusMap[String(jobId)] = 'Applied';
-    showToast('✅ Applied successfully!');
-    const job = allFetched.find(j => String(j.id) === String(jobId));
-    if (job?.email) sendEmailNotification(c, job, job.email);
-  } else {
-    btn.textContent = 'Apply Now'; btn.disabled = false; showToast('Failed. Try again.');
+  if (!c) {
+    sessionStorage.setItem('redirect_after_login', location.href);
+    location.href = 'login.html';
+    throw new Error('Not logged in');
   }
+  const { data: ex } = await sb.from('applications').select('id')
+    .eq('candidate_id', c.id).eq('job_id', String(jobId)).maybeSingle();
+  if (ex) { showToast('Already applied.'); return; }
+  const { error } = await sb.from('applications')
+    .insert([{ candidate_id: c.id, job_id: String(jobId), status: 'Applied' }]);
+  if (error) throw error;
+  appStatusMap[String(jobId)] = 'Applied';
+  showToast('Applied successfully!');
+  if (job?.email) sendEmailNotification(c, job, job.email);
+  doRender();
 }
-
-function closeModal() {
-  document.getElementById('jd-modal').classList.remove('show');
-  document.body.style.overflow = '';
-}
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ─────────────────────────────────────────
 // Start-up — runs after DOM + all scripts are parsed
