@@ -152,22 +152,22 @@ body { padding-top:114px !important; }
 .pro-tab { flex:1; padding:0.85rem; font-size:0.85rem; font-weight:600; color:#64748b; border:none; background:none; cursor:pointer; font-family:inherit; border-bottom:3px solid transparent; transition:all 0.2s; }
 .pro-tab.active { color:#2563eb; border-bottom-color:#2563eb; background:#f0f7ff; }
 
-/* ── Browse Jobs ── */
-.jobs-filter-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:1rem; }
-.jf-input { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
-.jf-select { border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.75rem; font-size:0.82rem; font-family:inherit; outline:none; background:#fff; color:#374151; cursor:pointer; }
-.jf-select:focus { border-color:#3b82f6; }
-.inline-jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.85rem; }
-.inline-jcard { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.1rem; transition:all 0.18s; }
-.inline-jcard:hover { border-color:#3b82f6; box-shadow:0 4px 16px rgba(59,130,246,0.1); transform:translateY(-1px); }
-.ij-title { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
-.ij-co { font-size:0.75rem; color:#3b82f6; font-weight:600; margin-bottom:0.45rem; }
-.ij-meta { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:0.5rem; }
-.ij-meta span { font-size:0.68rem; color:#64748b; background:#f8fafc; padding:2px 7px; border-radius:5px; }
-.ij-tags { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:0.6rem; }
-.ij-tag { font-size:0.65rem; background:#eff6ff; color:#1d4ed8; padding:2px 7px; border-radius:8px; font-weight:600; }
-.ij-foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #f1f5f9; padding-top:0.5rem; }
-.ij-sal { font-size:0.75rem; font-weight:700; color:#059669; }
+/* ── Profile Jobs Filter Bar ── */
+.pjf-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:0.5rem; align-items:flex-start; }
+.pjf-kw { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.45rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
+.pjf-kw:focus { border-color:#3b82f6; }
+.pjf-chips { display:flex; flex-wrap:wrap; gap:0.4rem; align-items:center; }
+.pjf-fdd { position:relative; }
+.pjf-chip { border:1.5px solid #e2e8f0; border-radius:20px; background:#fff; color:#374151; font-size:0.78rem; font-weight:600; padding:0.3rem 0.75rem; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all 0.15s; }
+.pjf-chip:hover { border-color:#93c5fd; background:#eff6ff; }
+.pjf-chip.pjf-chip-active { border-color:#2563eb; background:#eff6ff; color:#1d4ed8; }
+.pjf-dd-panel { display:none; position:absolute; top:calc(100% + 6px); left:0; min-width:150px; background:#fff; border:1.5px solid #e2e8f0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.1); z-index:200; padding:0.35rem; }
+.pjf-fdd.open .pjf-dd-panel { display:block; }
+.pjf-dd-opt { padding:0.4rem 0.75rem; border-radius:7px; font-size:0.82rem; cursor:pointer; color:#374151; }
+.pjf-dd-opt:hover { background:#f1f5f9; }
+.pjf-dd-opt.pjf-dd-opt-sel { background:#eff6ff; color:#1d4ed8; font-weight:600; }
+.pjf-dd-panel label { display:flex; align-items:center; gap:6px; padding:0.4rem 0.75rem; border-radius:7px; font-size:0.82rem; cursor:pointer; color:#374151; }
+.pjf-dd-panel label:hover { background:#f1f5f9; }
 
 /* ── Drawer ── */
 .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:300; opacity:0; visibility:hidden; transition:opacity 0.28s,visibility 0.28s; }
@@ -291,20 +291,79 @@ body { padding-top:114px !important; }
 
   <!-- VIEW: Browse Jobs (default #jobs) -->
   <div id="view-jobs">
-    <div class="jobs-filter-bar">
-      <input class="jf-input" type="text" id="jf-kw" placeholder="🔍  Search title, skill, company..." oninput="filterInlineJobs()">
-      <select class="jf-select" id="jf-loc" onchange="filterInlineJobs()">
-        <option value="">📍 All Locations</option>
-        <option>Bengaluru</option><option>Mumbai</option><option>Delhi</option>
-        <option>Hyderabad</option><option>Mysuru</option><option>Remote</option>
-      </select>
-      <select class="jf-select" id="jf-type" onchange="filterInlineJobs()">
-        <option value="">💼 All Types</option>
-        <option>Full Time</option><option>Contract</option><option>Remote</option><option>Part Time</option>
-      </select>
+    <div class="pjf-bar">
+      <input type="text" id="pjf-kw" class="pjf-kw" placeholder="Search title, skill, company...">
+      <div class="pjf-chips">
+        <div class="pjf-fdd" id="pfdd-loc">
+          <button class="pjf-chip" id="pfchip-loc">📍 Location</button>
+          <div class="pjf-dd-panel" id="pfddp-loc">
+            <label><input type="checkbox" value="Bengaluru"> Bengaluru</label>
+            <label><input type="checkbox" value="Mumbai"> Mumbai</label>
+            <label><input type="checkbox" value="Delhi"> Delhi</label>
+            <label><input type="checkbox" value="Hyderabad"> Hyderabad</label>
+            <label><input type="checkbox" value="Mysuru"> Mysuru</label>
+            <label><input type="checkbox" value="Remote"> Remote</label>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-type">
+          <button class="pjf-chip" id="pfchip-type">Job Type</button>
+          <div class="pjf-dd-panel" id="pfddp-type">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="">Any</div>
+            <div class="pjf-dd-opt" data-val="Full Time">Full Time</div>
+            <div class="pjf-dd-opt" data-val="Contract">Contract</div>
+            <div class="pjf-dd-opt" data-val="Remote">Remote</div>
+            <div class="pjf-dd-opt" data-val="Part Time">Part Time</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-exp">
+          <button class="pjf-chip" id="pfchip-exp">Experience</button>
+          <div class="pjf-dd-panel" id="pfddp-exp">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="">Any</div>
+            <div class="pjf-dd-opt" data-val="fresher">Fresher</div>
+            <div class="pjf-dd-opt" data-val="1-3">1–3 yrs</div>
+            <div class="pjf-dd-opt" data-val="3-5">3–5 yrs</div>
+            <div class="pjf-dd-opt" data-val="5+">5+ yrs</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-sal">
+          <button class="pjf-chip" id="pfchip-sal">Salary</button>
+          <div class="pjf-dd-panel" id="pfddp-sal">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="">Any</div>
+            <div class="pjf-dd-opt" data-val="0-3">0–3 LPA</div>
+            <div class="pjf-dd-opt" data-val="3-6">3–6 LPA</div>
+            <div class="pjf-dd-opt" data-val="6-10">6–10 LPA</div>
+            <div class="pjf-dd-opt" data-val="10+">10+ LPA</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-rec">
+          <button class="pjf-chip" id="pfchip-rec">Any time</button>
+          <div class="pjf-dd-panel" id="pfddp-rec">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="any">Any time</div>
+            <div class="pjf-dd-opt" data-val="24h">Last 24 hrs</div>
+            <div class="pjf-dd-opt" data-val="7d">Last 7 days</div>
+            <div class="pjf-dd-opt" data-val="30d">Last 30 days</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-match">
+          <button class="pjf-chip" id="pfchip-match">Match %</button>
+          <div class="pjf-dd-panel" id="pfddp-match">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="0">Any</div>
+            <div class="pjf-dd-opt" data-val="50">50%+</div>
+            <div class="pjf-dd-opt" data-val="70">70%+</div>
+            <div class="pjf-dd-opt" data-val="90">90%+</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-sort">
+          <button class="pjf-chip" id="pfchip-sort">Best Match</button>
+          <div class="pjf-dd-panel" id="pfddp-sort">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="match">Best Match</div>
+            <div class="pjf-dd-opt" data-val="recent">Most Recent</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="inline-jobs-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;"></div>
-    <div class="inline-jobs-grid" id="inline-jobs-grid"></div>
+    <div id="pjf-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;min-height:1.2em;"></div>
+    <div id="bj-container-profile"></div>
   </div>
 
   <!-- VIEW: My Profile (#profile) -->
@@ -417,6 +476,7 @@ body { padding-top:114px !important; }
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
+<script src="js/browse-jobs.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
   const candidate = Session.getCandidate();
@@ -444,7 +504,7 @@ body { padding-top:114px !important; }
     });
 
     if (target === 'pro') switchProTab(sub || 'prep', null);
-    if (target === 'jobs') loadInlineJobs();
+    if (target === 'jobs') loadJobsView();
     if (target === 'applications') renderApps(myApps);
 
     closeDrawer();
@@ -506,7 +566,7 @@ body { padding-top:114px !important; }
     // Re-render current view if data-dependent
     const currentView = (location.hash || '#jobs').replace(/^#/,'').split('/')[0];
     if (currentView === 'applications') renderApps(myApps);
-    if (currentView === 'jobs') loadInlineJobs();
+    if (currentView === 'jobs') loadJobsView();
   }
 
   // ── Pro Plan sub-tabs ──
@@ -1027,71 +1087,183 @@ body { padding-top:114px !important; }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
 
-  // ── Inline Jobs ──
-  let allInlineJobs = [], inlineJobsLoaded = false;
+  // ── Phase D: Browse Jobs view ──
+  const _pjf = { keyword:'', locations:[], jobTypes:[], expBand:'', salBand:'', recency:'any', minMatch:0, sort:'match' };
+  let _pjfJobs = [], _pjfAppMap = {}, _pjfLoaded = false, _pjfTeardown = null, _pjfVisible = 20;
+  const PJF_PAGE = 20;
+  let _pjfApplying = false;
 
-  async function loadInlineJobs() {
-    if (inlineJobsLoaded) { filterInlineJobs(); return; }
-    const grid = document.getElementById('inline-jobs-grid');
-    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#94a3b8;">Loading jobs...</div>';
-    try {
-      const { data } = await sb.from('jobs').select('*').eq('status','active').order('posted_at',{ascending:false}).limit(60);
-      allInlineJobs = [...(JOBS||[]), ...(data||[]).map(j=>({...j,type:j.job_type}))];
-      inlineJobsLoaded = true;
-    } catch(e) {
-      allInlineJobs = JOBS||[];
-      inlineJobsLoaded = true;
-    }
-    filterInlineJobs();
+  function _pjfDeriveFiltered() {
+    return window.BrowseJobs.applyClientFilters(_pjfJobs, {
+      keyword: _pjf.keyword,
+      locations: _pjf.locations,
+      jobTypes: _pjf.jobTypes,
+      experienceBands: _pjf.expBand ? [_pjf.expBand] : [],
+      salaryBands: _pjf.salBand ? [_pjf.salBand] : [],
+      recency: _pjf.recency,
+      minMatchScore: _pjf.minMatch,
+    });
   }
 
-  function filterInlineJobs() {
-    const kw   = (document.getElementById('jf-kw')?.value||'').toLowerCase();
-    const loc  = (document.getElementById('jf-loc')?.value||'').toLowerCase();
-    const type = (document.getElementById('jf-type')?.value||'').toLowerCase();
-    const filtered = allInlineJobs.filter(j => {
-      const tags = Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim());
-      const hay = (j.title+' '+j.company+' '+tags.join(' ')).toLowerCase();
-      const jloc = (j.location||'').toLowerCase();
-      const jtype= (j.type||j.job_type||'').toLowerCase();
-      if (kw   && !hay.includes(kw))   return false;
-      if (loc  && !jloc.includes(loc)) return false;
-      if (type && !jtype.includes(type)) return false;
-      return true;
+  function _pjfSort(arr) {
+    if (_pjf.sort === 'recent')
+      return arr.slice().sort((a,b) => new Date(b.posted_at||0) - new Date(a.posted_at||0));
+    return arr.slice().sort((a,b) =>
+      (b.match_score||0) - (a.match_score||0) || new Date(b.posted_at||0) - new Date(a.posted_at||0));
+  }
+
+  function _renderPjf() {
+    if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
+    const container = document.getElementById('bj-container-profile');
+    if (!container) return;
+    const sorted  = _pjfSort(_pjfDeriveFiltered());
+    const countEl = document.getElementById('pjf-count');
+    if (countEl) countEl.textContent = sorted.length + ' job' + (sorted.length !== 1 ? 's' : '') + ' found';
+    const page    = sorted.slice(0, _pjfVisible);
+    const hasMore = _pjfVisible < sorted.length;
+    window.BrowseJobs.render(container, page, {
+      applicationStatusMap: _pjfAppMap,
+      isLoggedIn: true,
+      onApplyClick: profileApplyJob,
+      onViewApplicationClick: () => { location.hash = '#applications'; },
     });
-    const count = document.getElementById('inline-jobs-count');
-    if (count) count.textContent = filtered.length + ' job' + (filtered.length!==1?'s':'') + ' found';
-    const grid = document.getElementById('inline-jobs-grid');
-    if (!grid) return;
-    if (!filtered.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#94a3b8;">No jobs found. Try different filters.</div>';
-      return;
+    if (hasMore) {
+      _pjfTeardown = window.BrowseJobs.setupInfiniteScroll(container, async () => {
+        _pjfVisible += PJF_PAGE;
+        _renderPjf();
+        return { hasMore: false };
+      });
     }
-    grid.innerHTML = filtered.map(j => {
-      const tags = (Array.isArray(j.tags)?j.tags:(j.skills||'').split(',').map(s=>s.trim())).filter(Boolean).slice(0,3);
-      const applied = myApps.find(a=>String(a.job_id)===String(j.id));
-      const wa = encodeURIComponent(`Hi, I found your job posting for *${j.title}* at *${j.company}* on HireTrack. I would like to apply.`);
-      const tagsHtml = tags.length ? `<div class="ij-tags">${tags.map(t=>`<span class="ij-tag">${t}</span>`).join('')}</div>` : '';
-      const applyBtn = applied
-        ? `<span style="font-size:0.7rem;color:#22c55e;font-weight:700;">✓ Applied</span>`
-        : `<button data-phone="${j.phone}" data-wa="${wa}" onclick="whatsappApply(this.dataset.phone,this.dataset.wa)" style="background:#25d366;color:#fff;border:none;padding:4px 10px;border-radius:7px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">WhatsApp</button>`;
-      return `<div class="inline-jcard">
-        <div class="ij-title">${j.title}</div>
-        <div class="ij-co">🏢 ${j.company}</div>
-        <div class="ij-meta"><span>📍 ${j.location||'India'}</span>${j.experience?`<span>🎯 ${j.experience}</span>`:''}</div>
-        ${tagsHtml}
-        <div class="ij-foot">
-          <span class="ij-sal">${j.salary||'Negotiable'}</span>
-          ${applyBtn}
-        </div>
-      </div>`;
-    }).join('');
+  }
+
+  async function loadJobsView() {
+    const container = document.getElementById('bj-container-profile');
+    if (!container) return;
+    _pjfVisible = PJF_PAGE;
+    if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
+    if (!_pjfLoaded) {
+      container.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading jobs…</div>';
+      try {
+        [_pjfJobs, _pjfAppMap] = await Promise.all([
+          window.BrowseJobs.fetchForCandidate(candidate.id),
+          window.BrowseJobs.fetchApplicationStatuses(candidate.id),
+        ]);
+      } catch(e) {
+        _pjfJobs = [];
+        _pjfAppMap = {};
+      }
+      _pjfLoaded = true;
+    }
+    _renderPjf();
+  }
+
+  async function profileApplyJob(jid, job) {
+    if (_pjfApplying) return;
+    _pjfApplying = true;
+    try {
+      const { error } = await ApplicationsDB.apply(candidate.id, jid);
+      if (error) { showToast('Could not apply: ' + error.message); return; }
+      _pjfAppMap[String(jid)] = 'Applied';
+      const newApp = { job_id: jid, status: 'Applied', applied_at: new Date().toISOString() };
+      if (job) newApp.jobs = { title: job.title, company: job.company, location: job.location, salary: job.salary };
+      myApps.unshift(newApp);
+      const sumEl = document.getElementById('sum-total');
+      if (sumEl) sumEl.textContent = myApps.length;
+      _renderPjf();
+      showToast('Applied successfully!');
+    } finally {
+      _pjfApplying = false;
+    }
+  }
+
+  function _closePjfDDs(exceptId) {
+    document.querySelectorAll('.pjf-fdd.open').forEach(el => {
+      if (el.id !== exceptId) el.classList.remove('open');
+    });
+  }
+
+  function _initPjfFilters() {
+    // Keyword
+    const kw = document.getElementById('pjf-kw');
+    if (kw) kw.addEventListener('input', () => {
+      _pjf.keyword = kw.value.trim();
+      _pjfVisible = PJF_PAGE;
+      _renderPjf();
+    });
+
+    // Single-select dropdowns
+    const SINGLE_DDS = [
+      { id:'pfdd-type',  chipId:'pfchip-type',  fKey:'jobTypes',  defaultLabel:'Job Type',    toVal: v => v ? [v] : [] },
+      { id:'pfdd-exp',   chipId:'pfchip-exp',   fKey:'expBand',   defaultLabel:'Experience',  toVal: v => v },
+      { id:'pfdd-sal',   chipId:'pfchip-sal',   fKey:'salBand',   defaultLabel:'Salary',      toVal: v => v },
+      { id:'pfdd-rec',   chipId:'pfchip-rec',   fKey:'recency',   defaultLabel:'Any time',    toVal: v => v || 'any' },
+      { id:'pfdd-match', chipId:'pfchip-match', fKey:'minMatch',  defaultLabel:'Match %',     toVal: v => Number(v) },
+      { id:'pfdd-sort',  chipId:'pfchip-sort',  fKey:'sort',      defaultLabel:'Best Match',  toVal: v => v || 'match' },
+    ];
+
+    for (const { id, chipId, fKey, defaultLabel, toVal } of SINGLE_DDS) {
+      const fdd   = document.getElementById(id);
+      const chip  = document.getElementById(chipId);
+      const panel = fdd && fdd.querySelector('.pjf-dd-panel');
+      if (!fdd || !chip || !panel) continue;
+
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        _closePjfDDs(id);
+        fdd.classList.toggle('open');
+      });
+
+      panel.addEventListener('click', e => {
+        const opt = e.target.closest('.pjf-dd-opt');
+        if (!opt) return;
+        panel.querySelectorAll('.pjf-dd-opt').forEach(o => o.classList.remove('pjf-dd-opt-sel'));
+        opt.classList.add('pjf-dd-opt-sel');
+        const raw = opt.dataset.val;
+        _pjf[fKey] = toVal(raw);
+        chip.textContent = raw ? opt.textContent.trim() : defaultLabel;
+        const isActive = fKey === 'sort'     ? raw !== 'match'
+                       : fKey === 'recency'  ? raw !== 'any' && raw !== ''
+                       : fKey === 'minMatch' ? Number(raw) > 0
+                       : Array.isArray(_pjf[fKey]) ? _pjf[fKey].length > 0
+                       : !!raw;
+        chip.classList.toggle('pjf-chip-active', isActive);
+        fdd.classList.remove('open');
+        _pjfVisible = PJF_PAGE;
+        _renderPjf();
+      });
+    }
+
+    // Location multi-select
+    const locFdd   = document.getElementById('pfdd-loc');
+    const locChip  = document.getElementById('pfchip-loc');
+    const locPanel = locFdd && locFdd.querySelector('.pjf-dd-panel');
+    if (locFdd && locChip && locPanel) {
+      locChip.addEventListener('click', e => {
+        e.stopPropagation();
+        _closePjfDDs('pfdd-loc');
+        locFdd.classList.toggle('open');
+      });
+      locPanel.addEventListener('change', () => {
+        _pjf.locations = Array.from(locPanel.querySelectorAll('input[type=checkbox]:checked')).map(el => el.value);
+        const n = _pjf.locations.length;
+        locChip.textContent = n ? '📍 ' + n + ' location' + (n > 1 ? 's' : '') : '📍 Location';
+        locChip.classList.toggle('pjf-chip-active', n > 0);
+        _pjfVisible = PJF_PAGE;
+        _renderPjf();
+      });
+    }
+
+    // Close all dropdowns on outside click
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.pjf-fdd.open').forEach(el => el.classList.remove('open'));
+    });
   }
 
   // ── Startup ──
   if (candidate) {
     syncDrawer(candidate);
     renderSkillCategories();
+    _initPjfFilters();
     freshSync().then(() => init());
   }
 
