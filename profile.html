@@ -1643,22 +1643,32 @@ body { padding-top:114px !important; }
     return !!(candidate.pro_expires_at && new Date() < new Date(candidate.pro_expires_at));
   }
 
+  function _getPrepUsage() {
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const stored = JSON.parse(localStorage.getItem('ht_prep_' + candidate.id) || '{}');
+      return stored.date === today ? (stored.count || 0) : 0;
+    } catch { return 0; }
+  }
+
+  function _incPrepUsage() {
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const stored = JSON.parse(localStorage.getItem('ht_prep_' + candidate.id) || '{}');
+      const count = stored.date === today ? (stored.count || 0) + 1 : 1;
+      localStorage.setItem('ht_prep_' + candidate.id, JSON.stringify({ date: today, count }));
+    } catch { /* ignore storage errors */ }
+  }
+
   async function checkPrepAccess() {
     if (isProCandidate()) return true;
-    const today = new Date().toISOString().slice(0, 10);
-    const usedToday = candidate.prep_usage_date === today ? (candidate.prep_usage_count || 0) : 0;
-    if (usedToday >= 3) { showPrepLimitWall(); return false; }
+    if (_getPrepUsage() >= 3) { showPrepLimitWall(); return false; }
     return true;
   }
 
   async function recordPrepUsage() {
     if (isProCandidate()) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const count = candidate.prep_usage_date === today ? (candidate.prep_usage_count || 0) + 1 : 1;
-    candidate.prep_usage_date = today;
-    candidate.prep_usage_count = count;
-    Session.setCandidate(candidate);
-    await sb.from('candidates').update({ prep_usage_date: today, prep_usage_count: count }).eq('id', candidate.id);
+    _incPrepUsage();
   }
 
   function showPrepLimitWall() {
