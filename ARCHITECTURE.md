@@ -288,11 +288,13 @@ Skill match RPC `match_jobs_for_candidate(p_candidate_id UUID)` deployed and ver
 
 **C. BrowseJobs in jobs.html** (DONE) — public browse page uses the shared module, new filter bar, infinite scroll, "Sign in to apply" CTA for logged-out users.
 
-**D. BrowseJobs in profile.html `#jobs` route** (TODO) — Wire `BrowseJobs.fetchForCandidate(candidate.id)` + `BrowseJobs.fetchApplicationStatuses(candidate.id)` in parallel. Same filter bar as jobs.html plus a skill-match dropdown ("Any", "50%+", "70%+", "90%+"). Default sort: "Best match". Pass `applicationStatusMap` to `render()`. `onApplyClick` wires to existing apply logic. `onViewApplicationClick` navigates to `#applications`. Delete `loadInlineJobs()` and `inlineJobsLoaded` flag.
+**D. BrowseJobs in profile.html `#jobs` route** (DONE — commit 560c459) — `BrowseJobs.fetchForCandidate` + `fetchApplicationStatuses` run in parallel. Filter bar with keyword, location chips, job type, experience, salary, recency, match-score dropdown ("Any", "50%+", "70%+", "90%+"), and sort (Best Match / Most Recent). `loadInlineJobs`/`inlineJobsLoaded` deleted.
 
-**E. Unified apply modal** (TODO) — `js/apply-modal.js` shared between jobs.html and profile.html. Single modal showing job description, required skills, salary, experience, location, job_type. Two CTAs: "Apply" (records via existing applications logic) and "Message on WhatsApp" (opens employer WhatsApp link with prefilled template). For logged-out users on jobs.html: CTAs replaced with "Sign in to apply" → login redirect. Delete existing per-page modal code.
+**E. Unified apply modal** (DONE — commit ed4365f) — `js/apply-modal.js` shared between jobs.html and profile.html. Shows job description, skills, salary, experience, location, job_type. "Apply Now" + "WhatsApp" CTAs; logged-out users see "Sign in to apply" redirect. Per-page modal code deleted.
 
-**F. Mobile pass + polish** (TODO) — Verify filter bar collapses to bottom sheet on mobile. Verify drawer is full-width on phones. Verify bell popover becomes a top sheet on mobile. Run §5 quality bar checklist across all candidate-facing pages.
+**F. Mobile pass + polish** (DONE — commit 3c35519) — Filter bar collapses to bottom sheet (`pjf-sh-bd`) at ≤768px. Drawer full-width at ≤400px. Bell popover polished.
+
+### Phase 3 complete. Next: Phase 4.
 
 ### Phase 4 — Feed (NOT STARTED)
 
