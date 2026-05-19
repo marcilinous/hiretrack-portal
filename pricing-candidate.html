@@ -153,9 +153,22 @@ async function upgradePro() {
   const okEl = document.getElementById('upgrade-ok');
   errEl.style.display = 'none'; okEl.style.display = 'none';
 
+  // Fetch payment config from server — key is never in client code
+  let rzpKey;
+  try {
+    const r = await fetch('/api/razorpay-init', { method: 'POST' });
+    const cfg = await r.json();
+    if (!cfg.ok || !cfg.key) throw new Error('no key');
+    rzpKey = cfg.key;
+  } catch {
+    errEl.textContent = 'Payment service unavailable. Please try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
   const options = {
-    key: 'rzp_test_ShI2u0ijEmSUD1', // Replace with live key when ready
-    amount: 4900, // ₹49 in paise
+    key: rzpKey,
+    amount: 4900,
     currency: 'INR',
     name: 'HireTrack',
     description: 'Candidate Pro — 30 days',
@@ -167,7 +180,6 @@ async function upgradePro() {
     },
     theme: { color: '#3b82f6' },
     handler: async function(response) {
-      // Payment successful — activate Pro
       const proExpiry = new Date();
       proExpiry.setDate(proExpiry.getDate() + 30);
       const { error } = await sb.from('candidates')
