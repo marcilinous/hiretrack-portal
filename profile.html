@@ -307,6 +307,7 @@ body { padding-top:114px !important; }
     <a class="dr-nav-item" href="#applications">📋 My Applications</a>
     <a class="dr-nav-item" href="#pro">⭐ Pro Plan</a>
     <a class="dr-nav-item" href="#feed">📢 Community Feed</a>
+    <a class="dr-nav-item" href="#chat">💬 Messages</a>
   </nav>
   <div class="dr-foot">
     <button class="dr-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
@@ -512,6 +513,15 @@ body { padding-top:114px !important; }
     <div id="feed-root"></div>
   </div>
 
+  <!-- VIEW: Chat (#chat) -->
+  <div id="view-chat" style="display:none;">
+    <div style="margin-bottom:1.5rem;">
+      <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;">Messages</h2>
+      <p style="font-size:0.85rem;color:#64748b;margin-top:0.25rem;">Chat directly with employers 💬</p>
+    </div>
+    <div id="chat-root"></div>
+  </div>
+
 </div><!-- .content -->
 
 <!-- Mobile jobs filter sheet -->
@@ -604,6 +614,7 @@ body { padding-top:114px !important; }
 <script src="js/browse-jobs.js"></script>
 <script src="js/apply-modal.js"></script>
 <script src="js/feed.js"></script>
+<script src="js/chat.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
   const candidate = Session.getCandidate();
@@ -613,7 +624,7 @@ body { padding-top:114px !important; }
   let quizData = [], quizIdx = 0;
 
   // ── Router ──
-  const VIEWS = ['jobs','profile','applications','pro','feed'];
+  const VIEWS = ['jobs','profile','applications','pro','feed','chat'];
 
   function route(raw) {
     const hash = (raw || '#jobs').replace(/^#/, '');
@@ -633,6 +644,7 @@ body { padding-top:114px !important; }
     if (target === 'pro') switchProTab(sub || 'prep', null);
     if (target === 'jobs') loadJobsView();
     if (target === 'feed') Feed.init('feed-root', candidate);
+    if (target === 'chat') Chat.init('chat-root', candidate);
     if (target === 'applications') renderApps(myApps);
 
     closeDrawer();
@@ -695,6 +707,8 @@ body { padding-top:114px !important; }
     const currentView = (location.hash || '#jobs').replace(/^#/,'').split('/')[0];
     if (currentView === 'applications') renderApps(myApps);
     if (currentView === 'jobs') loadJobsView();
+
+    await Chat.initBubble(candidate).catch(() => {});
   }
 
   // ── Pro Plan sub-tabs ──
