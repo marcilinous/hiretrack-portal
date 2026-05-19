@@ -306,6 +306,7 @@ body { padding-top:114px !important; }
     <a class="dr-nav-item" href="#profile">👤 My Profile</a>
     <a class="dr-nav-item" href="#applications">📋 My Applications</a>
     <a class="dr-nav-item" href="#pro">⭐ Pro Plan</a>
+    <a class="dr-nav-item" href="#feed">📢 Community Feed</a>
   </nav>
   <div class="dr-foot">
     <button class="dr-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
@@ -502,6 +503,15 @@ body { padding-top:114px !important; }
     </div>
   </div>
 
+  <!-- VIEW: Community Feed (#feed) -->
+  <div id="view-feed" style="display:none;">
+    <div style="margin-bottom:1.5rem;">
+      <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;">Community Feed</h2>
+      <p style="font-size:0.85rem;color:#64748b;margin-top:0.25rem;">Share career updates, tips, and wins with the HireTrack community 🇮🇳</p>
+    </div>
+    <div id="feed-root"></div>
+  </div>
+
 </div><!-- .content -->
 
 <!-- Mobile jobs filter sheet -->
@@ -593,6 +603,7 @@ body { padding-top:114px !important; }
 <script src="app.js"></script>
 <script src="js/browse-jobs.js"></script>
 <script src="js/apply-modal.js"></script>
+<script src="js/feed.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('profile');
   const candidate = Session.getCandidate();
@@ -602,7 +613,7 @@ body { padding-top:114px !important; }
   let quizData = [], quizIdx = 0;
 
   // ── Router ──
-  const VIEWS = ['jobs','profile','applications','pro'];
+  const VIEWS = ['jobs','profile','applications','pro','feed'];
 
   function route(raw) {
     const hash = (raw || '#jobs').replace(/^#/, '');
@@ -621,6 +632,7 @@ body { padding-top:114px !important; }
 
     if (target === 'pro') switchProTab(sub || 'prep', null);
     if (target === 'jobs') loadJobsView();
+    if (target === 'feed') Feed.init('feed-root', candidate);
     if (target === 'applications') renderApps(myApps);
 
     closeDrawer();

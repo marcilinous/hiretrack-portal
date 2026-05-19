@@ -101,6 +101,7 @@
     <a onclick="showSection('applications')"><span class="icon">📋</span> Applications</a>
     <a href="/admin/callbacks.html"><span class="icon">📞</span> Callbacks</a>
     <a onclick="showSection('executives')"><span class="icon">🎯</span> Executives</a>
+    <a onclick="showSection('feed')"><span class="icon">📢</span> Feed Posts</a>
   </nav>
   <hr class="s-divider">
   <button class="btn-logout" onclick="doLogout()">🚪 Logout</button>
@@ -182,6 +183,24 @@
     </div>
   </div>
 
+  <!-- FEED POSTS -->
+  <div class="section" id="sec-feed">
+    <div class="main-hd"><h1>Community Feed</h1></div>
+    <div class="tabs">
+      <button class="tab active" id="feed-tab-flagged" onclick="switchFeedTab('flagged')">🚩 Flagged</button>
+      <button class="tab" id="feed-tab-all" onclick="switchFeedTab('all')">All Posts</button>
+    </div>
+    <div class="table-card">
+      <div class="table-search">
+        <input type="text" id="feed-search" placeholder="Search posts…" oninput="renderFeedTable()" />
+      </div>
+      <table>
+        <thead><tr><th>Author</th><th>Type</th><th>Content</th><th>Likes</th><th>Flags</th><th>Posted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="feed-table"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- EXECUTIVES -->
   <div class="section" id="sec-executives">
     <div class="main-hd"><h1>Executives</h1></div>
@@ -255,6 +274,7 @@
     if (name === 'applications') renderAppsTable();
     if (name === 'callbacks') renderCallbacksTable();
     if (name === 'executives') renderExecutivesTable();
+    if (name === 'feed') renderFeedTable();
   }
 
   // ── SUPABASE CALLBACKS & EXECUTIVES ──
@@ -516,6 +536,80 @@
     const apps = getApplications();
     const app = apps.find(a => a.candidateId === candidateId && a.jobId === jobId);
     if (app) { app.status = status; saveApplications(apps); toast(`Status updated to ${status}`); }
+  }
+
+  // ── FEED POSTS ──
+  let _feedTab = 'flagged';
+
+  function switchFeedTab(tab) {
+    _feedTab = tab;
+    document.querySelectorAll('#sec-feed .tab').forEach(t => t.classList.remove('active'));
+    const el = document.getElementById('feed-tab-' + tab);
+    if (el) el.classList.add('active');
+    renderFeedTable();
+  }
+
+  const FEED_TYPE_LABELS = {
+    general: '💬 Post', job: '💼 Job Share', hiring: '🏢 Hiring',
+    open_to_work: '🟢 Open to Work', hired: '🎉 Got Hired', tip: '💡 Tip',
+  };
+
+  async function renderFeedTable() {
+    const q     = (document.getElementById('feed-search')?.value || '').toLowerCase();
+    const tbody = document.getElementById('feed-table');
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+
+    let query = sb.from('feed_posts')
+      .select('id,author_name,author_type,post_type,content,like_count,flag_count,is_flagged,is_hidden,created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (_feedTab === 'flagged') query = query.eq('is_flagged', true);
+
+    const { data: posts, error } = await query;
+    if (error) { tbody.innerHTML = `<tr><td colspan="8" class="empty">Error: ${error.message}</td></tr>`; return; }
+
+    const filtered = (posts || []).filter(p =>
+      !q || (p.author_name + ' ' + p.content).toLowerCase().includes(q)
+    );
+
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="8" class="empty">No ${_feedTab === 'flagged' ? 'flagged ' : ''}posts found</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(p => {
+      const snippet = p.content.length > 90 ? p.content.slice(0, 90) + '…' : p.content;
+      return `<tr>
+        <td><strong>${p.author_name}</strong><br><span style="color:#94a3b8;font-size:0.75rem;">${p.author_type}</span></td>
+        <td>${FEED_TYPE_LABELS[p.post_type] || p.post_type}</td>
+        <td style="max-width:200px;font-size:0.82rem;color:#334155;">${snippet}</td>
+        <td>❤️ ${p.like_count || 0}</td>
+        <td><span class="badge ${(p.flag_count || 0) >= 3 ? 'badge-red' : 'badge-orange'}">⚑ ${p.flag_count || 0}</span></td>
+        <td>${new Date(p.created_at).toLocaleDateString('en-IN')}</td>
+        <td><span class="badge ${p.is_hidden ? 'badge-gray' : 'badge-green'}">${p.is_hidden ? 'Hidden' : 'Visible'}</span></td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn-sm ${p.is_hidden ? 'btn-approve' : 'btn-reject'}" onclick="toggleFeedHide('${p.id}',${!!p.is_hidden})">${p.is_hidden ? 'Unhide' : 'Hide'}</button>
+          <button class="btn-sm btn-delete" onclick="deleteFeedPost('${p.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function toggleFeedHide(id, isHidden) {
+    await sb.from('feed_posts').update({
+      is_hidden: !isHidden,
+      is_flagged: false,
+      flag_count: 0,
+    }).eq('id', id);
+    toast(isHidden ? 'Post is now visible.' : 'Post hidden from feed.');
+    renderFeedTable();
+  }
+
+  async function deleteFeedPost(id) {
+    if (!confirm('Permanently delete this post? This cannot be undone.')) return;
+    await sb.from('feed_posts').delete().eq('id', id);
+    toast('Post deleted.');
+    renderFeedTable();
   }
 
   // ── UTILS ──

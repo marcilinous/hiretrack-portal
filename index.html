@@ -224,6 +224,15 @@
 </div>
 
 
+<!-- ── Community Feed Preview ── -->
+<div class="section">
+  <div class="section-hd">
+    <h2>Community Feed 🇮🇳</h2>
+    <a id="feed-cta-link" href="login.html">Join the conversation →</a>
+  </div>
+  <div id="feed-preview-root"></div>
+</div>
+
 <!-- ── Resume Builder & Pro Plan Section ── -->
 <div class="section" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);margin:0;padding:3rem 1rem;width:100%;box-sizing:border-box;">
   <div style="max-width:1000px;margin:0 auto;">
@@ -281,6 +290,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
+<script src="js/feed.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('home');
 
@@ -298,6 +308,10 @@
     // Setup job modal
     window._allJobs = allJobs;
     window._apps = apps;
+    // Update feed CTA link for logged-in candidates
+    const feedLink = document.getElementById('feed-cta-link');
+    if (feedLink && candidate) feedLink.href = 'profile.html#feed';
+    Feed.initPreview('feed-preview-root');
   }
 
   function openJobModal(jobId) {
