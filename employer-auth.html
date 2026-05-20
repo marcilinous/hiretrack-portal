@@ -72,11 +72,11 @@
       <div class="fg-form">
         <label>Email Address *</label>
         <input type="email" id="s1-email" placeholder="hr@company.com" />
-        <small style="color:var(--gray5);font-size:0.78rem;margin-top:4px;display:block;">OTP will be sent to this email</small>
+        <small style="color:var(--gray5);font-size:0.78rem;margin-top:4px;display:block;">Used for login and OTP verification</small>
       </div>
 
       <div class="alert alert-error" id="err1"></div>
-      <button class="btn-primary" onclick="sendEmailOTP()">Send OTP to Email →</button>
+      <button class="btn-primary" onclick="sendEmailOTP()">Continue →</button>
       <p class="form-switch">Looking for a job? <a href="login.html">Candidate login</a></p>
     </div>
 
@@ -234,7 +234,7 @@
     const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
     existingEmployer = byEmail || byMobile;
 
-    btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
+    btn.textContent = 'Continue →'; btn.disabled = false;
 
     if (existingEmployer) {
       // Show sign-in method picker before sending any OTP
