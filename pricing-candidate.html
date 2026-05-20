@@ -153,21 +153,22 @@ async function upgradePro() {
   const okEl = document.getElementById('upgrade-ok');
   errEl.style.display = 'none'; okEl.style.display = 'none';
 
-  // Fetch payment config from server — key is never in client code
-  let rzpKey;
+  // Create Razorpay order server-side (returns key + order_id for signature verification)
+  let rzpKey, orderId;
   try {
-    const r = await fetch('/api/razorpay-init', { method: 'POST' });
+    const r = await fetch('/api/razorpay-order', { method: 'POST' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const cfg = await r.json();
-    if (!cfg.ok || !cfg.key) throw new Error(cfg.error || 'no key');
+    if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order creation failed');
     rzpKey = cfg.key;
+    orderId = cfg.orderId;
   } catch (e) {
     const is401 = e.message.includes('401');
     errEl.textContent = is401
       ? 'Payment service unavailable (auth error). Please contact support@hiretrack.co.in'
       : 'Payment service unavailable. Please try again.';
     errEl.style.display = 'block';
-    console.error('razorpay-init failed:', e.message);
+    console.error('razorpay-order failed:', e.message);
     return;
   }
 
@@ -175,6 +176,7 @@ async function upgradePro() {
     key: rzpKey,
     amount: 4900,
     currency: 'INR',
+    order_id: orderId,
     name: 'HireTrack',
     description: 'Candidate Pro — 30 days',
     image: 'https://www.hiretrack.co.in/og-image.png',
@@ -185,20 +187,29 @@ async function upgradePro() {
     },
     theme: { color: '#3b82f6' },
     handler: async function(response) {
-      const proExpiry = new Date();
-      proExpiry.setDate(proExpiry.getDate() + 30);
-      const { error } = await sb.from('candidates')
-        .update({ pro_expires_at: proExpiry.toISOString() })
-        .eq('id', candidate.id);
-      if (error) {
+      // Verify signature server-side before activating Pro
+      try {
+        const vr = await fetch('/api/razorpay-verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            candidateId: candidate.id
+          })
+        });
+        const result = await vr.json();
+        if (!result.ok) throw new Error(result.error || 'Verification failed');
+        Session.setCandidate({ ...candidate, pro_expires_at: result.pro_expires_at });
+        okEl.textContent = '🎉 Pro activated! Redirecting to Resume Builder...';
+        okEl.style.display = 'block';
+        setTimeout(() => window.location.href = 'resume-builder.html', 2000);
+      } catch(e) {
         errEl.textContent = 'Payment received but activation failed. Contact support@hiretrack.co.in';
         errEl.style.display = 'block';
-        return;
+        console.error('Verify error:', e.message);
       }
-      Session.setCandidate({ ...candidate, pro_expires_at: proExpiry.toISOString() });
-      okEl.textContent = '🎉 Pro activated! Redirecting to Resume Builder...';
-      okEl.style.display = 'block';
-      setTimeout(() => window.location.href = 'resume-builder.html', 2000);
     },
     modal: {
       ondismiss: function() {
