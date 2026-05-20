@@ -480,6 +480,7 @@ body { padding-top:114px !important; }
           <button onclick="generateAIQuestions()">Generate Questions</button>
         </div>
       </div>
+      <div id="prep-usage-bar" style="background:#fff;border-radius:10px;border:1.5px solid #e2e8f0;padding:0.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;"></div>
       <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
       <div class="prep-categories" id="skill-categories">
         <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
@@ -720,6 +721,7 @@ body { padding-top:114px !important; }
     document.querySelectorAll('.pro-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.sub === sub);
     });
+    if (sub === 'prep') renderPrepUsageBar();
   }
 
   // ── Applications ──
@@ -1669,6 +1671,31 @@ body { padding-top:114px !important; }
   async function recordPrepUsage() {
     if (isProCandidate()) return;
     _incPrepUsage();
+    renderPrepUsageBar();
+  }
+
+  function renderPrepUsageBar() {
+    const bar = document.getElementById('prep-usage-bar');
+    if (!bar) return;
+    if (isProCandidate()) {
+      bar.innerHTML = `<span style="font-size:0.8rem;color:#15803d;font-weight:600;">⭐ Pro — Unlimited interview prep</span>`;
+      return;
+    }
+    const used = _getPrepUsage();
+    const remaining = Math.max(0, 3 - used);
+    const pct = Math.min(100, Math.round((used / 3) * 100));
+    const barColor = used >= 3 ? '#ef4444' : used >= 2 ? '#f59e0b' : '#2563eb';
+    bar.innerHTML = `
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.35rem;">
+          <span style="font-size:0.78rem;font-weight:700;color:#0f172a;">${used} of 3 free sessions used today</span>
+          <span style="font-size:0.74rem;color:${remaining===0?'#ef4444':'#64748b'};">${remaining===0?'Limit reached':`${remaining} left`}</span>
+        </div>
+        <div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.3s;"></div>
+        </div>
+      </div>
+      <a href="pricing-candidate.html" style="font-size:0.74rem;font-weight:700;color:#2563eb;white-space:nowrap;text-decoration:none;padding:0.35rem 0.7rem;background:#f0f7ff;border-radius:7px;border:1px solid #bfdbfe;flex-shrink:0;">Upgrade →</a>`;
   }
 
   function showPrepLimitWall() {
