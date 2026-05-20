@@ -953,13 +953,16 @@ body { padding-top:114px !important; }
       </div>`).join('');
   }
 
-  async function getAIQuestions(prompt) {
+  async function getAIQuestions(prompt, opts = {}) {
     try {
+      const body = { prompt, mode: 'json' };
+      if (opts.candidateId) { body.candidateId = opts.candidateId; body.context = 'interview_prep'; }
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, mode: 'json' })
+        body: JSON.stringify(body)
       });
+      if (res.status === 429) { showPrepLimitWall(); return 'LIMIT'; }
       const data = await res.json();
       let text = data.answer || '';
       text = text.replace(/```json|```/g,'').trim();
@@ -993,7 +996,8 @@ body { padding-top:114px !important; }
     const context = candidate.jobtitle ? ` for a ${candidate.jobtitle} with ${candidate.experience||'some'} experience` : '';
     const prompt = `Generate 4 interview questions about "${skill}"${context}. Keep each answer under 2 sentences. Return ONLY a JSON array: [{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."}]`;
 
-    const questions = await getAIQuestions(prompt);
+    const questions = await getAIQuestions(prompt, { candidateId: candidate.id });
+    if (questions === 'LIMIT') return;
     if (questions && questions.length) {
       renderQuiz(questions);
     } else {
@@ -1014,7 +1018,8 @@ body { padding-top:114px !important; }
 
     const prompt = `Generate 4 interview questions for: "${input}". Keep each answer under 2 sentences. Return ONLY a JSON array: [{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."},{"q":"question?","a":"answer."}]`;
 
-    const questions = await getAIQuestions(prompt);
+    const questions = await getAIQuestions(prompt, { candidateId: candidate.id });
+    if (questions === 'LIMIT') return;
     if (questions && questions.length) {
       renderQuiz(questions);
     } else {
@@ -1645,21 +1650,27 @@ body { padding-top:114px !important; }
     return !!(candidate.pro_expires_at && new Date() < new Date(candidate.pro_expires_at));
   }
 
+  // In-memory fallback — survives within a browser session even if localStorage is blocked
+  let _prepMem = { date: null, count: 0 };
+
   function _getPrepUsage() {
     const today = new Date().toISOString().slice(0, 10);
+    const memCount = _prepMem.date === today ? _prepMem.count : 0;
     try {
       const stored = JSON.parse(localStorage.getItem('ht_prep_' + candidate.id) || '{}');
-      return stored.date === today ? (stored.count || 0) : 0;
-    } catch { return 0; }
+      const lsCount = stored.date === today ? (stored.count || 0) : 0;
+      return Math.max(lsCount, memCount);
+    } catch { return memCount; }
   }
 
   function _incPrepUsage() {
     const today = new Date().toISOString().slice(0, 10);
+    _prepMem = { date: today, count: (_prepMem.date === today ? _prepMem.count : 0) + 1 };
     try {
       const stored = JSON.parse(localStorage.getItem('ht_prep_' + candidate.id) || '{}');
       const count = stored.date === today ? (stored.count || 0) + 1 : 1;
       localStorage.setItem('ht_prep_' + candidate.id, JSON.stringify({ date: today, count }));
-    } catch { /* ignore storage errors */ }
+    } catch { /* localStorage unavailable — in-memory is the active fallback */ }
   }
 
   async function checkPrepAccess() {

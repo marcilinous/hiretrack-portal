@@ -1,5 +1,16 @@
 import https from 'https';
 
+// Per-instance daily rate limiter for interview prep (3 sessions/day per candidate)
+const _prepMap = new Map();
+function _checkPrepLimit(candidateId) {
+  const today = new Date().toISOString().slice(0, 10);
+  const key = `${candidateId}:${today}`;
+  const count = _prepMap.get(key) || 0;
+  if (count >= 3) return false;
+  _prepMap.set(key, count + 1);
+  return true;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -10,7 +21,13 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e) { body = {}; } }
-    const { prompt, mode } = body || {};
+    const { prompt, mode, context, candidateId } = body || {};
+
+    if (context === 'interview_prep' && candidateId) {
+      if (!_checkPrepLimit(candidateId)) {
+        return res.status(429).json({ error: 'daily_limit_reached' });
+      }
+    }
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (!GROQ_API_KEY) return res.status(200).json({ answer: 'API key not configured.' });
