@@ -137,19 +137,30 @@
       <button class="btn-primary" onclick="completeRegister()">Create Account & Continue →</button>
     </div>
 
-    <!-- STEP 3B: Existing employer — enter password -->
+    <!-- STEP 3B: Existing employer — choose sign-in method -->
     <div class="step" id="step3-existing">
       <span class="success-icon">👋</span>
       <h2 id="welcome-name">Welcome Back!</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Enter your password to continue.</p>
+      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! How would you like to sign in?</p>
 
       <div class="alert alert-error" id="err4"></div>
-      <div class="fg-form">
-        <label id="pwd-label">Password *</label>
-        <input type="password" id="login-pwd" placeholder="Your password" />
+
+      <!-- Method picker (shown first) -->
+      <div id="otp-login-section">
+        <button class="btn-primary" onclick="loginWithOTP()">Continue with verified OTP →</button>
+        <div style="text-align:center;margin:0.85rem 0;font-size:0.82rem;color:var(--gray4);">— or —</div>
+        <button onclick="showPasswordSection()" style="width:100%;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;">Use password instead</button>
       </div>
-      <button class="btn-primary" id="btn-login" onclick="completeLogin()">Login to Dashboard →</button>
-      <p class="form-switch"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
+
+      <!-- Password entry (revealed on demand) -->
+      <div id="pwd-login-section" style="display:none;">
+        <div class="fg-form">
+          <label id="pwd-label">Password *</label>
+          <input type="password" id="login-pwd" placeholder="Your password" />
+        </div>
+        <button class="btn-primary" id="btn-login" onclick="completeLogin()">Login to Dashboard →</button>
+        <p class="form-switch"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
+      </div>
     </div>
 
   </div>
@@ -343,7 +354,21 @@
     window.location.href = redirect;
   }
 
-  // ── STEP 3B: Login existing employer ──
+  // ── STEP 3B: OTP login (already verified) ──
+  function loginWithOTP() {
+    Session.setEmployer(existingEmployer);
+    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+    sessionStorage.removeItem('redirect_after_employer_login');
+    window.location.href = redirect;
+  }
+
+  function showPasswordSection() {
+    document.getElementById('otp-login-section').style.display = 'none';
+    document.getElementById('pwd-login-section').style.display = 'block';
+    document.getElementById('login-pwd').focus();
+  }
+
+  // ── STEP 3B: Password login ──
   async function completeLogin() {
     const password = document.getElementById('login-pwd').value;
     const errEl = document.getElementById('err4');
@@ -373,10 +398,13 @@
   function showReset() {
     isResetMode = true;
     document.getElementById('welcome-name').textContent = 'Reset Password';
+    document.getElementById('otp-login-section').style.display = 'none';
+    document.getElementById('pwd-login-section').style.display = 'block';
     document.getElementById('pwd-label').textContent = 'New Password *';
     document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
     document.getElementById('btn-login').textContent = 'Set New Password →';
     document.querySelector('#step3-existing .form-switch').style.display = 'none';
+    document.getElementById('login-pwd').focus();
   }
 
   // Enter key support
