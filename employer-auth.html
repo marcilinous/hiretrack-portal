@@ -141,15 +141,16 @@
     <div class="step" id="step3-existing">
       <span class="success-icon">👋</span>
       <h2 id="welcome-name">Welcome Back!</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! How would you like to sign in?</p>
+      <p class="sub" style="margin-bottom:1.2rem;">How would you like to sign in?</p>
 
       <div class="alert alert-error" id="err4"></div>
 
       <!-- Method picker (shown first) -->
       <div id="otp-login-section">
-        <button class="btn-primary" onclick="loginWithOTP()">Continue with verified OTP →</button>
+        <button class="btn-primary" onclick="sendOTPForLogin()">Send OTP to Email →</button>
         <div style="text-align:center;margin:0.85rem 0;font-size:0.82rem;color:var(--gray4);">— or —</div>
         <button onclick="showPasswordSection()" style="width:100%;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;">Use password instead</button>
+        <p class="form-switch"><a href="#" onclick="goStep(1)">← Change details</a></p>
       </div>
 
       <!-- Password entry (revealed on demand) -->
@@ -201,9 +202,15 @@
     document.getElementById(id).classList.add('active');
     setStepUI(n);
     if (n === 2) document.getElementById('ob1').focus();
+    if (n === 1) {
+      existingEmployer = null;
+      isResetMode = false;
+      document.getElementById('otp-login-section').style.display = 'block';
+      document.getElementById('pwd-login-section').style.display = 'none';
+    }
   }
 
-  // ── STEP 1: Send OTP ──
+  // ── STEP 1: Check existence, route to OTP or method picker ──
   async function sendEmailOTP() {
     const mobile = document.getElementById('s1-mobile').value.trim();
     const email = document.getElementById('s1-email').value.trim();
@@ -218,30 +225,72 @@
     }
 
     const btn = document.querySelector('#step1 .btn-primary');
-    btn.textContent = 'Sending OTP...'; btn.disabled = true;
-
+    btn.textContent = 'Checking...'; btn.disabled = true;
     currentMobile = mobile;
     currentEmail = email;
+
+    // Check if employer already exists
+    const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
+    const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
+    existingEmployer = byEmail || byMobile;
+
+    btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
+
+    if (existingEmployer) {
+      // Show sign-in method picker before sending any OTP
+      document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step3-existing').classList.add('active');
+      setStepUI(2);
+      return;
+    }
+
+    // New employer: send OTP now
     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
     otpExpiry = Date.now() + 2 * 60 * 1000;
-
     try {
       const r = await fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination: email, otp: generatedOTP })
+        body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })
       });
       const data = await r.json();
       if (!data.ok) throw new Error(data.error || 'Send failed');
     } catch(e) {
       errEl.textContent = 'Failed to send OTP. Please try again.';
       errEl.style.display = 'block';
-      btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
       return;
     }
+    document.getElementById('otp-email-display').textContent = currentEmail;
+    goStep(2);
+    startTimer();
+  }
 
-    btn.textContent = 'Send OTP to Email →'; btn.disabled = false;
-    document.getElementById('otp-email-display').textContent = email;
+  // ── Existing employer chose OTP method: send OTP then go to step 2 ──
+  async function sendOTPForLogin() {
+    const btn = document.querySelector('#otp-login-section .btn-primary');
+    const errEl = document.getElementById('err4');
+    errEl.style.display = 'none';
+    if (btn) { btn.textContent = 'Sending OTP...'; btn.disabled = true; }
+
+    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+    otpExpiry = Date.now() + 2 * 60 * 1000;
+    try {
+      const r = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Send failed');
+    } catch(e) {
+      errEl.textContent = 'Failed to send OTP. Please try again.';
+      errEl.style.display = 'block';
+      if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
+      return;
+    }
+    if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
+    document.getElementById('otp-email-display').textContent = currentEmail;
     goStep(2);
     startTimer();
   }
@@ -304,7 +353,7 @@
   }
 
   // ── STEP 2: Verify OTP ──
-  async function verifyOTP() {
+  function verifyOTP() {
     const entered = [1,2,3,4].map(i => document.getElementById('ob'+i).value).join('');
     const errEl = document.getElementById('err2');
     errEl.style.display = 'none';
@@ -315,14 +364,22 @@
 
     clearInterval(timerInterval);
 
-    // Check if employer exists by email or mobile
-    const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
-    const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
-    existingEmployer = byEmail || byMobile;
-
     if (existingEmployer) {
-      document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
-      goStep(3, 'step3-existing');
+      if (isResetMode) {
+        // OTP verified for password reset — show new password form
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step3-existing').classList.add('active');
+        setStepUI(3);
+        document.getElementById('welcome-name').textContent = 'Reset Password';
+        document.getElementById('otp-login-section').style.display = 'none';
+        document.getElementById('pwd-login-section').style.display = 'block';
+        document.getElementById('pwd-label').textContent = 'New Password *';
+        document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
+        document.getElementById('btn-login').textContent = 'Set New Password →';
+        document.getElementById('login-pwd').focus();
+      } else {
+        loginWithOTP();
+      }
     } else {
       goStep(3, 'step3-new');
     }
@@ -397,14 +454,7 @@
 
   function showReset() {
     isResetMode = true;
-    document.getElementById('welcome-name').textContent = 'Reset Password';
-    document.getElementById('otp-login-section').style.display = 'none';
-    document.getElementById('pwd-login-section').style.display = 'block';
-    document.getElementById('pwd-label').textContent = 'New Password *';
-    document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
-    document.getElementById('btn-login').textContent = 'Set New Password →';
-    document.querySelector('#step3-existing .form-switch').style.display = 'none';
-    document.getElementById('login-pwd').focus();
+    sendOTPForLogin(); // send OTP first; verifyOTP() will show new password form after verify
   }
 
   // Enter key support
