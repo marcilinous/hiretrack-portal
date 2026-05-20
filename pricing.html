@@ -260,7 +260,6 @@
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('pricing');
 
-  const RAZORPAY_KEY = 'rzp_test_ShI2u0ijEmSUD1';
   const PLANS = {
     free:       { name:'Free',       jobs:1,   days:15,  price:0    },
     starter:    { name:'Starter',    jobs:3,   days:30,  price:499  },
@@ -303,34 +302,59 @@
     });
   }
 
-  function buyPlan(planName, amount) {
+  async function buyPlan(planName, amount) {
     const employer = Session.getEmployer();
-    if (!employer) { 
+    if (!employer) {
       sessionStorage.setItem('redirect_after_employer_login', 'pricing.html');
-      window.location.href = 'employer-auth.html'; 
-      return; 
+      window.location.href = 'employer-auth.html';
+      return;
     }
     const plan = PLANS[planName];
-    // Add 18% GST
     const subtotal = amount;
     const gst = Math.round(subtotal * 0.18);
     const total = subtotal + gst;
 
+    const btn = document.getElementById(`btn-${planName}`);
+    const origText = btn.textContent;
+    btn.textContent = 'Processing...'; btn.disabled = true;
+
+    // Create Razorpay order server-side
+    let rzpKey, orderId;
+    try {
+      const r = await fetch('/api/razorpay-employer-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planName })
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const cfg = await r.json();
+      if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order creation failed');
+      rzpKey = cfg.key;
+      orderId = cfg.orderId;
+    } catch(e) {
+      showToast('Payment service unavailable. Please try again.');
+      btn.textContent = origText; btn.disabled = false;
+      return;
+    }
+
+    btn.textContent = origText; btn.disabled = false;
+
     const options = {
-      key: RAZORPAY_KEY,
-      amount: total * 100, // paise including GST
+      key: rzpKey,
+      amount: total * 100,
       currency: 'INR',
+      order_id: orderId,
       name: 'HireTrack',
       description: `${plan.name} Plan — ${plan.jobs === 999 ? 'Unlimited' : plan.jobs} jobs, ${plan.days} days`,
-      image: 'https://hiretrack-portal.vercel.app/favicon.ico',
+      image: 'https://www.hiretrack.co.in/og-image.png',
       prefill: {
         name: employer.contact_name,
         email: employer.email,
         contact: employer.mobile
       },
       theme: { color: '#3b82f6' },
-      handler: function(response) {
-        activatePlan(employer, planName, response.razorpay_payment_id, subtotal, gst, total);
+      handler: async function(response) {
+        await activatePlan(employer, planName, response, subtotal, gst, total);
       },
       modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
     };
@@ -339,27 +363,38 @@
     rzp.open();
   }
 
-  async function activatePlan(employer, planName, paymentId, subtotal, gst, total) {
-    const plan = PLANS[planName];
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30);
+  async function activatePlan(employer, planName, response, subtotal, gst, total) {
+    try {
+      const vr = await fetch('/api/razorpay-employer-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          employerId: employer.id,
+          planName
+        })
+      });
+      const result = await vr.json();
+      if (!result.ok) throw new Error(result.error || 'Verification failed');
 
-    // Update in Supabase
-    await sb.from('employers').update({
-      plan: planName,
-      payment_id: paymentId,
-      plan_expires_at: expiresAt.toISOString(),
-      job_limit: plan.jobs,
-      day_limit: plan.days
-    }).eq('id', employer.id);
-
-    // Update session
-    const updatedEmployer = { ...employer, plan: planName, job_limit: plan.jobs, day_limit: plan.days, plan_expires_at: expiresAt.toISOString() };
-    Session.setEmployer(updatedEmployer);
-
-    showToast(`✅ ${plan.name} plan activated!`);
-    updateUI();
-    showInvoice(updatedEmployer, planName, paymentId, subtotal, gst, total, expiresAt);
+      const updatedEmployer = {
+        ...employer,
+        plan: planName,
+        job_limit: result.job_limit,
+        day_limit: result.day_limit,
+        plan_expires_at: result.plan_expires_at,
+        payment_id: response.razorpay_payment_id
+      };
+      Session.setEmployer(updatedEmployer);
+      showToast(`✅ ${PLANS[planName].name} plan activated!`);
+      updateUI();
+      showInvoice(updatedEmployer, planName, response.razorpay_payment_id, subtotal, gst, total, new Date(result.plan_expires_at));
+    } catch(e) {
+      showToast('Payment received but activation failed. Contact support@hiretrack.co.in');
+      console.error('Employer verify error:', e.message);
+    }
   }
 
   function showInvoice(employer, planName, paymentId, subtotal, gst, total, expiresAt) {
