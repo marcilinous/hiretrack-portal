@@ -155,6 +155,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(max-width:900px){.stats-inner{grid-template-columns:repeat(3,1fr);}.kanban{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.stats-inner{grid-template-columns:repeat(2,1fr);}.kanban{grid-template-columns:repeat(2,1fr);}.job-metrics{display:none;}}
 
+/* ── Analytics ── */
+.an-overview { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+.an-card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.2rem 1.5rem; }
+.an-card-label { font-size:0.7rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.35rem; }
+.an-card-value { font-size:2rem; font-weight:800; color:#0f172a; line-height:1; margin-bottom:0.2rem; }
+.an-card-sub { font-size:0.75rem; color:#94a3b8; }
+.an-section-title { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:0.75rem; }
+.an-funnel-card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; overflow:hidden; margin-bottom:1.5rem; }
+.an-funnel-header { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr; gap:0; padding:0.6rem 1.5rem; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+.an-funnel-header span { font-size:0.68rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; text-align:center; }
+.an-funnel-header span:first-child { text-align:left; }
+.an-job-row { padding:1rem 1.5rem; border-bottom:1px solid #f1f5f9; }
+.an-job-row:last-child { border-bottom:none; }
+.an-job-name { font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.an-bars { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr; gap:0; align-items:center; }
+.an-bar-cell { padding:0 0.5rem; text-align:center; }
+.an-bar-cell:first-child { padding-left:0; text-align:left; }
+.an-bar-wrap { height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; margin-bottom:3px; }
+.an-bar-fill { height:100%; border-radius:3px; transition:width 0.6s ease; }
+.an-bar-num { font-size:0.78rem; font-weight:700; color:#0f172a; }
+.an-bar-pct { font-size:0.65rem; color:#94a3b8; }
+.fb-views { background:#93c5fd; }
+.fb-applied { background:#3b82f6; }
+.fb-shortlisted { background:#f59e0b; }
+.fb-interview { background:#06b6d4; }
+.fb-hired { background:#22c55e; }
+.an-overall { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
+.an-overall-funnel { display:flex; gap:0; align-items:stretch; margin-top:1rem; }
+.an-of-step { flex:1; text-align:center; position:relative; }
+.an-of-step:not(:last-child)::after { content:'›'; position:absolute; right:-8px; top:50%; transform:translateY(-50%); font-size:1.2rem; color:#cbd5e1; z-index:1; }
+.an-of-box { margin:0 4px; border-radius:10px; padding:1rem 0.5rem; }
+.an-of-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:0.4rem; }
+.an-of-num { font-size:1.6rem; font-weight:800; }
+.an-of-pct { font-size:0.7rem; margin-top:0.2rem; opacity:0.7; }
+@media(max-width:900px){ .an-overview{grid-template-columns:repeat(2,1fr);} .an-funnel-header,.an-bars{grid-template-columns:1.5fr 1fr 1fr 1fr;} .an-funnel-header span:nth-child(5),.an-funnel-header span:nth-child(6),.an-bar-cell:nth-child(5),.an-bar-cell:nth-child(6){display:none;} .an-overall-funnel{flex-wrap:wrap;} .an-of-step{min-width:80px;} }
+@media(max-width:600px){ .an-overview{grid-template-columns:1fr 1fr;} }
+
 /* ── Company Logo ── */
 .company-logo-wrap { position:relative; display:inline-block; margin-right:1rem; flex-shrink:0; }
 .company-logo { width:52px; height:52px; border-radius:12px; background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.2rem; font-weight:800; cursor:pointer; overflow:hidden; transition:all 0.2s; }
@@ -206,6 +243,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tabs-inner">
     <button class="tab active" onclick="switchTab('jobs',this)">💼 My Jobs</button>
     <button class="tab" onclick="switchTab('pipeline',this)">📊 Pipeline</button>
+    <button class="tab" onclick="switchTab('analytics',this)">📈 Analytics</button>
     <button class="tab" onclick="switchTab('bulk',this)">📱 Bulk WhatsApp</button>
   </div>
 </div>
@@ -233,6 +271,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
     <div id="pipeline-content"><div class="empty-state"><div class="ei">📊</div><p>Select a job to view applicant pipeline</p></div></div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div id="tab-analytics" style="display:none;">
+    <div class="an-overview" id="an-overview"></div>
+    <p class="an-section-title">Per-Job Performance</p>
+    <div class="an-funnel-card">
+      <div class="an-funnel-header">
+        <span>Job</span><span>Views</span><span>Applied</span><span>Shortlisted</span><span>Interview</span><span>Hired</span>
+      </div>
+      <div id="an-job-rows"><div class="empty-state"><div class="ei">📈</div><p>Post a job to see analytics</p></div></div>
+    </div>
+    <p class="an-section-title">Overall Hiring Funnel</p>
+    <div class="an-overall" id="an-overall"></div>
   </div>
 
   <!-- BULK WA -->
@@ -269,6 +321,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   let myJobs = [], allApps = [], currentView = 'board';
   const STATUSES = ['Viewed','Applied','Shortlisted','Interview','Hired','Rejected'];
+  const ALL_TABS = ['jobs','pipeline','analytics','bulk'];
   const SC = {Viewed:'s-Viewed',Applied:'s-Applied',Shortlisted:'s-Shortlisted',Interview:'s-Interview',Hired:'s-Hired',Rejected:'s-Rejected'};
 
   async function init() {
@@ -317,10 +370,98 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
 
   function switchTab(tab, btn) {
-    ['jobs','pipeline','bulk'].forEach(t => document.getElementById('tab-'+t).style.display = 'none');
+    ALL_TABS.forEach(t => document.getElementById('tab-'+t).style.display = 'none');
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-'+tab).style.display = 'block';
     btn.classList.add('active');
+    if (tab === 'analytics') renderAnalytics();
+  }
+
+  function renderAnalytics() {
+    const totalViews = myJobs.reduce((s,j) => s + (j.views||0), 0);
+    const totalApps  = allApps.length;
+    const shortlisted = allApps.filter(a => a.status === 'Shortlisted').length;
+    const interview   = allApps.filter(a => a.status === 'Interview').length;
+    const hired       = allApps.filter(a => a.status === 'Hired').length;
+
+    const appRate  = totalViews ? Math.round(totalApps / totalViews * 100) : 0;
+    const slRate   = totalApps  ? Math.round(shortlisted / totalApps * 100) : 0;
+    const hireRate = totalApps  ? Math.round(hired / totalApps * 100) : 0;
+
+    // KPI cards
+    document.getElementById('an-overview').innerHTML = `
+      <div class="an-card">
+        <div class="an-card-label">Total Job Views</div>
+        <div class="an-card-value" style="color:#2563eb;">${totalViews.toLocaleString('en-IN')}</div>
+        <div class="an-card-sub">across ${myJobs.length} job${myJobs.length!==1?'s':''}</div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-label">Application Rate</div>
+        <div class="an-card-value" style="color:#7c3aed;">${appRate}%</div>
+        <div class="an-card-sub">${totalApps} applied of ${totalViews} views</div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-label">Shortlist Rate</div>
+        <div class="an-card-value" style="color:#d97706;">${slRate}%</div>
+        <div class="an-card-sub">${shortlisted} shortlisted of ${totalApps} applicants</div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-label">Hire Rate</div>
+        <div class="an-card-value" style="color:#16a34a;">${hireRate}%</div>
+        <div class="an-card-sub">${hired} hired of ${totalApps} applicants</div>
+      </div>`;
+
+    // Per-job funnel rows
+    if (!myJobs.length) {
+      document.getElementById('an-job-rows').innerHTML = '<div class="empty-state"><div class="ei">📈</div><p>Post a job to see analytics</p></div>';
+    } else {
+      const maxViews = Math.max(...myJobs.map(j => j.views||0), 1);
+      document.getElementById('an-job-rows').innerHTML = myJobs.map(job => {
+        const apps = allApps.filter(a => a.job_id === job.id);
+        const v  = job.views || 0;
+        const ap = apps.length;
+        const sl = apps.filter(a => a.status === 'Shortlisted').length;
+        const iv = apps.filter(a => a.status === 'Interview').length;
+        const hi = apps.filter(a => a.status === 'Hired').length;
+        const pct = n => v ? Math.round(n/v*100) : 0;
+        const bar = (n, cls) => `<div class="an-bar-wrap"><div class="an-bar-fill ${cls}" style="width:${v?Math.round(n/v*100):0}%"></div></div>`;
+        return `<div class="an-job-row">
+          <div class="an-job-name">📌 ${job.title}</div>
+          <div class="an-bars">
+            <div class="an-bar-cell" style="font-size:0.75rem;color:#64748b;">${job.location}</div>
+            <div class="an-bar-cell">${bar(v,'fb-views')}<div class="an-bar-num">${v}</div></div>
+            <div class="an-bar-cell">${bar(ap,'fb-applied')}<div class="an-bar-num">${ap}</div><div class="an-bar-pct">${pct(ap)}%</div></div>
+            <div class="an-bar-cell">${bar(sl,'fb-shortlisted')}<div class="an-bar-num">${sl}</div><div class="an-bar-pct">${pct(sl)}%</div></div>
+            <div class="an-bar-cell">${bar(iv,'fb-interview')}<div class="an-bar-num">${iv}</div><div class="an-bar-pct">${pct(iv)}%</div></div>
+            <div class="an-bar-cell">${bar(hi,'fb-hired')}<div class="an-bar-num">${hi}</div><div class="an-bar-pct">${pct(hi)}%</div></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Overall funnel
+    const fSteps = [
+      { label:'Views',       n:totalViews,  color:'#eff6ff', text:'#2563eb', bar:'#93c5fd' },
+      { label:'Applied',     n:totalApps,   color:'#eff6ff', text:'#1d4ed8', bar:'#3b82f6' },
+      { label:'Shortlisted', n:shortlisted, color:'#fffbeb', text:'#b45309', bar:'#f59e0b' },
+      { label:'Interview',   n:interview,   color:'#ecfeff', text:'#0e7490', bar:'#06b6d4' },
+      { label:'Hired',       n:hired,       color:'#f0fdf4', text:'#15803d', bar:'#22c55e' },
+    ];
+    const maxN = Math.max(totalViews, 1);
+    document.getElementById('an-overall').innerHTML = `
+      <div class="an-overall-funnel">
+        ${fSteps.map((s,i) => `
+          <div class="an-of-step">
+            <div class="an-of-box" style="background:${s.color};">
+              <div class="an-of-label" style="color:${s.text};">${s.label}</div>
+              <div class="an-of-num" style="color:${s.text};">${s.n}</div>
+              ${i>0 ? `<div class="an-of-pct" style="color:${s.text};">${totalViews?Math.round(s.n/totalViews*100):0}% of views</div>` : '<div class="an-of-pct" style="color:'+ s.text +';">100%</div>'}
+            </div>
+            <div style="margin:0.5rem 4px 0;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${Math.round(s.n/maxN*100)}%;background:${s.bar};border-radius:3px;transition:width 0.6s;"></div>
+            </div>
+          </div>`).join('')}
+      </div>`;
   }
 
   // ── JOBS ──
