@@ -110,6 +110,12 @@
     if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Post Job for Free';btn.disabled=false;return;}
     successEl.textContent='✅ Job posted successfully! It is now live on HireTrack.'; successEl.style.display='block';
     btn.textContent='Posted ✓';
+    // Fire-and-forget job alerts — don't block the redirect
+    fetch('/api/trigger-job-alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, company, location: locationFull, salary, jobType, skills })
+    }).catch(() => {});
     setTimeout(()=>window.location.href='employer-dashboard.html',1500);
   }
 
