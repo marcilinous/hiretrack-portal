@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Dynamic meta — overwritten by JS once job is loaded -->
+<title>Job Details — HireTrack</title>
+<meta name="description" content="Find MIS, Data, Excel and SQL jobs in Karnataka on HireTrack.">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="HireTrack">
+<meta property="og:url"         content="">
+<meta property="og:title"       content="Job Details — HireTrack">
+<meta property="og:description" content="Find MIS, Data, Excel and SQL jobs in Karnataka on HireTrack.">
+
+<!-- Twitter card -->
+<meta name="twitter:card"        content="summary">
+<meta name="twitter:title"       content="Job Details — HireTrack">
+<meta name="twitter:description" content="Find MIS, Data, Excel and SQL jobs in Karnataka on HireTrack.">
+
+<!-- JSON-LD placeholder (replaced by JS) -->
+<script id="ld-json" type="application/ld+json">{}</script>
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
+<style>
+body { padding-top: 64px; background: #f8fafc; }
+
+.job-page-wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.job-breadcrumb {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.job-breadcrumb a { color: #3b82f6; text-decoration: none; }
+.job-breadcrumb a:hover { text-decoration: underline; }
+
+.job-card-main {
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #e2e8f0;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.job-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.job-title-main {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.job-share-btn {
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.job-share-btn:hover { background: #e2e8f0; }
+
+.job-company-row {
+  font-size: 1rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.job-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.job-chip {
+  background: #f1f5f9;
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.job-skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+.job-skill-tag {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.job-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.job-description {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: #334155;
+  white-space: pre-wrap;
+  border-top: 1.5px solid #e2e8f0;
+  padding-top: 1.25rem;
+}
+
+.job-actions-sticky {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  position: sticky;
+  bottom: 1rem;
+}
+
+.job-actions-row {
+  display: flex;
+  gap: 0.75rem;
+}
+.job-actions-row .btn-apply {
+  flex: 1;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+}
+.job-actions-row .btn-whatsapp {
+  padding: 0.85rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+.job-status-badge {
+  display: inline-block;
+  background: #ecfdf5;
+  color: #16a34a;
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.job-loading {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.job-error {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #ef4444;
+}
+
+@media (max-width: 640px) {
+  .job-page-wrap { padding: 1.5rem 1rem 5rem; }
+  .job-title-main { font-size: 1.2rem; }
+  .job-card-main { padding: 1.25rem; }
+  .job-actions-sticky { border-radius: 0; border-left: none; border-right: none; border-bottom: none; position: fixed; bottom: 0; left: 0; right: 0; }
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="job-page-wrap">
+  <div class="job-breadcrumb">
+    <a href="/index.html">Home</a>
+    <span>›</span>
+    <a href="/jobs.html">Browse Jobs</a>
+    <span>›</span>
+    <span id="bc-title">Job Details</span>
+  </div>
+
+  <div id="job-content">
+    <div class="job-loading">Loading job details…</div>
+  </div>
+</div>
+
+<footer><p>© 2025 <span>HireTrack</span> — MIS & Data Jobs across Karnataka.</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+document.getElementById('navbar').innerHTML = renderNavbar('jobs');
+
+(async function () {
+  const params = new URLSearchParams(window.location.search);
+  const jobId  = params.get('id');
+  const content = document.getElementById('job-content');
+
+  if (!jobId) {
+    content.innerHTML = '<div class="job-error">No job ID specified. <a href="/jobs.html">Browse all jobs →</a></div>';
+    return;
+  }
+
+  // Fetch job
+  const { data: job, error } = await sb.from('jobs').select('*').eq('id', jobId).eq('delisted', false).single();
+
+  if (error || !job) {
+    content.innerHTML = '<div class="job-error">Job not found or no longer available. <a href="/jobs.html">Browse all jobs →</a></div>';
+    return;
+  }
+
+  // ── Update meta tags ──
+  const pageTitle = `${job.title} at ${job.company} — ${job.location} | HireTrack`;
+  const pageDesc  = `${job.title} job at ${job.company} in ${job.location}. ${job.salary ? 'Salary: ' + job.salary + '. ' : ''}Apply on HireTrack.`;
+  const pageUrl   = `https://www.hiretrack.co.in/job.html?id=${jobId}`;
+
+  document.title = pageTitle;
+  setMeta('name', 'description', pageDesc);
+  setMeta('property', 'og:title', pageTitle);
+  setMeta('property', 'og:description', pageDesc);
+  setMeta('property', 'og:url', pageUrl);
+  setMeta('name', 'twitter:title', pageTitle);
+  setMeta('name', 'twitter:description', pageDesc);
+
+  document.getElementById('bc-title').textContent = job.title;
+
+  // ── JSON-LD JobPosting ──
+  const skills = Array.isArray(job.skills)
+    ? job.skills
+    : (job.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description: job.description || `${job.title} position at ${job.company}.`,
+    datePosted: job.posted_at ? job.posted_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
+    validThrough: job.expires_at ? job.expires_at.slice(0, 10) : '',
+    employmentType: empType(job.job_type || job.type),
+    hiringOrganization: { '@type': 'Organization', name: job.company },
+    jobLocation: {
+      '@type': 'Place',
+      address: { '@type': 'PostalAddress', addressLocality: job.location, addressCountry: 'IN' }
+    },
+    skills: skills.join(', '),
+    url: pageUrl,
+  };
+  if (job.salary) ld.baseSalary = { '@type': 'MonetaryAmount', currency: 'INR', value: { '@type': 'QuantitativeValue', description: job.salary } };
+  document.getElementById('ld-json').textContent = JSON.stringify(ld);
+
+  // ── Increment view count (fire-and-forget) ──
+  if (job.employer_id) {
+    sb.from('jobs').update({ views: (job.views || 0) + 1 }).eq('id', job.id).then(() => {});
+  }
+
+  // ── Check application status ──
+  const candidate = Session.getCandidate();
+  let appStatus = null;
+  if (candidate) {
+    const { data: app } = await sb.from('applications').select('status').eq('candidate_id', candidate.id).eq('job_id', String(job.id)).maybeSingle();
+    appStatus = app?.status || null;
+  }
+
+  // ── Render ──
+  const expired = isJobExpired(job);
+  const typeClass = {'Full Time':'badge-full','Contract':'badge-contract','Remote':'badge-remote'};
+  const jobType   = job.job_type || job.type;
+  const waMsg     = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`);
+
+  const chipsHtml = [
+    job.location   ? `<span class="job-chip">📍 ${esc(job.location)}</span>`   : '',
+    job.salary     ? `<span class="job-chip">💰 ${esc(job.salary)}</span>`     : '',
+    job.experience ? `<span class="job-chip">🎯 ${esc(job.experience)}</span>` : '',
+    jobType        ? `<span class="job-chip">${esc(jobType)}</span>`           : '',
+    job.posted_at  ? `<span class="job-chip">🕒 ${timeAgoLocal(job.posted_at)}</span>` : '',
+  ].join('');
+
+  const skillsHtml = skills.length
+    ? `<div class="job-skills-row">${skills.map(s => `<span class="job-skill-tag">${esc(s)}</span>`).join('')}</div>`
+    : '';
+
+  let actionHtml;
+  if (expired) {
+    actionHtml = `<button class="btn-apply expired-btn" disabled>⚠ Expired</button>`;
+  } else if (!candidate) {
+    actionHtml = `<button class="btn-apply" onclick="sessionStorage.setItem('redirect_after_login','${pageUrl}');window.location.href='login.html'">Sign in to apply</button>`;
+  } else if (appStatus) {
+    actionHtml = `<button class="btn-apply applied" disabled>✓ ${esc(appStatus)}</button>`;
+  } else {
+    actionHtml = `<button class="btn-apply" id="apply-btn" onclick="doApply()">Apply Now</button>`;
+  }
+
+  const waHtml = job.phone
+    ? `<button class="btn-whatsapp" onclick="window.open('https://wa.me/91${job.phone}?text=${waMsg}','_blank')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.122 1.532 5.857L.057 23.925l6.235-1.635A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.494-5.193-1.355l-.372-.22-3.7.971 1.008-3.573-.242-.383A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        WhatsApp</button>`
+    : '';
+
+  content.innerHTML = `
+    <div class="job-card-main">
+      <div class="job-title-row">
+        <div class="job-title-main">${esc(job.title)}</div>
+        <button class="job-share-btn" onclick="shareJob()">🔗 Share</button>
+      </div>
+      <div class="job-company-row">🏢 ${esc(job.company)}</div>
+      <div class="job-chips">${chipsHtml}</div>
+      ${skillsHtml}
+      ${job.description ? `<div class="job-section-label">Job Description</div><div class="job-description">${esc(job.description)}</div>` : ''}
+    </div>
+
+    <div class="job-actions-sticky">
+      ${expired ? '<p style="color:#f59e0b;font-size:0.82rem;font-weight:600;margin:0 0 0.75rem;">⚠ This job listing has expired.</p>' : ''}
+      <div class="job-actions-row">
+        ${actionHtml}
+        ${waHtml}
+      </div>
+      <p style="font-size:0.75rem;color:#94a3b8;margin:0.6rem 0 0;text-align:center;">
+        Posted on <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">HireTrack</a> — MIS &amp; Data jobs across Karnataka
+      </p>
+    </div>
+  `;
+
+  // ── Apply handler ──
+  window.doApply = async function () {
+    const btn = document.getElementById('apply-btn');
+    if (!btn) return;
+    btn.textContent = 'Applying…'; btn.disabled = true;
+    const { data: existing } = await sb.from('applications').select('id').eq('candidate_id', candidate.id).eq('job_id', String(job.id)).maybeSingle();
+    if (existing) { btn.textContent = '✓ Applied'; btn.classList.add('applied'); return; }
+    const { error: err } = await sb.from('applications').insert([{ candidate_id: candidate.id, job_id: String(job.id), status: 'Applied' }]);
+    if (!err) {
+      btn.textContent = '✓ Applied'; btn.classList.add('applied');
+      showToast('✅ Applied! Notifying employer…');
+      if (job.email) {
+        fetch('/api/notify-employer-application', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employerEmail: job.email, company: job.company, jobTitle: job.title, candidateName: candidate.name, candidateCity: candidate.city, candidateExperience: candidate.experience, candidateSkills: candidate.skills || [] })
+        }).catch(() => {});
+      }
+    } else {
+      btn.textContent = 'Apply Now'; btn.disabled = false;
+      showToast('Failed. Please try again.');
+    }
+  };
+
+  // ── Share handler ──
+  window.shareJob = function () {
+    if (navigator.share) {
+      navigator.share({ title: pageTitle, url: pageUrl }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(pageUrl).then(() => showToast('Link copied!')).catch(() => {
+        prompt('Copy this link:', pageUrl);
+      });
+    }
+  };
+
+})();
+
+// ── Helpers ──
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function setMeta(attr, name, content) {
+  let el = document.querySelector(`meta[${attr}="${name}"]`);
+  if (!el) { el = document.createElement('meta'); el.setAttribute(attr, name); document.head.appendChild(el); }
+  el.setAttribute('content', content);
+}
+
+function timeAgoLocal(isoStr) {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  if (days < 30) return `${days} days ago`;
+  return new Date(isoStr).toLocaleDateString('en-IN');
+}
+
+function empType(t) {
+  if (!t) return 'FULL_TIME';
+  const m = { 'Full Time':'FULL_TIME', 'Part Time':'PART_TIME', 'Contract':'CONTRACTOR', 'Remote':'FULL_TIME' };
+  return m[t] || 'FULL_TIME';
+}
+
+function isJobExpired(job) {
+  if (!job.expires_at) return false;
+  return new Date() > new Date(job.expires_at);
+}
+</script>
+</body>
+</html>

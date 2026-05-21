@@ -157,6 +157,8 @@
   color: #0f172a;
   margin-bottom: 0.28rem;
   line-height: 1.35;
+  text-decoration: none;
+  display: block;
 }
 .bj-meta {
   font-size: 0.78rem;
@@ -474,7 +476,7 @@
     ${matchBubble}
     ${statusBadge}
   </div>
-  <div class="bj-title">${escapeHtml(job.title)}</div>
+  <a class="bj-title" href="/job.html?id=${jid}" onclick="event.preventDefault()" tabindex="-1" aria-label="${escapeHtml(job.title)} at ${escapeHtml(job.company || '')}">${escapeHtml(job.title)}</a>
   <div class="bj-meta">
     <span>${escapeHtml(job.company || '')}</span>
     <span class="bj-meta-sep">·</span>
