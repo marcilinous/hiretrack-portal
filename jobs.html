@@ -403,6 +403,7 @@ let allFetched    = [];   // cumulative fetched jobs (grows with scroll)
 let currentOffset = 0;
 let teardownScroll = null;
 let appStatusMap  = {};   // { jobId: status } for logged-in candidate
+let savedIds      = new Set(); // saved job IDs for logged-in candidate
 let sheetType     = '';   // tracks job type selection inside the bottom sheet
 
 const F = {
@@ -467,9 +468,30 @@ function renderOpts() {
   return {
     isLoggedIn: !!candidate,
     applicationStatusMap: appStatusMap,
+    savedJobIds: candidate ? savedIds : null,
     onApplyClick: (_jid, job) => _openApplyModal(job),
     onViewApplicationClick: () => { window.location.href = 'profile.html#applications'; },
+    onSaveToggle: candidate ? toggleSaveJob : null,
   };
+}
+
+async function toggleSaveJob(jid, isSaved, btn) {
+  const c = Session.getCandidate();
+  if (!c) return;
+  // Optimistic UI update
+  if (isSaved) {
+    savedIds.delete(jid);
+    btn.dataset.saved = '';
+    btn.classList.remove('bj-saved');
+    await sb.from('saved_jobs').delete().eq('candidate_id', c.id).eq('job_id', jid);
+    showToast('Removed from saved jobs');
+  } else {
+    savedIds.add(jid);
+    btn.dataset.saved = '1';
+    btn.classList.add('bj-saved');
+    await sb.from('saved_jobs').insert([{ candidate_id: c.id, job_id: jid }]);
+    showToast('Job saved! View in My Profile → Saved Jobs');
+  }
 }
 
 function doRender() {
@@ -762,9 +784,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   const search = new URLSearchParams(location.search).get('search');
   if (search) { F.keyword = search; document.getElementById('f-kw').value = search; }
 
-  // Fetch application statuses for logged-in candidates
+  // Fetch application statuses + saved jobs for logged-in candidates
   const c = Session.getCandidate();
-  if (c) appStatusMap = await BrowseJobs.fetchApplicationStatuses(c.id);
+  if (c) {
+    const [statusMap, savedRows] = await Promise.all([
+      BrowseJobs.fetchApplicationStatuses(c.id),
+      sb.from('saved_jobs').select('job_id').eq('candidate_id', c.id).then(r => r.data || [])
+    ]);
+    appStatusMap = statusMap;
+    savedIds = new Set(savedRows.map(r => r.job_id));
+  }
 
   loadInitial();
 });

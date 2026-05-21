@@ -305,6 +305,7 @@ body { padding-top:114px !important; }
     <a class="dr-nav-item" href="#jobs">💼 Browse Jobs</a>
     <a class="dr-nav-item" href="#profile">👤 My Profile</a>
     <a class="dr-nav-item" href="#applications">📋 My Applications</a>
+    <a class="dr-nav-item" href="#saved">🔖 Saved Jobs</a>
     <a class="dr-nav-item" href="#pro">⭐ Pro Plan</a>
     <a class="dr-nav-item" href="#boost">⚡ Boost Profile</a>
     <a class="dr-nav-item" href="#feed">📢 Community Feed</a>
@@ -462,6 +463,14 @@ body { padding-top:114px !important; }
       </select>
     </div>
     <div id="apps-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- VIEW: Saved Jobs (#saved) -->
+  <div id="view-saved" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="font-size:1rem;font-weight:800;">🔖 Saved Jobs</h2>
+    </div>
+    <div id="saved-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
   </div>
 
   <!-- VIEW: Pro Plan (#pro) -->
@@ -632,7 +641,7 @@ body { padding-top:114px !important; }
   let quizData = [], quizIdx = 0;
 
   // ── Router ──
-  const VIEWS = ['jobs','profile','applications','pro','boost','feed','chat'];
+  const VIEWS = ['jobs','profile','applications','saved','pro','boost','feed','chat'];
 
   function route(raw) {
     const hash = (raw || '#jobs').replace(/^#/, '');
@@ -654,6 +663,7 @@ body { padding-top:114px !important; }
     if (target === 'feed') Feed.init('feed-root', candidate);
     if (target === 'chat') Chat.init('chat-root', candidate);
     if (target === 'applications') renderApps(myApps);
+    if (target === 'saved') loadSavedJobs();
     if (target === 'boost') renderBoostView();
 
     closeDrawer();
@@ -718,6 +728,73 @@ body { padding-top:114px !important; }
     if (currentView === 'jobs') loadJobsView();
 
     await Chat.initBubble(candidate).catch(() => {});
+  }
+
+  // ── Saved Jobs ──
+  async function loadSavedJobs() {
+    const el = document.getElementById('saved-list');
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div>';
+
+    const { data: rows } = await sb.from('saved_jobs').select('job_id, saved_at').eq('candidate_id', candidate.id).order('saved_at', { ascending: false });
+    if (!rows || !rows.length) {
+      el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">🔖</div><p>No saved jobs yet.<br><a href="#jobs" style="color:#3b82f6;font-weight:600;" onclick="location.hash=\'#jobs\'">Browse jobs →</a></p></div>';
+      return;
+    }
+
+    const ids = rows.map(r => r.job_id);
+    const { data: jobs } = await sb.from('jobs').select('*').in('id', ids).eq('delisted', false);
+    const jobMap = new Map((jobs || []).map(j => [String(j.id), j]));
+
+    const appRows = myApps || [];
+    const appMap = {};
+    appRows.forEach(a => { appMap[String(a.job_id)] = a.status; });
+
+    el.innerHTML = rows.map(row => {
+      const job = jobMap.get(row.job_id);
+      if (!job) return '';
+      const expired = job.expires_at && new Date() > new Date(job.expires_at);
+      const appStatus = appMap[String(job.id)];
+      const skills = Array.isArray(job.skills) ? job.skills : (job.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+      const waMsg = encodeURIComponent(`Hi, I saw your job posting for *${job.title}* at *${job.company}* on HireTrack.`);
+      return `<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;margin-bottom:0.25rem;">
+          <div style="font-size:0.9rem;font-weight:800;color:#0f172a;">${job.title}</div>
+          <button onclick="unsaveJob('${job.id}',this)" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:0.75rem;white-space:nowrap;padding:0;">✕ Remove</button>
+        </div>
+        <div style="font-size:0.82rem;color:#64748b;margin-bottom:0.5rem;">🏢 ${job.company} · 📍 ${job.location||'India'}${job.salary?' · 💰 '+job.salary:''}</div>
+        ${skills.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.75rem;">${skills.slice(0,4).map(s=>`<span style="background:#eff6ff;color:#1d4ed8;border-radius:20px;padding:2px 8px;font-size:0.72rem;font-weight:600;">${s}</span>`).join('')}</div>` : ''}
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          ${expired ? '<button style="background:#fef3c7;color:#d97706;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:700;cursor:default;">⚠ Expired</button>'
+            : appStatus ? `<button style="background:#f0fdf4;color:#15803d;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:700;cursor:default;">✓ ${appStatus}</button>`
+            : `<button onclick="savedJobApply('${job.id}','${job.title}','${job.company}',this)" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">Apply Now</button>`}
+          ${job.phone ? `<button onclick="window.open('https://wa.me/91${job.phone}?text=${waMsg}','_blank')" style="background:#dcfce7;color:#15803d;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;">WhatsApp</button>` : ''}
+          <a href="/job.html?id=${job.id}" target="_blank" style="background:#f1f5f9;color:#374151;border:none;border-radius:8px;padding:0.45rem 1rem;font-size:0.8rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;">View ↗</a>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function unsaveJob(jobId, btn) {
+    btn.textContent = '…';
+    await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jobId);
+    loadSavedJobs();
+  }
+
+  async function savedJobApply(jobId, title, company, btn) {
+    btn.textContent = 'Applying…'; btn.disabled = true;
+    const { data: existing } = await sb.from('applications').select('id').eq('candidate_id', candidate.id).eq('job_id', jobId).maybeSingle();
+    if (existing) { btn.textContent = '✓ Applied'; return; }
+    const { error } = await sb.from('applications').insert([{ candidate_id: candidate.id, job_id: jobId, status: 'Applied' }]);
+    if (!error) {
+      btn.textContent = '✓ Applied';
+      btn.style.background = '#f0fdf4'; btn.style.color = '#15803d';
+      showToast('✅ Applied!');
+      myApps.push({ job_id: jobId, status: 'Applied' });
+    } else {
+      btn.textContent = 'Apply Now'; btn.disabled = false;
+      showToast('Failed. Try again.');
+    }
   }
 
   // ── Profile Boost ──

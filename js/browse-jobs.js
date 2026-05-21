@@ -205,6 +205,20 @@
   font-weight: 500;
   align-self: center;
 }
+.bj-save-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 2px;
+  line-height: 1;
+  color: #94a3b8;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.bj-save-btn:hover { opacity: 1; transform: scale(1.15); }
+.bj-save-btn.bj-saved { opacity: 1; filter: sepia(1) saturate(3) hue-rotate(5deg); }
 .bj-card-foot {
   display: flex;
   justify-content: flex-end;
@@ -433,9 +447,10 @@
     Rejected:    'bj-badge-rejected',
   };
 
-  function buildCardHtml(job, applicationStatusMap, isLoggedIn) {
+  function buildCardHtml(job, applicationStatusMap, isLoggedIn, savedJobIds) {
     const jid     = String(job.id);
     const status  = applicationStatusMap[jid];
+    const isSaved = savedJobIds && savedJobIds.has(jid);
     const skills  = getSkills(job);
     const display = skills.slice(0, 5);
     const extra   = skills.length > 5 ? skills.length - 5 : 0;
@@ -448,6 +463,11 @@
     // Status badge
     const statusBadge = status
       ? `<span class="bj-status-badge ${STATUS_BADGE_CLASS[status] || 'bj-badge-applied'}">${escapeHtml(status)}</span>`
+      : '';
+
+    // Save button (only when logged in)
+    const saveBtn = isLoggedIn
+      ? `<button class="bj-save-btn ${isSaved ? 'bj-saved' : ''}" data-action="save" data-jid="${jid}" data-saved="${isSaved ? '1' : ''}" title="${isSaved ? 'Remove from saved' : 'Save job'}" aria-label="${isSaved ? 'Unsave' : 'Save'}">${isSaved ? '🔖' : '🔖'}</button>`
       : '';
 
     // Skill chips
@@ -473,8 +493,8 @@
 
     return `<div class="bj-job-card" data-jid="${jid}">
   <div class="bj-card-top">
-    ${matchBubble}
-    ${statusBadge}
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">${matchBubble}${statusBadge}</div>
+    ${saveBtn}
   </div>
   <a class="bj-title" href="/job.html?id=${jid}" onclick="event.preventDefault()" tabindex="-1" aria-label="${escapeHtml(job.title)} at ${escapeHtml(job.company || '')}">${escapeHtml(job.title)}</a>
   <div class="bj-meta">
@@ -500,14 +520,16 @@
     const {
       applicationStatusMap = {},
       isLoggedIn = false,
+      savedJobIds = null,
       onApplyClick = null,
       onViewApplicationClick = null,
+      onSaveToggle = null,
     } = options;
 
     // Build a lookup map and update the per-container store (used by event delegation)
     const jobMap = new Map();
     jobs.forEach(j => jobMap.set(String(j.id), j));
-    _containerStore.set(containerEl, { jobMap, options: { applicationStatusMap, isLoggedIn, onApplyClick, onViewApplicationClick } });
+    _containerStore.set(containerEl, { jobMap, options: { applicationStatusMap, isLoggedIn, savedJobIds, onApplyClick, onViewApplicationClick, onSaveToggle } });
 
     // Attach delegation listener only once per container element
     if (!_listenersSet.has(containerEl)) {
@@ -525,6 +547,10 @@
 
         if (action === 'apply'  && opts.onApplyClick)            opts.onApplyClick(jid, job);
         if (action === 'view'   && opts.onViewApplicationClick)  opts.onViewApplicationClick(jid);
+        if (action === 'save'   && opts.onSaveToggle) {
+          const isSaved = btn.dataset.saved === '1';
+          opts.onSaveToggle(jid, isSaved, btn);
+        }
         if (action === 'signin') {
           sessionStorage.setItem('redirect_after_login', window.location.href);
           window.location.href = 'login.html';
@@ -539,7 +565,7 @@
     }
 
     containerEl.innerHTML = jobs
-      .map(j => buildCardHtml(j, applicationStatusMap, isLoggedIn))
+      .map(j => buildCardHtml(j, applicationStatusMap, isLoggedIn, savedJobIds))
       .join('');
   }
 
