@@ -306,6 +306,7 @@ body { padding-top:114px !important; }
     <a class="dr-nav-item" href="#profile">👤 My Profile</a>
     <a class="dr-nav-item" href="#applications">📋 My Applications</a>
     <a class="dr-nav-item" href="#pro">⭐ Pro Plan</a>
+    <a class="dr-nav-item" href="#boost">⚡ Boost Profile</a>
     <a class="dr-nav-item" href="#feed">📢 Community Feed</a>
     <a class="dr-nav-item" href="#chat">💬 Messages</a>
   </nav>
@@ -505,6 +506,11 @@ body { padding-top:114px !important; }
     </div>
   </div>
 
+  <!-- VIEW: Boost Profile (#boost) -->
+  <div id="view-boost" style="display:none;">
+    <div id="boost-root"></div>
+  </div>
+
   <!-- VIEW: Community Feed (#feed) -->
   <div id="view-feed" style="display:none;">
     <div style="margin-bottom:1.5rem;">
@@ -610,6 +616,7 @@ body { padding-top:114px !important; }
   </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script src="js/browse-jobs.js"></script>
@@ -625,7 +632,7 @@ body { padding-top:114px !important; }
   let quizData = [], quizIdx = 0;
 
   // ── Router ──
-  const VIEWS = ['jobs','profile','applications','pro','feed','chat'];
+  const VIEWS = ['jobs','profile','applications','pro','boost','feed','chat'];
 
   function route(raw) {
     const hash = (raw || '#jobs').replace(/^#/, '');
@@ -647,6 +654,7 @@ body { padding-top:114px !important; }
     if (target === 'feed') Feed.init('feed-root', candidate);
     if (target === 'chat') Chat.init('chat-root', candidate);
     if (target === 'applications') renderApps(myApps);
+    if (target === 'boost') renderBoostView();
 
     closeDrawer();
   }
@@ -710,6 +718,102 @@ body { padding-top:114px !important; }
     if (currentView === 'jobs') loadJobsView();
 
     await Chat.initBubble(candidate).catch(() => {});
+  }
+
+  // ── Profile Boost ──
+  function renderBoostView() {
+    const root = document.getElementById('boost-root');
+    if (!root) return;
+    const boostedUntil = candidate.boosted_until ? new Date(candidate.boosted_until) : null;
+    const isActive = boostedUntil && boostedUntil > new Date();
+
+    root.innerHTML = `
+      <div style="max-width:480px;margin:0 auto;">
+        <div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border-radius:16px;padding:2rem;text-align:center;color:#fff;margin-bottom:1.5rem;border:2px solid #3b82f6;box-shadow:0 0 40px rgba(59,130,246,0.2);">
+          <div style="font-size:2.5rem;margin-bottom:0.5rem;">⚡</div>
+          <div style="font-size:1.3rem;font-weight:800;margin-bottom:0.4rem;">Profile Boost</div>
+          <div style="color:#93c5fd;font-size:0.85rem;margin-bottom:1.25rem;">Your applications float to the top of every employer's pipeline — with a highlighted badge.</div>
+          ${isActive
+            ? `<div style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:10px;padding:0.75rem 1.5rem;margin-bottom:1rem;">
+                <div style="color:#4ade80;font-weight:800;font-size:0.95rem;">⚡ Boost Active</div>
+                <div style="color:#86efac;font-size:0.8rem;margin-top:0.25rem;">Expires ${boostedUntil.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</div>
+               </div>
+               <button onclick="buyBoost()" style="background:#1d4ed8;color:#fff;border:none;padding:0.85rem 2.5rem;border-radius:10px;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;">Renew for another 7 days — ₹99 →</button>`
+            : `<div style="font-size:2.5rem;font-weight:800;margin:0.25rem 0 0.1rem;color:#fff;">₹99<span style="font-size:1rem;font-weight:400;color:#94a3b8;"> / 7 days</span></div>
+               <div style="color:#94a3b8;font-size:0.82rem;margin-bottom:1.25rem;">One-time · No auto-renewal</div>
+               <button onclick="buyBoost()" style="background:#3b82f6;color:#fff;border:none;padding:1rem 3rem;border-radius:12px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">Boost My Profile Now →</button>`
+          }
+          <div id="boost-err" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#fca5a5;margin-top:1rem;display:none;"></div>
+          <div style="display:flex;justify-content:center;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;">
+            <span style="font-size:0.75rem;color:#64748b;">🔒 Secure via Razorpay</span>
+            <span style="font-size:0.75rem;color:#64748b;">⚡ Instant activation</span>
+            <span style="font-size:0.75rem;color:#64748b;">↩️ 3-day refund policy</span>
+          </div>
+        </div>
+
+        <div style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;overflow:hidden;">
+          <div style="padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:0.78rem;font-weight:800;color:#0f172a;margin-bottom:0.3rem;">⚡ Seen first by employers</div>
+            <div style="font-size:0.82rem;color:#64748b;line-height:1.5;">When an employer opens their applicant pipeline, your card appears at the top — above all non-boosted candidates — with a highlighted badge.</div>
+          </div>
+          <div style="padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:0.78rem;font-weight:800;color:#0f172a;margin-bottom:0.3rem;">🎯 Works across all your applications</div>
+            <div style="font-size:0.82rem;color:#64748b;line-height:1.5;">The boost applies to every job you've applied to — not just one. Maximise your visibility across all open applications.</div>
+          </div>
+          <div style="padding:1rem 1.25rem;">
+            <div style="font-size:0.78rem;font-weight:800;color:#0f172a;margin-bottom:0.3rem;">📅 7 days of priority visibility</div>
+            <div style="font-size:0.82rem;color:#64748b;line-height:1.5;">Boost is active for 7 days from purchase. You can renew at any time — including while a boost is already running (extends the duration).</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function buyBoost() {
+    const errEl = document.getElementById('boost-err');
+    if (errEl) errEl.style.display = 'none';
+
+    let rzpKey, orderId;
+    try {
+      const r = await fetch('/api/razorpay-boost-order', { method: 'POST' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const cfg = await r.json();
+      if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order failed');
+      rzpKey = cfg.key; orderId = cfg.orderId;
+    } catch (e) {
+      if (errEl) { errEl.textContent = 'Payment service unavailable. Please try again.'; errEl.style.display = 'block'; }
+      return;
+    }
+
+    const options = {
+      key: rzpKey, amount: 9900, currency: 'INR', order_id: orderId,
+      name: 'HireTrack', description: 'Profile Boost — 7 days',
+      image: 'https://www.hiretrack.co.in/og-image.png',
+      prefill: { name: candidate.name || '', email: candidate.email || '', contact: candidate.mobile || '' },
+      theme: { color: '#3b82f6' },
+      handler: async function (response) {
+        try {
+          const vr = await fetch('/api/razorpay-boost-verify', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              candidateId: candidate.id
+            })
+          });
+          const result = await vr.json();
+          if (!result.ok) throw new Error(result.error || 'Verification failed');
+          candidate.boosted_until = result.boosted_until;
+          Session.setCandidate(candidate);
+          showToast('⚡ Profile boosted for 7 days!');
+          renderBoostView();
+        } catch (e) {
+          if (errEl) { errEl.textContent = 'Payment received but activation failed. Contact support@hiretrack.co.in'; errEl.style.display = 'block'; }
+        }
+      },
+      modal: { ondismiss: function () {} }
+    };
+    new Razorpay(options).open();
   }
 
   // ── Pro Plan sub-tabs ──

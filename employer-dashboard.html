@@ -102,6 +102,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kcol.k-rejected .kcol-head{color:#dc2626;}
 .kcard{background:#fff;border-radius:8px;padding:0.7rem;border:1px solid #e2e8f0;margin-bottom:0.4rem;transition:all 0.15s;}
 .kcard:hover{border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,0.08);}
+.kcard-boosted{border-color:#f59e0b;background:#fffbeb;}
+.kcard-boosted:hover{border-color:#d97706;}
+.pl-item-boosted{border-color:#f59e0b;background:#fffbeb;}
+.pl-item-boosted:hover{border-color:#d97706;}
+.boost-badge{display:inline-block;background:#fef3c7;color:#d97706;border:1px solid #fcd34d;border-radius:20px;padding:1px 7px;font-size:0.65rem;font-weight:800;margin-left:5px;vertical-align:middle;}
 .kc-name{font-size:0.82rem;font-weight:700;color:#0f172a;margin-bottom:0.15rem;}
 .kc-meta{font-size:0.7rem;color:#64748b;margin-bottom:0.5rem;line-height:1.4;}
 .kc-btns{display:flex;gap:4px;flex-wrap:wrap;}
@@ -608,17 +613,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     return c.profile_photo || null;
   }
 
+  function isBoosted(c) {
+    return c.boosted_until && new Date() < new Date(c.boosted_until);
+  }
+
+  function sortBoostedFirst(apps) {
+    return [...apps].sort((a, b) => {
+      const ab = isBoosted(a.candidates || {}) ? 1 : 0;
+      const bb = isBoosted(b.candidates || {}) ? 1 : 0;
+      return bb - ab;
+    });
+  }
+
   function renderBoard(apps) {
     const colClass = {Viewed:'k-viewed',Applied:'k-applied',Shortlisted:'k-shortlisted',Interview:'k-interview',Hired:'k-hired',Rejected:'k-rejected'};
     document.getElementById('pipeline-content').innerHTML = `<div class="kanban">${STATUSES.map(status => {
-      const cols = apps.filter(a => a.status === status);
+      const cols = sortBoostedFirst(apps.filter(a => a.status === status));
       return `<div class="kcol ${colClass[status]||''}">
         <div class="kcol-head">${status} <span class="kcol-count">${cols.length}</span></div>
         ${cols.map(a => {
           const c = a.candidates; if(!c) return '';
+          const boosted = isBoosted(c);
           const waMsg = encodeURIComponent(`Hi ${c.name}, regarding your application on HireTrack...`);
-          return `<div class="kcard" onclick="openCandidateProfile('${a.candidate_id}','${a.job_id}')">
-            <div class="kc-name">${c.name}</div>
+          return `<div class="kcard${boosted?' kcard-boosted':''}" onclick="openCandidateProfile('${a.candidate_id}','${a.job_id}')">
+            <div class="kc-name">${c.name}${boosted?'<span class="boost-badge">⚡</span>':''}</div>
             <div class="kc-meta">📍 ${c.city||'—'} · ${c.experience||'—'}<br>${(c.skills||[]).slice(0,2).join(', ')}</div>
             <div class="kc-btns" onclick="event.stopPropagation()">
               <button class="kbtn kbtn-wa" onclick="window.open('https://wa.me/91${c.mobile}?text=${waMsg}','_blank')">WA</button>
@@ -633,14 +651,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
 
   function renderList(apps) {
-    document.getElementById('pipeline-content').innerHTML = `<div>${apps.map(a => {
+    document.getElementById('pipeline-content').innerHTML = `<div>${sortBoostedFirst(apps).map(a => {
       const c = a.candidates; if(!c) return '';
+      const boosted = isBoosted(c);
       const initials = c.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       const waMsg = encodeURIComponent(`Hi ${c.name}, regarding your application on HireTrack...`);
-      return `<div class="pl-item" onclick="openCandidateProfile('${a.candidate_id}','${a.job_id}')" style="cursor:pointer;">
+      return `<div class="pl-item${boosted?' pl-item-boosted':''}" onclick="openCandidateProfile('${a.candidate_id}','${a.job_id}')" style="cursor:pointer;">
         <div class="pl-avatar" style="overflow:hidden;">${candidatePhotoUrl(c)?`<img src="${candidatePhotoUrl(c)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`:`${initials}`}</div>
         <div class="pl-info">
-          <div class="pl-name">${c.name}</div>
+          <div class="pl-name">${c.name}${boosted?'<span class="boost-badge">⚡ Boosted</span>':''}</div>
           <div class="pl-meta">📍 ${c.city||'—'} · ${c.experience||'—'} · ${(c.skills||[]).slice(0,3).join(', ')} · Applied ${new Date(a.applied_at).toLocaleDateString('en-IN')}</div>
         </div>
         <div class="pl-actions" onclick="event.stopPropagation()">
