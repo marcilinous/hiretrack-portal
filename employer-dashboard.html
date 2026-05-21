@@ -763,6 +763,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       }]);
     }
 
+    // Send email for meaningful status changes
+    const emailStatuses = ['Shortlisted','Interview','Hired','Rejected'];
+    if (emailStatuses.includes(status)) {
+      const candidateData = allApps.find(a => a.candidate_id === cId && a.job_id === jId)?.candidates;
+      if (candidateData?.email) {
+        fetch('/api/notify-candidate-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidateEmail: candidateData.email,
+            candidateName: candidateData.name,
+            jobTitle: job?.title,
+            company: employer.company,
+            status
+          })
+        }).catch(() => {});
+      }
+    }
+
     updateStats(); loadPipeline(); showToast(`→ ${status}`);
   }
 

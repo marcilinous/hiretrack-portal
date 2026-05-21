@@ -1325,6 +1325,22 @@ body { padding-top:114px !important; }
     if (sumEl) sumEl.textContent = myApps.length;
     _renderPjf();
     showToast('Applied successfully!');
+    // Notify employer — fire and forget
+    if (job?.email) {
+      fetch('/api/notify-employer-application', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employerEmail: job.email,
+          company: job.company,
+          jobTitle: job.title,
+          candidateName: candidate.name,
+          candidateCity: candidate.city,
+          candidateExperience: candidate.experience,
+          candidateSkills: candidate.skills || []
+        })
+      }).catch(() => {});
+    }
   }
 
   function _closePjfDDs(exceptId) {
