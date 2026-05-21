@@ -189,8 +189,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .an-of-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:0.4rem; }
 .an-of-num { font-size:1.6rem; font-weight:800; }
 .an-of-pct { font-size:0.7rem; margin-top:0.2rem; opacity:0.7; }
-@media(max-width:900px){ .an-overview{grid-template-columns:repeat(2,1fr);} .an-funnel-header,.an-bars{grid-template-columns:1.5fr 1fr 1fr 1fr;} .an-funnel-header span:nth-child(5),.an-funnel-header span:nth-child(6),.an-bar-cell:nth-child(5),.an-bar-cell:nth-child(6){display:none;} .an-overall-funnel{flex-wrap:wrap;} .an-of-step{min-width:80px;} }
-@media(max-width:600px){ .an-overview{grid-template-columns:1fr 1fr;} }
+@media(max-width:900px){
+  .an-overview{grid-template-columns:repeat(2,1fr);}
+  .an-funnel-header,.an-bars{grid-template-columns:1.5fr 1fr 1fr 1fr;}
+  .an-funnel-header span:nth-child(5),.an-funnel-header span:nth-child(6),
+  .an-bar-cell:nth-child(5),.an-bar-cell:nth-child(6){display:none;}
+  .an-overall-funnel{flex-wrap:wrap;}
+  .an-of-step{min-width:80px;}
+}
+@media(max-width:600px){
+  .an-overview{grid-template-columns:1fr 1fr;}
+  /* Hide table header — labels come from data-label on each cell */
+  .an-funnel-header{display:none;}
+  /* Switch each job row to a labelled stat grid */
+  .an-bars{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;}
+  .an-bar-cell{background:#f8fafc;border-radius:8px;padding:0.5rem 0.6rem;text-align:left;display:block;}
+  /* Location cell spans full width, plain text */
+  .an-bar-cell:first-child{grid-column:1/-1;background:none;padding:0.1rem 0 0.4rem;font-size:0.75rem;color:#64748b;}
+  /* Inject label above each number from data-label */
+  .an-bar-cell[data-label]::before{content:attr(data-label);display:block;font-size:0.6rem;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:0.2rem;}
+  .an-bar-wrap{display:none;}
+  .an-bar-pct{font-size:0.68rem;}
+  .an-bar-num{font-size:1rem;}
+  /* Overall funnel: 3-col grid, no arrows */
+  .an-of-step::after{display:none;}
+  .an-overall-funnel{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;}
+  .an-of-step{min-width:0;}
+  .an-of-box{margin:0;padding:0.75rem 0.4rem;}
+  .an-of-num{font-size:1.2rem;}
+  .an-of-label{font-size:0.6rem;}
+}
 
 /* ── Company Logo ── */
 .company-logo-wrap { position:relative; display:inline-block; margin-right:1rem; flex-shrink:0; }
@@ -425,15 +453,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         const hi = apps.filter(a => a.status === 'Hired').length;
         const pct = n => v ? Math.round(n/v*100) : 0;
         const bar = (n, cls) => `<div class="an-bar-wrap"><div class="an-bar-fill ${cls}" style="width:${v?Math.round(n/v*100):0}%"></div></div>`;
+        const cell = (n, cls, label) => `<div class="an-bar-cell" data-label="${label}">${bar(n,cls)}<div class="an-bar-num">${n}</div><div class="an-bar-pct">${pct(n)}%</div></div>`;
         return `<div class="an-job-row">
           <div class="an-job-name">📌 ${job.title}</div>
           <div class="an-bars">
             <div class="an-bar-cell" style="font-size:0.75rem;color:#64748b;">${job.location}</div>
-            <div class="an-bar-cell">${bar(v,'fb-views')}<div class="an-bar-num">${v}</div></div>
-            <div class="an-bar-cell">${bar(ap,'fb-applied')}<div class="an-bar-num">${ap}</div><div class="an-bar-pct">${pct(ap)}%</div></div>
-            <div class="an-bar-cell">${bar(sl,'fb-shortlisted')}<div class="an-bar-num">${sl}</div><div class="an-bar-pct">${pct(sl)}%</div></div>
-            <div class="an-bar-cell">${bar(iv,'fb-interview')}<div class="an-bar-num">${iv}</div><div class="an-bar-pct">${pct(iv)}%</div></div>
-            <div class="an-bar-cell">${bar(hi,'fb-hired')}<div class="an-bar-num">${hi}</div><div class="an-bar-pct">${pct(hi)}%</div></div>
+            ${cell(v,'fb-views','Views')}
+            ${cell(ap,'fb-applied','Applied')}
+            ${cell(sl,'fb-shortlisted','Shortlisted')}
+            ${cell(iv,'fb-interview','Interview')}
+            ${cell(hi,'fb-hired','Hired')}
           </div>
         </div>`;
       }).join('');
