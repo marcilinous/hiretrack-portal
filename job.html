@@ -24,6 +24,8 @@
 <!-- JSON-LD placeholder (replaced by JS) -->
 <script id="ld-json" type="application/ld+json">{}</script>
 
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
@@ -352,7 +354,7 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
           <button class="job-share-btn" onclick="shareJob()">🔗 Share</button>
         </div>
       </div>
-      <div class="job-company-row">🏢 ${esc(job.company)}</div>
+      <div class="job-company-row">🏢 ${esc(job.company)}${job.employer_id ? ` &nbsp;<a href="/employer.html?id=${job.employer_id}" style="font-size:0.78rem;color:#3b82f6;font-weight:600;text-decoration:none;" title="View all jobs from this employer">All jobs →</a>` : ''}</div>
       <div class="job-chips">${chipsHtml}</div>
       ${skillsHtml}
       ${job.description ? `<div class="job-section-label">Job Description</div><div class="job-description">${esc(job.description)}</div>` : ''}

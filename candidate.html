@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidate Profile — HireTrack</title>
+<meta name="description" content="View candidate profile on HireTrack.">
+<meta name="robots" content="index, follow">
+
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="HireTrack">
+<meta property="og:title"       content="Candidate Profile — HireTrack">
+<meta property="og:description" content="View candidate profile on HireTrack.">
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
+<style>
+body { padding-top: 64px; background: #f8fafc; }
+
+.cp-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.cp-breadcrumb {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cp-breadcrumb a { color: #3b82f6; text-decoration: none; }
+.cp-breadcrumb a:hover { text-decoration: underline; }
+
+/* ── Header card ── */
+.cp-header-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #e2e8f0;
+  padding: 2rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.cp-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.cp-initials {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -1px;
+}
+
+.cp-header-info { flex: 1; min-width: 0; }
+
+.cp-name {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+.cp-title {
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 0.5rem;
+}
+
+.cp-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+.cp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.cp-badge-boosted {
+  background: linear-gradient(135deg,#fef3c7,#fde68a);
+  color: #92400e;
+}
+
+.cp-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.cp-btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: opacity 0.15s;
+}
+.cp-btn-primary:hover { opacity: 0.87; }
+
+.cp-btn-secondary {
+  background: #f1f5f9;
+  color: #374151;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.15s;
+}
+.cp-btn-secondary:hover { background: #e2e8f0; }
+
+/* ── Info cards ── */
+.cp-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.cp-card-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.9rem;
+}
+
+.cp-about-text {
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.cp-skills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.cp-skill {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.cp-pref-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+}
+
+.cp-pref-item { }
+.cp-pref-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 2px;
+}
+.cp-pref-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* ── Loading / error ── */
+.cp-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.cp-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  color: #ef4444;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .cp-header-card { flex-direction: column; gap: 1rem; align-items: center; text-align: center; }
+  .cp-meta-row { justify-content: center; }
+  .cp-actions { justify-content: center; }
+  .cp-pref-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="cp-wrap">
+  <div class="cp-breadcrumb">
+    <a href="/index.html">Home</a>
+    <span>›</span>
+    <a href="/jobs.html">Jobs</a>
+    <span>›</span>
+    <span id="bc-name">Candidate Profile</span>
+  </div>
+
+  <div id="cp-content">
+    <div class="cp-loading">Loading profile…</div>
+  </div>
+</div>
+
+<footer class="ht-footer">
+  <div class="ht-footer-top">
+    <p class="ht-follow-label">Follow Us</p>
+    <div class="ht-underline"></div>
+    <div class="ht-socials">
+      <a class="ht-social" href="#" title="Facebook">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="LinkedIn">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="Twitter / X">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a class="ht-social" href="#" title="Instagram">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
+    </div>
+    <nav class="ht-nav-links">
+      <a href="about.html">About</a><span class="ht-sep">·</span>
+      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
+      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
+      <a href="pricing.html">Pricing</a><span class="ht-sep">·</span>
+      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
+      <a href="terms.html">Terms of Use</a>
+    </nav>
+  </div>
+  <div class="ht-footer-bottom">
+    <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+document.getElementById('navbar').innerHTML = renderNavbar('');
+
+(async function () {
+  const params      = new URLSearchParams(window.location.search);
+  const candidateId = params.get('id');
+  const content     = document.getElementById('cp-content');
+
+  if (!candidateId) {
+    content.innerHTML = '<div class="cp-error">No candidate ID specified. <a href="/jobs.html">Browse jobs →</a></div>';
+    return;
+  }
+
+  // Fetch public-safe fields only — no email, mobile, resume data
+  const { data: c, error } = await sb
+    .from('candidates')
+    .select('id,name,jobtitle,city,experience,current_company,preferred_job_type,notice_period,expected_salary,about,skills,photo_url,created_at,boosted_until')
+    .eq('id', candidateId)
+    .single();
+
+  if (error || !c) {
+    content.innerHTML = '<div class="cp-error">Profile not found. <a href="/jobs.html">Browse jobs →</a></div>';
+    return;
+  }
+
+  // Update page title and meta
+  const displayName = c.name || 'Candidate';
+  const jobTitle    = c.jobtitle || 'Job Seeker';
+  document.title = `${displayName} — ${jobTitle} | HireTrack`;
+  document.getElementById('bc-name').textContent = displayName;
+  document.querySelector('meta[property="og:title"]').setAttribute('content', `${displayName} — ${jobTitle} | HireTrack`);
+  document.querySelector('meta[property="og:description"]').setAttribute('content', `${jobTitle}${c.city ? ` · ${c.city}` : ''}${c.experience ? ` · ${c.experience}` : ''} — View profile on HireTrack`);
+
+  // Avatar
+  const initials  = displayName.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+  const bgColors  = ['#2563eb','#7c3aed','#db2777','#059669','#d97706','#dc2626'];
+  const bgColor   = bgColors[displayName.charCodeAt(0) % bgColors.length];
+  const avatarHtml = c.photo_url
+    ? `<img class="cp-avatar" src="${esc(c.photo_url)}" alt="${esc(displayName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+       <div class="cp-initials" style="background:${bgColor};display:none;">${initials}</div>`
+    : `<div class="cp-initials" style="background:${bgColor};">${initials}</div>`;
+
+  // Boost badge
+  const isBoosted = c.boosted_until && new Date(c.boosted_until) > new Date();
+  const boostedBadge = isBoosted
+    ? `<span class="cp-badge cp-badge-boosted">⚡ Boosted Profile</span>`
+    : '';
+
+  // Meta chips
+  const metaChips = [
+    c.city          ? `<span class="cp-badge">📍 ${esc(c.city)}</span>` : '',
+    c.experience    ? `<span class="cp-badge">🎓 ${esc(c.experience)}</span>` : '',
+    c.current_company ? `<span class="cp-badge">🏢 ${esc(c.current_company)}</span>` : '',
+    boostedBadge,
+  ].filter(Boolean).join('');
+
+  // Since year
+  const sinceYear = c.created_at ? new Date(c.created_at).getFullYear() : null;
+
+  // Chat / message button — only for logged-in employers
+  const employer = Session.getEmployer?.();
+  const messageBtn = employer
+    ? `<button class="cp-btn-primary" onclick="startEmployerChat('${c.id}')">💬 Message</button>`
+    : `<a href="/employer-auth.html" class="cp-btn-primary">💬 Message Candidate</a>`;
+
+  // Skills
+  const skills = Array.isArray(c.skills) ? c.skills : [];
+  const skillsHtml = skills.length
+    ? `<div class="cp-card">
+        <div class="cp-card-heading">Skills</div>
+        <div class="cp-skills-wrap">${skills.map(s => `<span class="cp-skill">${esc(s)}</span>`).join('')}</div>
+       </div>`
+    : '';
+
+  // About
+  const aboutHtml = c.about
+    ? `<div class="cp-card">
+        <div class="cp-card-heading">About</div>
+        <div class="cp-about-text">${esc(c.about)}</div>
+       </div>`
+    : '';
+
+  // Preferences
+  const prefs = [
+    { label: 'Job Type',      value: c.preferred_job_type },
+    { label: 'Notice Period', value: c.notice_period },
+    { label: 'Expected CTC',  value: c.expected_salary },
+    { label: 'Location',      value: c.city },
+  ].filter(p => p.value);
+
+  const prefsHtml = prefs.length
+    ? `<div class="cp-card">
+        <div class="cp-card-heading">Job Preferences</div>
+        <div class="cp-pref-grid">${prefs.map(p => `
+          <div class="cp-pref-item">
+            <div class="cp-pref-label">${p.label}</div>
+            <div class="cp-pref-value">${esc(p.value)}</div>
+          </div>`).join('')}
+        </div>
+       </div>`
+    : '';
+
+  content.innerHTML = `
+    <div class="cp-header-card">
+      ${avatarHtml}
+      <div class="cp-header-info">
+        <div class="cp-name">${esc(displayName)}</div>
+        <div class="cp-title">${esc(jobTitle)}</div>
+        <div class="cp-meta-row">${metaChips}</div>
+        ${sinceYear ? `<div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.6rem;">On HireTrack since ${sinceYear}</div>` : ''}
+        <div class="cp-actions">
+          ${messageBtn}
+          <button class="cp-btn-secondary" onclick="copyProfileLink()">🔗 Copy Link</button>
+        </div>
+      </div>
+    </div>
+
+    ${skillsHtml}
+    ${aboutHtml}
+    ${prefsHtml}
+
+    <div style="text-align:center;padding:1.5rem;background:#f8fafc;border-radius:12px;border:1.5px dashed #e2e8f0;">
+      <div style="font-size:0.85rem;color:#64748b;margin-bottom:0.75rem;">Looking to hire? Post a job on HireTrack.</div>
+      <a href="/employer-auth.html" class="cp-btn-primary">Post a Job →</a>
+    </div>
+  `;
+})();
+
+function copyProfileLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    showToast('Profile link copied!');
+  }).catch(() => {
+    const el = document.createElement('input');
+    el.value = window.location.href;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('Profile link copied!');
+  });
+}
+
+function startEmployerChat(candidateId) {
+  // Navigate to employer dashboard chat with this candidate pre-selected
+  window.location.href = `/employer-dashboard.html#chat?with=${candidateId}`;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>

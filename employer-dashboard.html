@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>body{padding-top:0!important;}</style>
 <title>Employer Dashboard — HireTrack</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
@@ -112,6 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .kc-btns{display:flex;gap:4px;flex-wrap:wrap;}
 .kbtn{padding:2px 8px;border-radius:5px;font-size:0.68rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;}
 .kbtn-wa{background:#dcfce7;color:#15803d;}
+.kbtn-cv{background:#eff6ff;color:#1d4ed8;}
 .kbtn-status{border:1px solid #e2e8f0;border-radius:5px;padding:2px 5px;font-size:0.68rem;font-family:inherit;outline:none;background:#fff;}
 
 /* List pipeline */
@@ -159,6 +162,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 @media(max-width:900px){.stats-inner{grid-template-columns:repeat(3,1fr);}.kanban{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:600px){.stats-inner{grid-template-columns:repeat(2,1fr);}.kanban{grid-template-columns:repeat(2,1fr);}.job-metrics{display:none;}}
+
+/* ── Analytics export button ── */
+.btn-csv-export{background:#2563eb;color:#fff;border:1.5px solid #2563eb;border-radius:8px;padding:0.38rem 0.85rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity 0.15s;}
+.btn-csv-export:hover{opacity:0.85;}
 
 /* ── Analytics ── */
 .an-overview { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1rem; margin-bottom:1.5rem; }
@@ -331,7 +338,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="tab-analytics" style="display:none;">
     <div class="an-overview" id="an-overview"></div>
     <div id="an-attention" style="display:none;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.25rem;"></div>
-    <p class="an-section-title">Per-Job Performance</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+      <p class="an-section-title" style="margin-bottom:0;">Per-Job Performance</p>
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="exportCSV('apps')" class="btn-csv-export">⬇ Export Applications</button>
+        <button onclick="exportCSV('jobs')" class="btn-csv-export" style="background:#f1f5f9;color:#374151;border-color:#e2e8f0;">⬇ Job Summary</button>
+      </div>
+    </div>
     <div class="an-funnel-card">
       <div class="an-funnel-header">
         <span>Location</span><span>Views</span><span>Applied</span><span>Shortlisted</span><span>Interview</span><span>Hired</span>
@@ -589,6 +602,60 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>`;
   }
 
+  // ── CSV EXPORT ──
+  function exportCSV(type) {
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    if (type === 'apps') {
+      if (!allApps.length) { showToast('No applications to export.'); return; }
+      const headers = ['Job Title', 'Job Location', 'Candidate Name', 'Email', 'Phone', 'City', 'Experience', 'Skills', 'Status', 'Applied On'];
+      const rows = allApps.map(app => {
+        const job = myJobs.find(j => j.id === app.job_id) || {};
+        const c   = app.candidates || {};
+        const skills    = Array.isArray(c.skills) ? c.skills.join('; ') : (c.skills || '');
+        const appliedOn = app.applied_at ? new Date(app.applied_at).toLocaleDateString('en-IN') : '';
+        return [job.title, job.location, c.name, c.email, c.mobile, c.city, c.experience, skills, app.status, appliedOn];
+      });
+      downloadCSV(`hiretrack-applications-${dateStr}.csv`, headers, rows);
+      showToast(`Exported ${allApps.length} application${allApps.length !== 1 ? 's' : ''}`);
+      return;
+    }
+
+    if (type === 'jobs') {
+      if (!myJobs.length) { showToast('No jobs to export.'); return; }
+      const headers = ['Job Title', 'Location', 'Posted On', 'Expires On', 'Status', 'Views', 'Applied', 'Shortlisted', 'Interview', 'Hired', 'Rejected'];
+      const now = new Date();
+      const rows = myJobs.map(job => {
+        const apps = allApps.filter(a => a.job_id === job.id);
+        const status = job.delisted ? 'Delisted' : (job.expires_at && now > new Date(job.expires_at)) ? 'Expired' : 'Active';
+        return [
+          job.title, job.location,
+          job.posted_at  ? new Date(job.posted_at).toLocaleDateString('en-IN')  : '',
+          job.expires_at ? new Date(job.expires_at).toLocaleDateString('en-IN') : '',
+          status, job.views || 0, apps.length,
+          apps.filter(a => a.status === 'Shortlisted').length,
+          apps.filter(a => a.status === 'Interview').length,
+          apps.filter(a => a.status === 'Hired').length,
+          apps.filter(a => a.status === 'Rejected').length,
+        ];
+      });
+      downloadCSV(`hiretrack-jobs-${dateStr}.csv`, headers, rows);
+      showToast(`Exported ${myJobs.length} job${myJobs.length !== 1 ? 's' : ''}`);
+    }
+  }
+
+  function downloadCSV(filename, headers, rows) {
+    const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines  = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
+    const blob   = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url    = URL.createObjectURL(blob);
+    const a      = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   // ── JOBS ──
   function renderJobs() {
     const el = document.getElementById('jobs-list');
@@ -686,6 +753,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const exp = new Date(); exp.setDate(exp.getDate() + (employer.day_limit || 15));
     await sb.from('jobs').update({ expires_at: exp.toISOString(), delisted: false, posted_at: new Date().toISOString() }).eq('id', id);
     showToast('✅ Reposted!'); await init();
+    // Fire-and-forget: alert subscribed candidates about the reposted job
+    const job = myJobs.find(j => j.id === id);
+    if (job) {
+      fetch('/api/email?action=trigger-alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: job.title, company: job.company, location: job.location, salary: job.salary, jobType: job.job_type, skills: job.skills, jobId: id })
+      }).catch(() => {});
+    }
   }
 
   function upgradePrompt() { if (confirm('Requires a paid plan. View pricing?')) window.location.href = 'pricing.html'; }
@@ -745,6 +821,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
             <div class="kc-meta">📍 ${c.city||'—'} · ${c.experience||'—'}<br>${(c.skills||[]).slice(0,2).join(', ')}</div>
             <div class="kc-btns" onclick="event.stopPropagation()">
               <button class="kbtn kbtn-wa" onclick="window.open('https://wa.me/91${c.mobile}?text=${waMsg}','_blank')">WA</button>
+              ${(c.resume_url||c.resume_data) ? `<button class="kbtn kbtn-cv" onclick="downloadCV('${c.id}','${c.resume_name||'resume.pdf'}')">CV</button>` : ''}
               <select class="kbtn-status" onchange="updateStatus('${a.candidate_id}','${a.job_id}',this.value)">
                 ${STATUSES.map(s=>`<option ${s===status?'selected':''}>${s}</option>`).join('')}
               </select>
@@ -871,7 +948,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const job = myJobs.find(j => j.id === jId);
     const oldStatus = app?.status;
 
-    await sb.from('applications').update({ status }).eq('candidate_id', cId).eq('job_id', jId);
+    await sb.from('applications').update({ status, status_updated_at: new Date().toISOString() }).eq('candidate_id', cId).eq('job_id', jId);
     if (app) app.status = status;
 
     // Skip notifications if status didn't actually change

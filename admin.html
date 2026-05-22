@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — HireTrack</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #0f172a; min-height: 100vh; }
+
+/* ── Top bar ── */
+.adm-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: #0f172a; padding: 0 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.adm-logo { font-size: 1.1rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.adm-logo span { color: #3b82f6; }
+.adm-bar-right { display: flex; align-items: center; gap: 0.75rem; }
+.adm-user { font-size: 0.8rem; color: #94a3b8; }
+.adm-logout { background: #1e293b; color: #94a3b8; border: none; padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-family: inherit; }
+.adm-logout:hover { color: #fff; }
+
+/* ── Login gate ── */
+.adm-login-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+.adm-login-card {
+  background: #fff; border-radius: 16px; padding: 2.5rem 2rem;
+  width: 100%; max-width: 380px; text-align: center;
+}
+.adm-login-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.adm-login-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.35rem; }
+.adm-login-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 1.5rem; }
+.adm-input {
+  width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #e2e8f0;
+  border-radius: 9px; font-size: 0.9rem; font-family: inherit;
+  margin-bottom: 0.75rem; outline: none;
+}
+.adm-input:focus { border-color: #3b82f6; }
+.adm-btn {
+  width: 100%; padding: 0.75rem; background: #2563eb; color: #fff;
+  border: none; border-radius: 9px; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.adm-btn:hover { background: #1d4ed8; }
+.adm-err { color: #ef4444; font-size: 0.82rem; margin-top: 0.5rem; min-height: 1.2rem; }
+
+/* ── Main layout ── */
+.adm-wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+/* ── Stats grid ── */
+.adm-stats {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem; margin-bottom: 1.5rem;
+}
+.adm-stat {
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+.adm-stat-num { font-size: 1.8rem; font-weight: 900; color: #0f172a; line-height: 1; }
+.adm-stat-label { font-size: 0.7rem; font-weight: 600; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.adm-stat-sub { font-size: 0.72rem; color: #22c55e; font-weight: 600; margin-top: 4px; }
+
+/* ── Tabs ── */
+.adm-tabs {
+  display: flex; gap: 0.4rem; margin-bottom: 1.25rem;
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  padding: 0.35rem; width: fit-content;
+}
+.adm-tab {
+  padding: 0.45rem 1rem; border-radius: 8px; border: none;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  font-family: inherit; color: #64748b; background: none;
+  transition: all 0.15s;
+}
+.adm-tab.active { background: #2563eb; color: #fff; }
+
+/* ── Filter row ── */
+.adm-filter-row {
+  display: flex; gap: 0.5rem; align-items: center;
+  flex-wrap: wrap; margin-bottom: 1rem;
+}
+.adm-filter-btn {
+  padding: 0.35rem 0.85rem; border-radius: 20px; border: 1.5px solid #e2e8f0;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  font-family: inherit; background: #fff; color: #64748b;
+}
+.adm-filter-btn.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+/* ── Table ── */
+.adm-table-wrap { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.adm-table th {
+  background: #f8fafc; padding: 0.75rem 1rem; text-align: left;
+  font-size: 0.7rem; font-weight: 700; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.4px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+.adm-table td {
+  padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #f8fafc; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: 0.68rem; font-weight: 700;
+}
+.badge-active  { background: #dcfce7; color: #15803d; }
+.badge-expired { background: #fef3c7; color: #92400e; }
+.badge-delisted{ background: #fee2e2; color: #b91c1c; }
+.badge-paid    { background: #ede9fe; color: #6d28d9; }
+.badge-free    { background: #f1f5f9; color: #64748b; }
+.badge-boosted { background: linear-gradient(135deg,#fef3c7,#fde68a); color: #92400e; }
+
+/* ── Action buttons ── */
+.adm-action {
+  padding: 0.28rem 0.7rem; border-radius: 6px; border: 1.5px solid;
+  font-size: 0.72rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: opacity 0.15s;
+}
+.adm-action:hover { opacity: 0.8; }
+.adm-action-delist  { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.adm-action-relist  { background: #dcfce7; color: #15803d; border-color: #86efac; }
+.adm-action-view    { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+
+/* ── Pagination ── */
+.adm-pager { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+.adm-page-btn {
+  padding: 0.4rem 0.9rem; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  font-family: inherit; background: #fff; color: #374151;
+}
+.adm-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.adm-page-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* ── Loading / empty ── */
+.adm-loading { text-align: center; padding: 3rem; color: #94a3b8; font-size: 0.88rem; }
+
+/* ── Toast ── */
+.adm-toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: #0f172a; color: #fff; padding: 0.65rem 1.4rem;
+  border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+  z-index: 9999; opacity: 0; transition: opacity 0.25s;
+  pointer-events: none; white-space: nowrap;
+}
+.adm-toast.show { opacity: 1; }
+
+@media (max-width: 640px) {
+  .adm-table th:nth-child(n+4), .adm-table td:nth-child(n+4) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-gate" class="adm-login-wrap">
+  <div class="adm-login-card">
+    <div class="adm-login-icon">🔐</div>
+    <div class="adm-login-title">Admin Dashboard</div>
+    <div class="adm-login-sub">HireTrack internal — authorised access only</div>
+    <input type="password" id="adm-pw" class="adm-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="adm-btn" onclick="doLogin()">Sign In</button>
+    <div class="adm-err" id="adm-err"></div>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD (hidden until logged in) -->
+<div id="dashboard" style="display:none;">
+
+  <div class="adm-bar">
+    <div class="adm-logo">Hire<span>Track</span> <span style="color:#64748b;font-size:0.75rem;font-weight:500;margin-left:6px;">Admin</span></div>
+    <div class="adm-bar-right">
+      <span class="adm-user">Internal only</span>
+      <button class="adm-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="adm-wrap">
+
+    <!-- Stats -->
+    <div class="adm-stats" id="stats-grid">
+      <div class="adm-stat"><div class="adm-stat-num" id="s-candidates">—</div><div class="adm-stat-label">Candidates</div><div class="adm-stat-sub" id="s-cands-7d"></div></div>
+      <div class="adm-stat"><div class="adm-stat-num" id="s-employers">—</div><div class="adm-stat-label">Employers</div><div class="adm-stat-sub" id="s-emps-7d"></div></div>
+      <div class="adm-stat"><div class="adm-stat-num" id="s-jobs">—</div><div class="adm-stat-label">Active Jobs</div></div>
+      <div class="adm-stat"><div class="adm-stat-num" id="s-apps">—</div><div class="adm-stat-label">Applications</div></div>
+      <div class="adm-stat"><div class="adm-stat-num" id="s-paid">—</div><div class="adm-stat-label">Paid Employers</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="adm-tabs">
+      <button class="adm-tab active" onclick="switchTab('jobs')">💼 Jobs</button>
+      <button class="adm-tab" onclick="switchTab('employers')">🏢 Employers</button>
+      <button class="adm-tab" onclick="switchTab('candidates')">👤 Candidates</button>
+    </div>
+
+    <!-- JOBS TAB -->
+    <div id="tab-jobs">
+      <div class="adm-filter-row">
+        <button class="adm-filter-btn active" onclick="setJobFilter('all',this)">All</button>
+        <button class="adm-filter-btn" onclick="setJobFilter('active',this)">Active</button>
+        <button class="adm-filter-btn" onclick="setJobFilter('delisted',this)">Delisted</button>
+      </div>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Company</th>
+              <th>Location</th>
+              <th>Posted</th>
+              <th>Apps</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobs-tbody"><tr><td colspan="7" class="adm-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="adm-pager">
+        <button class="adm-page-btn" id="jobs-prev" onclick="jobsPage--; loadJobs()" disabled>← Prev</button>
+        <span id="jobs-page-lbl" style="padding:0.4rem 0.5rem;font-size:0.8rem;color:#64748b;"></span>
+        <button class="adm-page-btn" id="jobs-next" onclick="jobsPage++; loadJobs()">Next →</button>
+      </div>
+    </div>
+
+    <!-- EMPLOYERS TAB -->
+    <div id="tab-employers" style="display:none;">
+      <div class="adm-filter-row">
+        <button class="adm-filter-btn active" onclick="setEmpFilter('all',this)">All</button>
+        <button class="adm-filter-btn" onclick="setEmpFilter('paid',this)">Paid</button>
+        <button class="adm-filter-btn" onclick="setEmpFilter('free',this)">Free</button>
+      </div>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Contact</th>
+              <th>City</th>
+              <th>Plan</th>
+              <th>Plan Expires</th>
+              <th>Active Jobs</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="emps-tbody"><tr><td colspan="7" class="adm-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="adm-pager">
+        <button class="adm-page-btn" id="emps-prev" onclick="empsPage--; loadEmployers()" disabled>← Prev</button>
+        <span id="emps-page-lbl" style="padding:0.4rem 0.5rem;font-size:0.8rem;color:#64748b;"></span>
+        <button class="adm-page-btn" id="emps-next" onclick="empsPage++; loadEmployers()">Next →</button>
+      </div>
+    </div>
+
+    <!-- CANDIDATES TAB -->
+    <div id="tab-candidates" style="display:none;">
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Job Title</th>
+              <th>City</th>
+              <th>Experience</th>
+              <th>Skills</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cands-tbody"><tr><td colspan="7" class="adm-loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="adm-pager">
+        <button class="adm-page-btn" id="cands-prev" onclick="candsPage--; loadCandidates()" disabled>← Prev</button>
+        <span id="cands-page-lbl" style="padding:0.4rem 0.5rem;font-size:0.8rem;color:#64748b;"></span>
+        <button class="adm-page-btn" id="cands-next" onclick="candsPage++; loadCandidates()">Next →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="adm-toast" id="adm-toast"></div>
+
+<script>
+const PAGE_SIZE = 30;
+let adminToken = sessionStorage.getItem('ht_admin_token') || '';
+let jobsPage = 0, jobsFilter = 'all';
+let empsPage = 0, empsFilter = 'all';
+let candsPage = 0;
+let currentTab = 'jobs';
+
+// Auto-login if token in session
+if (adminToken) showDashboard();
+
+async function doLogin() {
+  const pw = document.getElementById('adm-pw').value.trim();
+  if (!pw) return;
+  document.getElementById('adm-err').textContent = '';
+  const res = await adm('login', { password: pw }, false);
+  if (res.ok) {
+    adminToken = res.token;
+    sessionStorage.setItem('ht_admin_token', adminToken);
+    showDashboard();
+  } else {
+    document.getElementById('adm-err').textContent = 'Incorrect password.';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('ht_admin_token');
+  adminToken = '';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-gate').style.display = 'flex';
+}
+
+function showDashboard() {
+  document.getElementById('login-gate').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadStats();
+  loadJobs();
+}
+
+// ── API helper ──
+async function adm(action, body = {}, withToken = true) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (withToken) headers['x-admin-token'] = adminToken;
+  const r = await fetch(`/api/admin?action=${action}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ ...body, action }),
+  });
+  if (r.status === 401) { doLogout(); return { ok: false }; }
+  return r.json();
+}
+
+// ── Stats ──
+async function loadStats() {
+  const res = await adm('stats');
+  if (!res.ok) return;
+  const s = res.stats;
+  document.getElementById('s-candidates').textContent = fmt(s.candidates);
+  document.getElementById('s-employers').textContent  = fmt(s.employers);
+  document.getElementById('s-jobs').textContent       = fmt(s.activeJobs);
+  document.getElementById('s-apps').textContent       = fmt(s.applications);
+  document.getElementById('s-paid').textContent       = fmt(s.paidEmployers);
+  if (s.newCands7d) document.getElementById('s-cands-7d').textContent = `+${s.newCands7d} this week`;
+  if (s.newEmps7d)  document.getElementById('s-emps-7d').textContent  = `+${s.newEmps7d} this week`;
+}
+
+// ── Tabs ──
+function switchTab(tab) {
+  ['jobs','employers','candidates'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.adm-tab').forEach((b, i) => {
+    b.classList.toggle('active', ['jobs','employers','candidates'][i] === tab);
+  });
+  currentTab = tab;
+  if (tab === 'jobs' && document.getElementById('jobs-tbody').textContent.includes('Loading')) loadJobs();
+  if (tab === 'employers') loadEmployers();
+  if (tab === 'candidates') loadCandidates();
+}
+
+// ── Jobs ──
+function setJobFilter(f, el) {
+  jobsFilter = f; jobsPage = 0;
+  document.querySelectorAll('#tab-jobs .adm-filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadJobs();
+}
+
+async function loadJobs() {
+  document.getElementById('jobs-tbody').innerHTML = '<tr><td colspan="7" class="adm-loading">Loading…</td></tr>';
+  document.getElementById('jobs-prev').disabled = jobsPage === 0;
+  const res = await adm('jobs', { page: jobsPage, filter: jobsFilter });
+  if (!res.ok) return;
+  const jobs = res.jobs;
+  document.getElementById('jobs-next').disabled = jobs.length < PAGE_SIZE;
+  document.getElementById('jobs-page-lbl').textContent = `Page ${jobsPage + 1}`;
+  if (!jobs.length) {
+    document.getElementById('jobs-tbody').innerHTML = '<tr><td colspan="7" class="adm-loading">No jobs found.</td></tr>';
+    return;
+  }
+  const now = new Date();
+  document.getElementById('jobs-tbody').innerHTML = jobs.map(j => {
+    const isExpired = j.expires_at && new Date(j.expires_at) < now;
+    const status = j.delisted ? 'delisted' : isExpired ? 'expired' : 'active';
+    const statusBadge = {
+      active:   '<span class="badge badge-active">Active</span>',
+      expired:  '<span class="badge badge-expired">Expired</span>',
+      delisted: '<span class="badge badge-delisted">Delisted</span>',
+    }[status];
+    const actionBtn = j.delisted
+      ? `<button class="adm-action adm-action-relist" onclick="relistJob('${j.id}', this)">Relist</button>`
+      : `<button class="adm-action adm-action-delist" onclick="delistJob('${j.id}', this)">Delist</button>`;
+    return `<tr id="job-row-${j.id}">
+      <td><a href="/job.html?id=${j.id}" target="_blank" style="color:#2563eb;font-weight:600;text-decoration:none;">${esc(j.title)}</a></td>
+      <td style="color:#374151;">${esc(j.company)}</td>
+      <td style="color:#64748b;">${esc(j.location || '—')}</td>
+      <td style="color:#94a3b8;">${fmtDate(j.posted_at)}</td>
+      <td style="font-weight:700;">${j.application_count}</td>
+      <td>${statusBadge}</td>
+      <td style="display:flex;gap:0.4rem;align-items:center;">
+        ${actionBtn}
+        <a href="/employer.html?id=${j.employer_id}" target="_blank" class="adm-action adm-action-view" style="text-decoration:none;">Employer ↗</a>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function delistJob(jobId, btn) {
+  btn.disabled = true; btn.textContent = '…';
+  const res = await adm('delist', { jobId });
+  if (res.ok) {
+    toast('Job delisted.');
+    loadJobs();
+  } else { btn.disabled = false; btn.textContent = 'Delist'; toast('Failed.'); }
+}
+
+async function relistJob(jobId, btn) {
+  btn.disabled = true; btn.textContent = '…';
+  const res = await adm('relist', { jobId });
+  if (res.ok) {
+    toast('Job relisted.');
+    loadJobs();
+  } else { btn.disabled = false; btn.textContent = 'Relist'; toast('Failed.'); }
+}
+
+// ── Employers ──
+function setEmpFilter(f, el) {
+  empsFilter = f; empsPage = 0;
+  document.querySelectorAll('#tab-employers .adm-filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadEmployers();
+}
+
+async function loadEmployers() {
+  document.getElementById('emps-tbody').innerHTML = '<tr><td colspan="7" class="adm-loading">Loading…</td></tr>';
+  document.getElementById('emps-prev').disabled = empsPage === 0;
+  const res = await adm('employers', { page: empsPage, filter: empsFilter });
+  if (!res.ok) return;
+  const emps = res.employers;
+  document.getElementById('emps-next').disabled = emps.length < PAGE_SIZE;
+  document.getElementById('emps-page-lbl').textContent = `Page ${empsPage + 1}`;
+  if (!emps.length) {
+    document.getElementById('emps-tbody').innerHTML = '<tr><td colspan="7" class="adm-loading">No employers found.</td></tr>';
+    return;
+  }
+  const now = new Date();
+  document.getElementById('emps-tbody').innerHTML = emps.map(e => {
+    const isPaid = e.plan && e.plan !== 'free';
+    const isActive = isPaid && (!e.plan_expires_at || new Date(e.plan_expires_at) > now);
+    const planBadge = isActive
+      ? `<span class="badge badge-paid">${esc(e.plan)}</span>`
+      : `<span class="badge badge-free">${e.plan || 'free'}</span>`;
+    const expiresText = e.plan_expires_at
+      ? fmtDate(e.plan_expires_at)
+      : '—';
+    return `<tr>
+      <td><a href="/employer.html?id=${e.id}" target="_blank" style="color:#2563eb;font-weight:600;text-decoration:none;">${esc(e.company || '—')}</a></td>
+      <td style="color:#374151;">${esc(e.contact_name || '—')}</td>
+      <td style="color:#64748b;">${esc(e.city || '—')}</td>
+      <td>${planBadge}</td>
+      <td style="color:#94a3b8;font-size:0.78rem;">${expiresText}</td>
+      <td style="font-weight:700;">${e.job_count}</td>
+      <td style="color:#94a3b8;">${fmtDate(e.created_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Candidates ──
+async function loadCandidates() {
+  document.getElementById('cands-tbody').innerHTML = '<tr><td colspan="7" class="adm-loading">Loading…</td></tr>';
+  document.getElementById('cands-prev').disabled = candsPage === 0;
+  const res = await adm('candidates', { page: candsPage });
+  if (!res.ok) return;
+  const cands = res.candidates;
+  document.getElementById('cands-next').disabled = cands.length < PAGE_SIZE;
+  document.getElementById('cands-page-lbl').textContent = `Page ${candsPage + 1}`;
+  if (!cands.length) {
+    document.getElementById('cands-tbody').innerHTML = '<tr><td colspan="7" class="adm-loading">No candidates found.</td></tr>';
+    return;
+  }
+  const now = new Date();
+  document.getElementById('cands-tbody').innerHTML = cands.map(c => {
+    const skills = Array.isArray(c.skills) ? c.skills.slice(0, 3).join(', ') : '—';
+    const isBoosted = c.boosted_until && new Date(c.boosted_until) > now;
+    return `<tr>
+      <td>
+        <a href="/candidate.html?id=${c.id}" target="_blank" style="color:#2563eb;font-weight:600;text-decoration:none;">${esc(c.name || '—')}</a>
+        ${isBoosted ? '<span class="badge badge-boosted" style="margin-left:4px;">⚡</span>' : ''}
+      </td>
+      <td style="color:#374151;">${esc(c.jobtitle || '—')}</td>
+      <td style="color:#64748b;">${esc(c.city || '—')}</td>
+      <td style="color:#64748b;">${esc(c.experience || '—')}</td>
+      <td style="color:#94a3b8;font-size:0.78rem;">${esc(skills)}</td>
+      <td style="color:#94a3b8;">${fmtDate(c.created_at)}</td>
+      <td><a href="/candidate.html?id=${c.id}" target="_blank" class="adm-action adm-action-view" style="text-decoration:none;">View ↗</a></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Helpers ──
+function fmt(n) { return n != null ? n.toLocaleString('en-IN') : '—'; }
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg) {
+  const el = document.getElementById('adm-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

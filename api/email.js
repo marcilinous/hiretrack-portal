@@ -319,7 +319,7 @@ async function triggerAlerts(req, res, body) {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
   if (!RESEND_KEY || !SERVICE_KEY) return res.status(200).json({ ok: false, error: 'Not configured' });
 
-  const { title, company, location, salary, jobType, skills } = body || {};
+  const { title, company, location, salary, jobType, skills, jobId } = body || {};
   if (!title || !company) return res.status(400).json({ ok: false, error: 'Missing job fields' });
 
   const r = await fetch(
@@ -331,16 +331,26 @@ async function triggerAlerts(req, res, body) {
 
   const isRemote = /remote/i.test(location || '');
   const jobLoc = (location || '').toLowerCase();
-  const jobSkills = (skills || '').toLowerCase().split(/[\s,]+/).filter(s => s.length > 1);
+  // skills may arrive as an array or comma-string
+  const jobSkillsArr = Array.isArray(skills)
+    ? skills
+    : (typeof skills === 'string' ? skills.split(/[\s,]+/) : []);
+  const jobSkills = jobSkillsArr.map(s => s.toLowerCase()).filter(s => s.length > 1);
 
   const matched = candidates.filter(c => {
     if (!c.email) return false;
     if (isRemote) return true;
     const cityMatch = c.city && jobLoc.includes(c.city.toLowerCase());
-    const candSkills = (c.skills || []).map(s => s.toLowerCase());
-    const skillMatch = candSkills.some(s => jobSkills.includes(s));
+    const candSkills = Array.isArray(c.skills)
+      ? c.skills.map(s => s.toLowerCase())
+      : (c.skills || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const skillMatch = jobSkills.length > 0 && candSkills.some(s => jobSkills.some(js => s.includes(js) || js.includes(s)));
     return cityMatch || skillMatch;
   }).slice(0, MAX_ALERTS);
+
+  const jobUrl = jobId
+    ? `https://www.hiretrack.co.in/job.html?id=${jobId}`
+    : 'https://www.hiretrack.co.in/jobs.html';
 
   let sent = 0;
   for (const c of matched) {
@@ -353,7 +363,7 @@ async function triggerAlerts(req, res, body) {
           from: 'jobs@hiretrack.co.in',
           to: [c.email],
           subject: `🎯 New Job Alert: ${title} at ${company} — HireTrack`,
-          html: buildJobAlertHtml(firstName, title, company, location || '', salary || 'Not specified', jobType || '')
+          html: buildJobAlertHtml(firstName, title, company, location || '', salary || 'Negotiable', jobType || '', jobUrl)
         })
       });
       if (resp.ok) sent++;
@@ -365,7 +375,8 @@ async function triggerAlerts(req, res, body) {
 }
 
 // ── Shared email HTML builder ──────────────────────────────────────────────
-function buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobType) {
+function buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobType, jobUrl) {
+  const applyUrl = jobUrl || 'https://www.hiretrack.co.in/jobs.html';
   return `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
   <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:2rem;text-align:center;border-radius:12px 12px 0 0;">
@@ -379,13 +390,13 @@ function buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobTy
       <div style="font-size:1.1rem;font-weight:700;color:#0f172a;margin-bottom:0.4rem;">${jobTitle}</div>
       <div style="font-size:0.9rem;color:#64748b;margin-bottom:1rem;">🏢 ${company}</div>
       <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-        <span style="background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">📍 ${location}</span>
-        <span style="background:#f0fdf4;color:#15803d;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">💰 ${salary}</span>
+        ${location ? `<span style="background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">📍 ${location}</span>` : ''}
+        ${salary ? `<span style="background:#f0fdf4;color:#15803d;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">💰 ${salary}</span>` : ''}
         ${jobType ? `<span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">⏱ ${jobType}</span>` : ''}
       </div>
     </div>
     <div style="text-align:center;margin-bottom:1.5rem;">
-      <a href="https://www.hiretrack.co.in/jobs.html" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:0.85rem 2rem;border-radius:10px;font-weight:700;font-size:0.95rem;">View &amp; Apply Now →</a>
+      <a href="${applyUrl}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:0.85rem 2rem;border-radius:10px;font-weight:700;font-size:0.95rem;">View &amp; Apply Now →</a>
     </div>
     <p style="font-size:0.82rem;color:#94a3b8;text-align:center;margin:0;">
       You're receiving this because you have job alerts enabled on HireTrack.<br>

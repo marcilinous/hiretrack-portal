@@ -1,0 +1,39 @@
+{
+  "name": "HireTrack",
+  "short_name": "HireTrack",
+  "description": "Find MIS, Data & IT jobs across India. Free to apply.",
+  "start_url": "/jobs.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "en-IN",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Browse Jobs",
+      "url": "/jobs.html",
+      "description": "Browse the latest job openings"
+    },
+    {
+      "name": "My Profile",
+      "url": "/profile.html",
+      "description": "View your candidate profile and applications"
+    }
+  ]
+}

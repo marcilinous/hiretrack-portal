@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile — HireTrack</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <style>
@@ -68,6 +70,20 @@ body { padding-top:114px !important; }
 .pn-action-btn:hover { background:#fff7ed; border-color:#f97316; }
 .pn-dismiss { position:absolute; top:10px; right:10px; background:none; border:none; color:#f97316; font-size:1rem; cursor:pointer; line-height:1; padding:2px 6px; border-radius:4px; }
 .pn-dismiss:hover { background:#fed7aa; }
+
+/* ── Onboarding welcome banner (first-login, score < 20) ── */
+.ob-banner { background:linear-gradient(135deg,#eff6ff,#f5f3ff); border:1.5px solid #c7d2fe; border-radius:14px; padding:1.25rem 1.25rem 1rem; margin-bottom:1rem; position:relative; }
+.ob-title { font-size:1rem; font-weight:900; color:#1e1b4b; margin-bottom:0.2rem; }
+.ob-sub { font-size:0.8rem; color:#4338ca; margin-bottom:0.9rem; }
+.ob-steps { display:flex; flex-direction:column; gap:0.45rem; margin-bottom:1rem; }
+.ob-step { display:flex; align-items:center; gap:0.6rem; font-size:0.82rem; font-weight:600; color:#1e1b4b; }
+.ob-step-num { width:22px; height:22px; border-radius:50%; background:#4f46e5; color:#fff; font-size:0.68rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ob-step-done { background:#16a34a !important; }
+.ob-cta { background:#4f46e5; color:#fff; border:none; padding:0.55rem 1.2rem; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.ob-cta:hover { background:#4338ca; }
+.ob-later { background:none; border:none; color:#6366f1; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; margin-left:0.75rem; }
+.ob-dismiss { position:absolute; top:10px; right:10px; background:none; border:none; color:#6366f1; font-size:1rem; cursor:pointer; padding:2px 6px; border-radius:4px; line-height:1; }
+.ob-dismiss:hover { background:#e0e7ff; }
 
 .profile-grid { display:grid; grid-template-columns:1fr 2fr; gap:1.5rem; }
 .card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
@@ -333,9 +349,11 @@ body { padding-top:114px !important; }
     <a class="dr-nav-item" href="#boost">⚡ Boost Profile</a>
     <a class="dr-nav-item" href="#feed">📢 Community Feed</a>
     <a class="dr-nav-item" href="#chat">💬 Messages</a>
+    <a class="dr-nav-item" href="/job-alerts.html">🔔 Job Alerts</a>
   </nav>
   <div class="dr-foot">
     <button class="dr-edit-btn" onclick="closeDrawer();openEditModal();">✏️ Edit Profile</button>
+    <button class="dr-edit-btn" style="background:#eff6ff;color:#2563eb;border-color:#bfdbfe;" onclick="closeDrawer();shareProfile();">🔗 Share Profile</button>
     <button class="dr-logout-btn" onclick="CandidateAuth.logout()">Logout</button>
   </div>
 </div>
@@ -741,14 +759,14 @@ body { padding-top:114px !important; }
     myApps = apps || [];
     syncDrawerStats();
 
-    for (const app of myApps) {
-      const { data: job } = await sb.from('jobs').select('title,company,location,salary').eq('id', app.job_id).maybeSingle();
-      if (job) {
-        app.jobs = job;
-      } else {
-        const staticJob = JOBS.find(j => String(j.id) === String(app.job_id));
-        if (staticJob) app.jobs = { title: staticJob.title, company: staticJob.company, location: staticJob.location, salary: staticJob.salary };
-      }
+    // Batch fetch all jobs in one query instead of N+1
+    const jobIds = [...new Set(myApps.map(a => a.job_id).filter(Boolean))];
+    if (jobIds.length) {
+      const { data: jobs } = await sb.from('jobs').select('id,title,company,location,salary,employer_id').in('id', jobIds);
+      const jobMap = new Map((jobs || []).map(j => [String(j.id), j]));
+      myApps.forEach(a => {
+        a.jobs = jobMap.get(String(a.job_id)) || JOBS.find(j => String(j.id) === String(a.job_id)) || null;
+      });
     }
 
     document.getElementById('sum-total').textContent = myApps.length;
@@ -999,6 +1017,13 @@ body { padding-top:114px !important; }
       const isRejected = a.status === 'Rejected';
       const progIdx = PROG_STEPS.indexOf(a.status);
 
+      const updatedAt = a.status_updated_at
+        ? (() => {
+            const diff = Math.floor((Date.now() - new Date(a.status_updated_at)) / 86400000);
+            return diff === 0 ? 'Updated today' : diff === 1 ? 'Updated yesterday' : `Updated ${diff}d ago`;
+          })()
+        : null;
+
       const progressHTML = `<div class="app-progress">${PROG_STEPS.map((step, i) => {
         const isDone = isRejected ? false : i < progIdx;
         const isCurrent = isRejected ? false : i === progIdx;
@@ -1012,10 +1037,11 @@ body { padding-top:114px !important; }
         <div class="app-company-logo">${initials}</div>
         <div class="app-info">
           <div class="app-title">${title}</div>
-          <div class="app-company">🏢 ${company}${job?.location?` · 📍 ${job.location}`:''}${job?.salary?` · 💰 ${job.salary}`:''}</div>
+          <div class="app-company">🏢 ${job?.employer_id ? `<a href="/employer.html?id=${job.employer_id}" style="color:inherit;text-decoration:none;" title="View all jobs from ${company}">${company}</a>` : company}${job?.location?` · 📍 ${job.location}`:''}${job?.salary?` · 💰 ${job.salary}`:''}</div>
           <div class="app-meta">
             <span class="status-badge s-${a.status}">${STATUS_ICONS[a.status]||''} ${a.status}</span>
             <span class="app-date">Applied ${new Date(a.applied_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
+            ${updatedAt ? `<span class="app-date" style="color:${isRejected?'#ef4444':a.status==='Hired'?'#15803d':a.status==='Interview'?'#0e7490':'#64748b'};">${updatedAt}</span>` : ''}
             <button class="btn-prep" onclick="prepForJob('${title}','${company}')">🎯 Prep</button>
             <a href="/job.html?id=${a.job_id}" target="_blank" style="background:#f1f5f9;color:#374151;border-radius:7px;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;">View Job ↗</a>
             ${a.status === 'Applied' ? `<button onclick="withdrawApp('${a.id}')" style="background:none;border:none;color:#94a3b8;font-size:0.72rem;cursor:pointer;padding:0.35rem 0.5rem;border-radius:7px;font-family:inherit;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕ Withdraw</button>` : ''}
@@ -1029,6 +1055,24 @@ body { padding-top:114px !important; }
   function filterApps() {
     const filter = document.getElementById('app-filter').value;
     renderApps(filter ? myApps.filter(a=>a.status===filter) : myApps);
+  }
+
+  function shareProfile() {
+    if (!candidate?.id) return;
+    const url = `${location.origin}/candidate.html?id=${candidate.id}`;
+    if (navigator.share) {
+      navigator.share({ title: `${candidate.name} — HireTrack Profile`, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => showToast('Profile link copied!')).catch(() => {
+        const el = document.createElement('input');
+        el.value = url;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast('Profile link copied!');
+      });
+    }
   }
 
   async function withdrawApp(appId) {
@@ -1198,6 +1242,14 @@ body { padding-top:114px !important; }
   function renderNudge(score, checks) {
     const el = document.getElementById('profile-nudge');
     if (!el) return;
+
+    // First-login welcome: score very low + never welcomed this candidate
+    const welcomeKey = 'ht_welcomed_' + candidate.id;
+    if (score < 20 && !localStorage.getItem(welcomeKey)) {
+      renderOnboardingWelcome(el, score, checks, welcomeKey);
+      return;
+    }
+
     if (score >= 60 || sessionStorage.getItem('ht_nudge_dismissed')) {
       el.style.display = 'none';
       return;
@@ -1231,6 +1283,44 @@ body { padding-top:114px !important; }
         <div class="pn-bar-label"><span>${score}%</span><span>Target: 60%</span></div>
         <div class="pn-bar-wrap"><div class="pn-bar-fill" style="width:${score}%;"></div></div>
         <div class="pn-actions">${actionBtns}</div>
+      </div>`;
+    el.style.display = 'block';
+  }
+
+  function renderOnboardingWelcome(el, score, checks, welcomeKey) {
+    const firstName = (candidate.name || 'there').split(' ')[0];
+
+    const STEP_LABELS = {
+      city:         'Add your city',
+      professional: 'Add job title & experience',
+      about:        'Write a short summary (50+ chars)',
+      skills:       'Add your skills',
+      preferences:  'Set job preferences',
+      resume:       'Upload your resume',
+    };
+
+    // Top 3 missing items by point value
+    const topMissing = checks
+      .filter(c => !(c.isPartial ? c.earned >= c.pts : c.done))
+      .sort((a, b) => b.pts - a.pts)
+      .slice(0, 3);
+
+    const stepsHtml = topMissing.map((c, i) => `
+      <div class="ob-step">
+        <div class="ob-step-num">${i + 1}</div>
+        <span>${STEP_LABELS[c.fix] || c.label}</span>
+      </div>`).join('');
+
+    const firstFix = topMissing[0]?.fix || 'city';
+
+    el.innerHTML = `
+      <div class="ob-banner">
+        <button class="ob-dismiss" onclick="localStorage.setItem('${welcomeKey}','1');document.getElementById('profile-nudge').style.display='none';" title="Dismiss">✕</button>
+        <div class="ob-title">👋 Welcome to HireTrack, ${firstName}!</div>
+        <div class="ob-sub">Complete 3 quick steps to appear in employer searches and start getting calls.</div>
+        <div class="ob-steps">${stepsHtml}</div>
+        <button class="ob-cta" onclick="localStorage.setItem('${welcomeKey}','1');showEditSection('${firstFix}')">Set up my profile →</button>
+        <button class="ob-later" onclick="localStorage.setItem('${welcomeKey}','1');document.getElementById('profile-nudge').style.display='none';">I'll do it later</button>
       </div>`;
     el.style.display = 'block';
   }
