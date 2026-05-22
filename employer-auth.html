@@ -249,7 +249,7 @@
     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
     otpExpiry = Date.now() + 2 * 60 * 1000;
     try {
-      const r = await fetch('/api/send-otp', {
+      const r = await fetch('/api/email?action=send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })
@@ -276,7 +276,7 @@
     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
     otpExpiry = Date.now() + 2 * 60 * 1000;
     try {
-      const r = await fetch('/api/send-otp', {
+      const r = await fetch('/api/email?action=send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })
@@ -336,7 +336,7 @@
     const btn = document.getElementById('resend-btn');
     btn.textContent = 'Sending...'; btn.disabled = true;
     try {
-      const r = await fetch('/api/send-otp', {
+      const r = await fetch('/api/email?action=send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ destination: currentEmail, otp: generatedOTP })

@@ -129,7 +129,7 @@ async sendJobAlerts(job) {
       // Send email alerts (max 50 per job to avoid spam)
       const toNotify = matches.slice(0, 50);
       for (const candidate of toNotify) {
-        await fetch('/api/send-job-alert', {
+        await fetch('/api/email?action=job-alert', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

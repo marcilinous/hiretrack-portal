@@ -362,7 +362,7 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
       btn.textContent = '✓ Applied'; btn.classList.add('applied');
       showToast('✅ Applied! Notifying employer…');
       if (job.email) {
-        fetch('/api/notify-employer-application', {
+        fetch('/api/email?action=notify-employer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ employerEmail: job.email, company: job.company, jobTitle: job.title, candidateName: candidate.name, candidateCity: candidate.city, candidateExperience: candidate.experience, candidateSkills: candidate.skills || [] })
         }).catch(() => {});

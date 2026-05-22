@@ -321,7 +321,7 @@
     // Create Razorpay order server-side
     let rzpKey, orderId;
     try {
-      const r = await fetch('/api/razorpay-employer-order', {
+      const r = await fetch('/api/payments?action=employer-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planName })
@@ -365,7 +365,7 @@
 
   async function activatePlan(employer, planName, response, subtotal, gst, total) {
     try {
-      const vr = await fetch('/api/razorpay-employer-verify', {
+      const vr = await fetch('/api/payments?action=employer-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

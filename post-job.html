@@ -111,7 +111,7 @@
     successEl.textContent='✅ Job posted successfully! It is now live on HireTrack.'; successEl.style.display='block';
     btn.textContent='Posted ✓';
     // Fire-and-forget job alerts — don't block the redirect
-    fetch('/api/trigger-job-alerts', {
+    fetch('/api/email?action=trigger-alerts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, company, location: locationFull, salary, jobType, skills })

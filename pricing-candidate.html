@@ -156,7 +156,7 @@ async function upgradePro() {
   // Create Razorpay order server-side (returns key + order_id for signature verification)
   let rzpKey, orderId;
   try {
-    const r = await fetch('/api/razorpay-order', { method: 'POST' });
+    const r = await fetch('/api/payments?action=candidate-order', { method: 'POST' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const cfg = await r.json();
     if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order creation failed');
@@ -189,7 +189,7 @@ async function upgradePro() {
     handler: async function(response) {
       // Verify signature server-side before activating Pro
       try {
-        const vr = await fetch('/api/razorpay-verify', {
+        const vr = await fetch('/api/payments?action=candidate-verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

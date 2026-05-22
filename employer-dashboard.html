@@ -838,7 +838,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     if (emailStatuses.includes(status)) {
       const candidateData = allApps.find(a => a.candidate_id === cId && a.job_id === jId)?.candidates;
       if (candidateData?.email) {
-        fetch('/api/notify-candidate-status', {
+        fetch('/api/email?action=notify-candidate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
