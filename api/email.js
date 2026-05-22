@@ -25,6 +25,7 @@ export default async function handler(req, res) {
       case 'notify-employer':  return await notifyEmployer(req, res, body);
       case 'notify-candidate': return await notifyCandidate(req, res, body);
       case 'trigger-alerts':   return await triggerAlerts(req, res, body);
+      case 'welcome-candidate': return await welcomeCandidate(req, res, body);
       default:
         return res.status(400).json({ ok: false, error: `Unknown action: ${action}` });
     }
@@ -405,6 +406,94 @@ function buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobTy
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
     © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+  </div>
+</div>`;
+}
+
+// ── Day 0: Welcome email ──
+async function welcomeCandidate(req, res, body) {
+  const { name, email, city, skills } = body || {};
+  if (!email) return res.status(400).json({ ok: false, error: 'email required' });
+
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Missing RESEND_API_KEY' });
+
+  const firstName = (name || 'there').split(' ')[0];
+  const skillsArr = Array.isArray(skills) ? skills : [];
+
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify({
+      from: 'jobs@hiretrack.co.in',
+      to: [email],
+      subject: `Welcome to HireTrack, ${firstName}! Here's how to get started`,
+      html: buildWelcomeHtml(firstName, city, skillsArr),
+    }),
+  });
+
+  return res.json({ ok: r.ok });
+}
+
+function buildWelcomeHtml(firstName, city, skills) {
+  const steps = [
+    { icon: '📸', title: 'Add a profile photo',    desc: 'Profiles with photos get 3× more views from employers.' },
+    { icon: '📄', title: 'Upload your resume',      desc: 'Our AI will auto-fill your profile from your CV.' },
+    { icon: '🎯', title: 'Add your top skills',     desc: 'Skills help employers find you and improve your match score.' },
+    { icon: '✍️', title: 'Write a short bio',        desc: 'Tell employers who you are in 2–3 sentences.' },
+  ];
+
+  return `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
+  <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:2.5rem 2rem;text-align:center;border-radius:12px 12px 0 0;">
+    <div style="font-size:1.8rem;font-weight:800;color:#fff;margin-bottom:0.25rem;">Hire<span style="color:#93c5fd;">Track</span></div>
+    <p style="color:#bfdbfe;margin:0;font-size:0.9rem;">Your job search just got smarter</p>
+  </div>
+
+  <div style="padding:2rem;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;">
+    <p style="font-size:1.05rem;font-weight:700;color:#0f172a;margin:0 0 0.4rem;">Hi ${firstName}! 👋</p>
+    <p style="font-size:0.9rem;color:#475569;margin:0 0 1.75rem;line-height:1.6;">
+      Welcome to HireTrack${city ? ` — great to have you from ${city}` : ''}! Your account is ready. Here's how to set up your profile and start getting noticed by employers.
+    </p>
+
+    <div style="background:#f8fafc;border-radius:12px;padding:1.25rem;margin-bottom:1.75rem;">
+      <div style="font-size:0.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1rem;">Complete these 4 steps</div>
+      ${steps.map((s, i) => `
+      <div style="display:flex;gap:0.9rem;align-items:flex-start;margin-bottom:${i < steps.length - 1 ? '1rem' : '0'};">
+        <div style="width:36px;height:36px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">${s.icon}</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:2px;">${s.title}</div>
+          <div style="font-size:0.8rem;color:#64748b;">${s.desc}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <div style="text-align:center;margin-bottom:1.75rem;">
+      <a href="https://www.hiretrack.co.in/profile.html"
+         style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:0.85rem 2.25rem;border-radius:10px;font-weight:700;font-size:0.95rem;">
+        Complete My Profile →
+      </a>
+    </div>
+
+    ${skills.length ? `
+    <div style="background:#f0fdf4;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <div style="font-size:0.78rem;font-weight:700;color:#15803d;margin-bottom:0.5rem;">✅ Skills already on your profile</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">${skills.slice(0, 8).map(s => `<span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;">${s}</span>`).join('')}</div>
+    </div>` : ''}
+
+    <div style="border-top:1px solid #f1f5f9;padding-top:1.25rem;">
+      <p style="font-size:0.82rem;color:#475569;margin:0 0 0.5rem;font-weight:600;">While your profile loads up:</p>
+      <ul style="margin:0;padding-left:1.2rem;font-size:0.82rem;color:#64748b;line-height:1.8;">
+        <li><a href="https://www.hiretrack.co.in/jobs.html" style="color:#2563eb;">Browse the latest jobs →</a></li>
+        <li><a href="https://www.hiretrack.co.in/job-alerts.html" style="color:#2563eb;">Set up job alerts →</a></li>
+        <li><a href="https://www.hiretrack.co.in/profile.html#pro" style="color:#2563eb;">Try AI interview prep →</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
+    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    · <a href="https://www.hiretrack.co.in/job-alerts.html" style="color:#94a3b8;">Manage alerts</a>
   </div>
 </div>`;
 }

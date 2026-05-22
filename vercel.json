@@ -3,7 +3,8 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ],
   "crons": [
-    { "path": "/api/cron-expiry", "schedule": "0 3 * * *" }
+    { "path": "/api/cron-expiry", "schedule": "0 3 * * *" },
+    { "path": "/api/cron-drip",   "schedule": "30 3 * * *" }
   ],
   "headers": [
     {

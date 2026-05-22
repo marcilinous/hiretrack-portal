@@ -378,6 +378,7 @@
     });
 
     if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account ✓';btn.disabled=false;return;}
+    fetch('/api/email?action=welcome-candidate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,city,skills})}).catch(()=>{});
     const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
     sessionStorage.removeItem('redirect_after_login');
     window.location.href=redirect;
