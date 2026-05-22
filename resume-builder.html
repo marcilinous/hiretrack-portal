@@ -935,7 +935,7 @@ function selectTemplate(t) {
   const FREE_TEMPLATES = ['modern'];
   if (!FREE_TEMPLATES.includes(t) && !ProBundle.gate('templates')) return;
   selectedTemplate = t;
-  ['modern','classic','minimal'].forEach(id => {
+  ['modern','classic','minimal','executive','creative','simple','twocol'].forEach(id => {
     document.getElementById('tpl-' + id).classList.toggle('selected', id === t);
   });
 }
@@ -1091,7 +1091,7 @@ Respond in this exact JSON format:
 
     let parsed;
     try {
-      const text = aiData.reply || aiData.message || '';
+      const text = aiData.answer || '';
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
     } catch(e) {
@@ -1165,7 +1165,7 @@ function renderPreview(template) {
   else if (template === 'twocol') html = renderTwocol(d);
   document.getElementById('resume-preview-container').innerHTML = html;
   // Update active template button
-  ['modern','classic','minimal'].forEach(t => {
+  ['modern','classic','minimal','executive','creative','simple','twocol'].forEach(t => {
     const btn = document.getElementById('ptpl-' + t);
     if (btn) {
       btn.style.background = t === template ? '#eff6ff' : '#f8fafc';
@@ -1176,7 +1176,11 @@ function renderPreview(template) {
   selectedTemplate = template;
 }
 
-function changePreviewTemplate(t) { renderPreview(t); }
+function changePreviewTemplate(t) {
+  const FREE_TEMPLATES = ['modern'];
+  if (!FREE_TEMPLATES.includes(t) && !ProBundle.gate('templates')) return;
+  renderPreview(t);
+}
 
 function renderModern(d) {
   const expHtml = d.exps.map(e => `
@@ -1623,7 +1627,7 @@ Return only the JSON, no other text.`;
         });
         const aiData = await res.json();
         try {
-          const text = aiData.reply || aiData.message || '';
+          const text = aiData.answer || '';
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
           applyImportedData(parsed);
@@ -1682,7 +1686,7 @@ Return only JSON.`;
       });
       const aiData = await res.json();
       try {
-        const text = aiData.reply || aiData.message || '';
+        const text = aiData.answer || '';
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
         // At minimum set the LinkedIn URL
