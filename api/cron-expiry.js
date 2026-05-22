@@ -1,0 +1,107 @@
+const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
+
+export default async function handler(req, res) {
+  // Vercel automatically sends Authorization: Bearer {CRON_SECRET} for cron invocations
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && req.headers.authorization !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!RESEND_KEY || !SERVICE_KEY) {
+    return res.status(500).json({ ok: false, error: 'Missing env vars' });
+  }
+
+  const now = new Date();
+  // Window: jobs expiring 2–3 days from now → each job falls in this window exactly once per daily cron
+  const windowStart = new Date(now.getTime() + 2 * 864e5).toISOString();
+  const windowEnd   = new Date(now.getTime() + 3 * 864e5).toISOString();
+
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/jobs?expires_at=gt.${windowStart}&expires_at=lte.${windowEnd}&delisted=eq.false&select=id,title,company,email,expires_at`,
+    { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+  );
+  if (!r.ok) return res.status(500).json({ ok: false, error: 'DB fetch failed' });
+
+  const jobs = await r.json();
+  let sent = 0;
+
+  for (const job of jobs) {
+    if (!job.email) continue;
+    const daysLeft = Math.round((new Date(job.expires_at) - now) / 864e5);
+    const expiryDate = new Date(job.expires_at).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+      body: JSON.stringify({
+        from: 'jobs@hiretrack.co.in',
+        to: [job.email],
+        subject: `⏳ Your job "${job.title}" expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''} — HireTrack`,
+        html: buildReminderHtml(job.title, job.company, daysLeft, expiryDate)
+      })
+    }).catch(() => null);
+
+    if (emailRes?.ok) sent++;
+  }
+
+  console.log(`cron-expiry: ${jobs.length} expiring, ${sent} emails sent`);
+  return res.status(200).json({ ok: true, total: jobs.length, sent });
+}
+
+function buildReminderHtml(jobTitle, company, daysLeft, expiryDate) {
+  const urgency = daysLeft <= 1
+    ? { color: '#dc2626', bg: '#fef2f2', border: '#fca5a5', label: 'Expires Tomorrow!' }
+    : { color: '#d97706', bg: '#fffbeb', border: '#fcd34d', label: `${daysLeft} Days Left` };
+
+  return `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:2rem;text-align:center;border-radius:12px 12px 0 0;">
+    <div style="font-size:1.6rem;font-weight:800;color:#fff;">Hire<span style="color:#3b82f6;">Track</span></div>
+    <p style="color:#94a3b8;margin:0.4rem 0 0;font-size:0.85rem;">Job Posting Reminder</p>
+  </div>
+
+  <div style="padding:2rem;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;">
+    <p style="font-size:1rem;color:#1e293b;font-weight:700;margin:0 0 0.4rem;">⏳ Your job listing is expiring soon</p>
+    <p style="font-size:0.9rem;color:#475569;margin:0 0 1.5rem;">Keep your listing active to continue receiving applications.</p>
+
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;">
+      <div style="font-size:0.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem;">Job Listing</div>
+      <div style="font-size:1.05rem;font-weight:800;color:#0f172a;">${jobTitle}</div>
+      <div style="font-size:0.85rem;color:#64748b;margin-top:0.2rem;">${company}</div>
+    </div>
+
+    <div style="background:${urgency.bg};border:1.5px solid ${urgency.border};border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;text-align:center;">
+      <div style="font-size:0.7rem;font-weight:700;color:${urgency.color};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.25rem;">${urgency.label}</div>
+      <div style="font-size:0.9rem;color:${urgency.color};font-weight:600;">Expires on ${expiryDate}</div>
+    </div>
+
+    <div style="background:#f0f9ff;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <div style="font-size:0.78rem;font-weight:700;color:#0369a1;margin-bottom:0.5rem;">What you can do</div>
+      <ul style="margin:0;padding-left:1.2rem;font-size:0.83rem;color:#0c4a6e;line-height:1.8;">
+        <li>Review all pending applications before expiry</li>
+        <li>Upgrade to Pro or Enterprise to extend your listing by 15 days</li>
+        <li>Repost the job after expiry to keep it live</li>
+      </ul>
+    </div>
+
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <a href="https://www.hiretrack.co.in/employer-dashboard.html"
+         style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:0.85rem 2rem;border-radius:10px;font-weight:700;font-size:0.95rem;">
+        Go to Dashboard →
+      </a>
+    </div>
+
+    <p style="font-size:0.78rem;color:#94a3b8;text-align:center;margin:0;">
+      You're receiving this because you have an active job posting on HireTrack.
+    </p>
+  </div>
+
+  <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
+    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+  </div>
+</div>`;
+}
