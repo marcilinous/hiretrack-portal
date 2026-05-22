@@ -7,13 +7,16 @@
   body { padding-top: 56px !important; }
 }
 
-/* ── Navbar gap fix — mobile only ──
-   Pages have body{padding-top:64px} inline.
-   On mobile, navbar is 56px tall so reduce by 8px.
-   Dashboards use padding-top:0!important — not affected.
-*/
+/* ── Touch target enforcement — WCAG 2.5.5 (44×44px min) ── */
 @media (max-width: 768px) {
+  .act, .tab, .dash-tab, .edit-tab,
+  .btn-edit-p, .btn-logout-p,
+  .btn-upgrade, .btn-logout, .btn-edit-profile {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
   }
+}
 
 /* Prevent horizontal overflow globally */
 *, *::before, *::after { box-sizing: border-box; }

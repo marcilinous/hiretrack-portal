@@ -11,6 +11,8 @@
 <meta property="og:site_name"   content="HireTrack">
 <meta property="og:title"       content="Candidate Profile — HireTrack">
 <meta property="og:description" content="View candidate profile on HireTrack.">
+<meta property="og:url"         content="">
+<meta property="og:image"       content="https://www.hiretrack.co.in/og-image.png">
 
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2563eb">
@@ -329,6 +331,7 @@ document.getElementById('navbar').innerHTML = renderNavbar('');
   document.getElementById('bc-name').textContent = displayName;
   document.querySelector('meta[property="og:title"]').setAttribute('content', `${displayName} — ${jobTitle} | HireTrack`);
   document.querySelector('meta[property="og:description"]').setAttribute('content', `${jobTitle}${c.city ? ` · ${c.city}` : ''}${c.experience ? ` · ${c.experience}` : ''} — View profile on HireTrack`);
+  document.querySelector('meta[property="og:url"]').setAttribute('content', window.location.href);
 
   // Avatar
   const initials  = displayName.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
