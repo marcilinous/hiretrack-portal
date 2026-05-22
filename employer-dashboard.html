@@ -161,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(max-width:600px){.stats-inner{grid-template-columns:repeat(2,1fr);}.kanban{grid-template-columns:repeat(2,1fr);}.job-metrics{display:none;}}
 
 /* ── Analytics ── */
-.an-overview { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
+.an-overview { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1rem; margin-bottom:1.5rem; }
 .an-card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.2rem 1.5rem; }
 .an-card-label { font-size:0.7rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.35rem; }
 .an-card-value { font-size:2rem; font-weight:800; color:#0f172a; line-height:1; margin-bottom:0.2rem; }
@@ -468,9 +468,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const interview   = allApps.filter(a => a.status === 'Interview').length;
     const hired       = allApps.filter(a => a.status === 'Hired').length;
 
-    const appRate  = totalViews ? Math.round(totalApps / totalViews * 100) : 0;
-    const slRate   = totalApps  ? Math.round(shortlisted / totalApps * 100) : 0;
-    const hireRate = totalApps  ? Math.round(hired / totalApps * 100) : 0;
+    const appRate      = totalViews ? Math.round(totalApps / totalViews * 100) : 0;
+    const slRate       = totalApps  ? Math.round(shortlisted / totalApps * 100) : 0;
+    const hireRate     = totalApps  ? Math.round(hired / totalApps * 100) : 0;
+    const reviewed     = allApps.filter(a => a.status !== 'Applied').length;
+    const responseRate = totalApps  ? Math.round(reviewed / totalApps * 100) : 0;
 
     // KPI cards
     document.getElementById('an-overview').innerHTML = `
@@ -487,12 +489,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="an-card">
         <div class="an-card-label">Shortlist Rate</div>
         <div class="an-card-value" style="color:#d97706;">${slRate}%</div>
-        <div class="an-card-sub">${shortlisted} shortlisted of ${totalApps} applicants</div>
+        <div class="an-card-sub">${shortlisted} shortlisted of ${totalApps}</div>
       </div>
       <div class="an-card">
         <div class="an-card-label">Hire Rate</div>
         <div class="an-card-value" style="color:#16a34a;">${hireRate}%</div>
-        <div class="an-card-sub">${hired} hired of ${totalApps} applicants</div>
+        <div class="an-card-sub">${hired} hired of ${totalApps}</div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-label">Response Rate</div>
+        <div class="an-card-value" style="color:#0891b2;">${responseRate}%</div>
+        <div class="an-card-sub">${reviewed} of ${totalApps} reviewed</div>
       </div>`;
 
     // Per-job funnel rows
