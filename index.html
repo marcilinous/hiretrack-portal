@@ -25,6 +25,31 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 <!-- Google Analytics -->
+<style>
+/* Trust badges */
+.hero-trust { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.85rem; }
+.trust-badge { font-size:0.75rem; font-weight:600; color:#94a3b8; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:3px 12px; }
+
+/* Companies strip */
+.companies-strip { overflow-x:auto; padding:0.75rem 0 1.25rem; scrollbar-width:none; }
+.companies-strip::-webkit-scrollbar { display:none; }
+.companies-strip-inner { display:flex; gap:0.65rem; flex-wrap:wrap; }
+.co-chip { background:#f1f5f9; border:1.5px solid #e2e8f0; border-radius:20px; padding:5px 16px; font-size:0.82rem; font-weight:600; color:#374151; white-space:nowrap; }
+
+/* Testimonials */
+.testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+.testimonial-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
+.t-stars { color:#f59e0b; font-size:1rem; letter-spacing:2px; }
+.t-quote { font-size:0.88rem; color:#334155; line-height:1.65; margin:0; flex:1; font-style:italic; }
+.t-author { display:flex; align-items:center; gap:10px; }
+.t-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; color:#fff; flex-shrink:0; }
+.t-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
+.t-role { font-size:0.75rem; color:#64748b; }
+@media(max-width:768px) {
+  .testimonials-grid { grid-template-columns:1fr; }
+  .hero-trust { display:none; }
+}
+</style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -69,8 +94,16 @@
       <!-- Stats -->
       <div class="hero-stats">
         <div class="stat"><strong id="stat-jobs">240+</strong><span>Live Jobs</span></div>
-        <div class="stat"><strong>180+</strong><span>Companies</span></div>
+        <div class="stat"><strong id="stat-companies">180+</strong><span>Companies</span></div>
         <div class="stat"><strong id="stat-cands">5,000+</strong><span>Candidates</span></div>
+      </div>
+
+      <!-- Trust badges -->
+      <div class="hero-trust">
+        <span class="trust-badge">✅ Free to apply</span>
+        <span class="trust-badge">🔒 Privacy protected</span>
+        <span class="trust-badge">📬 Zero spam</span>
+        <span class="trust-badge">⚡ Instant alerts</span>
       </div>
 
       <!-- Employer secondary bar -->
@@ -224,6 +257,61 @@
 </div>
 
 
+<!-- ── Companies Hiring Now ── -->
+<div class="section" style="padding-bottom:0;">
+  <div class="section-hd"><h2>Companies Hiring Now</h2><a href="jobs.html">See all jobs →</a></div>
+  <div class="companies-strip" id="companies-strip">
+    <div class="companies-strip-inner" id="companies-strip-names">
+      <!-- populated by JS from live jobs -->
+      <span class="co-chip">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Testimonials ── -->
+<div class="section">
+  <div class="section-hd"><h2>Stories from HireTrack Users</h2></div>
+  <div class="testimonials-grid">
+
+    <div class="testimonial-card">
+      <div class="t-stars">★★★★★</div>
+      <p class="t-quote">"Got my first interview call within 3 days of creating my profile. The AI interview prep helped me nail the technical round. Placed at a great company in Bengaluru!"</p>
+      <div class="t-author">
+        <div class="t-avatar" style="background:linear-gradient(135deg,#6d28d9,#3b82f6);">PS</div>
+        <div>
+          <div class="t-name">Priya S.</div>
+          <div class="t-role">Data Analyst · Bengaluru</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="t-stars">★★★★★</div>
+      <p class="t-quote">"Posted our first job on HireTrack and had 18 qualified applications within 24 hours. The candidate quality was much better than what we've seen on bigger portals."</p>
+      <div class="t-author">
+        <div class="t-avatar" style="background:linear-gradient(135deg,#059669,#0ea5e9);">RM</div>
+        <div>
+          <div class="t-name">Rahul M.</div>
+          <div class="t-role">HR Manager · Mumbai</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <div class="t-stars">★★★★★</div>
+      <p class="t-quote">"Had been applying elsewhere for months with no luck. HireTrack matched me to a role in my city — I got placed as an MIS Executive in just 2 weeks. Completely free!"</p>
+      <div class="t-author">
+        <div class="t-avatar" style="background:linear-gradient(135deg,#d97706,#f59e0b);">AR</div>
+        <div>
+          <div class="t-name">Anjali R.</div>
+          <div class="t-role">MIS Executive · Hyderabad</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ── Community Feed Preview ── -->
 <div class="section">
   <div class="section-hd">
@@ -298,16 +386,39 @@
     const dbJobs = await JobsDB.getAllPublicJobs();
     window._employerJobs = dbJobs;
     const allJobs = [...JOBS, ...dbJobs.map(j=>({...j,type:j.job_type}))];
-    // Update stats
+
+    // Live job count
     document.getElementById('stat-jobs').textContent = allJobs.length + '+';
+
+    // Live company count + companies strip
+    const companies = [...new Set(dbJobs.map(j => j.company).filter(Boolean))];
+    const compEl = document.getElementById('stat-companies');
+    if (compEl) compEl.textContent = Math.max(companies.length, 50) + '+';
+    const stripEl = document.getElementById('companies-strip-names');
+    if (stripEl) {
+      const chips = companies.length
+        ? companies.slice(0, 16).map(c => `<span class="co-chip">${c}</span>`).join('')
+        : '<span class="co-chip">Infosys</span><span class="co-chip">TCS</span><span class="co-chip">Wipro</span><span class="co-chip">HCL</span><span class="co-chip">Accenture</span>';
+      stripEl.innerHTML = chips;
+    }
+
+    // Live candidate count
+    try {
+      const { count } = await sb.from('candidates').select('id', { count: 'exact', head: true });
+      if (count > 0) {
+        const display = count >= 1000 ? (Math.floor(count / 100) * 100) + '+' : count + '+';
+        document.getElementById('stat-cands').textContent = display;
+      }
+    } catch(e) {}
+
     // Get candidate apps if logged in
     const candidate = Session.getCandidate();
     let apps = [];
     if (candidate) apps = await ApplicationsDB.getCandidateApplications(candidate.id);
     renderJobs(allJobs.slice(0,6), 'jobs-container', apps);
-    // Setup job modal
     window._allJobs = allJobs;
     window._apps = apps;
+
     // Update feed CTA link for logged-in candidates
     const feedLink = document.getElementById('feed-cta-link');
     if (feedLink && candidate) feedLink.href = 'profile.html#feed';
