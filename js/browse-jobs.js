@@ -334,9 +334,17 @@
       }
 
       // Build score map: { jobId → match_score }
+      // RPC may return 'id' or 'job_id' depending on function definition
       const scoreMap = {};
-      rpcRows.forEach(r => { scoreMap[String(r.id)] = r.match_score; });
-      const ids = rpcRows.map(r => r.id);
+      rpcRows.forEach(r => {
+        const jid = r.id ?? r.job_id;
+        if (jid != null) scoreMap[String(jid)] = r.match_score;
+      });
+      const ids = Object.keys(scoreMap);
+      if (!ids.length) {
+        const { jobs } = await fetchForGuest({ limit: 100 });
+        return jobs;
+      }
 
       // Fetch full job rows for the RPC-returned IDs
       const { data: fullJobs, error: jobErr } = await window.sb
