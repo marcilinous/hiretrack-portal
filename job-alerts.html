@@ -4,20 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>body{padding-top:64px;}</style>
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Sign up for free job alerts on HireTrack. Get notified when matching jobs are posted — personalised to your skills and city.">
+  <meta name="description" content="Manage your job alert preferences on HireTrack. Get notified when matching jobs are posted — personalised to your skills and city.">
   <meta name="keywords" content="free job alerts india, job notification india, job alert email india">
   <meta name="author" content="HireTrack">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.hiretrack.co.in/job-alerts.html">
-  <!-- Open Graph (WhatsApp, LinkedIn previews) -->
   <meta property="og:title" content="Free Job Alerts — Get Notified of New Jobs | HireTrack">
   <meta property="og:description" content="Sign up for free job alerts on HireTrack. Get notified when matching jobs are posted — personalised to your skills and city.">
   <meta property="og:url" content="https://www.hiretrack.co.in/job-alerts.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HireTrack">
   <meta property="og:image" content="https://www.hiretrack.co.in/og-image.png">
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Free Job Alerts — Get Notified of New Jobs | HireTrack">
   <meta name="twitter:description" content="Sign up for free job alerts on HireTrack. Get notified when matching jobs are posted — personalised to your skills and city.">
@@ -25,7 +22,6 @@
 <title>Free Job Alerts — Get Notified of New Jobs | HireTrack</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
-<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -33,33 +29,289 @@
   gtag('js', new Date());
   gtag('config', 'G-76H5XQV27B');
 </script>
+<style>
+.ja-pref-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.ja-pref-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.ja-pref-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.2rem;
+}
+.ja-pref-sub {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+/* Toggle switch */
+.ja-toggle { position: relative; display: inline-block; width: 52px; height: 28px; flex-shrink: 0; }
+.ja-toggle input { opacity: 0; width: 0; height: 0; }
+.ja-slider {
+  position: absolute; inset: 0;
+  background: #cbd5e1; border-radius: 28px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.ja-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px; height: 22px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.ja-toggle input:checked + .ja-slider { background: #22c55e; }
+.ja-toggle input:checked + .ja-slider::before { transform: translateX(24px); }
+
+.ja-matching-box {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.ja-matching-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.65rem;
+}
+.ja-matching-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+.ja-matching-row:last-child { margin-bottom: 0; }
+.ja-match-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+.ja-skill-chip {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 2px;
+}
+.ja-empty-state {
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-style: italic;
+}
+.ja-save-btn {
+  width: 100%;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.ja-save-btn:hover { background: #1d4ed8; }
+.ja-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.ja-save-msg { text-align: center; font-size: 0.8rem; min-height: 18px; margin-top: 0.5rem; }
+.ja-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.ja-status-on  { background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac; }
+.ja-status-off { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+</style>
 </head>
 <body>
 <div id="navbar"></div>
 <div class="page-hd"><h1>Free Job Alerts</h1><p>Get the latest jobs delivered straight to your inbox</p></div>
 <div class="static-page">
-<div class="sp-highlight">🔔 Sign up once and never miss a relevant job opening. HireTrack sends personalised job alerts based on your profile — completely free.</div>
-<h2>How Job Alerts Work</h2>
-<ul>
-  <li>Create a free candidate account on HireTrack</li>
-  <li>Complete your profile — add your skills, preferred job type, city, and experience</li>
-  <li>We match new job postings against your profile automatically</li>
-  <li>You receive email alerts when matching jobs are posted</li>
-</ul>
-<h2>Why Sign Up?</h2>
-<div class="sp-card"><strong>⚡ Be first to apply</strong><br>Early applicants get 3x more interview calls. Job alerts let you apply within hours of a posting going live.</div>
-<div class="sp-card"><strong>🎯 Personalised matches</strong><br>We don't send you every job — only the ones that match your skills, experience level, and preferred city.</div>
-<div class="sp-card"><strong>📬 Zero spam</strong><br>We only email you about jobs. No newsletters, no promotions, no third-party marketing.</div>
-<h2>Get Started</h2>
-<p>Job alerts are automatically enabled when you create a candidate profile. Your profile strength directly affects the quality of matches — a complete profile gets better alerts.</p>
-<a href="signup.html" class="btn-primary" style="display:inline-block;text-decoration:none;padding:0.75rem 1.5rem;margin-top:0.5rem;">Create Free Account →</a>
-<h2>Already Have an Account?</h2>
-<p>Log in and complete your profile to start receiving alerts. The more complete your profile, the better the match quality.</p>
-<a href="login.html" style="color:#3b82f6;font-weight:600;">Login to your account →</a>
+
+  <!-- ── Logged-in preference panel (hidden until JS confirms login) ── -->
+  <div id="ja-logged-in" style="display:none;">
+    <div class="ja-pref-card">
+      <div class="ja-pref-header">
+        <div>
+          <p class="ja-pref-title">🔔 Your Job Alerts</p>
+          <p class="ja-pref-sub">Email you when a matching job is posted</p>
+        </div>
+        <label class="ja-toggle">
+          <input type="checkbox" id="ja-toggle-input" onchange="updateStatusBadge()">
+          <span class="ja-slider"></span>
+        </label>
+      </div>
+
+      <div id="ja-status-row" style="margin-bottom:1rem;"></div>
+
+      <div class="ja-matching-box">
+        <div class="ja-matching-label">Matched on</div>
+        <div class="ja-matching-row">
+          <span class="ja-match-icon">📍</span>
+          <span id="ja-city-display"></span>
+        </div>
+        <div class="ja-matching-row">
+          <span class="ja-match-icon">🛠</span>
+          <div id="ja-skills-display"></div>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <a href="profile.html" style="font-size:0.78rem;color:#3b82f6;font-weight:600;">Update city &amp; skills in your profile →</a>
+        </div>
+      </div>
+
+      <button class="ja-save-btn" id="ja-save-btn" onclick="saveAlertPreference()">Save Preference</button>
+      <div class="ja-save-msg" id="ja-save-msg"></div>
+    </div>
+
+    <div class="sp-card" style="background:#eff6ff;border-color:#bfdbfe;">
+      <strong>💡 How matching works</strong><br>
+      When a new job is posted on HireTrack, we match it against your city and skills. If there's an overlap, you get an email — usually within minutes of the job going live. <a href="profile.html" style="color:#2563eb;font-weight:600;">Keep your profile updated</a> for the best match quality.
+    </div>
+  </div>
+
+  <!-- ── Guest content (shown when not logged in) ── -->
+  <div id="ja-guest">
+    <div class="sp-highlight">🔔 Sign up once and never miss a relevant job opening. HireTrack sends personalised job alerts based on your profile — completely free.</div>
+    <h2>How Job Alerts Work</h2>
+    <ul>
+      <li>Create a free candidate account on HireTrack</li>
+      <li>Complete your profile — add your skills, city, and experience</li>
+      <li>We match new job postings against your profile automatically</li>
+      <li>You receive an email alert when a matching job goes live</li>
+    </ul>
+    <h2>Why Sign Up?</h2>
+    <div class="sp-card"><strong>⚡ Be first to apply</strong><br>Early applicants get 3× more interview calls. Job alerts let you apply within hours of a posting going live.</div>
+    <div class="sp-card"><strong>🎯 Personalised matches</strong><br>We don't send you every job — only the ones that match your skills and city.</div>
+    <div class="sp-card"><strong>📬 Zero spam</strong><br>We only email you about jobs. No newsletters, no promotions, no third-party marketing.</div>
+    <h2>Get Started</h2>
+    <p>Alerts are automatically enabled when you create a candidate profile.</p>
+    <a href="signup.html" class="btn-primary" style="display:inline-block;text-decoration:none;padding:0.75rem 1.5rem;margin-top:0.5rem;">Create Free Account →</a>
+    <h2>Already Have an Account?</h2>
+    <p>Log in to manage your alert preferences.</p>
+    <a href="login.html" style="color:#3b82f6;font-weight:600;">Login to your account →</a>
+  </div>
+
 </div>
+
+<div id="ja-toast" style="display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:0.65rem 1.4rem;border-radius:20px;font-size:0.85rem;font-weight:600;z-index:9999;white-space:nowrap;"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
-<script>document.getElementById('navbar').innerHTML = renderNavbar('');</script>
+<script>
+document.getElementById('navbar').innerHTML = renderNavbar('');
+
+let _candidate = null;
+
+function showToastJA(msg) {
+  const t = document.getElementById('ja-toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+
+function updateStatusBadge() {
+  const enabled = document.getElementById('ja-toggle-input').checked;
+  document.getElementById('ja-status-row').innerHTML = enabled
+    ? '<span class="ja-status-badge ja-status-on">🟢 Alerts are ON</span>'
+    : '<span class="ja-status-badge ja-status-off">🔴 Alerts are paused</span>';
+}
+
+async function init() {
+  const cached = Session.getCandidate();
+  if (!cached) return; // show guest content (already visible)
+
+  // Fetch fresh candidate data to get current job_alerts_enabled value
+  const { data: c } = await sb.from('candidates')
+    .select('id,name,email,city,skills,job_alerts_enabled')
+    .eq('id', cached.id)
+    .maybeSingle();
+
+  if (!c) return;
+  _candidate = c;
+
+  document.getElementById('ja-guest').style.display = 'none';
+  document.getElementById('ja-logged-in').style.display = 'block';
+
+  const enabled = c.job_alerts_enabled !== false; // default true if null
+  document.getElementById('ja-toggle-input').checked = enabled;
+  updateStatusBadge();
+
+  // City display
+  const cityEl = document.getElementById('ja-city-display');
+  cityEl.textContent = c.city
+    ? c.city
+    : '—';
+  if (!c.city) cityEl.innerHTML = '<span class="ja-empty-state">No city set — <a href="profile.html" style="color:#3b82f6;">add one</a> to improve matching</span>';
+
+  // Skills display
+  const skillsEl = document.getElementById('ja-skills-display');
+  const skills = Array.isArray(c.skills) ? c.skills : [];
+  if (skills.length) {
+    skillsEl.innerHTML = skills.slice(0, 10).map(s => `<span class="ja-skill-chip">${s}</span>`).join('');
+  } else {
+    skillsEl.innerHTML = '<span class="ja-empty-state">No skills set — <a href="profile.html" style="color:#3b82f6;">add some</a> for better matches</span>';
+  }
+}
+
+async function saveAlertPreference() {
+  if (!_candidate) return;
+  const enabled = document.getElementById('ja-toggle-input').checked;
+  const btn = document.getElementById('ja-save-btn');
+  const msg = document.getElementById('ja-save-msg');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  msg.textContent = '';
+
+  const { error } = await sb.from('candidates')
+    .update({ job_alerts_enabled: enabled })
+    .eq('id', _candidate.id);
+
+  btn.disabled = false;
+  btn.textContent = 'Save Preference';
+
+  if (error) {
+    msg.style.color = '#dc2626';
+    msg.textContent = 'Save failed — please try again.';
+    return;
+  }
+
+  // Update session cache
+  const cached = Session.getCandidate();
+  if (cached) Session.setCandidate({ ...cached, job_alerts_enabled: enabled });
+  _candidate.job_alerts_enabled = enabled;
+
+  msg.style.color = '#16a34a';
+  msg.textContent = enabled ? '✅ Job alerts enabled!' : '✅ Alerts paused — you won\'t receive emails until re-enabled.';
+  showToastJA(enabled ? '🔔 Alerts ON' : '🔕 Alerts paused');
+}
+
+init();
+</script>
+
 <footer class="ht-footer">
   <div class="ht-footer-top">
     <p class="ht-follow-label">Follow Us</p>
@@ -98,6 +350,5 @@
     <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
   </div>
 </footer>
-
 </body>
 </html>

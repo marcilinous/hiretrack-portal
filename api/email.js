@@ -306,7 +306,7 @@ function buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobTy
     </div>
     <p style="font-size:0.82rem;color:#94a3b8;text-align:center;margin:0;">
       You're receiving this because you have job alerts enabled on HireTrack.<br>
-      <a href="https://www.hiretrack.co.in/profile.html" style="color:#3b82f6;">Manage your alerts</a>
+      <a href="https://www.hiretrack.co.in/job-alerts.html" style="color:#3b82f6;">Manage your alerts</a>
     </p>
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">

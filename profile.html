@@ -1833,6 +1833,13 @@ body { padding-top:114px !important; }
             <input id="ef-salary" value="${candidate.expected_salary||''}" placeholder="e.g. ₹6–8 LPA" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;"></div>
             <div style="margin-bottom:0.85rem;"><label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Notice Period</label>
             <select id="ef-notice" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;background:#fff;">${npOpts}</select></div>
+            <label style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:0.75rem 1rem;cursor:pointer;gap:1rem;">
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#374151;">🔔 Job Alerts</div>
+                <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Email me when a matching job is posted</div>
+              </div>
+              <input type="checkbox" id="ef-alerts" style="width:18px;height:18px;accent-color:#22c55e;cursor:pointer;flex-shrink:0;"${candidate.job_alerts_enabled !== false ? ' checked' : ''}>
+            </label>
           </div>
           <div id="epanel-4" style="display:none;">
             <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:4px;">About <span style="font-weight:400;color:#94a3b8;">(min 50 chars for score)</span></label>
@@ -1904,9 +1911,10 @@ body { padding-top:114px !important; }
       experience:          document.getElementById('ef-experience')?.value || '',
       preferred_job_type:  document.getElementById('ef-jobtype')?.value   || '',
       expected_salary:    (document.getElementById('ef-salary')?.value    || '').trim(),
-      notice_period:       document.getElementById('ef-notice')?.value    || '',
-      about:              (document.getElementById('ef-about')?.value     || '').trim(),
-      skills:              _editSkills,
+      notice_period:        document.getElementById('ef-notice')?.value    || '',
+      about:               (document.getElementById('ef-about')?.value     || '').trim(),
+      skills:               _editSkills,
+      job_alerts_enabled:   document.getElementById('ef-alerts')?.checked ?? true,
     };
     const { error } = await sb.from('candidates').update(updates).eq('id', candidate.id);
     if (error) { if (msg) { msg.style.color = '#dc2626'; msg.textContent = 'Save failed: ' + error.message; } return; }
