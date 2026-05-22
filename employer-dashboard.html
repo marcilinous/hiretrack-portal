@@ -867,30 +867,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
 
   async function updateStatus(cId, jId, status) {
-    await sb.from('applications').update({ status }).eq('candidate_id', cId).eq('job_id', jId);
     const app = allApps.find(a => a.candidate_id === cId && a.job_id === jId);
     const job = myJobs.find(j => j.id === jId);
+    const oldStatus = app?.status;
+
+    await sb.from('applications').update({ status }).eq('candidate_id', cId).eq('job_id', jId);
     if (app) app.status = status;
 
-    // Create notification for candidate
+    // Skip notifications if status didn't actually change
+    if (oldStatus === status) { updateStats(); loadPipeline(); showToast(`→ ${status}`); return; }
+
+    // Create in-app notification for candidate
+    const jobTitle = job?.title || 'a position';
     const notifMessages = {
-      Viewed: `Your application for ${job?.title||'a job'} at ${employer.company} has been viewed!`,
-      Shortlisted: `🌟 Great news! You've been shortlisted for ${job?.title||'a job'} at ${employer.company}!`,
-      Interview: `📅 You've been selected for an interview for ${job?.title||'a job'} at ${employer.company}!`,
-      Hired: `🎉 Congratulations! You've been hired for ${job?.title||'a job'} at ${employer.company}!`,
-      Rejected: `Your application for ${job?.title||'a job'} at ${employer.company} was not selected this time.`
+      Viewed:      `Your application for ${jobTitle} at ${employer.company} has been viewed!`,
+      Shortlisted: `🌟 Great news! You've been shortlisted for ${jobTitle} at ${employer.company}!`,
+      Interview:   `📅 You've been selected for an interview for ${jobTitle} at ${employer.company}!`,
+      Hired:       `🎉 Congratulations! You've been hired for ${jobTitle} at ${employer.company}!`,
+      Rejected:    `Your application for ${jobTitle} at ${employer.company} was not selected this time.`
     };
     if (notifMessages[status]) {
       await sb.from('notifications').insert([{
         candidate_id: cId, message: notifMessages[status],
-        type: 'status_update', job_title: job?.title, company: employer.company, status
+        type: 'status_update', job_title: job?.title, company: employer.company,
+        status, is_read: false
       }]);
     }
 
     // Send email for meaningful status changes
-    const emailStatuses = ['Shortlisted','Interview','Hired','Rejected'];
+    const emailStatuses = ['Shortlisted', 'Interview', 'Hired', 'Rejected'];
     if (emailStatuses.includes(status)) {
-      const candidateData = allApps.find(a => a.candidate_id === cId && a.job_id === jId)?.candidates;
+      const candidateData = app?.candidates;
       if (candidateData?.email) {
         fetch('/api/email?action=notify-candidate', {
           method: 'POST',
@@ -898,7 +905,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           body: JSON.stringify({
             candidateEmail: candidateData.email,
             candidateName: candidateData.name,
-            jobTitle: job?.title,
+            jobTitle,
             company: employer.company,
             status
           })
