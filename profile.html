@@ -1621,7 +1621,7 @@ body { padding-top:114px !important; }
 
   // ── Phase D: Browse Jobs view ──
   const _pjf = { keyword:'', locations:[], jobTypes:[], expBand:'', salBand:'', recency:'any', minMatch:0, sort:'match' };
-  let _pjfJobs = [], _pjfAppMap = {}, _pjfLoaded = false, _pjfTeardown = null, _pjfVisible = 20;
+  let _pjfJobs = [], _pjfAppMap = {}, _pjfSavedIds = null, _pjfLoaded = false, _pjfTeardown = null, _pjfVisible = 20;
   const PJF_PAGE = 20;
   function _pjfDeriveFiltered() {
     return window.BrowseJobs.applyClientFilters(_pjfJobs, {
@@ -1654,6 +1654,7 @@ body { padding-top:114px !important; }
     window.BrowseJobs.render(container, page, {
       applicationStatusMap: _pjfAppMap,
       isLoggedIn: true,
+      savedJobIds: _pjfSavedIds,
       onApplyClick: (jid, job) => {
         const wa = encodeURIComponent(
           `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
@@ -1666,6 +1667,21 @@ body { padding-top:114px !important; }
         });
       },
       onViewApplicationClick: () => { location.hash = '#applications'; },
+      onSaveToggle: async (jid, isSaved, btn) => {
+        if (isSaved) {
+          _pjfSavedIds.delete(jid);
+          btn.dataset.saved = '';
+          btn.classList.remove('bj-saved');
+          await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jid);
+          showToast('Removed from saved jobs');
+        } else {
+          _pjfSavedIds.add(jid);
+          btn.dataset.saved = '1';
+          btn.classList.add('bj-saved');
+          await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: jid }]);
+          showToast('Saved! View in Saved Jobs →');
+        }
+      },
     });
     if (hasMore) {
       _pjfTeardown = window.BrowseJobs.setupInfiniteScroll(container, async () => {
@@ -1684,13 +1700,16 @@ body { padding-top:114px !important; }
     if (!_pjfLoaded) {
       container.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading jobs…</div>';
       try {
-        [_pjfJobs, _pjfAppMap] = await Promise.all([
+        [_pjfJobs, _pjfAppMap, _pjfSavedIds] = await Promise.all([
           window.BrowseJobs.fetchForCandidate(candidate.id),
           window.BrowseJobs.fetchApplicationStatuses(candidate.id),
+          sb.from('saved_jobs').select('job_id').eq('candidate_id', candidate.id)
+            .then(r => new Set((r.data || []).map(x => x.job_id))),
         ]);
       } catch(e) {
         _pjfJobs = [];
         _pjfAppMap = {};
+        _pjfSavedIds = new Set();
       }
       _pjfLoaded = true;
     }

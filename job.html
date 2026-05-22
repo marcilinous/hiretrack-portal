@@ -339,11 +339,18 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
         WhatsApp</button>`
     : '';
 
+  const saveBtnHtml = candidate
+    ? `<button class="job-share-btn" id="job-save-btn" data-saved="" onclick="toggleSave()" style="min-width:72px;">🔖 Save</button>`
+    : '';
+
   content.innerHTML = `
     <div class="job-card-main">
       <div class="job-title-row">
         <div class="job-title-main">${esc(job.title)}</div>
-        <button class="job-share-btn" onclick="shareJob()">🔗 Share</button>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          ${saveBtnHtml}
+          <button class="job-share-btn" onclick="shareJob()">🔗 Share</button>
+        </div>
       </div>
       <div class="job-company-row">🏢 ${esc(job.company)}</div>
       <div class="job-chips">${chipsHtml}</div>
@@ -395,6 +402,34 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
         prompt('Copy this link:', pageUrl);
       });
     }
+  };
+
+  // ── Save / bookmark ──
+  if (candidate) {
+    sb.from('saved_jobs').select('job_id')
+      .eq('candidate_id', candidate.id).eq('job_id', String(job.id))
+      .maybeSingle()
+      .then(({ data }) => {
+        const btn = document.getElementById('job-save-btn');
+        if (btn && data) { btn.textContent = '🔖 Saved'; btn.dataset.saved = '1'; btn.style.color = '#2563eb'; }
+      });
+  }
+
+  window.toggleSave = async function () {
+    const btn = document.getElementById('job-save-btn');
+    if (!btn || !candidate) return;
+    btn.disabled = true;
+    const isSaved = btn.dataset.saved === '1';
+    if (isSaved) {
+      await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', String(job.id));
+      btn.textContent = '🔖 Save'; btn.dataset.saved = ''; btn.style.color = '';
+      showToast('Removed from saved jobs');
+    } else {
+      await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: String(job.id) }]);
+      btn.textContent = '🔖 Saved'; btn.dataset.saved = '1'; btn.style.color = '#2563eb';
+      showToast('Saved! View in My Profile → Saved Jobs');
+    }
+    btn.disabled = false;
   };
 
   // ── Similar jobs (fire-and-forget after main render) ──
