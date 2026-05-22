@@ -21,6 +21,7 @@ export default async function handler(req, res) {
     switch (action) {
       case 'send-otp':         return await sendOtp(req, res, body);
       case 'job-alert':        return await sendJobAlert(req, res, body);
+      case 'job-posted':       return await sendJobPostedConfirmation(req, res, body);
       case 'notify-employer':  return await notifyEmployer(req, res, body);
       case 'notify-candidate': return await notifyCandidate(req, res, body);
       case 'trigger-alerts':   return await triggerAlerts(req, res, body);
@@ -90,6 +91,83 @@ async function sendJobAlert(req, res, body) {
   const data = await response.json();
   if (response.ok && data.id) return res.status(200).json({ ok: true });
   return res.status(200).json({ ok: false, error: data.message || 'Send failed' });
+}
+
+// ── Job posted confirmation to employer ───────────────────────────────────
+async function sendJobPostedConfirmation(req, res, body) {
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_KEY) return res.status(200).json({ ok: false, error: 'Not configured' });
+
+  const { to, contactName, jobTitle, company, location, jobType, salary, dayLimit } = body || {};
+  if (!to || !jobTitle) return res.status(400).json({ ok: false, error: 'Missing fields' });
+
+  const firstName = (contactName || 'there').split(' ')[0];
+  const expiryDays = dayLimit || 15;
+  const expiryDate = new Date(Date.now() + expiryDays * 864e5).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+
+  const html = `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:2rem;text-align:center;border-radius:12px 12px 0 0;">
+    <div style="font-size:1.6rem;font-weight:800;color:#fff;letter-spacing:-0.5px;">Hire<span style="color:#3b82f6;">Track</span></div>
+    <p style="color:#94a3b8;margin:0.4rem 0 0;font-size:0.85rem;">Employer Dashboard</p>
+  </div>
+  <div style="padding:2rem;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;">
+    <p style="font-size:1rem;color:#1e293b;margin:0 0 0.5rem;font-weight:700;">🎉 Your job is live!</p>
+    <p style="font-size:0.92rem;color:#334155;margin:0 0 1.5rem;">Hi ${firstName}, your job posting is now live on HireTrack and visible to thousands of candidates.</p>
+
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+      <div style="font-size:0.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">Job Details</div>
+      <div style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:0.25rem;">${jobTitle}</div>
+      <div style="font-size:0.88rem;color:#64748b;margin-bottom:1rem;">🏢 ${company}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+        ${location ? `<span style="background:#eff6ff;color:#1d4ed8;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">📍 ${location}</span>` : ''}
+        ${salary ? `<span style="background:#f0fdf4;color:#15803d;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">💰 ${salary}</span>` : ''}
+        ${jobType ? `<span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;">⏱ ${jobType}</span>` : ''}
+      </div>
+    </div>
+
+    <div style="background:#eff6ff;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:1.4rem;">📅</span>
+      <div>
+        <div style="font-size:0.78rem;font-weight:700;color:#1d4ed8;margin-bottom:2px;">Posting active until</div>
+        <div style="font-size:0.9rem;font-weight:700;color:#0f172a;">${expiryDate} (${expiryDays} days)</div>
+      </div>
+    </div>
+
+    <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <div style="font-size:0.8rem;font-weight:700;color:#15803d;margin-bottom:0.4rem;">💡 What happens next?</div>
+      <div style="font-size:0.82rem;color:#374151;line-height:1.6;">
+        Candidates will apply through HireTrack. You'll receive an email for every new application. Review and respond to candidates directly from your dashboard.
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <a href="https://www.hiretrack.co.in/employer-dashboard.html" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:0.85rem 2rem;border-radius:10px;font-weight:700;font-size:0.95rem;">View Dashboard →</a>
+    </div>
+
+    <p style="font-size:0.8rem;color:#94a3b8;text-align:center;margin:0;">
+      You're receiving this because you posted a job on HireTrack.<br>
+      <a href="https://www.hiretrack.co.in/employer-dashboard.html" style="color:#3b82f6;">Manage your job postings</a>
+    </p>
+  </div>
+  <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
+    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+  </div>
+</div>`;
+
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify({
+      from: 'jobs@hiretrack.co.in',
+      to: [to],
+      subject: `✅ Your job "${jobTitle}" is now live on HireTrack`,
+      html
+    })
+  });
+  const data = await r.json();
+  if (r.ok && data.id) return res.status(200).json({ ok: true });
+  return res.status(200).json({ ok: false, error: data.message });
 }
 
 // ── Notify employer of new application ────────────────────────────────────
