@@ -480,10 +480,11 @@ body { padding-top:114px !important; }
 
   <!-- VIEW: My Applications (#applications) -->
   <div id="view-applications" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div id="app-stats-bar" style="display:none;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
       <h2 style="font-size:1rem;font-weight:800;">My Applications</h2>
       <select id="app-filter" onchange="filterApps()" style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.4rem 0.8rem;font-size:0.82rem;font-family:inherit;outline:none;">
-        <option value="">All Status</option>
+        <option value="">All</option>
         <option>Applied</option><option>Viewed</option><option>Shortlisted</option>
         <option>Interview</option><option>Hired</option><option>Rejected</option>
       </select>
@@ -950,7 +951,46 @@ body { padding-top:114px !important; }
 
   function renderApps(apps) {
     const el = document.getElementById('apps-list');
-    if (!apps.length) { el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">📋</div><p>No applications yet. <a href="jobs.html" style="color:#2563eb;font-weight:600;">Browse jobs →</a></p></div>'; return; }
+
+    // Stats bar (always reflects full myApps, not the filtered slice)
+    const statsEl = document.getElementById('app-stats-bar');
+    if (statsEl && myApps.length) {
+      const statDefs = [
+        { label:'Total',       count:myApps.length,                                     color:'#2563eb', bg:'#eff6ff' },
+        { label:'Shortlisted', count:myApps.filter(a=>a.status==='Shortlisted').length, color:'#b45309', bg:'#fef3c7' },
+        { label:'Interview',   count:myApps.filter(a=>a.status==='Interview').length,   color:'#0e7490', bg:'#ecfeff' },
+        { label:'Hired',       count:myApps.filter(a=>a.status==='Hired').length,       color:'#15803d', bg:'#dcfce7' },
+      ].filter(s => s.label === 'Total' || s.count > 0);
+      statsEl.style.display = 'flex';
+      statsEl.innerHTML = statDefs.map(s =>
+        `<div style="background:${s.bg};border-radius:10px;padding:0.5rem 1.1rem;text-align:center;min-width:70px;">
+          <div style="font-size:1.25rem;font-weight:800;color:${s.color};line-height:1;">${s.count}</div>
+          <div style="font-size:0.68rem;font-weight:700;color:${s.color};opacity:0.85;margin-top:2px;">${s.label}</div>
+        </div>`).join('');
+    }
+
+    // Filter dropdown with per-status counts
+    const filterEl = document.getElementById('app-filter');
+    if (filterEl && myApps.length) {
+      const cur = filterEl.value;
+      filterEl.innerHTML = `<option value="">All (${myApps.length})</option>` +
+        ['Applied','Viewed','Shortlisted','Interview','Hired','Rejected'].map(s => {
+          const cnt = myApps.filter(a => a.status === s).length;
+          return cnt ? `<option value="${s}"${cur===s?' selected':''}>${s} (${cnt})</option>` : '';
+        }).join('');
+    }
+
+    if (!apps.length) {
+      const filter = document.getElementById('app-filter')?.value;
+      el.innerHTML = `<div style="text-align:center;padding:3rem;color:#94a3b8;">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">${filter ? '🔍' : '📋'}</div>
+        <p style="font-size:0.9rem;">${filter
+          ? `No <strong style="color:#334155;">${filter}</strong> applications yet.`
+          : 'No applications yet. <a href="#jobs" onclick="location.hash=\'#jobs\'" style="color:#2563eb;font-weight:600;">Browse jobs →</a>'
+        }</p></div>`;
+      return;
+    }
+
     el.innerHTML = apps.map(a => {
       const job = a.jobs;
       const title = job?.title || 'Job Application';
@@ -968,15 +1008,17 @@ body { padding-top:114px !important; }
         </div>`;
       }).join('')}${isRejected?`<div class="prog-step"><div class="prog-dot rejected">✕</div><div class="prog-label" style="color:#ef4444;font-weight:700;">Rejected</div></div>`:''}</div>`;
 
-      return `<div class="app-item">
+      return `<div class="app-item" id="app-card-${a.id}">
         <div class="app-company-logo">${initials}</div>
         <div class="app-info">
           <div class="app-title">${title}</div>
-          <div class="app-company">🏢 ${company} ${job?.location?`· 📍 ${job.location}`:''} ${job?.salary?`· 💰 ${job.salary}`:''}</div>
+          <div class="app-company">🏢 ${company}${job?.location?` · 📍 ${job.location}`:''}${job?.salary?` · 💰 ${job.salary}`:''}</div>
           <div class="app-meta">
             <span class="status-badge s-${a.status}">${STATUS_ICONS[a.status]||''} ${a.status}</span>
             <span class="app-date">Applied ${new Date(a.applied_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>
-            <button class="btn-prep" onclick="prepForJob('${title}','${company}')">🎯 Prep for Interview</button>
+            <button class="btn-prep" onclick="prepForJob('${title}','${company}')">🎯 Prep</button>
+            <a href="/job.html?id=${a.job_id}" target="_blank" style="background:#f1f5f9;color:#374151;border-radius:7px;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;">View Job ↗</a>
+            ${a.status === 'Applied' ? `<button onclick="withdrawApp('${a.id}')" style="background:none;border:none;color:#94a3b8;font-size:0.72rem;cursor:pointer;padding:0.35rem 0.5rem;border-radius:7px;font-family:inherit;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕ Withdraw</button>` : ''}
           </div>
           ${progressHTML}
         </div>
@@ -987,6 +1029,19 @@ body { padding-top:114px !important; }
   function filterApps() {
     const filter = document.getElementById('app-filter').value;
     renderApps(filter ? myApps.filter(a=>a.status===filter) : myApps);
+  }
+
+  async function withdrawApp(appId) {
+    if (!confirm('Withdraw this application?')) return;
+    const { error } = await sb.from('applications').delete().eq('id', appId).eq('candidate_id', candidate.id);
+    if (error) { showToast('Failed to withdraw. Please try again.'); return; }
+    myApps = myApps.filter(a => String(a.id) !== String(appId));
+    document.getElementById('sum-total').textContent = myApps.length;
+    document.getElementById('sum-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
+    document.getElementById('sum-inter').textContent = myApps.filter(a=>a.status==='Interview').length;
+    document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
+    filterApps();
+    showToast('Application withdrawn.');
   }
 
   // ── Notifications ──
