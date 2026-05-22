@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body{padding-top:64px;}</style>
+<title>Notifications — HireTrack</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
+<style>
+.nc-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.nc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.nc-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.nc-mark-all {
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  color: #64748b;
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.nc-mark-all:hover { background: #f1f5f9; color: #0f172a; }
+
+/* ── Date group ── */
+.nc-group { margin-bottom: 1.5rem; }
+
+.nc-group-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+/* ── Notification item ── */
+.nc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+}
+.nc-item:hover { border-color: #93c5fd; box-shadow: 0 2px 12px rgba(59,130,246,0.08); }
+.nc-item.unread { background: #f0f7ff; border-color: #bfdbfe; }
+
+.nc-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.ni-status     { background: #dbeafe; }
+.ni-shortlist  { background: #fef3c7; }
+.ni-interview  { background: #cffafe; }
+.ni-hired      { background: #dcfce7; }
+.ni-rejected   { background: #fee2e2; }
+
+.nc-body { flex: 1; min-width: 0; }
+
+.nc-msg {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #0f172a;
+  line-height: 1.5;
+  margin-bottom: 0.3rem;
+}
+.nc-item.unread .nc-msg { font-weight: 700; }
+
+.nc-meta {
+  font-size: 0.73rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nc-company-tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+.nc-dot {
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+/* ── Empty state ── */
+.nc-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  color: #64748b;
+}
+.nc-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.nc-empty-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; }
+.nc-empty-sub { font-size: 0.85rem; }
+
+/* ── Loading ── */
+.nc-loading {
+  text-align: center;
+  padding: 3rem;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+/* ── Back link ── */
+.nc-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.nc-back:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="nc-wrap">
+  <a href="/profile.html" class="nc-back">← Back to Profile</a>
+
+  <div class="nc-header">
+    <div class="nc-title">🔔 Notifications</div>
+    <button class="nc-mark-all" id="mark-all-btn" onclick="markAllRead()" style="display:none;">Mark all as read</button>
+  </div>
+
+  <div id="nc-content">
+    <div class="nc-loading">Loading notifications…</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+document.getElementById('navbar').innerHTML = renderNavbar('');
+
+const candidate = Session.getCandidate?.();
+if (!candidate) window.location.href = '/login.html';
+
+const NOTIF_ICONS   = { Viewed:'👁️', Shortlisted:'⭐', Interview:'📅', Hired:'🎉', Rejected:'❌', Applied:'📥' };
+const NOTIF_CLASSES = { Viewed:'ni-status', Shortlisted:'ni-shortlist', Interview:'ni-interview', Hired:'ni-hired', Rejected:'ni-rejected' };
+
+let allNotifs = [];
+
+(async function load() {
+  const { data, error } = await sb
+    .from('notifications')
+    .select('*')
+    .eq('candidate_id', candidate.id)
+    .order('created_at', { ascending: false });
+
+  allNotifs = data || [];
+  render();
+})();
+
+function render() {
+  const content = document.getElementById('nc-content');
+  const markAllBtn = document.getElementById('mark-all-btn');
+
+  if (!allNotifs.length) {
+    content.innerHTML = `
+      <div class="nc-empty">
+        <div class="nc-empty-icon">🔔</div>
+        <div class="nc-empty-title">No notifications yet</div>
+        <div class="nc-empty-sub">When employers view or update your application status, you'll see it here.</div>
+      </div>`;
+    return;
+  }
+
+  const hasUnread = allNotifs.some(n => !n.is_read);
+  markAllBtn.style.display = hasUnread ? 'block' : 'none';
+
+  // Group by date
+  const groups = groupByDate(allNotifs);
+  content.innerHTML = groups.map(({ label, items }) => `
+    <div class="nc-group">
+      <div class="nc-group-label">${label}</div>
+      ${items.map(renderItem).join('')}
+    </div>
+  `).join('');
+}
+
+function renderItem(n) {
+  const iconClass = NOTIF_CLASSES[n.status] || 'ni-status';
+  const icon      = NOTIF_ICONS[n.status] || '🔔';
+  const timeStr   = formatTime(n.created_at);
+  const companyTag = n.company
+    ? `<span class="nc-company-tag">🏢 ${esc(n.company)}</span>`
+    : '';
+  const jobLink = n.job_title ? `<span style="color:#64748b;">· ${esc(n.job_title)}</span>` : '';
+
+  return `
+    <div class="nc-item ${n.is_read ? '' : 'unread'}" onclick="handleClick('${n.id}')" id="nc-item-${n.id}">
+      <div class="nc-icon ${iconClass}">${icon}</div>
+      <div class="nc-body">
+        <div class="nc-msg">${esc(n.message)}</div>
+        <div class="nc-meta">
+          ${companyTag}
+          ${jobLink}
+          <span>${timeStr}</span>
+        </div>
+      </div>
+      ${!n.is_read ? '<div class="nc-dot"></div>' : ''}
+    </div>`;
+}
+
+async function handleClick(id) {
+  const n = allNotifs.find(x => x.id === id);
+  if (!n) return;
+
+  // Mark as read
+  if (!n.is_read) {
+    await sb.from('notifications').update({ is_read: true }).eq('id', id);
+    n.is_read = true;
+    const el = document.getElementById(`nc-item-${id}`);
+    if (el) {
+      el.classList.remove('unread');
+      const dot = el.querySelector('.nc-dot');
+      if (dot) dot.remove();
+    }
+    const hasUnread = allNotifs.some(x => !x.is_read);
+    document.getElementById('mark-all-btn').style.display = hasUnread ? 'block' : 'none';
+  }
+
+  // Navigate to the application
+  window.location.href = '/profile.html#applications';
+}
+
+async function markAllRead() {
+  await sb.from('notifications').update({ is_read: true }).eq('candidate_id', candidate.id);
+  allNotifs.forEach(n => n.is_read = true);
+  render();
+}
+
+// ── Date grouping ──
+function groupByDate(notifs) {
+  const now   = new Date();
+  const today = startOfDay(now);
+  const yest  = startOfDay(new Date(now - 86400000));
+  const week  = startOfDay(new Date(now - 6 * 86400000));
+  const month = startOfDay(new Date(now - 29 * 86400000));
+
+  const buckets = [
+    { label: 'Today',        items: [], test: d => d >= today },
+    { label: 'Yesterday',    items: [], test: d => d >= yest && d < today },
+    { label: 'This Week',    items: [], test: d => d >= week && d < yest },
+    { label: 'This Month',   items: [], test: d => d >= month && d < week },
+    { label: 'Earlier',      items: [], test: () => true },
+  ];
+
+  notifs.forEach(n => {
+    const d = new Date(n.created_at);
+    const bucket = buckets.find(b => b.test(d));
+    if (bucket) bucket.items.push(n);
+  });
+
+  return buckets.filter(b => b.items.length);
+}
+
+function startOfDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1)  return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHrs = Math.floor(diffMins / 60);
+  if (diffHrs < 24)  return `${diffHrs}h ago`;
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>
