@@ -19,7 +19,7 @@ body { background:#f1f5f9; }
 .topbar { position:fixed; top:0; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
 .tb-hamburger { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.15rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; }
 .tb-hamburger:hover { background:rgba(255,255,255,0.22); }
-.tb-brand { flex:1; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; padding-left:0.75rem; letter-spacing:-0.5px; }
+.tb-brand { flex:1; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; padding-left:0.75rem; letter-spacing:-0.5px; text-decoration:none; }
 .tb-brand span { color:#3b82f6; }
 .tb-bell { position:relative; background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:8px; flex-shrink:0; }
 .tb-bell:hover { background:rgba(255,255,255,0.1); }
@@ -288,7 +288,7 @@ body { padding-top:50px !important; }
 <!-- Top Bar -->
 <div class="topbar">
   <button class="tb-hamburger" onclick="openDrawer()" aria-label="Menu">&#9776;</button>
-  <span class="tb-brand">Hire<span>Track</span></span>
+  <a href="/profile.html" class="tb-brand">Hire<span>Track</span></a>
   <button class="tb-bell" id="bell-btn" onclick="toggleNotifPanel()" aria-label="Notifications">
     🔔
     <span class="bell-badge" id="bell-badge" style="display:none;"></span>
