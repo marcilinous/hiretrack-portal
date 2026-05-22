@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Browse Jobs — HireTrack</title>
 <meta name="description" content="Browse MIS, Data, Excel, SQL and IT jobs across India. Apply via WhatsApp in one tap.">
+<script id="jobs-ld" type="application/ld+json">{}</script>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="stylesheet" href="style.css">
@@ -496,11 +497,32 @@ async function toggleSaveJob(jid, isSaved, btn) {
   }
 }
 
+function updateJobsLd(jobs) {
+  const tag = document.getElementById('jobs-ld');
+  if (!tag) return;
+  const items = jobs.slice(0, 20).map((j, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: `${j.title} at ${j.company || 'Company'}${j.location ? ' — ' + j.location : ''}`,
+    url: `https://www.hiretrack.co.in/job.html?id=${j.id}`,
+  }));
+  tag.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Latest Jobs on HireTrack',
+    description: 'Browse MIS, Data, Excel, SQL and IT jobs across India',
+    url: 'https://www.hiretrack.co.in/jobs.html',
+    numberOfItems: jobs.length,
+    itemListElement: items,
+  });
+}
+
 function doRender() {
   const toShow = applySortAndFilter(allFetched);
   const countEl = document.getElementById('f-count');
   if (countEl) countEl.textContent = `${toShow.length} job${toShow.length !== 1 ? 's' : ''} found`;
   BrowseJobs.render(container, toShow, renderOpts());
+  updateJobsLd(toShow);
   updateClearBtn();
   updateMobileBadge();
 }
