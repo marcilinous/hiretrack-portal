@@ -369,6 +369,7 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
   // ── Increment view count (fire-and-forget) ──
   if (job.employer_id) {
     sb.from('jobs').update({ views: (job.views || 0) + 1 }).eq('id', job.id).then(() => {});
+    sb.from('job_views').insert([{ job_id: String(job.id), employer_id: String(job.employer_id) }]).then(() => {});
   }
 
   // ── Check application status ──

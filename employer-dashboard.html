@@ -193,6 +193,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fb-shortlisted { background:#f59e0b; }
 .fb-interview { background:#06b6d4; }
 .fb-hired { background:#22c55e; }
+/* ── Trend chart ── */
+.an-trend-card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.25rem 1.5rem; margin-bottom:1.5rem; }
+.an-trend-legend { display:flex; gap:1.25rem; margin-bottom:1rem; }
+.an-trend-leg-item { display:flex; align-items:center; gap:5px; font-size:0.75rem; color:#475569; font-weight:600; }
+.an-trend-leg-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.an-chart-grid { display:flex; align-items:flex-end; gap:3px; height:90px; }
+.an-chart-col { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
+.an-chart-bars { display:flex; gap:1px; align-items:flex-end; height:80px; width:100%; justify-content:center; }
+.an-chart-bar { flex:1; border-radius:2px 2px 0 0; min-height:2px; max-width:12px; transition:height 0.5s; }
+.an-chart-bar-v { background:#93c5fd; }
+.an-chart-bar-a { background:#2563eb; }
+.an-chart-lbl { font-size:0.58rem; color:#94a3b8; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:clip; max-width:100%; text-align:center; }
 .an-overall { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
 .an-overall-funnel { display:flex; gap:0; align-items:stretch; margin-top:1rem; }
 .an-of-step { flex:1; text-align:center; position:relative; }
@@ -338,6 +350,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="tab-analytics" style="display:none;">
     <div class="an-overview" id="an-overview"></div>
     <div id="an-attention" style="display:none;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.25rem;"></div>
+    <div id="an-trend" style="display:none;">
+      <p class="an-section-title">14-Day Trend</p>
+      <div class="an-trend-card">
+        <div class="an-trend-legend">
+          <div class="an-trend-leg-item"><div class="an-trend-leg-dot" style="background:#93c5fd;"></div>Views</div>
+          <div class="an-trend-leg-item"><div class="an-trend-leg-dot" style="background:#2563eb;"></div>Applications</div>
+        </div>
+        <div id="an-trend-chart" style="color:#94a3b8;font-size:0.82rem;">Loading…</div>
+      </div>
+    </div>
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
       <p class="an-section-title" style="margin-bottom:0;">Per-Job Performance</p>
       <div style="display:flex;gap:0.5rem;">
@@ -475,7 +498,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     if (tab === 'talent') { _talentCache = null; searchTalent(); }
   }
 
-  function renderAnalytics() {
+  async function renderAnalytics() {
     const totalViews = myJobs.reduce((s,j) => s + (j.views||0), 0);
     const totalApps  = allApps.length;
     const shortlisted = allApps.filter(a => a.status === 'Shortlisted').length;
@@ -600,6 +623,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
             </div>
           </div>`).join('')}
       </div>`;
+
+    // ── 14-day trend chart ──
+    const trendEl  = document.getElementById('an-trend');
+    const chartEl  = document.getElementById('an-trend-chart');
+    if (trendEl && myJobs.length) {
+      trendEl.style.display = 'block';
+      chartEl.innerHTML = '<span style="color:#94a3b8;font-size:0.82rem;">Loading…</span>';
+      try {
+        const since = new Date(Date.now() - 14 * 86400000).toISOString();
+        const { data: viewRows } = await sb.from('job_views')
+          .select('viewed_at')
+          .eq('employer_id', employer.id)
+          .gte('viewed_at', since);
+
+        const days = Array.from({ length: 14 }, (_, i) => {
+          const d = new Date(Date.now() - (13 - i) * 86400000);
+          const key = d.toISOString().slice(0, 10);
+          const lbl = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+          return { key, lbl, views: 0, apps: 0 };
+        });
+
+        (viewRows || []).forEach(r => {
+          const k = (r.viewed_at || '').slice(0, 10);
+          const d = days.find(d => d.key === k);
+          if (d) d.views++;
+        });
+        allApps.forEach(a => {
+          if (!a.applied_at) return;
+          const k = a.applied_at.slice(0, 10);
+          const d = days.find(d => d.key === k);
+          if (d) d.apps++;
+        });
+
+        const maxVal = Math.max(...days.map(d => Math.max(d.views, d.apps)), 1);
+        const BAR_H  = 80;
+        const pxV    = v => Math.max(v ? 2 : 0, Math.round(v / maxVal * BAR_H));
+
+        chartEl.innerHTML = `
+          <div style="display:flex;align-items:flex-end;gap:2px;">
+            ${days.map((d, i) => `
+              <div class="an-chart-col">
+                <div class="an-chart-bars">
+                  <div class="an-chart-bar an-chart-bar-v" style="height:${pxV(d.views)}px;" title="${d.lbl}: ${d.views} views"></div>
+                  <div class="an-chart-bar an-chart-bar-a" style="height:${pxV(d.apps)}px;"  title="${d.lbl}: ${d.apps} applications"></div>
+                </div>
+                <div class="an-chart-lbl">${i % 2 === 0 ? d.lbl : ''}</div>
+              </div>`).join('')}
+          </div>`;
+      } catch (e) {
+        chartEl.innerHTML = '<span style="color:#94a3b8;font-size:0.78rem;">Trend data unavailable — run migration v15.</span>';
+      }
+    }
   }
 
   // ── CSV EXPORT ──
