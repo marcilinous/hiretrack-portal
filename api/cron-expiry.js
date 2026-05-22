@@ -48,8 +48,41 @@ export default async function handler(req, res) {
     if (emailRes?.ok) sent++;
   }
 
-  console.log(`cron-expiry: ${jobs.length} expiring, ${sent} emails sent`);
-  return res.status(200).json({ ok: true, total: jobs.length, sent });
+  console.log(`cron-expiry: ${jobs.length} expiring jobs, ${sent} emails sent`);
+
+  // ── Plan renewal warnings ──
+  const planWindowStart = new Date(now.getTime() + 3 * 864e5).toISOString();
+  const planWindowEnd   = new Date(now.getTime() + 4 * 864e5).toISOString();
+
+  const pr = await fetch(
+    `${SUPABASE_URL}/rest/v1/employers?plan_expires_at=gt.${planWindowStart}&plan_expires_at=lte.${planWindowEnd}&plan=neq.free&select=id,company,contact_name,email,plan,plan_expires_at`,
+    { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+  ).catch(() => null);
+
+  let planSent = 0;
+  if (pr?.ok) {
+    const employers = await pr.json();
+    for (const emp of (Array.isArray(employers) ? employers : [])) {
+      if (!emp.email) continue;
+      const expiryDate = new Date(emp.plan_expires_at).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+      const emailRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+        body: JSON.stringify({
+          from: 'jobs@hiretrack.co.in',
+          to: [emp.email],
+          subject: `Your HireTrack ${emp.plan} plan expires in 3 days — renew to keep hiring`,
+          html: buildPlanRenewalHtml(emp.contact_name || emp.company, emp.company, emp.plan, expiryDate)
+        })
+      }).catch(() => null);
+      if (emailRes?.ok) planSent++;
+    }
+    console.log(`cron-expiry: ${employers.length} plans expiring, ${planSent} renewal emails sent`);
+  }
+
+  return res.status(200).json({ ok: true, jobs: { total: jobs.length, sent }, plans: { sent: planSent } });
 }
 
 function buildReminderHtml(jobTitle, company, daysLeft, expiryDate) {
@@ -97,6 +130,51 @@ function buildReminderHtml(jobTitle, company, daysLeft, expiryDate) {
 
     <p style="font-size:0.78rem;color:#94a3b8;text-align:center;margin:0;">
       You're receiving this because you have an active job posting on HireTrack.
+    </p>
+  </div>
+
+  <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
+    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+  </div>
+</div>`;
+}
+
+function buildPlanRenewalHtml(contactName, company, plan, expiryDate) {
+  const planLabel = (plan || '').charAt(0).toUpperCase() + (plan || '').slice(1);
+  return `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:2rem;text-align:center;border-radius:12px 12px 0 0;">
+    <div style="font-size:1.6rem;font-weight:800;color:#fff;">Hire<span style="color:#3b82f6;">Track</span></div>
+    <p style="color:#94a3b8;margin:0.4rem 0 0;font-size:0.85rem;">Plan Renewal Reminder</p>
+  </div>
+
+  <div style="padding:2rem;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;">
+    <p style="font-size:1rem;color:#1e293b;font-weight:700;margin:0 0 0.35rem;">Hi ${contactName},</p>
+    <p style="font-size:0.9rem;color:#475569;margin:0 0 1.5rem;">Your <strong>${planLabel} plan</strong> for <strong>${company}</strong> expires in 3 days. Renew now to avoid any disruption to your hiring.</p>
+
+    <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;text-align:center;">
+      <div style="font-size:0.7rem;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.25rem;">Plan Expiry</div>
+      <div style="font-size:0.95rem;color:#92400e;font-weight:700;">${expiryDate}</div>
+    </div>
+
+    <div style="background:#f0fdf4;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <div style="font-size:0.78rem;font-weight:700;color:#15803d;margin-bottom:0.5rem;">What you lose if you don't renew</div>
+      <ul style="margin:0;padding-left:1.2rem;font-size:0.83rem;color:#14532d;line-height:1.8;">
+        <li>Your active job listings will stop accepting new applications</li>
+        <li>Access to candidate pipeline and messaging</li>
+        <li>Priority placement in search results</li>
+      </ul>
+    </div>
+
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <a href="https://www.hiretrack.co.in/pricing.html"
+         style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:0.85rem 2rem;border-radius:10px;font-weight:700;font-size:0.95rem;">
+        Renew My Plan →
+      </a>
+    </div>
+
+    <p style="font-size:0.78rem;color:#94a3b8;text-align:center;margin:0;">
+      Questions? Reply to this email or contact <a href="mailto:employers@hiretrack.co.in" style="color:#3b82f6;">employers@hiretrack.co.in</a>
     </p>
   </div>
 

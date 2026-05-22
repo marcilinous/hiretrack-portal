@@ -444,6 +444,10 @@ body { padding-top:114px !important; }
         ⚙️ Filters <span class="pjf-mobile-badge" id="pjf-mobile-badge" style="display:none;"></span>
       </button>
     </div>
+    <div id="rec-section" style="display:none;margin-bottom:1.25rem;">
+      <div style="font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;">⭐ Recommended for You</div>
+      <div id="rec-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+    </div>
     <div id="pjf-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;min-height:1.2em;"></div>
     <div id="bj-container-profile"></div>
   </div>
@@ -1736,10 +1740,55 @@ body { padding-top:114px !important; }
       (b.match_score||0) - (a.match_score||0) || new Date(b.posted_at||0) - new Date(a.posted_at||0));
   }
 
+  function renderRecommended() {
+    const section = document.getElementById('rec-section');
+    const list    = document.getElementById('rec-list');
+    if (!section || !list) return;
+
+    const skills = (candidate.skills || []).map(s => s.toLowerCase());
+    if (!skills.length || !_pjfJobs.length) { section.style.display = 'none'; return; }
+
+    const now = new Date();
+    const recs = _pjfJobs
+      .filter(j => {
+        if (j.delisted) return false;
+        if (j.expires_at && new Date(j.expires_at) < now) return false;
+        if (_pjfAppMap[String(j.id)]) return false; // already applied
+        const jobSkills = (Array.isArray(j.skills) ? j.skills : (j.skills||'').split(','))
+          .map(s => s.trim().toLowerCase()).filter(Boolean);
+        const score = skills.filter(s => jobSkills.some(js => js.includes(s) || s.includes(js))).length;
+        j._recScore = score;
+        return score > 0;
+      })
+      .sort((a, b) => b._recScore - a._recScore)
+      .slice(0, 3);
+
+    if (!recs.length) { section.style.display = 'none'; return; }
+
+    section.style.display = 'block';
+    list.innerHTML = recs.map(j => {
+      const matchCount = j._recScore;
+      const skills = (Array.isArray(j.skills) ? j.skills : (j.skills||'').split(',')).slice(0,3).map(s=>s.trim()).filter(Boolean);
+      return `<a href="/job.html?id=${j.id}" target="_blank" style="display:block;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.85rem 1rem;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#93c5fd'" onmouseout="this.style.borderColor='#e2e8f0'">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.9rem;font-weight:800;color:#0f172a;margin-bottom:0.2rem;">${esc(j.title)}</div>
+            <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.4rem;">🏢 ${esc(j.company)}${j.location?` · 📍 ${esc(j.location)}`:''}${j.salary?` · 💰 ${esc(j.salary)}`:''}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">${skills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:8px;">${esc(s)}</span>`).join('')}</div>
+          </div>
+          <div style="flex-shrink:0;text-align:right;">
+            <div style="background:#dcfce7;color:#15803d;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;">${matchCount} skill match${matchCount>1?'es':''}</div>
+          </div>
+        </div>
+      </a>`;
+    }).join('');
+  }
+
   function _renderPjf() {
     if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
     const container = document.getElementById('bj-container-profile');
     if (!container) return;
+    renderRecommended();
     const sorted  = _pjfSort(_pjfDeriveFiltered());
     const countEl = document.getElementById('pjf-count');
     if (countEl) countEl.textContent = sorted.length + ' job' + (sorted.length !== 1 ? 's' : '') + ' found';
