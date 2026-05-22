@@ -94,6 +94,19 @@ body { padding-top:114px !important; }
 .info-row .value { font-weight:600; color:#0f172a; }
 .skill-chip { background:#eff6ff; color:#1d4ed8; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; display:inline-block; margin:3px; }
 .resume-box { background:#f8fafc; border-radius:10px; padding:1rem; display:flex; align-items:center; justify-content:space-between; margin-top:0.5rem; }
+/* ── Resume parse confirmation panel ── */
+.rp-panel { background:linear-gradient(135deg,#f0fdf4,#f0f9ff); border:1.5px solid #86efac; border-radius:14px; padding:1.1rem 1.25rem; margin-top:0.75rem; }
+.rp-title { font-size:0.85rem; font-weight:800; color:#065f46; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem; }
+.rp-fields { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.9rem; }
+.rp-field { display:flex; align-items:flex-start; gap:0.5rem; }
+.rp-field input[type=checkbox] { margin-top:3px; flex-shrink:0; accent-color:#2563eb; }
+.rp-field-body { flex:1; min-width:0; }
+.rp-field-label { font-size:0.68rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.3px; }
+.rp-field-val { font-size:0.82rem; color:#0f172a; font-weight:600; word-break:break-word; }
+.rp-actions { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.rp-apply { background:#2563eb; color:#fff; border:none; border-radius:8px; padding:0.5rem 1.1rem; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.rp-dismiss { background:none; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.5rem 0.9rem; font-size:0.82rem; font-weight:600; cursor:pointer; font-family:inherit; color:#64748b; }
+.rp-parsing { background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:14px; padding:1rem 1.25rem; margin-top:0.75rem; font-size:0.85rem; color:#1d4ed8; font-weight:600; display:flex; align-items:center; gap:0.6rem; }
 .btn-dl { background:#2563eb; color:#fff; border:none; padding:0.4rem 1rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
 /* ── Applications ── */
@@ -481,6 +494,7 @@ body { padding-top:114px !important; }
             📤 <span id="resume-upload-lbl">Upload Resume</span>
             <input type="file" id="resume-file-input" accept=".pdf,.doc,.docx" style="display:none" onchange="handleResumeUpload(this)">
           </label>
+          <div id="resume-parse-status" style="display:none;"></div>
         </div>
       </div>
       <div>
@@ -1616,23 +1630,189 @@ body { padding-top:114px !important; }
   async function handleResumeUpload(input) {
     const file = input.files[0];
     if (!file) return;
-    const ext = file.name.split('.').pop().toLowerCase() || 'pdf';
-    const path = `${candidate.id}/${crypto.randomUUID()}.${ext}`;
+    input.value = '';
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+    // For PDFs: extract text → parse → confirm, then upload
+    // For DOC/DOCX: skip parsing, upload directly
+    if (isPdf) {
+      await parseAndConfirmResume(file);
+    } else {
+      await uploadResumeFile(file);
+    }
+  }
+
+  async function uploadResumeFile(file, extraFields) {
     const lbl = document.getElementById('resume-upload-lbl');
     if (lbl) lbl.textContent = 'Uploading…';
-    const { error: upErr } = await sb.storage.from('resumes').upload(path, file, { upsert: false, contentType: file.type });
+    const ext  = file.name.split('.').pop().toLowerCase() || 'pdf';
+    const path = `${candidate.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('resumes').upload(path, file, { upsert: true, contentType: file.type });
     if (upErr) { if (lbl) lbl.textContent = 'Upload failed'; showToast('Upload failed: ' + upErr.message); return; }
     const { data: { publicUrl } } = sb.storage.from('resumes').getPublicUrl(path);
-    const resumeName = file.name;
-    const { error: dbErr } = await sb.from('candidates').update({ resume_url: publicUrl, resume_name: resumeName }).eq('id', candidate.id);
+    const updates = { resume_url: publicUrl, resume_name: file.name, ...(extraFields || {}) };
+    const { error: dbErr } = await sb.from('candidates').update(updates).eq('id', candidate.id);
     if (dbErr) { if (lbl) lbl.textContent = 'Save failed'; showToast('Save failed: ' + dbErr.message); return; }
-    candidate.resume_url = publicUrl;
-    candidate.resume_name = resumeName;
+    Object.assign(candidate, updates);
     Session.setCandidate(candidate);
     renderResumeSection();
     renderProfileScore();
+    if (lbl) lbl.textContent = 'Replace Resume';
     showToast('Resume uploaded!');
-    input.value = '';
+  }
+
+  async function parseAndConfirmResume(file) {
+    const statusEl = document.getElementById('resume-parse-status');
+    const lbl = document.getElementById('resume-upload-lbl');
+    if (lbl) lbl.textContent = 'Reading…';
+    if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<div class="rp-parsing">🤖 Reading your resume…</div>'; }
+
+    try {
+      // Lazy-load PDF.js
+      if (!window.pdfjsLib) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      }
+
+      // Extract text from PDF
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + '\n';
+      }
+
+      if (text.trim().length < 50) {
+        // Scanned/image PDF — skip parsing, just upload
+        if (statusEl) statusEl.style.display = 'none';
+        if (lbl) lbl.textContent = 'Upload Resume';
+        showToast('Could not read PDF text — uploading as-is.');
+        await uploadResumeFile(file);
+        return;
+      }
+
+      if (statusEl) statusEl.innerHTML = '<div class="rp-parsing">🤖 Parsing your resume with AI…</div>';
+
+      // Send to AI parser
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'parse-resume', resumeText: text })
+      });
+      const json = await res.json();
+
+      if (!json.ok || !json.data) {
+        if (statusEl) statusEl.style.display = 'none';
+        if (lbl) lbl.textContent = 'Upload Resume';
+        showToast('Could not parse resume — uploading as-is.');
+        await uploadResumeFile(file);
+        return;
+      }
+
+      showParseConfirmation(statusEl, json.data, file, lbl);
+
+    } catch (e) {
+      console.error('Resume parse error:', e);
+      if (statusEl) statusEl.style.display = 'none';
+      if (lbl) lbl.textContent = 'Upload Resume';
+      showToast('Parse failed — uploading without auto-fill.');
+      await uploadResumeFile(file);
+    }
+  }
+
+  function showParseConfirmation(statusEl, data, file, lbl) {
+    if (lbl) lbl.textContent = 'Upload Resume';
+    const FIELD_DEFS = [
+      { key: 'name',            label: 'Full Name',       fmt: v => v },
+      { key: 'jobtitle',        label: 'Job Title',       fmt: v => v },
+      { key: 'current_company', label: 'Current Company', fmt: v => v },
+      { key: 'experience',      label: 'Experience',      fmt: v => v },
+      { key: 'city',            label: 'City',            fmt: v => v },
+      { key: 'notice_period',   label: 'Notice Period',   fmt: v => v },
+      { key: 'expected_salary', label: 'Expected CTC',    fmt: v => v },
+      { key: 'skills',          label: 'Skills',          fmt: v => Array.isArray(v) ? v.join(', ') : v },
+      { key: 'about',           label: 'About',           fmt: v => v },
+    ].filter(f => data[f.key] && data[f.key] !== 'null');
+
+    if (!FIELD_DEFS.length) {
+      statusEl.style.display = 'none';
+      uploadResumeFile(file);
+      return;
+    }
+
+    const fieldsHtml = FIELD_DEFS.map(f => `
+      <div class="rp-field">
+        <input type="checkbox" id="rp-chk-${f.key}" checked>
+        <div class="rp-field-body">
+          <div class="rp-field-label">${f.label}</div>
+          <div class="rp-field-val">${escHtml(f.fmt(data[f.key]))}</div>
+        </div>
+      </div>`).join('');
+
+    statusEl.innerHTML = `
+      <div class="rp-panel">
+        <div class="rp-title">✨ AI found these details in your resume — apply to profile?</div>
+        <div class="rp-fields">${fieldsHtml}</div>
+        <div class="rp-actions">
+          <button class="rp-apply" onclick="applyParsedResume(${JSON.stringify(JSON.stringify(data))}, ${JSON.stringify(file.name)})">Apply & Upload</button>
+          <button class="rp-dismiss" onclick="dismissParsePanel(${JSON.stringify(file.name)})">Upload only</button>
+          <button class="rp-dismiss" onclick="document.getElementById('resume-parse-status').style.display='none'">Cancel</button>
+        </div>
+      </div>`;
+
+    // Store data and file for apply step
+    window._rpPendingData = data;
+    window._rpPendingFile = file;
+    window._rpFieldDefs   = FIELD_DEFS;
+  }
+
+  async function applyParsedResume() {
+    const data     = window._rpPendingData;
+    const file     = window._rpPendingFile;
+    const defs     = window._rpFieldDefs || [];
+    const statusEl = document.getElementById('resume-parse-status');
+    if (!data || !file) return;
+
+    // Collect only checked fields
+    const extraFields = {};
+    defs.forEach(f => {
+      const chk = document.getElementById(`rp-chk-${f.key}`);
+      if (!chk || !chk.checked) return;
+      if (f.key === 'skills') {
+        // Merge with existing skills, deduplicate
+        const parsed = Array.isArray(data.skills) ? data.skills : String(data.skills).split(',').map(s=>s.trim());
+        const merged = [...new Set([...(candidate.skills||[]), ...parsed])].slice(0, 15);
+        extraFields.skills = merged;
+      } else {
+        extraFields[f.key] = data[f.key];
+      }
+    });
+
+    if (statusEl) statusEl.innerHTML = '<div class="rp-parsing">⬆️ Uploading resume…</div>';
+    await uploadResumeFile(file, extraFields);
+    if (statusEl) statusEl.style.display = 'none';
+    showToast('Resume uploaded and profile updated!');
+  }
+
+  async function dismissParsePanel(fileName) {
+    const file     = window._rpPendingFile;
+    const statusEl = document.getElementById('resume-parse-status');
+    if (statusEl) statusEl.innerHTML = '<div class="rp-parsing">⬆️ Uploading resume…</div>';
+    await uploadResumeFile(file);
+    if (statusEl) statusEl.style.display = 'none';
+  }
+
+  function escHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   // ── Drawer ──
