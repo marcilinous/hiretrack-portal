@@ -245,14 +245,14 @@
 <div class="section">
   <div class="section-hd"><h2>Browse by Category</h2></div>
   <div class="cats-grid">
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Data+Analyst'"><div class="cat-icon">📈</div><h4>Data Analyst</h4><span>52 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Sales'"><div class="cat-icon">🤝</div><h4>Sales & Business Dev</h4><span>48 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Marketing'"><div class="cat-icon">📣</div><h4>Marketing</h4><span>41 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=IT'"><div class="cat-icon">💻</div><h4>IT & Software</h4><span>67 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Finance'"><div class="cat-icon">💰</div><h4>Finance & Accounts</h4><span>35 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Operations'"><div class="cat-icon">⚙️</div><h4>Operations</h4><span>29 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=HR'"><div class="cat-icon">👥</div><h4>HR & Recruitment</h4><span>24 jobs</span></div>
-    <div class="cat-card" onclick="window.location='jobs.html?cat=Logistics'"><div class="cat-icon">🚚</div><h4>Logistics & Supply Chain</h4><span>18 jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=Data+Analyst'"><div class="cat-icon">📈</div><h4>Data Analyst</h4><span id="cat-count-data">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=Sales'"><div class="cat-icon">🤝</div><h4>Sales & Business Dev</h4><span id="cat-count-sales">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=Marketing'"><div class="cat-icon">📣</div><h4>Marketing</h4><span id="cat-count-marketing">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=IT'"><div class="cat-icon">💻</div><h4>IT & Software</h4><span id="cat-count-it">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=Finance'"><div class="cat-icon">💰</div><h4>Finance & Accounts</h4><span id="cat-count-finance">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=Operations'"><div class="cat-icon">⚙️</div><h4>Operations</h4><span id="cat-count-ops">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=HR'"><div class="cat-icon">👥</div><h4>HR & Recruitment</h4><span id="cat-count-hr">— jobs</span></div>
+    <div class="cat-card" onclick="window.location='jobs.html?search=Logistics'"><div class="cat-icon">🚚</div><h4>Logistics & Supply Chain</h4><span id="cat-count-logistics">— jobs</span></div>
   </div>
 </div>
 
@@ -401,6 +401,27 @@
         : '<span class="co-chip">Infosys</span><span class="co-chip">TCS</span><span class="co-chip">Wipro</span><span class="co-chip">HCL</span><span class="co-chip">Accenture</span>';
       stripEl.innerHTML = chips;
     }
+
+    // Live category counts
+    const CAT_RULES = [
+      { id: 'cat-count-data',      kw: ['data analyst','data analysis','analytics','business analyst','data scientist','bi analyst','power bi','tableau','mis'] },
+      { id: 'cat-count-sales',     kw: ['sales','business development','bde','bdm','account manager','key account','inside sales'] },
+      { id: 'cat-count-marketing', kw: ['marketing','digital marketing','seo','social media','content','brand','growth','performance'] },
+      { id: 'cat-count-it',        kw: ['software','developer','engineer','it support','backend','frontend','full stack','devops','python','java','react','node','cloud','cyber'] },
+      { id: 'cat-count-finance',   kw: ['finance','accounts','accountant','ca ','chartered','taxation','audit','tally','gst','bookkeeping','payroll'] },
+      { id: 'cat-count-ops',       kw: ['operations','ops','coordinator','mis executive','supply chain','process','back office','admin'] },
+      { id: 'cat-count-hr',        kw: ['hr ','human resources','recruitment','talent acquisition','hrbp','hr executive','hr manager'] },
+      { id: 'cat-count-logistics', kw: ['logistics','warehouse','dispatch','procurement','inventory','transport','fleet','supply chain'] },
+    ];
+    CAT_RULES.forEach(({ id, kw }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const count = allJobs.filter(j => {
+        const hay = ((j.title || '') + ' ' + (j.skills || '') + ' ' + (j.description || '')).toLowerCase();
+        return kw.some(k => hay.includes(k));
+      }).length;
+      el.textContent = count + (count === 1 ? ' job' : ' jobs');
+    });
 
     // Live candidate count
     try {
