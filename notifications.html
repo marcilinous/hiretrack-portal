@@ -187,7 +187,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
-document.getElementById('navbar').innerHTML = renderNavbar('');
+document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
 const candidate = Session.getCandidate?.();
 if (!candidate) window.location.href = '/login.html';
