@@ -107,7 +107,7 @@
   border-radius: 14px;
   padding: 1.1rem 1.25rem;
   margin-bottom: 0.75rem;
-  width: 85%;
+  width: 100%;
   box-sizing: border-box;
   transition: border-color 0.18s, box-shadow 0.18s;
 }
@@ -303,8 +303,8 @@
     const { data, error } = await window.sb
       .from('jobs')
       .select('*')
-      .eq('delisted', false)
-      .eq('status', 'active')
+      .neq('delisted', true)
+      .or('status.eq.active,status.is.null')
       .order('posted_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

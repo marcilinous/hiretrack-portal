@@ -495,6 +495,7 @@
     if (job.employer_id) {
       const currentViews = job.views || 0;
       sb.from('jobs').update({ views: currentViews + 1 }).eq('id', jobId);
+      sb.from('job_views').insert([{ job_id: String(jobId), employer_id: String(job.employer_id) }]);
       job.views = currentViews + 1;
     }
     const candidate = Session.getCandidate();
@@ -509,7 +510,7 @@
     document.getElementById('jd-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
     document.getElementById('jd-desc').textContent=job.description||'Contact employer for full job description.';
     document.getElementById('jd-actions').innerHTML=`
-      <button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${waMsg}')">WhatsApp Apply</button>
+      ${job.phone ? `<button class="btn-whatsapp" onclick="whatsappApply('${job.phone}','${waMsg}')">WhatsApp Apply</button>` : ''}
       <button class="btn-apply ${alreadyApplied?'applied':''} ${expired?'expired-btn':''}" style="flex:1;padding:0.8rem;" onclick="${expired?`showToast('This job has expired.')`:`applyJob('${job.id}',this)`}">${expired?'⚠ Expired':alreadyApplied?'✓ Applied':'Apply Now'}</button>`;
     document.getElementById('jd-modal').classList.add('show');
     document.body.style.overflow='hidden';

@@ -21,7 +21,8 @@
 /* Prevent horizontal overflow globally */
 *, *::before, *::after { box-sizing: border-box; }
 html { overflow-x: hidden; }
-body { overflow-x: hidden; min-width: 320px; }
+/* NOTE: overflow-x must NOT be set on body — it breaks position:sticky on filter bars and modals */
+body { min-width: 320px; }
 
 /* Images never overflow */
 img, video, iframe { max-width: 100%; height: auto; }
