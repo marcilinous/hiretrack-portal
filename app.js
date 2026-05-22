@@ -235,7 +235,7 @@ function renderNavbar(activePage) {
   const employer = Session.getEmployer();
   let rightHTML = '';
   if (candidate) {
-    rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${candidate.name.split(' ')[0]}</span></span><a href="/profile.html" class="btn-employer">My Profile</a><span class="btn-logout" onclick="CandidateAuth.logout()">Logout</span></div>`;
+    rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${candidate.name.split(' ')[0]}</span></span><span class="btn-logout" onclick="CandidateAuth.logout()">Logout</span></div>`;
   } else if (employer) {
     rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${employer.contact_name.split(' ')[0]}</span></span><a href="/post-job.html" class="btn-signup">+ Post Job</a></div>`;
   } else {
@@ -245,7 +245,7 @@ function renderNavbar(activePage) {
   // Mobile nav links
   let mobileLinks = '';
   if (candidate) {
-    mobileLinks = `<a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="/profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a><div class="nav-divider"></div><a href="#" onclick="CandidateAuth.logout()">Logout</a>`;
+    mobileLinks = `<a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="/profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a>`;
   } else if (employer) {
     mobileLinks = `<a href="/employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="/post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="/pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="#" onclick="EmployerAuth.logout()">Logout</a>`;
   } else {
@@ -253,7 +253,7 @@ function renderNavbar(activePage) {
   }
 
   return `<nav class="navbar">
-    <a href="/index.html" class="nav-logo">Hire<span>Track</span></a>
+    <a href="${candidate ? '/profile.html' : employer ? '/employer-dashboard.html' : '/index.html'}" class="nav-logo">Hire<span>Track</span></a>
     <div class="nav-center">
       ${employer ? `
         <a href="/employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>

@@ -16,7 +16,7 @@ body { background:#f1f5f9; }
 .avatar { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; font-weight:800; flex-shrink:0; border:3px solid rgba(255,255,255,0.3); }
 
 /* ── Top Bar ── */
-.topbar { position:fixed; top:64px; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.topbar { position:fixed; top:0; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
 .tb-hamburger { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.15rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; }
 .tb-hamburger:hover { background:rgba(255,255,255,0.22); }
 .tb-brand { flex:1; color:#fff; font-size:0.92rem; font-weight:800; padding-left:0.75rem; letter-spacing:-0.2px; }
@@ -24,7 +24,7 @@ body { background:#f1f5f9; }
 .tb-bell:hover { background:rgba(255,255,255,0.1); }
 .bell-badge { position:absolute; top:3px; right:3px; background:#ef4444; color:#fff; border-radius:50%; min-width:16px; height:16px; font-size:0.58rem; font-weight:800; display:flex; align-items:center; justify-content:center; line-height:1; padding:0 2px; }
 
-body { padding-top:114px !important; }
+body { padding-top:50px !important; }
 
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
@@ -156,7 +156,7 @@ body { padding-top:114px !important; }
 /* ── Notification Popover ── */
 .notif-backdrop { position:fixed; inset:0; z-index:399; display:none; }
 .notif-backdrop.open { display:block; }
-.notif-popover { position:fixed; top:114px; right:1rem; width:360px; max-height:480px; background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; box-shadow:0 8px 32px rgba(0,0,0,0.15); z-index:400; display:none; flex-direction:column; overflow:hidden; }
+.notif-popover { position:fixed; top:50px; right:1rem; width:360px; max-height:480px; background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; box-shadow:0 8px 32px rgba(0,0,0,0.15); z-index:400; display:none; flex-direction:column; overflow:hidden; }
 .notif-popover.open { display:flex; }
 .np-head { display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1rem; border-bottom:1.5px solid #e2e8f0; flex-shrink:0; }
 .np-head-title { font-size:0.88rem; font-weight:800; }
@@ -276,9 +276,6 @@ body { padding-top:114px !important; }
 }
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
 @media(max-width:640px) {
-  .topbar { top:56px; }
-  body { padding-top:106px !important; }
-  .notif-popover { top:106px; }
   .drawer { width:80vw; max-width:300px; }
 }
 @media(max-width:400px) {
@@ -287,8 +284,6 @@ body { padding-top:114px !important; }
 </style>
 </head>
 <body>
-<div id="navbar"></div>
-
 <!-- Top Bar -->
 <div class="topbar">
   <button class="tb-hamburger" onclick="openDrawer()" aria-label="Menu">&#9776;</button>
@@ -713,7 +708,6 @@ body { padding-top:114px !important; }
 <script src="js/feed.js"></script>
 <script src="js/chat.js"></script>
 <script>
-  document.getElementById('navbar').innerHTML = renderNavbar('profile');
   const candidate = Session.getCandidate();
   if (!candidate) { window.location.href = 'login.html'; }
 

@@ -328,7 +328,10 @@
         .rpc('match_jobs_for_candidate', { p_candidate_id: candidateId });
 
       if (rpcErr) throw rpcErr;
-      if (!rpcRows || !rpcRows.length) return [];
+      if (!rpcRows || !rpcRows.length) {
+        const { jobs } = await fetchForGuest({ limit: 100 });
+        return jobs;
+      }
 
       // Build score map: { jobId → match_score }
       const scoreMap = {};
@@ -340,8 +343,8 @@
         .from('jobs')
         .select('*')
         .in('id', ids)
-        .eq('delisted', false)
-        .eq('status', 'active');
+        .neq('delisted', true)
+        .or('status.eq.active,status.is.null');
 
       if (jobErr) throw jobErr;
 
