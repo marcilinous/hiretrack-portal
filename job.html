@@ -274,24 +274,77 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
     ? job.skills
     : (job.skills || '').split(',').map(s => s.trim()).filter(Boolean);
 
+  // Build a substantive description (Google requires meaningful text)
+  const descFull = job.description || [
+    `${job.title} position at ${job.company}`,
+    job.location   ? `located in ${job.location}`               : '',
+    job.experience ? `Required experience: ${job.experience}`   : '',
+    job.salary     ? `Salary: ${job.salary}`                    : '',
+    skills.length  ? `Key skills: ${skills.join(', ')}`         : '',
+    'Apply on HireTrack — India\'s growing job portal.',
+  ].filter(Boolean).join('. ') + '.';
+
   const ld = {
-    '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: job.title,
-    description: job.description || `${job.title} position at ${job.company}.`,
-    datePosted: job.posted_at ? job.posted_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
-    validThrough: job.expires_at ? job.expires_at.slice(0, 10) : '',
-    employmentType: empType(job.job_type || job.type),
-    hiringOrganization: { '@type': 'Organization', name: job.company },
+    '@context':       'https://schema.org',
+    '@type':          'JobPosting',
+    title:            job.title,
+    description:      descFull,
+    identifier: {
+      '@type': 'PropertyValue',
+      name:  'HireTrack',
+      value: String(job.id),
+    },
+    datePosted:       (job.posted_at || new Date().toISOString()).slice(0, 10),
+    employmentType:   empType(job.job_type || job.type),
+    directApply:      true,
+    hiringOrganization: {
+      '@type':  'Organization',
+      name:     job.company,
+      sameAs:   job.employer_id ? `https://www.hiretrack.co.in/employer.html?id=${job.employer_id}` : 'https://www.hiretrack.co.in',
+    },
     jobLocation: {
       '@type': 'Place',
-      address: { '@type': 'PostalAddress', addressLocality: job.location, addressCountry: 'IN' }
+      address: {
+        '@type':           'PostalAddress',
+        addressLocality:   job.location || 'India',
+        addressRegion:     'KA',
+        addressCountry:    'IN',
+      },
     },
-    skills: skills.join(', '),
     url: pageUrl,
+    jobLocationType: (job.job_type || '').toLowerCase() === 'remote' ? 'TELECOMMUTE' : undefined,
   };
-  if (job.salary) ld.baseSalary = { '@type': 'MonetaryAmount', currency: 'INR', value: { '@type': 'QuantitativeValue', description: job.salary } };
-  document.getElementById('ld-json').textContent = JSON.stringify(ld);
+
+  // validThrough — only include when expiry is set
+  if (job.expires_at) ld.validThrough = job.expires_at.slice(0, 10);
+
+  // experienceRequirements
+  if (job.experience) ld.experienceRequirements = { '@type': 'OccupationalExperienceRequirements', monthsOfExperience: parseExpMonths(job.experience) };
+
+  // skills
+  if (skills.length) ld.skills = skills.join(', ');
+
+  // baseSalary — parse Indian salary strings into schema.org MonetaryAmount
+  const salaryLd = parseSalaryLd(job.salary);
+  if (salaryLd) {
+    const qv = { '@type': 'QuantitativeValue', unitText: 'YEAR' };
+    if (salaryLd.min != null) { qv.minValue = salaryLd.min; qv.maxValue = salaryLd.max; }
+    else                        { qv.value = salaryLd.value; }
+    ld.baseSalary = { '@type': 'MonetaryAmount', currency: 'INR', value: qv };
+  }
+
+  // BreadcrumbList
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type':    'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',        item: 'https://www.hiretrack.co.in/' },
+      { '@type': 'ListItem', position: 2, name: 'Browse Jobs', item: 'https://www.hiretrack.co.in/jobs.html' },
+      { '@type': 'ListItem', position: 3, name: job.title,     item: pageUrl },
+    ],
+  };
+
+  document.getElementById('ld-json').textContent = JSON.stringify([ld, breadcrumbLd]);
 
   // ── Increment view count (fire-and-forget) ──
   if (job.employer_id) {
@@ -517,8 +570,31 @@ function timeAgoLocal(isoStr) {
 
 function empType(t) {
   if (!t) return 'FULL_TIME';
-  const m = { 'Full Time':'FULL_TIME', 'Part Time':'PART_TIME', 'Contract':'CONTRACTOR', 'Remote':'FULL_TIME' };
+  const m = { 'Full Time':'FULL_TIME', 'Part Time':'PART_TIME', 'Contract':'CONTRACTOR', 'Remote':'FULL_TIME', 'Hybrid':'FULL_TIME' };
   return m[t] || 'FULL_TIME';
+}
+
+function parseSalaryLd(salaryStr) {
+  if (!salaryStr) return null;
+  const s = salaryStr.replace(/[₹,\s]/g, '');
+  // Range: "4-6LPA", "4L-6L", "4lpa-6lpa"
+  const range = s.match(/^(\d+(?:\.\d+)?)[Ll]?(?:PA)?[-–](\d+(?:\.\d+)?)[Ll]?(?:PA)?$/i);
+  if (range) return { min: parseFloat(range[1]) * 100000, max: parseFloat(range[2]) * 100000 };
+  // Single: "5LPA", "5L"
+  const single = s.match(/^(\d+(?:\.\d+)?)[Ll](?:PA)?$/i);
+  if (single) return { value: parseFloat(single[1]) * 100000 };
+  return null;
+}
+
+function parseExpMonths(expStr) {
+  if (!expStr) return undefined;
+  const s = expStr.toLowerCase();
+  if (s.includes('fresher') || s.includes('0')) return 0;
+  const m = s.match(/(\d+)\s*[-–+]?\s*(\d+)?\s*year/);
+  if (m) return parseInt(m[1]) * 12;
+  const mo = s.match(/(\d+)\s*month/);
+  if (mo) return parseInt(mo[1]);
+  return undefined;
 }
 
 function isJobExpired(job) {
