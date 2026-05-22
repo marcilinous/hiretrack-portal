@@ -772,7 +772,21 @@ async function _doApply(jobId, job) {
   if (error) throw error;
   appStatusMap[String(jobId)] = 'Applied';
   showToast('Applied successfully!');
-  if (job?.email) sendEmailNotification(c, job, job.email);
+  if (job?.email) {
+    fetch('/api/email?action=notify-employer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        employerEmail: job.email,
+        company: job.company,
+        jobTitle: job.title,
+        candidateName: c.name,
+        candidateCity: c.city,
+        candidateExperience: c.experience,
+        candidateSkills: Array.isArray(c.skills) ? c.skills : []
+      })
+    }).catch(() => {});
+  }
   doRender();
 }
 
