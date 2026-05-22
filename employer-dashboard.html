@@ -330,10 +330,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- ANALYTICS -->
   <div id="tab-analytics" style="display:none;">
     <div class="an-overview" id="an-overview"></div>
+    <div id="an-attention" style="display:none;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.25rem;"></div>
     <p class="an-section-title">Per-Job Performance</p>
     <div class="an-funnel-card">
       <div class="an-funnel-header">
-        <span>Job</span><span>Views</span><span>Applied</span><span>Shortlisted</span><span>Interview</span><span>Hired</span>
+        <span>Location</span><span>Views</span><span>Applied</span><span>Shortlisted</span><span>Interview</span><span>Hired</span>
       </div>
       <div id="an-job-rows"><div class="empty-state"><div class="ei">📈</div><p>Post a job to see analytics</p></div></div>
     </div>
@@ -502,6 +503,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="an-card-sub">${reviewed} of ${totalApps} reviewed</div>
       </div>`;
 
+    // Needs-attention callout
+    const now = Date.now();
+    const needsAttention = myJobs.filter(job => {
+      if (job.delisted || (job.expires_at && new Date() > new Date(job.expires_at))) return false;
+      const apps = allApps.filter(a => a.job_id === job.id);
+      if (apps.length > 0) return false;
+      const daysLive = (now - new Date(job.posted_at).getTime()) / 864e5;
+      return (job.views || 0) >= 5 || daysLive >= 5;
+    });
+    const attnEl = document.getElementById('an-attention');
+    if (attnEl) {
+      if (needsAttention.length) {
+        attnEl.style.display = 'block';
+        attnEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
+            <span style="font-size:1.1rem;">⚠️</span>
+            <strong style="font-size:0.85rem;color:#92400e;">Jobs Needing Attention (${needsAttention.length})</strong>
+          </div>
+          <div style="font-size:0.78rem;color:#78350f;margin-bottom:0.75rem;">These active jobs have 0 applications — consider updating the description or salary.</div>
+          ${needsAttention.map(job => {
+            const daysLive = Math.floor((now - new Date(job.posted_at).getTime()) / 864e5);
+            return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.75rem;background:#fff;border-radius:8px;margin-bottom:0.4rem;border:1px solid #fcd34d;">
+              <span style="font-size:0.82rem;font-weight:600;color:#1e293b;">📌 ${job.title}</span>
+              <span style="font-size:0.75rem;color:#64748b;">${job.views||0} views · ${daysLive}d live</span>
+              <button onclick="viewJobAnalytics('${job.id}')" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:none;border-radius:6px;background:#f59e0b;color:#fff;cursor:pointer;font-weight:600;">View Stats</button>
+            </div>`;
+          }).join('')}`;
+      } else {
+        attnEl.style.display = 'none';
+      }
+    }
+
     // Per-job funnel rows
     if (!myJobs.length) {
       document.getElementById('an-job-rows').innerHTML = '<div class="empty-state"><div class="ei">📈</div><p>Post a job to see analytics</p></div>';
@@ -517,7 +550,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         const pct = n => v ? Math.round(n/v*100) : 0;
         const bar = (n, cls) => `<div class="an-bar-wrap"><div class="an-bar-fill ${cls}" style="width:${v?Math.round(n/v*100):0}%"></div></div>`;
         const cell = (n, cls, label) => `<div class="an-bar-cell" data-label="${label}">${bar(n,cls)}<div class="an-bar-num">${n}</div><div class="an-bar-pct">${pct(n)}%</div></div>`;
-        return `<div class="an-job-row">
+        return `<div class="an-job-row" id="an-row-${job.id}">
           <div class="an-job-name">📌 ${job.title}</div>
           <div class="an-bars">
             <div class="an-bar-cell" style="font-size:0.75rem;color:#64748b;">${job.location}</div>
@@ -598,6 +631,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
         <div class="job-card-footer">
           <button class="act act-pipeline" onclick="viewInPipeline('${job.id}')">📊 View Pipeline</button>
+          <button class="act" style="background:#eff6ff;color:#2563eb;border-color:#bfdbfe;" onclick="viewJobAnalytics('${job.id}')">📈 Stats</button>
           ${!isDelisted && !isExpired ? `<button class="act act-delist" onclick="delistJob('${job.id}',true)">⛔ Delist</button>` : ''}
           ${isDelisted ? `<button class="act act-relist" onclick="delistJob('${job.id}',false)">✅ Relist</button>` : ''}
           ${isExpired ? `<button class="act act-repost" onclick="repostJob('${job.id}')">🔁 Repost</button>` : ''}
@@ -612,6 +646,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   function viewInPipeline(jobId) {
     document.querySelectorAll('.tab')[1].click();
     setTimeout(() => { document.getElementById('pipe-sel').value = jobId; loadPipeline(); }, 80);
+  }
+
+  function viewJobAnalytics(jobId) {
+    const analyticsBtn = [...document.querySelectorAll('.tab')].find(b => b.textContent.includes('Analytics'));
+    if (analyticsBtn) switchTab('analytics', analyticsBtn);
+    setTimeout(() => {
+      const row = document.getElementById('an-row-' + jobId);
+      if (!row) return;
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.style.outline = '2.5px solid #3b82f6';
+      row.style.borderRadius = '10px';
+      setTimeout(() => { row.style.outline = ''; row.style.borderRadius = ''; }, 2000);
+    }, 200);
   }
 
   async function delistJob(id, delist) {
