@@ -4,7 +4,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 window.sb = sb;
 
-const WEB3FORMS_KEY = '30483d95-3da0-4a00-a262-944b2e82b3b2';
 
 const JOBS = [
   { id:'static-1', title:'MIS Executive', company:'Infosys BPM', location:'Bengaluru', salary:'₹4–6 LPA', type:'Full Time', tags:['Excel','MIS','Reporting'], posted:'2 days ago', phone:'9876543210' },
@@ -174,7 +173,7 @@ const ApplicationsDB = {
   async apply(candidateId, jobId) {
     const { data: existing } = await sb.from('applications').select('id').eq('candidate_id', candidateId).eq('job_id', jobId).maybeSingle();
     if (existing) return { ok: false, msg: 'Already applied' };
-    const { error } = await sb.from('applications').insert([{ candidate_id: candidateId, job_id: String(jobId) }]);
+    const { error } = await sb.from('applications').insert([{ candidate_id: candidateId, job_id: String(jobId), status: 'Applied' }]);
     if (error) return { ok: false, msg: error.message };
     return { ok: true };
   },
@@ -319,21 +318,27 @@ async function applyJob(jobId, btn) {
     btn.textContent = '✓ Applied'; btn.classList.add('applied');
     showToast('✅ Applied! Notifying employer...');
     const job = [...JOBS, ...(window._employerJobs||[])].find(j=>String(j.id)===String(jobId));
-    if (job) sendEmailNotification(candidate, job, job.email||'anchansachinv99@gmail.com');
+    if (job?.email) {
+      fetch('/api/email?action=notify-employer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employerEmail: job.email,
+          company: job.company,
+          jobTitle: job.title,
+          candidateName: candidate.name,
+          candidateCity: candidate.city,
+          candidateExperience: candidate.experience,
+          candidateSkills: Array.isArray(candidate.skills) ? candidate.skills : []
+        })
+      }).catch(() => {});
+    }
   } else {
     btn.textContent='Apply Now'; btn.disabled=false;
     showToast('Failed. Try again.');
   }
 }
 
-async function sendEmailNotification(candidate, job, employerEmail) {
-  try {
-    await fetch('https://api.web3forms.com/submit', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ access_key:WEB3FORMS_KEY, subject:`New Application — ${job.title} | HireTrack`,
-        message:`Job: ${job.title}\nCompany: ${job.company}\n\nCandidate: ${candidate.name}\nEmail: ${candidate.email}\nMobile: ${candidate.mobile}\nCity: ${candidate.city}\nExp: ${candidate.experience}\nSkills: ${(candidate.skills||[]).join(', ')}\n\nDashboard: https://hiretrack-portal.vercel.app/employer-dashboard.html`,
-        from_name:'HireTrack Notifications', email:employerEmail, replyto:candidate.email }) });
-  } catch(e) { console.log('Email error:',e); }
-}
 
 async function callGroq(prompt) {
   try { const res = await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})}); const data=await res.json(); return data.answer||'Could not get a response.'; }

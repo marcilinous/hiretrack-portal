@@ -178,7 +178,12 @@ async function notifyEmployer(req, res, body) {
   const { employerEmail, company, jobTitle, candidateName, candidateCity, candidateExperience, candidateSkills } = body || {};
   if (!employerEmail || !jobTitle || !candidateName) return res.status(400).json({ ok: false, error: 'Missing fields' });
 
-  const skillTags = (candidateSkills || []).slice(0, 4)
+  const skillsArr = Array.isArray(candidateSkills)
+    ? candidateSkills
+    : typeof candidateSkills === 'string'
+      ? candidateSkills.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+  const skillTags = skillsArr.slice(0, 4)
     .map(s => `<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;display:inline-block;margin:2px;">${s}</span>`)
     .join('');
 
