@@ -134,6 +134,15 @@ body { padding-top:114px !important; }
 .prep-cat .cat-icon { font-size:1.5rem; margin-bottom:0.4rem; }
 .prep-cat h4 { font-size:0.82rem; font-weight:700; margin-bottom:0.2rem; }
 .prep-cat p { font-size:0.72rem; color:#64748b; }
+.sal-neg-wrap { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; margin-top:1.25rem; overflow:hidden; }
+.sal-neg-hd { display:flex; align-items:center; gap:0.75rem; padding:1rem 1.25rem; }
+.sal-neg-title { font-size:0.88rem; font-weight:800; color:#0f172a; }
+.sal-neg-sub { font-size:0.75rem; color:#64748b; margin-top:2px; }
+.sal-neg-btn { margin-left:auto; background:#16a34a; color:#fff; border:none; padding:0.5rem 1rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; }
+.sal-neg-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.sal-tip { display:flex; gap:10px; padding:0.65rem 0; border-bottom:1px solid #f1f5f9; font-size:0.84rem; line-height:1.6; color:#334155; }
+.sal-tip:last-child { border-bottom:none; }
+.sal-tip-num { background:#f0fdf4; color:#15803d; border-radius:50%; min-width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; flex-shrink:0; margin-top:2px; }
 .qa-box { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; overflow:hidden; }
 .qa-header { padding:1rem 1.2rem; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; }
 .qa-header h3 { font-size:0.9rem; font-weight:800; }
@@ -494,6 +503,19 @@ body { padding-top:114px !important; }
       <h3 style="font-size:0.88rem;font-weight:800;margin-bottom:0.75rem;color:#0f172a;">Practice Based on Your Skills</h3>
       <div class="prep-categories" id="skill-categories">
         <div style="grid-column:1/-1;text-align:center;padding:1rem;color:#94a3b8;font-size:0.85rem;">Loading your skills...</div>
+      </div>
+      <h3 style="font-size:0.88rem;font-weight:800;margin:1.25rem 0 0.75rem;color:#0f172a;">Industry Question Banks</h3>
+      <div class="prep-categories" id="industry-categories"></div>
+      <div class="sal-neg-wrap">
+        <div class="sal-neg-hd">
+          <div style="font-size:1.5rem;flex-shrink:0;">💰</div>
+          <div style="flex:1;">
+            <div class="sal-neg-title">Salary Negotiation Coach <span style="background:#7c3aed;color:#fff;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:700;vertical-align:middle;margin-left:4px;">Pro</span></div>
+            <div class="sal-neg-sub">AI tips tailored to your role, city and experience</div>
+          </div>
+          <button class="sal-neg-btn" id="sal-neg-btn" onclick="generateSalaryTips()">Get Tips →</button>
+        </div>
+        <div id="sal-neg-output" style="display:none;padding:0 1.25rem 1.25rem;"></div>
       </div>
       <div class="qa-box" id="qa-box" style="display:none;">
         <div class="qa-header">
@@ -1134,6 +1156,65 @@ body { padding-top:114px !important; }
       </div>`).join('');
   }
 
+  function renderIndustryCategories() {
+    const el = document.getElementById('industry-categories');
+    if (!el) return;
+    const INDUSTRIES = [
+      { label: 'IT & Tech', icon: '💻' },
+      { label: 'Data & Analytics', icon: '📊' },
+      { label: 'HR & People Ops', icon: '👥' },
+      { label: 'Sales & BizDev', icon: '💼' },
+      { label: 'Finance & Accounts', icon: '🏦' },
+      { label: 'Operations', icon: '📦' },
+    ];
+    el.innerHTML = INDUSTRIES.map(cat => `
+      <div class="prep-cat" onclick="loadSkillQuestions('${cat.label}')">
+        <div class="cat-icon">${cat.icon}</div>
+        <h4>${cat.label}</h4>
+        <p>Common interview questions</p>
+      </div>`).join('');
+  }
+
+  async function generateSalaryTips() {
+    if (!isProCandidate()) {
+      const out = document.getElementById('sal-neg-output');
+      out.style.display = 'block';
+      out.innerHTML = `<div style="background:#f5f3ff;border-radius:10px;padding:1.25rem;text-align:center;">
+        <div style="font-size:1.5rem;margin-bottom:0.5rem;">🎯</div>
+        <div style="font-size:0.88rem;font-weight:800;color:#4f46e5;margin-bottom:0.4rem;">Pro Feature</div>
+        <p style="font-size:0.82rem;color:#64748b;margin-bottom:1rem;">Upgrade to Pro for the Salary Negotiation Coach, unlimited interview prep and more.</p>
+        <button onclick="window.location.href='/pricing-candidate.html'" style="background:#4f46e5;color:#fff;border:none;padding:0.65rem 1.5rem;border-radius:9px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">Upgrade to Pro — ₹49/month →</button>
+      </div>`;
+      return;
+    }
+    const btn = document.getElementById('sal-neg-btn');
+    const out = document.getElementById('sal-neg-output');
+    btn.textContent = 'Generating…'; btn.disabled = true;
+    out.style.display = 'block';
+    out.innerHTML = `<div style="padding:0.5rem 0 1rem;text-align:center;"><span class="ai-loading">🤖 Crafting negotiation tips...</span></div>`;
+
+    const role = candidate.jobtitle || 'professional';
+    const exp  = candidate.experience || 'some experience';
+    const city = candidate.city || 'India';
+    const sal  = candidate.expected_salary ? ` targeting a CTC of ${candidate.expected_salary}` : '';
+    const prompt = `Give exactly 5 salary negotiation tips for a ${role} with ${exp} in ${city}${sal}. Each tip must be 1-2 sentences. Cover: 1) when to negotiate, 2) how to anchor high, 3) what to say when asked expected salary first, 4) how to counter a low offer, 5) benefits beyond base pay. Be specific to the Indian job market. Return as a numbered list only, no preamble.`;
+
+    try {
+      const res = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      const data = await res.json();
+      const lines = (data.answer || '').split('\n').map(l => l.trim()).filter(Boolean);
+      const tips = lines.filter(l => /^\d+[\.\)]/.test(l));
+      const items = tips.length ? tips : lines;
+      out.innerHTML = `<div>${items.map((t, i) => {
+        const text = t.replace(/^\d+[\.\)]\s*/, '');
+        return `<div class="sal-tip"><div class="sal-tip-num">${i + 1}</div><div>${text}</div></div>`;
+      }).join('')}</div>`;
+    } catch(e) {
+      out.innerHTML = `<div style="padding:0.5rem 0;font-size:0.85rem;color:#ef4444;">Failed to generate tips. Please try again.</div>`;
+    }
+    btn.textContent = 'Regenerate ↺'; btn.disabled = false;
+  }
+
   async function getAIQuestions(prompt, opts = {}) {
     try {
       const body = { prompt, mode: 'json' };
@@ -1680,6 +1761,7 @@ body { padding-top:114px !important; }
   if (candidate) {
     syncDrawer(candidate);
     renderSkillCategories();
+    renderIndustryCategories();
     _initPjfFilters();
     freshSync().then(() => init());
   }
@@ -1833,6 +1915,7 @@ body { padding-top:114px !important; }
     syncDrawer(candidate);
     renderProfileScore();
     renderSkillCategories();
+    renderIndustryCategories();
     const fm = { 'd-email':candidate.email,'d-mobile':candidate.mobile,'d-city':candidate.city,'d-exp':candidate.experience,'d-title':candidate.jobtitle,'d-company':candidate.current_company,'d-jobtype':candidate.preferred_job_type,'d-salary':candidate.expected_salary,'d-notice':candidate.notice_period,'d-about':candidate.about };
     Object.entries(fm).forEach(([id,v]) => { const el=document.getElementById(id); if(el) el.textContent=v||'—'; });
     if (candidate.skills?.length) { const sk=document.getElementById('d-skills'); if(sk) sk.innerHTML=candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join(''); }
