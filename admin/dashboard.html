@@ -149,7 +149,7 @@
         <input type="text" id="cands-search" placeholder="Search candidates..." oninput="renderCandidatesTable()" />
       </div>
       <table>
-        <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Experience</th><th>Skills</th><th>Applications</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Email</th><th>City</th><th>Experience</th><th>Skills</th><th>Joined</th><th>Actions</th></tr></thead>
         <tbody id="cands-table"></tbody>
       </table>
     </div>
@@ -217,46 +217,32 @@
 <div id="toast"></div>
 
 <script>
-  // Auth check
   if (!sessionStorage.getItem('ht_admin')) window.location.href = '/admin/index.html';
 
-  // ── SUPABASE ──
   const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ── DATA HELPERS ──
-  const STATIC_JOBS = [
-    { id:1, title:'MIS Executive', company:'Infosys BPM', location:'Bengaluru', type:'Full Time', posted:'2 days ago', status:'Active' },
-    { id:2, title:'Data Analyst', company:'Manipal Health', location:'Manipal', type:'Full Time', posted:'1 day ago', status:'Active' },
-    { id:3, title:'Excel Reporting Analyst', company:'Decathlon India', location:'Bengaluru', type:'Full Time', posted:'3 days ago', status:'Active' },
-    { id:4, title:'SQL Database Executive', company:'Ninjacart', location:'Bengaluru', type:'Contract', posted:'Today', status:'Active' },
-    { id:5, title:'BI Analyst', company:'KPMG India', location:'Bengaluru', type:'Full Time', posted:'4 days ago', status:'Active' },
-    { id:6, title:'MIS & Automation Analyst', company:'Bigbasket', location:'Bengaluru', type:'Full Time', posted:'Today', status:'Active' },
-    { id:7, title:'Operations Data Analyst', company:'Zepto', location:'Remote', type:'Remote', posted:'2 days ago', status:'Active' },
-    { id:8, title:'Reporting Executive', company:'TVS Motors', location:'Mysuru', type:'Full Time', posted:'5 days ago', status:'Active' },
-    { id:9, title:'AI Operations Analyst', company:'Accenture', location:'Bengaluru', type:'Full Time', posted:'1 day ago', status:'Active' },
-    { id:10, title:'Data Entry & Reporting Officer', company:'Karnataka Bank', location:'Mangaluru', type:'Full Time', posted:'3 days ago', status:'Active' },
-    { id:11, title:'Business Analyst', company:'Wipro', location:'Bengaluru', type:'Full Time', posted:'Today', status:'Active' },
-    { id:12, title:'MIS Officer', company:'Apollo Hospitals', location:'Bengaluru', type:'Full Time', posted:'2 days ago', status:'Active' },
-  ];
-
-  async function getCandidates() { const { data } = await sb.from('candidates').select('id,name,email,mobile,city,created_at,pro_expires_at').order('created_at',{ascending:false}).limit(200); return data || []; }
-  async function saveCandidates(d) { /* Read-only from Supabase */ }
-  async function getEmployers() { const { data } = await sb.from('employers').select('id,company,contact_name,email,mobile,city,plan,created_at').order('created_at',{ascending:false}).limit(200); return data || []; }
-  async function saveEmployers(d) { /* Read-only from Supabase */ }
-  async function getApplications() {
-    const { data } = await sb.from('jobs').select('id,title,company,applications_count').order('created_at',{ascending:false}).limit(100);
+  async function getCandidates() {
+    const { data } = await sb.from('candidates').select('id,name,email,city,experience,skills,created_at,pro_expires_at').order('created_at',{ascending:false}).limit(200);
     return data || [];
   }
-  async function saveApplications(d) { /* Now handled directly via Supabase */ }
-  async function getEmployerJobs() { const { data } = await sb.from('jobs').select('id,title,company,location,created_at,expires_at').order('created_at',{ascending:false}).limit(200); return data || []; }
-  async function saveEmployerJobs(d) { /* Managed via Supabase */ }
-  function getAllJobs() { return [...STATIC_JOBS, ...getEmployerJobs().map(j => ({ ...j, status: j.status || 'Active', posted: new Date(j.postedAt).toLocaleDateString('en-IN') }))] ; }
-
+  async function getEmployers() {
+    const { data } = await sb.from('employers').select('id,company,contact_name,email,city,plan,created_at').order('created_at',{ascending:false}).limit(200);
+    return data || [];
+  }
+  async function getJobs() {
+    const { data } = await sb.from('jobs').select('id,title,company,location,job_type,created_at,expires_at,delisted,employer_id').order('created_at',{ascending:false}).limit(300);
+    return data || [];
+  }
+  async function getApplications() {
+    const { data } = await sb.from('applications').select('id,candidate_id,job_id,status,created_at,candidates(name,email),jobs(title,company)').order('created_at',{ascending:false}).limit(300);
+    return data || [];
+  }
   async function getAdminSettings() {
     const { data } = await sb.from('admin_settings').select('*').maybeSingle();
-    return data || { featured: [], blocked_jobs: [], blocked_candidates: [], blocked_employers: [] };
+    return data || { featured: [] };
   }
   async function saveAdminSettings(d) {
     await sb.from('admin_settings').upsert({ id: 1, ...d });
@@ -272,21 +258,171 @@
     if (name === 'candidates') renderCandidatesTable();
     if (name === 'employers') renderEmployersTable();
     if (name === 'applications') renderAppsTable();
-    if (name === 'callbacks') renderCallbacksTable();
     if (name === 'executives') renderExecutivesTable();
     if (name === 'feed') renderFeedTable();
   }
 
-  // ── SUPABASE CALLBACKS & EXECUTIVES ──
+  // ── OVERVIEW ──
+  async function loadOverview() {
+    const [jobs, candidates, employers, apps] = await Promise.all([getJobs(), getCandidates(), getEmployers(), getApplications()]);
+    document.getElementById('stat-jobs').textContent = jobs.filter(j => !j.delisted).length;
+    document.getElementById('stat-candidates').textContent = candidates.length;
+    document.getElementById('stat-employers').textContent = employers.length;
+    document.getElementById('stat-applications').textContent = apps.length;
+    document.getElementById('last-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
+
+    const activities = [
+      ...candidates.slice(0, 3).map(c => ({ color:'#3b82f6', text:`New candidate: ${c.name}${c.city?' from '+c.city:''}`, time: new Date(c.created_at).toLocaleDateString('en-IN') })),
+      ...employers.slice(0, 2).map(e => ({ color:'#22c55e', text:`New employer: ${e.company}`, time: new Date(e.created_at).toLocaleDateString('en-IN') })),
+      ...apps.slice(0, 3).map(a => ({ color:'#f97316', text:`${a.candidates?.name||'Candidate'} applied to ${a.jobs?.title||'a job'}`, time: new Date(a.created_at).toLocaleDateString('en-IN') })),
+    ].slice(0, 8);
+
+    const list = document.getElementById('activity-list');
+    list.innerHTML = activities.length ? activities.map(a => `
+      <div class="act-row">
+        <div class="act-dot" style="background:${a.color}"></div>
+        <span>${a.text}</span>
+        <span class="act-time">${a.time}</span>
+      </div>`).join('') : '<div class="empty">No recent activity yet</div>';
+  }
+
+  // ── JOBS TABLE ──
+  async function renderJobsTable() {
+    const tbody = document.getElementById('jobs-table');
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading…</td></tr>';
+    const q = document.getElementById('jobs-search')?.value.toLowerCase() || '';
+    const [jobs, settings] = await Promise.all([getJobs(), getAdminSettings()]);
+    const filtered = jobs.filter(j => !q || (j.title+j.company+j.location).toLowerCase().includes(q));
+    const typeClass = { 'Full Time':'badge-green','Contract':'badge-orange','Remote':'badge-blue','Part Time':'badge-gray' };
+    tbody.innerHTML = filtered.length ? filtered.map(j => {
+      const isFeatured = (settings.featured||[]).includes(j.id);
+      return `<tr>
+        <td><strong>${j.title}</strong>${isFeatured?' ⭐':''}</td>
+        <td>${j.company}</td>
+        <td>📍 ${j.location}</td>
+        <td><span class="badge ${typeClass[j.job_type]||'badge-gray'}">${j.job_type||'—'}</span></td>
+        <td>${new Date(j.created_at).toLocaleDateString('en-IN')}</td>
+        <td><span class="badge ${j.delisted?'badge-red':'badge-green'}">${j.delisted?'Delisted':'Active'}</span></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn-sm btn-feature" onclick="toggleFeatured('${j.id}')">${isFeatured?'Unfeature':'Feature'}</button>
+          <button class="btn-sm ${j.delisted?'btn-approve':'btn-reject'}" onclick="toggleDelistJob('${j.id}',${!!j.delisted})">${j.delisted?'Relist':'Delist'}</button>
+          <button class="btn-sm btn-delete" onclick="deleteJob('${j.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="7" class="empty">No jobs found</td></tr>`;
+  }
+
+  async function toggleFeatured(id) {
+    const s = await getAdminSettings();
+    s.featured = (s.featured||[]).includes(id) ? s.featured.filter(x=>x!==id) : [...(s.featured||[]), id];
+    await saveAdminSettings(s); renderJobsTable(); toast('Featured status updated!');
+  }
+
+  async function toggleDelistJob(id, isDelisted) {
+    await sb.from('jobs').update({ delisted: !isDelisted }).eq('id', id);
+    renderJobsTable(); toast(isDelisted?'Job relisted!':'Job delisted!');
+  }
+
+  async function deleteJob(id) {
+    if (!confirm('Permanently delete this job? This cannot be undone.')) return;
+    await sb.from('jobs').delete().eq('id', id);
+    renderJobsTable(); toast('Job deleted!');
+  }
+
+  // ── CANDIDATES TABLE ──
+  async function renderCandidatesTable() {
+    const tbody = document.getElementById('cands-table');
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading…</td></tr>';
+    const q = document.getElementById('cands-search')?.value.toLowerCase() || '';
+    const candidates = await getCandidates();
+    const filtered = candidates.filter(c => !q || (c.name+c.email+(c.city||'')).toLowerCase().includes(q));
+    tbody.innerHTML = filtered.length ? filtered.map(c => {
+      const isPro = c.pro_expires_at && new Date() < new Date(c.pro_expires_at);
+      const skills = Array.isArray(c.skills) ? c.skills : (c.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
+      return `<tr>
+        <td><strong>${c.name}</strong>${isPro?' <span class="badge badge-blue">Pro</span>':''}</td>
+        <td>${c.email}</td>
+        <td>📍 ${c.city||'—'}</td>
+        <td>${c.experience||'—'}</td>
+        <td>${skills.slice(0,3).map(s=>`<span class="badge badge-blue" style="margin:2px;">${s}</span>`).join('')||'—'}</td>
+        <td>${new Date(c.created_at).toLocaleDateString('en-IN')}</td>
+        <td><button class="btn-sm btn-delete" onclick="deleteCandidate('${c.id}')">Delete</button></td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="7" class="empty">No candidates registered yet</td></tr>`;
+  }
+
+  async function deleteCandidate(id) {
+    if (!confirm('Delete this candidate account? This cannot be undone.')) return;
+    await sb.from('candidates').delete().eq('id', id);
+    renderCandidatesTable(); toast('Candidate deleted!');
+  }
+
+  // ── EMPLOYERS TABLE ──
+  async function renderEmployersTable() {
+    const tbody = document.getElementById('emp-table');
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+    const q = document.getElementById('emp-search')?.value.toLowerCase() || '';
+    const [employers, jobs] = await Promise.all([getEmployers(), getJobs()]);
+    const filtered = employers.filter(e => !q || (e.company+e.email+(e.city||'')).toLowerCase().includes(q));
+    tbody.innerHTML = filtered.length ? filtered.map(e => {
+      const jobCount = jobs.filter(j => j.employer_id === e.id).length;
+      const planBadge = e.plan && e.plan !== 'free' ? `<span class="badge badge-blue" style="margin-left:4px;">${e.plan}</span>` : '';
+      return `<tr>
+        <td><strong>${e.company}</strong></td>
+        <td>${e.contact_name||'—'}</td>
+        <td>${e.email}</td>
+        <td>📍 ${e.city||'—'}</td>
+        <td><span class="badge badge-blue">${jobCount} jobs</span>${planBadge}</td>
+        <td><button class="btn-sm btn-delete" onclick="deleteEmployer('${e.id}')">Delete</button></td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="6" class="empty">No employers registered yet</td></tr>`;
+  }
+
+  async function deleteEmployer(id) {
+    if (!confirm('Delete this employer and all their jobs? This cannot be undone.')) return;
+    await sb.from('jobs').delete().eq('employer_id', id);
+    await sb.from('employers').delete().eq('id', id);
+    renderEmployersTable(); toast('Employer deleted!');
+  }
+
+  // ── APPLICATIONS TABLE ──
+  async function renderAppsTable() {
+    const tbody = document.getElementById('apps-table');
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+    const q = document.getElementById('apps-search')?.value.toLowerCase() || '';
+    const apps = await getApplications();
+    const filtered = apps.filter(a => !q || ((a.candidates?.name||'')+(a.jobs?.title||'')).toLowerCase().includes(q));
+    const statusClass = { Applied:'badge-blue', Viewed:'badge-orange', Shortlisted:'badge-green', Interview:'badge-blue', Hired:'badge-green', Rejected:'badge-red' };
+    tbody.innerHTML = filtered.length ? filtered.map(a => `<tr>
+      <td><strong>${a.candidates?.name||'Unknown'}</strong><br><span style="color:#94a3b8;font-size:0.75rem;">${a.candidates?.email||''}</span></td>
+      <td>${a.jobs?.title||'—'}</td>
+      <td>${a.jobs?.company||'—'}</td>
+      <td>${new Date(a.created_at).toLocaleDateString('en-IN')}</td>
+      <td><span class="badge ${statusClass[a.status]||'badge-gray'}">${a.status||'—'}</span></td>
+      <td>
+        <select onchange="updateAppStatus('${a.id}',this.value)" style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78rem;outline:none;font-family:inherit;">
+          ${['Applied','Viewed','Shortlisted','Interview','Hired','Rejected'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="6" class="empty">No applications yet</td></tr>`;
+  }
+
+  async function updateAppStatus(id, status) {
+    await sb.from('applications').update({ status }).eq('id', id);
+    toast(`Status updated to ${status}`);
+  }
+
+  // ── CALLBACKS & EXECUTIVES ──
   async function renderCallbacksTable() {
     const q = document.getElementById('cb-search')?.value.toLowerCase() || '';
-    const { data: callbacks } = await sb.from('callback_requests')
-      .select('*, executives(name)').order('created_at', { ascending: false });
-    const { data: executives } = await sb.from('executives').select('id,name').eq('is_active', true);
+    const [{ data: callbacks }, { data: executives }] = await Promise.all([
+      sb.from('callback_requests').select('*, executives(name)').order('created_at', { ascending: false }),
+      sb.from('executives').select('id,name').eq('is_active', true)
+    ]);
     const filtered = (callbacks||[]).filter(c => !q || (c.name+c.company+c.mobile).toLowerCase().includes(q));
     const statusClass = { Pending:'badge-orange', Called:'badge-blue', Converted:'badge-green' };
     const tbody = document.getElementById('callbacks-table');
-    const execOptions = (executives||[]).map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+    if (!tbody) return;
     tbody.innerHTML = filtered.length ? filtered.map(c => `<tr>
       <td><strong>${c.name}</strong></td>
       <td>${c.company}</td>
@@ -311,10 +447,7 @@
   }
 
   async function reassignCallback(id, executiveId) {
-    await sb.from('callback_requests').update({
-      assigned_to: executiveId || null,
-      assigned_at: new Date().toISOString()
-    }).eq('id', id);
+    await sb.from('callback_requests').update({ assigned_to: executiveId || null, assigned_at: new Date().toISOString() }).eq('id', id);
     toast('Callback reassigned!');
   }
 
@@ -327,12 +460,12 @@
     const { data: executives } = await sb.from('executives').select('*').order('created_at', { ascending: false });
     const tbody = document.getElementById('exec-table');
     if (!executives?.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No executives registered yet</td></tr>`; return; }
-
-    // Get stats for each executive
     const rows = await Promise.all(executives.map(async e => {
-      const { data: referrals } = await sb.from('employers').select('id').eq('referred_by', e.id);
-      const { data: callbacks } = await sb.from('callback_requests').select('id').eq('assigned_to', e.id);
-      const { data: jobs } = await sb.from('jobs').select('id').eq('posted_by_executive', e.id);
+      const [{ data: referrals }, { data: callbacks }, { data: jobs }] = await Promise.all([
+        sb.from('employers').select('id').eq('referred_by', e.id),
+        sb.from('callback_requests').select('id').eq('assigned_to', e.id),
+        sb.from('jobs').select('id').eq('posted_by_executive', e.id)
+      ]);
       return `<tr>
         <td><strong>${e.name}</strong></td>
         <td>${e.email}</td>
@@ -352,190 +485,13 @@
 
   async function toggleExecStatus(id, activate) {
     await sb.from('executives').update({ is_active: activate }).eq('id', id);
-    toast(activate ? 'Executive activated!' : 'Executive deactivated!'); renderExecutivesTable();
+    toast(activate?'Executive activated!':'Executive deactivated!'); renderExecutivesTable();
   }
 
   async function deleteExec(id) {
     if (!confirm('Delete this executive? This cannot be undone.')) return;
     await sb.from('executives').delete().eq('id', id);
     toast('Executive deleted!'); renderExecutivesTable();
-  }
-
-  // ── OVERVIEW ──
-  function loadOverview() {
-    const candidates = getCandidates();
-    const employers = getEmployers();
-    const apps = getApplications();
-    const jobs = getAllJobs();
-    document.getElementById('stat-jobs').textContent = jobs.length;
-    document.getElementById('stat-candidates').textContent = candidates.length;
-    document.getElementById('stat-employers').textContent = employers.length;
-    document.getElementById('stat-applications').textContent = apps.length;
-    document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString('en-IN');
-
-    // Activity feed
-    const activities = [];
-    candidates.slice(-3).forEach(c => activities.push({ color:'#3b82f6', text:`New candidate: ${c.name} from ${c.city}`, time: 'Recently' }));
-    employers.slice(-2).forEach(e => activities.push({ color:'#22c55e', text:`New employer: ${e.company}`, time: 'Recently' }));
-    apps.slice(-3).forEach(a => { const c = candidates.find(x => x.id === a.candidateId); if(c) activities.push({ color:'#f97316', text:`${c.name} applied to a job`, time: new Date(a.appliedAt).toLocaleDateString('en-IN') }); });
-
-    const list = document.getElementById('activity-list');
-    list.innerHTML = activities.length ? activities.map(a => `
-      <div class="act-row">
-        <div class="act-dot" style="background:${a.color}"></div>
-        <span>${a.text}</span>
-        <span class="act-time">${a.time}</span>
-      </div>`).join('') : '<div class="empty">No recent activity yet</div>';
-  }
-
-  // ── JOBS TABLE ──
-  function renderJobsTable() {
-    const q = document.getElementById('jobs-search')?.value.toLowerCase() || '';
-    const settings = getAdminSettings();
-    const jobs = getAllJobs().filter(j => !q || (j.title + j.company + j.location).toLowerCase().includes(q));
-    const tbody = document.getElementById('jobs-table');
-    const typeClass = { 'Full Time':'badge-green', 'Contract':'badge-orange', 'Remote':'badge-blue' };
-    tbody.innerHTML = jobs.length ? jobs.map(j => {
-      const isFeatured = settings.featured.includes(j.id);
-      const isBlocked = settings.blocked_jobs.includes(j.id);
-      return `<tr>
-        <td><strong>${j.title}</strong>${isFeatured ? ' ⭐' : ''}</td>
-        <td>${j.company}</td>
-        <td>📍 ${j.location}</td>
-        <td><span class="badge ${typeClass[j.type]||'badge-gray'}">${j.type}</span></td>
-        <td>${j.posted}</td>
-        <td><span class="badge ${isBlocked?'badge-red':'badge-green'}">${isBlocked?'Blocked':'Active'}</span></td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn-sm btn-feature" onclick="toggleFeatured(${j.id})">${isFeatured?'Unfeature':'Feature'}</button>
-          <button class="btn-sm ${isBlocked?'btn-approve':'btn-reject'}" onclick="toggleBlockJob(${j.id})">${isBlocked?'Unblock':'Block'}</button>
-          ${j.id > 12 ? `<button class="btn-sm btn-delete" onclick="deleteJob(${j.id})">Delete</button>` : ''}
-        </td>
-      </tr>`;
-    }).join('') : `<tr><td colspan="7" class="empty">No jobs found</td></tr>`;
-  }
-
-  function toggleFeatured(id) {
-    const s = getAdminSettings();
-    s.featured = s.featured.includes(id) ? s.featured.filter(x=>x!==id) : [...s.featured, id];
-    saveAdminSettings(s); renderJobsTable(); toast('Featured status updated!');
-  }
-
-  function toggleBlockJob(id) {
-    const s = getAdminSettings();
-    s.blocked_jobs = s.blocked_jobs.includes(id) ? s.blocked_jobs.filter(x=>x!==id) : [...s.blocked_jobs, id];
-    saveAdminSettings(s); renderJobsTable(); toast('Job status updated!');
-  }
-
-  function deleteJob(id) {
-    if (!confirm('Delete this job posting?')) return;
-    saveEmployerJobs(getEmployerJobs().filter(j => j.id !== id));
-    renderJobsTable(); toast('Job deleted!');
-  }
-
-  // ── CANDIDATES TABLE ──
-  function renderCandidatesTable() {
-    const q = document.getElementById('cands-search')?.value.toLowerCase() || '';
-    const candidates = getCandidates().filter(c => !q || (c.name + c.email + c.city).toLowerCase().includes(q));
-    const apps = getApplications();
-    const tbody = document.getElementById('cands-table');
-    tbody.innerHTML = candidates.length ? candidates.map(c => {
-      const appCount = apps.filter(a => a.candidateId === c.id).length;
-      return `<tr>
-        <td><strong>${c.name}</strong></td>
-        <td>${c.email}</td>
-        <td>📍 ${c.city || '—'}</td>
-        <td>${c.experience || '—'}</td>
-        <td>${(c.skills||[]).slice(0,3).map(s=>`<span class="badge badge-blue" style="margin:2px;">${s}</span>`).join('')}</td>
-        <td><span class="badge badge-green">${appCount} applied</span></td>
-        <td style="display:flex;gap:6px;">
-          ${c.resumeData ? `<button class="btn-sm btn-feature" onclick="downloadResume(${c.id})">📄 Resume</button>` : ''}
-          <button class="btn-sm btn-delete" onclick="deleteCandidate(${c.id})">Delete</button>
-        </td>
-      </tr>`;
-    }).join('') : `<tr><td colspan="7" class="empty">No candidates registered yet</td></tr>`;
-  }
-
-  function downloadResume(id) {
-    const c = getCandidates().find(x => x.id === id);
-    if (!c?.resumeData) return;
-    const a = document.createElement('a');
-    a.href = c.resumeData; a.download = c.resumeName || `${c.name}_resume.pdf`; a.click();
-  }
-
-  function deleteCandidate(id) {
-    if (!confirm('Delete this candidate account? This cannot be undone.')) return;
-    saveCandidates(getCandidates().filter(c => c.id !== id));
-    saveApplications(getApplications().filter(a => a.candidateId !== id));
-    renderCandidatesTable(); loadOverview(); toast('Candidate deleted!');
-  }
-
-  // ── EMPLOYERS TABLE ──
-  function renderEmployersTable() {
-    const q = document.getElementById('emp-search')?.value.toLowerCase() || '';
-    const employers = getEmployers().filter(e => !q || (e.company + e.email + e.city).toLowerCase().includes(q));
-    const empJobs = getEmployerJobs();
-    const tbody = document.getElementById('emp-table');
-    tbody.innerHTML = employers.length ? employers.map(e => {
-      const jobCount = empJobs.filter(j => j.employerId === e.id).length;
-      return `<tr>
-        <td><strong>${e.company}</strong></td>
-        <td>${e.contactName}</td>
-        <td>${e.email}</td>
-        <td>📍 ${e.city || '—'}</td>
-        <td><span class="badge badge-blue">${jobCount} jobs</span></td>
-        <td style="display:flex;gap:6px;">
-          <button class="btn-sm btn-delete" onclick="deleteEmployer(${e.id})">Delete</button>
-        </td>
-      </tr>`;
-    }).join('') : `<tr><td colspan="6" class="empty">No employers registered yet</td></tr>`;
-  }
-
-  function deleteEmployer(id) {
-    if (!confirm('Delete this employer account and all their job postings?')) return;
-    saveEmployers(getEmployers().filter(e => e.id !== id));
-    saveEmployerJobs(getEmployerJobs().filter(j => j.employerId !== id));
-    renderEmployersTable(); loadOverview(); toast('Employer deleted!');
-  }
-
-  // ── APPLICATIONS TABLE ──
-  function renderAppsTable() {
-    const q = document.getElementById('apps-search')?.value.toLowerCase() || '';
-    const apps = getApplications();
-    const candidates = getCandidates();
-    const allJobs = getAllJobs();
-    const filtered = apps.filter(a => {
-      const c = candidates.find(x => x.id === a.candidateId);
-      const j = allJobs.find(x => x.id === a.jobId);
-      return !q || ((c?.name||'') + (j?.title||'')).toLowerCase().includes(q);
-    });
-    const tbody = document.getElementById('apps-table');
-    const statusClass = { Applied:'badge-blue', Viewed:'badge-orange', Shortlisted:'badge-green', Rejected:'badge-red' };
-    tbody.innerHTML = filtered.length ? filtered.map(a => {
-      const c = candidates.find(x => x.id === a.candidateId);
-      const j = allJobs.find(x => x.id === a.jobId);
-      const date = new Date(a.appliedAt).toLocaleDateString('en-IN');
-      return `<tr>
-        <td><strong>${c?.name || 'Unknown'}</strong><br><span style="color:#94a3b8;font-size:0.75rem;">${c?.email||''}</span></td>
-        <td>${j?.title || 'Unknown Job'}</td>
-        <td>${j?.company || '—'}</td>
-        <td>${date}</td>
-        <td><span class="badge ${statusClass[a.status]||'badge-gray'}">${a.status}</span></td>
-        <td>
-          <select onchange="updateAppStatus(${a.candidateId},${a.jobId},this.value)" style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78rem;outline:none;font-family:inherit;">
-            <option ${a.status==='Applied'?'selected':''}>Applied</option>
-            <option ${a.status==='Viewed'?'selected':''}>Viewed</option>
-            <option ${a.status==='Shortlisted'?'selected':''}>Shortlisted</option>
-            <option ${a.status==='Rejected'?'selected':''}>Rejected</option>
-          </select>
-        </td>
-      </tr>`;
-    }).join('') : `<tr><td colspan="6" class="empty">No applications yet</td></tr>`;
-  }
-
-  function updateAppStatus(candidateId, jobId, status) {
-    const apps = getApplications();
-    const app = apps.find(a => a.candidateId === candidateId && a.jobId === jobId);
-    if (app) { app.status = status; saveApplications(apps); toast(`Status updated to ${status}`); }
   }
 
   // ── FEED POSTS ──
@@ -550,45 +506,34 @@
   }
 
   const FEED_TYPE_LABELS = {
-    general: '💬 Post', job: '💼 Job Share', hiring: '🏢 Hiring',
-    open_to_work: '🟢 Open to Work', hired: '🎉 Got Hired', tip: '💡 Tip',
+    general:'💬 Post', job:'💼 Job Share', hiring:'🏢 Hiring',
+    open_to_work:'🟢 Open to Work', hired:'🎉 Got Hired', tip:'💡 Tip',
   };
 
   async function renderFeedTable() {
-    const q     = (document.getElementById('feed-search')?.value || '').toLowerCase();
+    const q = (document.getElementById('feed-search')?.value || '').toLowerCase();
     const tbody = document.getElementById('feed-table');
     tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
-
     let query = sb.from('feed_posts')
       .select('id,author_name,author_type,post_type,content,like_count,flag_count,is_flagged,is_hidden,created_at')
-      .order('created_at', { ascending: false })
-      .limit(200);
+      .order('created_at', { ascending: false }).limit(200);
     if (_feedTab === 'flagged') query = query.eq('is_flagged', true);
-
     const { data: posts, error } = await query;
     if (error) { tbody.innerHTML = `<tr><td colspan="8" class="empty">Error: ${error.message}</td></tr>`; return; }
-
-    const filtered = (posts || []).filter(p =>
-      !q || (p.author_name + ' ' + p.content).toLowerCase().includes(q)
-    );
-
-    if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="8" class="empty">No ${_feedTab === 'flagged' ? 'flagged ' : ''}posts found</td></tr>`;
-      return;
-    }
-
+    const filtered = (posts||[]).filter(p => !q || (p.author_name+' '+p.content).toLowerCase().includes(q));
+    if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No ${_feedTab==='flagged'?'flagged ':''}posts found</td></tr>`; return; }
     tbody.innerHTML = filtered.map(p => {
-      const snippet = p.content.length > 90 ? p.content.slice(0, 90) + '…' : p.content;
+      const snippet = p.content.length > 90 ? p.content.slice(0, 90)+'…' : p.content;
       return `<tr>
         <td><strong>${p.author_name}</strong><br><span style="color:#94a3b8;font-size:0.75rem;">${p.author_type}</span></td>
-        <td>${FEED_TYPE_LABELS[p.post_type] || p.post_type}</td>
+        <td>${FEED_TYPE_LABELS[p.post_type]||p.post_type}</td>
         <td style="max-width:200px;font-size:0.82rem;color:#334155;">${snippet}</td>
-        <td>❤️ ${p.like_count || 0}</td>
-        <td><span class="badge ${(p.flag_count || 0) >= 3 ? 'badge-red' : 'badge-orange'}">⚑ ${p.flag_count || 0}</span></td>
+        <td>❤️ ${p.like_count||0}</td>
+        <td><span class="badge ${(p.flag_count||0)>=3?'badge-red':'badge-orange'}">⚑ ${p.flag_count||0}</span></td>
         <td>${new Date(p.created_at).toLocaleDateString('en-IN')}</td>
-        <td><span class="badge ${p.is_hidden ? 'badge-gray' : 'badge-green'}">${p.is_hidden ? 'Hidden' : 'Visible'}</span></td>
+        <td><span class="badge ${p.is_hidden?'badge-gray':'badge-green'}">${p.is_hidden?'Hidden':'Visible'}</span></td>
         <td style="display:flex;gap:6px;">
-          <button class="btn-sm ${p.is_hidden ? 'btn-approve' : 'btn-reject'}" onclick="toggleFeedHide('${p.id}',${!!p.is_hidden})">${p.is_hidden ? 'Unhide' : 'Hide'}</button>
+          <button class="btn-sm ${p.is_hidden?'btn-approve':'btn-reject'}" onclick="toggleFeedHide('${p.id}',${!!p.is_hidden})">${p.is_hidden?'Unhide':'Hide'}</button>
           <button class="btn-sm btn-delete" onclick="deleteFeedPost('${p.id}')">Delete</button>
         </td>
       </tr>`;
@@ -596,20 +541,15 @@
   }
 
   async function toggleFeedHide(id, isHidden) {
-    await sb.from('feed_posts').update({
-      is_hidden: !isHidden,
-      is_flagged: false,
-      flag_count: 0,
-    }).eq('id', id);
-    toast(isHidden ? 'Post is now visible.' : 'Post hidden from feed.');
+    await sb.from('feed_posts').update({ is_hidden: !isHidden, is_flagged: false, flag_count: 0 }).eq('id', id);
+    toast(isHidden?'Post is now visible.':'Post hidden from feed.');
     renderFeedTable();
   }
 
   async function deleteFeedPost(id) {
     if (!confirm('Permanently delete this post? This cannot be undone.')) return;
     await sb.from('feed_posts').delete().eq('id', id);
-    toast('Post deleted.');
-    renderFeedTable();
+    toast('Post deleted.'); renderFeedTable();
   }
 
   // ── UTILS ──
