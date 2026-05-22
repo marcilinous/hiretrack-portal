@@ -55,6 +55,20 @@ body { padding-top:114px !important; }
 .level-good { background:#dbeafe; color:#1d4ed8; }
 .level-pro { background:#f5f3ff; color:#6d28d9; }
 .level-complete { background:#dcfce7; color:#15803d; }
+
+/* ── Profile Completeness Nudge ── */
+.pn-banner { background:#fff7ed; border:1.5px solid #fdba74; border-radius:14px; padding:1rem 1.25rem; margin-bottom:1rem; position:relative; }
+.pn-title { font-size:0.92rem; font-weight:800; color:#92400e; margin-bottom:0.25rem; }
+.pn-sub { font-size:0.78rem; color:#b45309; margin-bottom:0.75rem; }
+.pn-bar-wrap { background:#fed7aa; border-radius:20px; height:7px; margin-bottom:0.75rem; overflow:hidden; }
+.pn-bar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg,#f97316,#ea580c); transition:width 0.6s ease; }
+.pn-bar-label { font-size:0.68rem; font-weight:700; color:#92400e; display:flex; justify-content:space-between; margin-bottom:0.3rem; }
+.pn-actions { display:flex; flex-wrap:wrap; gap:0.5rem; }
+.pn-action-btn { background:#fff; border:1.5px solid #fdba74; border-radius:8px; padding:5px 12px; font-size:0.78rem; font-weight:700; color:#92400e; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:5px; transition:all 0.15s; }
+.pn-action-btn:hover { background:#fff7ed; border-color:#f97316; }
+.pn-dismiss { position:absolute; top:10px; right:10px; background:none; border:none; color:#f97316; font-size:1rem; cursor:pointer; line-height:1; padding:2px 6px; border-radius:4px; }
+.pn-dismiss:hover { background:#fed7aa; }
+
 .profile-grid { display:grid; grid-template-columns:1fr 2fr; gap:1.5rem; }
 .card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
 .card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
@@ -328,6 +342,9 @@ body { padding-top:114px !important; }
 
 <!-- Main Content -->
 <div class="content">
+
+  <!-- Profile completeness nudge — shown by JS when score < 60 -->
+  <div id="profile-nudge" style="display:none;"></div>
 
   <!-- VIEW: Browse Jobs (default #jobs) -->
   <div id="view-jobs">
@@ -1037,9 +1054,16 @@ body { padding-top:114px !important; }
   // ── Interview Prep ──
   function getSkillPts(n){return n>=8?20:n>=5?15:n>=3?10:0;}
 
-  function showEditSection(sectionOrEl){
-    const section = typeof sectionOrEl === 'string' ? sectionOrEl : sectionOrEl.dataset.fix;
-    showToast('Click Edit Profile to update: ' + section);
+  const SECTION_TAB = { city:0, personal:0, professional:1, skills:2, preferences:3, about:4 };
+
+  function showEditSection(section) {
+    if (section === 'resume') {
+      window.location.hash = '#profile';
+      setTimeout(() => document.getElementById('resume-upload-btn')?.scrollIntoView({ behavior:'smooth', block:'center' }), 150);
+      return;
+    }
+    const tabIdx = SECTION_TAB[section] ?? 0;
+    openEditModal(tabIdx);
   }
 
   function renderProfileScore() {
@@ -1112,6 +1136,48 @@ body { padding-top:114px !important; }
     }
 
     setTimeout(()=>{const ring=document.getElementById('score-ring-anim');if(ring){ring.style.transition='stroke-dashoffset 1.2s ease';ring.style.strokeDashoffset=offset;}},200);
+
+    renderNudge(score, checks);
+  }
+
+  function renderNudge(score, checks) {
+    const el = document.getElementById('profile-nudge');
+    if (!el) return;
+    if (score >= 60 || sessionStorage.getItem('ht_nudge_dismissed')) {
+      el.style.display = 'none';
+      return;
+    }
+
+    const missing = checks
+      .filter(c => !(c.isPartial ? c.earned >= c.pts : c.done))
+      .sort((a, b) => (b.pts - b.earned) - (a.pts - a.earned))
+      .slice(0, 3);
+
+    const actionBtns = missing.map(c => {
+      if (c.fix === 'jobs.html') {
+        return `<a href="jobs.html" class="pn-action-btn" style="text-decoration:none;">Apply to jobs →</a>`;
+      }
+      if (c.fix === 'resume') {
+        return `<button class="pn-action-btn" onclick="showEditSection('resume')">📤 Upload resume →</button>`;
+      }
+      const label = c.fix === 'city' ? 'Add your city' :
+                    c.fix === 'professional' ? 'Add job title & experience' :
+                    c.fix === 'about' ? 'Write your summary' :
+                    c.fix === 'skills' ? 'Add your skills' :
+                    c.fix === 'preferences' ? 'Set job preferences' : 'Fix →';
+      return `<button class="pn-action-btn" onclick="showEditSection('${c.fix}')">${label} →</button>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="pn-banner">
+        <button class="pn-dismiss" onclick="sessionStorage.setItem('ht_nudge_dismissed','1');document.getElementById('profile-nudge').style.display='none';" title="Dismiss">✕</button>
+        <div class="pn-title">⚡ Your profile is ${score}% complete</div>
+        <div class="pn-sub">Reach 60% to appear in employer searches and get more interview calls.</div>
+        <div class="pn-bar-label"><span>${score}%</span><span>Target: 60%</span></div>
+        <div class="pn-bar-wrap"><div class="pn-bar-fill" style="width:${score}%;"></div></div>
+        <div class="pn-actions">${actionBtns}</div>
+      </div>`;
+    el.style.display = 'block';
   }
 
   function scrollToEdit() { showToast('Use Edit Profile to update this section.'); }
@@ -1773,7 +1839,7 @@ body { padding-top:114px !important; }
   // ════════════════════════════════════════════
   let _editSkills = [];
 
-  function openEditModal() {
+  function openEditModal(tabIdx = 0) {
     const existing = document.getElementById('edit-overlay');
     if (existing) existing.remove();
     _editSkills = Array.isArray(candidate.skills) ? [...candidate.skills] : [];
@@ -1856,6 +1922,7 @@ body { padding-top:114px !important; }
     document.body.appendChild(overlay);
     document.body.style.overflow = 'hidden';
     renderEditSkillChips();
+    if (tabIdx !== 0) switchEditTab(tabIdx);
     const si = document.getElementById('skill-add-input');
     if (si) si.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addEditSkill(); } });
   }
