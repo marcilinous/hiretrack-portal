@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>body{padding-top:64px;}</style>
+<style>
+body { padding-top:50px !important; }
+.topbar { position:fixed; top:0; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.tb-back { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.1rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.tb-back:hover { background:rgba(255,255,255,0.22); }
+.tb-brand { flex:1; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; padding-left:0.75rem; letter-spacing:-0.5px; text-decoration:none; }
+.tb-brand span { color:#3b82f6; }
+</style>
 <title>Notifications — HireTrack</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="/manifest.json">
@@ -169,11 +176,12 @@
 </style>
 </head>
 <body>
-<div id="navbar"></div>
+<div class="topbar">
+  <a href="/profile.html" class="tb-back" aria-label="Back to Profile">&#8592;</a>
+  <a href="/profile.html" class="tb-brand">Hire<span>Track</span></a>
+</div>
 
 <div class="nc-wrap">
-  <a href="/profile.html" class="nc-back">← Back to Profile</a>
-
   <div class="nc-header">
     <div class="nc-title">🔔 Notifications</div>
     <button class="nc-mark-all" id="mark-all-btn" onclick="markAllRead()" style="display:none;">Mark all as read</button>
@@ -187,8 +195,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>
-document.getElementById('navbar').innerHTML = renderNavbar('jobs');
-
 const candidate = Session.getCandidate?.();
 if (!candidate) window.location.href = '/login.html';
 
