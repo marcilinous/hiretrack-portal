@@ -318,7 +318,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="tab" onclick="switchTab('analytics',this)">📈 Analytics</button>
     <button class="tab" onclick="switchTab('talent',this)">🔍 Find Talent</button>
     <button class="tab" onclick="switchTab('bulk',this)">📱 Bulk WhatsApp</button>
-    <button class="tab" id="tab-btn-messages" onclick="switchTab('messages',this)">💬 Messages <span id="msg-unread-badge" style="display:none;background:#ef4444;color:#fff;border-radius:999px;font-size:0.65rem;font-weight:800;padding:1px 6px;margin-left:3px;vertical-align:middle;"></span></button>
   </div>
 </div>
 
@@ -408,11 +407,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="talent-grid"></div>
   </div>
 
-  <!-- MESSAGES -->
-  <div id="tab-messages" style="display:none;">
-    <div id="employer-chat-root"></div>
-  </div>
-
   <!-- BULK WA -->
   <div id="tab-bulk" style="display:none;">
     <div class="bulk-card">
@@ -447,7 +441,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   let myJobs = [], allApps = [], currentView = 'board';
   const STATUSES = ['Viewed','Applied','Shortlisted','Interview','Hired','Rejected'];
-  const ALL_TABS = ['jobs','pipeline','analytics','talent','bulk','messages'];
+  const ALL_TABS = ['jobs','pipeline','analytics','talent','bulk'];
   const SC = {Viewed:'s-Viewed',Applied:'s-Applied',Shortlisted:'s-Shortlisted',Interview:'s-Interview',Hired:'s-Hired',Rejected:'s-Rejected'};
 
   async function init() {
@@ -483,16 +477,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     updateStats();
     renderJobs();
     populateSelects();
-    refreshMsgBadge();
+    _initMsgBubble();
   }
 
-  async function refreshMsgBadge() {
+  async function _initMsgBubble() {
+    let unread = 0;
     try {
       const { data } = await sb.from('conversations').select('employer_unread').eq('employer_id', employer.id);
-      const total = (data || []).reduce((s, c) => s + (c.employer_unread || 0), 0);
-      const badge = document.getElementById('msg-unread-badge');
-      if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline' : 'none'; }
+      unread = (data || []).reduce((s, c) => s + (c.employer_unread || 0), 0);
     } catch { /* non-critical */ }
+    const btn = document.createElement('a');
+    btn.href = '/employer-messages.html';
+    btn.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;width:54px;height:54px;border-radius:50%;background:#ff9933;color:#fff;border:none;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.18);z-index:900;display:flex;align-items:center;justify-content:center;text-decoration:none;';
+    btn.setAttribute('aria-label', 'Messages');
+    btn.innerHTML = `💬${unread > 0 ? `<span style="position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;border-radius:999px;font-size:0.62rem;font-weight:800;padding:2px 5px;min-width:16px;text-align:center;border:2px solid #fff;">${unread}</span>` : ''}`;
+    document.body.appendChild(btn);
   }
 
   function updateStats() {
@@ -512,7 +511,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     btn.classList.add('active');
     if (tab === 'analytics') renderAnalytics();
     if (tab === 'talent') { _talentCache = null; searchTalent(); }
-    if (tab === 'messages') Chat.initEmployer('employer-chat-root', employer);
   }
 
   async function renderAnalytics() {

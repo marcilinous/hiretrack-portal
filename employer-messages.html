@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages — HireTrack for Employers</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
+<style>
+body { padding-top:50px !important; background:#f1f5f9; }
+.topbar { position:fixed; top:0; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.tb-back { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:8px; font-size:1.1rem; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.tb-back:hover { background:rgba(255,255,255,0.22); }
+.tb-brand { flex:1; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; padding-left:0.75rem; letter-spacing:-0.5px; text-decoration:none; }
+.tb-brand span { color:#3b82f6; }
+.msg-wrap { max-width:960px; margin:1.25rem auto; padding:0 1rem 2rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/employer-dashboard.html" class="tb-back" aria-label="Back to Dashboard">&#8592;</a>
+  <a href="/employer-dashboard.html" class="tb-brand">Hire<span>Track</span></a>
+</div>
+
+<div class="msg-wrap">
+  <div id="employer-chat-root"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script src="js/chat.js"></script>
+<script>
+  const employer = Session.getEmployer();
+  if (!employer) window.location.href = '/employer-auth.html';
+
+  document.getElementById('navbar') && (document.getElementById('navbar').innerHTML = '');
+
+  Chat.initEmployer('employer-chat-root', employer);
+</script>
+</body>
+</html>
