@@ -61,5 +61,13 @@ CREATE POLICY "msg_select" ON messages FOR SELECT USING (true);
 CREATE POLICY "msg_insert" ON messages FOR INSERT WITH CHECK (true);
 CREATE POLICY "msg_update" ON messages FOR UPDATE USING (true) WITH CHECK (true);
 
--- Enable Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+-- Enable Realtime (skip if already a member)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'messages'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+  END IF;
+END $$;
