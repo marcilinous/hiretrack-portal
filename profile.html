@@ -89,6 +89,22 @@ body { padding-top:50px !important; }
 .profile-grid { display:grid; grid-template-columns:1fr 2fr; gap:1.5rem; }
 .card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; }
 .card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
+.card-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+.card-hd h3 { margin-bottom:0; }
+.card-add-btn { background:#eff6ff; color:#2563eb; border:1.5px solid #bfdbfe; border-radius:8px; padding:4px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.card-add-btn:hover { background:#dbeafe; }
+.hist-entry { display:flex; align-items:flex-start; gap:0.75rem; padding:0.75rem 0; border-bottom:1px solid #f1f5f9; }
+.hist-entry:last-child { border-bottom:none; padding-bottom:0; }
+.hist-dot { width:9px; height:9px; border-radius:50%; background:#3b82f6; margin-top:5px; flex-shrink:0; }
+.hist-body { flex:1; min-width:0; }
+.hist-title { font-size:0.87rem; font-weight:700; color:#0f172a; }
+.hist-sub { font-size:0.8rem; color:#475569; margin-top:1px; }
+.hist-year { font-size:0.71rem; color:#94a3b8; margin-top:2px; font-weight:600; }
+.hist-desc { font-size:0.78rem; color:#64748b; margin-top:4px; line-height:1.5; }
+.hist-actions { display:flex; gap:2px; flex-shrink:0; margin-top:1px; }
+.hist-btn { background:none; border:none; cursor:pointer; font-size:0.82rem; padding:3px 7px; border-radius:6px; color:#94a3b8; line-height:1; }
+.hist-btn:hover { background:#f1f5f9; color:#374151; }
+.hist-empty { font-size:0.82rem; color:#94a3b8; padding:0.25rem 0; }
 .info-row { display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #f1f5f9; font-size:0.85rem; }
 .info-row:last-child { border-bottom:none; }
 .info-row .label { color:#64748b; }
@@ -502,6 +518,20 @@ body { padding-top:50px !important; }
           <h3>Skills</h3>
           <div id="d-skills"><p style="font-size:0.82rem;color:#94a3b8;">No skills added</p></div>
         </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-hd">
+            <h3>Work History</h3>
+            <button class="card-add-btn" onclick="openWorkModal(-1)">+ Add</button>
+          </div>
+          <div id="d-work-history"><p class="hist-empty">No work history added</p></div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-hd">
+            <h3>Education</h3>
+            <button class="card-add-btn" onclick="openEduModal(-1)">+ Add</button>
+          </div>
+          <div id="d-education"><p class="hist-empty">No education added</p></div>
+        </div>
         <div class="card">
           <h3>Activity Summary</h3>
           <div class="info-row"><span class="label">Total Applications</span><span class="value" id="sum-total">0</span></div>
@@ -772,6 +802,8 @@ body { padding-top:50px !important; }
     if (candidate.skills?.length) {
       document.getElementById('d-skills').innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
     }
+    renderWorkHistory();
+    renderEducation();
     renderResumeSection();
 
     const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
@@ -2390,6 +2422,169 @@ body { padding-top:50px !important; }
     if (candidate.skills?.length) { const sk=document.getElementById('d-skills'); if(sk) sk.innerHTML=candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join(''); }
     if (msg) { msg.style.color = '#16a34a'; msg.textContent = '✅ Saved!'; }
     setTimeout(closeEditModal, 1000);
+  }
+
+  // ════════════════════════════════════════════
+  // WORK HISTORY & EDUCATION
+  // ════════════════════════════════════════════
+
+  function renderWorkHistory() {
+    const el = document.getElementById('d-work-history');
+    if (!el) return;
+    const list = Array.isArray(candidate.work_history) ? candidate.work_history : [];
+    if (!list.length) { el.innerHTML = '<p class="hist-empty">No work history added</p>'; return; }
+    el.innerHTML = list.map((w, i) => `
+      <div class="hist-entry">
+        <div class="hist-dot" style="background:#6366f1;"></div>
+        <div class="hist-body">
+          <div class="hist-title">${esc(w.role)}</div>
+          <div class="hist-sub">${esc(w.company)}</div>
+          <div class="hist-year">${esc(w.year_from)}${w.year_to ? ' – ' + esc(w.year_to) : ''}${w.current ? ' – Present' : ''}</div>
+          ${w.description ? `<div class="hist-desc">${esc(w.description)}</div>` : ''}
+        </div>
+        <div class="hist-actions">
+          <button class="hist-btn" onclick="openWorkModal(${i})" title="Edit">✏️</button>
+          <button class="hist-btn" onclick="deleteWorkEntry(${i})" title="Delete">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderEducation() {
+    const el = document.getElementById('d-education');
+    if (!el) return;
+    const list = Array.isArray(candidate.education) ? candidate.education : [];
+    if (!list.length) { el.innerHTML = '<p class="hist-empty">No education added</p>'; return; }
+    el.innerHTML = list.map((e, i) => `
+      <div class="hist-entry">
+        <div class="hist-dot" style="background:#10b981;"></div>
+        <div class="hist-body">
+          <div class="hist-title">${esc(e.degree)}</div>
+          <div class="hist-sub">${esc(e.institution)}</div>
+          <div class="hist-year">${esc(e.year_from)}${e.year_to ? ' – ' + esc(e.year_to) : ''}</div>
+        </div>
+        <div class="hist-actions">
+          <button class="hist-btn" onclick="openEduModal(${i})" title="Edit">✏️</button>
+          <button class="hist-btn" onclick="deleteEduEntry(${i})" title="Delete">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function _histOverlay(title, bodyHtml, onSave) {
+    const existing = document.getElementById('hist-overlay');
+    if (existing) existing.remove();
+    const ov = document.createElement('div');
+    ov.id = 'hist-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    ov.innerHTML = `
+      <div style="background:#fff;border-radius:16px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+          <span style="color:#fff;font-size:0.95rem;font-weight:800;">${title}</span>
+          <button onclick="document.getElementById('hist-overlay').remove()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:1rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:1.25rem;">${bodyHtml}
+          <div style="display:flex;gap:0.75rem;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #f1f5f9;">
+            <button onclick="(${onSave.toString()})()" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">Save</button>
+            <button onclick="document.getElementById('hist-overlay').remove()" style="background:#f1f5f9;color:#374151;border:none;padding:0.75rem 1.25rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          </div>
+          <div id="hist-save-msg" style="text-align:center;font-size:0.8rem;margin-top:0.5rem;min-height:14px;"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+
+  const _inp = (id, lbl, val, ph='') =>
+    `<div style="margin-bottom:0.85rem;"><label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:4px;">${lbl}</label>
+     <input id="${id}" value="${esc(val||'')}" placeholder="${ph}" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;"></div>`;
+
+  function openWorkModal(idx) {
+    const list = Array.isArray(candidate.work_history) ? candidate.work_history : [];
+    const w = idx >= 0 ? list[idx] : {};
+    const body = `
+      ${_inp('wf-role','Job Title / Role', w.role, 'e.g. MIS Executive')}
+      ${_inp('wf-company','Company', w.company, 'e.g. Infosys')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        ${_inp('wf-from','Year From', w.year_from, '2020')}
+        ${_inp('wf-to','Year To', w.current ? '' : (w.year_to||''), '2023')}
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.85rem;cursor:pointer;">
+        <input type="checkbox" id="wf-current"${w.current?' checked':''} style="width:16px;height:16px;accent-color:#2563eb;"> Currently working here
+      </label>
+      <div style="margin-bottom:0;"><label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Description <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+      <textarea id="wf-desc" rows="3" placeholder="Key responsibilities or achievements..." style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;font-family:inherit;outline:none;box-sizing:border-box;resize:vertical;">${esc(w.description||'')}</textarea></div>`;
+    _histOverlay(idx >= 0 ? 'Edit Work Experience' : 'Add Work Experience', body, async function() {
+      const role = document.getElementById('wf-role')?.value.trim();
+      const company = document.getElementById('wf-company')?.value.trim();
+      if (!role || !company) { const m=document.getElementById('hist-save-msg'); if(m){m.style.color='#dc2626';m.textContent='Role and company are required.';} return; }
+      const entry = {
+        role, company,
+        year_from: document.getElementById('wf-from')?.value.trim() || '',
+        year_to:   document.getElementById('wf-to')?.value.trim()   || '',
+        current:   document.getElementById('wf-current')?.checked   || false,
+        description: document.getElementById('wf-desc')?.value.trim() || '',
+      };
+      if (entry.current) entry.year_to = '';
+      const list2 = Array.isArray(candidate.work_history) ? [...candidate.work_history] : [];
+      if (idx >= 0) list2[idx] = entry; else list2.unshift(entry);
+      const msg = document.getElementById('hist-save-msg');
+      if (msg) { msg.style.color='#64748b'; msg.textContent='Saving...'; }
+      const { error } = await sb.from('candidates').update({ work_history: list2 }).eq('id', candidate.id);
+      if (error) { if(msg){msg.style.color='#dc2626';msg.textContent='Save failed.';} return; }
+      candidate.work_history = list2;
+      Session.setCandidate(candidate);
+      renderWorkHistory();
+      renderProfileScore();
+      document.getElementById('hist-overlay')?.remove();
+    });
+  }
+
+  async function deleteWorkEntry(idx) {
+    if (!confirm('Delete this work entry?')) return;
+    const list = Array.isArray(candidate.work_history) ? [...candidate.work_history] : [];
+    list.splice(idx, 1);
+    const { error } = await sb.from('candidates').update({ work_history: list }).eq('id', candidate.id);
+    if (!error) { candidate.work_history = list; Session.setCandidate(candidate); renderWorkHistory(); renderProfileScore(); }
+  }
+
+  function openEduModal(idx) {
+    const list = Array.isArray(candidate.education) ? candidate.education : [];
+    const e = idx >= 0 ? list[idx] : {};
+    const body = `
+      ${_inp('ef2-degree','Degree / Qualification', e.degree, 'e.g. B.Tech Computer Science')}
+      ${_inp('ef2-inst','Institution / School', e.institution, 'e.g. VTU, Bengaluru')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        ${_inp('ef2-from','Year From', e.year_from, '2018')}
+        ${_inp('ef2-to','Year To', e.year_to, '2022')}
+      </div>`;
+    _histOverlay(idx >= 0 ? 'Edit Education' : 'Add Education', body, async function() {
+      const degree = document.getElementById('ef2-degree')?.value.trim();
+      const institution = document.getElementById('ef2-inst')?.value.trim();
+      if (!degree || !institution) { const m=document.getElementById('hist-save-msg'); if(m){m.style.color='#dc2626';m.textContent='Degree and institution are required.';} return; }
+      const entry = {
+        degree, institution,
+        year_from: document.getElementById('ef2-from')?.value.trim() || '',
+        year_to:   document.getElementById('ef2-to')?.value.trim()   || '',
+      };
+      const list2 = Array.isArray(candidate.education) ? [...candidate.education] : [];
+      if (idx >= 0) list2[idx] = entry; else list2.unshift(entry);
+      const msg = document.getElementById('hist-save-msg');
+      if (msg) { msg.style.color='#64748b'; msg.textContent='Saving...'; }
+      const { error } = await sb.from('candidates').update({ education: list2 }).eq('id', candidate.id);
+      if (error) { if(msg){msg.style.color='#dc2626';msg.textContent='Save failed.';} return; }
+      candidate.education = list2;
+      Session.setCandidate(candidate);
+      renderEducation();
+      renderProfileScore();
+      document.getElementById('hist-overlay')?.remove();
+    });
+  }
+
+  async function deleteEduEntry(idx) {
+    if (!confirm('Delete this education entry?')) return;
+    const list = Array.isArray(candidate.education) ? [...candidate.education] : [];
+    list.splice(idx, 1);
+    const { error } = await sb.from('candidates').update({ education: list }).eq('id', candidate.id);
+    if (!error) { candidate.education = list; Session.setCandidate(candidate); renderEducation(); renderProfileScore(); }
   }
 
   // ════════════════════════════════════════════
