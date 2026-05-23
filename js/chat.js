@@ -388,11 +388,111 @@
     renderMsgs(employer.id, 'ch-emp-msgs');
   }
 
+  // ── Employer inbox (employer-dashboard.html Messages tab) ─────────────────────
+  async function initEmployer(containerId, employer) {
+    injectStyles();
+    _openConvId = null;
+    if (_rtChannel) { window.sb.removeChannel(_rtChannel); _rtChannel = null; }
+    const root = document.getElementById(containerId);
+    if (!root) return;
+
+    root.innerHTML = `<div style="color:#94a3b8;padding:2rem;text-align:center;font-size:0.85rem;">Loading conversations…</div>`;
+
+    let convs;
+    try {
+      const { data, error } = await window.sb.from('conversations')
+        .select('*').eq('employer_id', employer.id)
+        .order('last_message_at', { ascending: false });
+      if (error) throw error;
+      convs = data || [];
+    } catch {
+      root.innerHTML = `<div style="color:#ef4444;padding:2rem;text-align:center;">Failed to load conversations.</div>`;
+      return;
+    }
+
+    const candMap = {};
+    if (convs.length) {
+      const ids = [...new Set(convs.map(c => c.candidate_id))];
+      const { data: cands } = await window.sb.from('candidates').select('id,name').in('id', ids);
+      (cands || []).forEach(c => { candMap[c.id] = c; });
+    }
+
+    _convs = convs.map(c => ({ ...c, _candName: candMap[c.candidate_id]?.name || 'Candidate' }));
+    _renderEmployerInbox(root, employer);
+    if (_convs.length > 0) _selectEmployerConv(_convs[0].id, root, employer);
+  }
+
+  function _renderEmployerInbox(root, employer) {
+    const items = _convs.map(c => {
+      const unread = c.employer_unread || 0;
+      return `<div class="ch-conv-item${_openConvId === c.id ? ' ch-active' : ''}" data-cid="${esc(c.id)}">
+        <div class="ch-c-av">${esc(initials(c._candName))}</div>
+        <div class="ch-c-meta">
+          <div class="ch-c-name">${esc(c._candName)}</div>
+          <div class="ch-c-prev">${esc(c.last_message || 'No messages yet')}</div>
+        </div>
+        <div class="ch-c-right">
+          <div class="ch-c-time">${fmtTime(c.last_message_at)}</div>
+          ${unread > 0 ? `<div class="ch-unread">${unread}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    root.innerHTML = `<div class="ch-wrap" style="height:calc(100vh - 220px);">
+      <div class="ch-sidebar">
+        <div class="ch-sidebar-hd">💬 Messages</div>
+        <div class="ch-conv-list" id="ch-ei-list">
+          ${_convs.length
+            ? items
+            : '<div style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;">No conversations yet.<br>Message candidates from the Pipeline or Find Talent tab.</div>'}
+        </div>
+      </div>
+      <div class="ch-thread" id="ch-ei-thread">
+        <div class="ch-empty"><div style="font-size:2rem;">💬</div><div>Select a conversation</div></div>
+      </div>
+    </div>`;
+
+    root.querySelector('#ch-ei-list').addEventListener('click', e => {
+      const item = e.target.closest('.ch-conv-item');
+      if (!item) return;
+      root.querySelectorAll('.ch-conv-item').forEach(el => el.classList.remove('ch-active'));
+      item.classList.add('ch-active');
+      _selectEmployerConv(item.dataset.cid, root, employer);
+    });
+  }
+
+  async function _selectEmployerConv(convId, root, employer) {
+    _openConvId = convId;
+    _messages = []; _msgIds.clear();
+
+    const conv = _convs.find(c => c.id === convId);
+    const threadEl = root.querySelector('#ch-ei-thread');
+    if (!threadEl) return;
+
+    threadEl.innerHTML = `<div class="ch-empty"><div style="font-size:1.5rem;">⏳</div><div>Loading…</div></div>`;
+
+    try {
+      const msgs = await loadMessages(convId);
+      msgs.forEach(m => pushMsg(m));
+    } catch {
+      threadEl.innerHTML = `<div class="ch-empty" style="color:#ef4444;">Failed to load messages.</div>`;
+      return;
+    }
+
+    await markRead(convId, 'employer').catch(() => {});
+    const conv2 = _convs.find(c => c.id === convId);
+    if (conv2) conv2.employer_unread = 0;
+    root.querySelector(`.ch-conv-item[data-cid="${convId}"] .ch-unread`)?.remove();
+
+    mountThread(threadEl, conv?._candName || 'Candidate', null, employer.id, 'employer', convId, 'ch-ei-msgs');
+    renderMsgs(employer.id, 'ch-ei-msgs');
+  }
+
   // ── Cleanup (call on modal close) ─────────────────────────────────────────────
   function cleanup() {
     if (_rtChannel) { window.sb.removeChannel(_rtChannel); _rtChannel = null; }
   }
 
   // ── Public API ────────────────────────────────────────────────────────────────
-  window.Chat = { init, initBubble, openEmployerThread, cleanup };
+  window.Chat = { init, initBubble, openEmployerThread, initEmployer, cleanup };
 })();
