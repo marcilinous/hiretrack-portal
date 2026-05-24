@@ -744,7 +744,7 @@ body { padding-top:50px !important; }
 
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  let myApps = [], myNotifs = [];
+  let myApps = [], myNotifs = [], _reviewedJobIds = new Set();
   let quizData = [], quizIdx = 0;
 
   // ── Router ──
@@ -832,6 +832,10 @@ body { padding-top:50px !important; }
     updateNotifBadge();
 
     // Re-render current view if data-dependent
+    // Fetch interview reviews already submitted by this candidate
+    sb.from('interview_reviews').select('job_id').eq('candidate_id', candidate.id)
+      .then(({ data }) => { _reviewedJobIds = new Set((data || []).map(r => r.job_id)); });
+
     const currentView = (location.hash || '#jobs').replace(/^#/,'').split('/')[0];
     if (currentView === 'applications') renderApps(myApps);
     if (currentView === 'jobs') loadJobsView();
@@ -1096,6 +1100,7 @@ body { padding-top:50px !important; }
             <button class="btn-prep" onclick="prepForJob('${title}','${company}')">🎯 Prep</button>
             <a href="/job.html?id=${a.job_id}" target="_blank" style="background:#f1f5f9;color:#374151;border-radius:7px;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;">View Job ↗</a>
             ${a.status === 'Applied' ? `<button onclick="withdrawApp('${a.id}')" style="background:none;border:none;color:#94a3b8;font-size:0.72rem;cursor:pointer;padding:0.35rem 0.5rem;border-radius:7px;font-family:inherit;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">✕ Withdraw</button>` : ''}
+            ${['Interview','Hired','Rejected'].includes(a.status) ? (_reviewedJobIds.has(a.job_id) ? `<span style="background:#dcfce7;color:#15803d;border-radius:7px;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:600;">✓ Shared</span>` : `<button onclick="openReviewModal('${a.id}')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:7px;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;">⭐ Review</button>`) : ''}
           </div>
           ${progressHTML}
         </div>
@@ -1106,6 +1111,129 @@ body { padding-top:50px !important; }
   function filterApps() {
     const filter = document.getElementById('app-filter').value;
     renderApps(filter ? myApps.filter(a=>a.status===filter) : myApps);
+  }
+
+  let _rvStar = 0, _rvDiff = '', _rvOffer = '';
+
+  function openReviewModal(appId) {
+    _rvStar = 0; _rvDiff = ''; _rvOffer = '';
+    const a = myApps.find(x => String(x.id) === String(appId));
+    if (!a) return;
+    const job = a.jobs;
+    const title = esc(job?.title || 'Job Application');
+    const company = esc(job?.company || '—');
+
+    const old = document.getElementById('review-overlay');
+    if (old) old.remove();
+    const ov = document.createElement('div');
+    ov.id = 'review-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:700;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    ov.innerHTML = `
+      <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+        <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="color:#fff;font-size:0.95rem;font-weight:800;">Share Interview Experience</div>
+            <div style="color:rgba(255,255,255,0.7);font-size:0.75rem;margin-top:2px;">${company} · ${title}</div>
+          </div>
+          <button onclick="document.getElementById('review-overlay').remove()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;font-size:1rem;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:1.25rem;max-height:calc(100vh - 160px);overflow-y:auto;">
+          <div style="margin-bottom:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Overall Rating <span style="color:#ef4444;">*</span></div>
+            <div id="rv-stars" style="display:flex;gap:0.35rem;">${[1,2,3,4,5].map(n=>`<button data-star="${n}" onclick="setReviewStar(${n})" style="background:none;border:none;font-size:2rem;cursor:pointer;color:#d1d5db;padding:0;line-height:1;">★</button>`).join('')}</div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Interview Difficulty <span style="color:#ef4444;">*</span></div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">${['Easy','Medium','Hard'].map(d=>`<button data-diff="${d}" onclick="setReviewDiff('${d}')" style="border:1.5px solid #e2e8f0;background:#fff;color:#64748b;border-radius:8px;padding:0.4rem 1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">${d}</button>`).join('')}</div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Did you get an offer? <span style="color:#ef4444;">*</span></div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <button data-offer="Yes" onclick="setReviewOffer('Yes')" style="border:1.5px solid #e2e8f0;background:#fff;color:#64748b;border-radius:8px;padding:0.4rem 1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Yes</button>
+              <button data-offer="No" onclick="setReviewOffer('No')" style="border:1.5px solid #e2e8f0;background:#fff;color:#64748b;border-radius:8px;padding:0.4rem 1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">No</button>
+              <button data-offer="Pending" onclick="setReviewOffer('Pending')" style="border:1.5px solid #e2e8f0;background:#fff;color:#64748b;border-radius:8px;padding:0.4rem 1rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">Pending</button>
+            </div>
+          </div>
+          <div style="margin-bottom:1.25rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:#374151;margin-bottom:8px;">Your Experience <span style="color:#ef4444;">*</span></div>
+            <textarea id="rv-exp" rows="4" placeholder="Describe the interview process, questions asked, company culture, etc..." style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.85rem;font-family:inherit;outline:none;box-sizing:border-box;resize:vertical;"></textarea>
+          </div>
+          <div style="display:flex;gap:0.75rem;">
+            <button id="rv-submit-btn" onclick="submitReview('${a.id}')" style="flex:1;background:#2563eb;color:#fff;border:none;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">Submit Review</button>
+            <button onclick="document.getElementById('review-overlay').remove()" style="background:#f1f5f9;color:#374151;border:none;padding:0.75rem 1.25rem;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+          </div>
+          <div id="rv-msg" style="text-align:center;font-size:0.8rem;margin-top:0.5rem;min-height:14px;color:#ef4444;"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+
+  function setReviewStar(n) {
+    _rvStar = n;
+    document.querySelectorAll('#rv-stars button').forEach(b => {
+      b.style.color = parseInt(b.dataset.star) <= n ? '#f59e0b' : '#d1d5db';
+    });
+  }
+
+  function setReviewDiff(d) {
+    _rvDiff = d;
+    document.querySelectorAll('[data-diff]').forEach(b => {
+      const active = b.dataset.diff === d;
+      b.style.background = active ? '#eff6ff' : '#fff';
+      b.style.borderColor = active ? '#2563eb' : '#e2e8f0';
+      b.style.color = active ? '#2563eb' : '#64748b';
+    });
+  }
+
+  function setReviewOffer(v) {
+    _rvOffer = v;
+    const offerColors = { Yes: ['#dcfce7','#15803d'], No: ['#fee2e2','#dc2626'], Pending: ['#fef3c7','#b45309'] };
+    document.querySelectorAll('[data-offer]').forEach(b => {
+      const active = b.dataset.offer === v;
+      const [bg, c] = offerColors[b.dataset.offer] || ['#fff','#64748b'];
+      b.style.background = active ? bg : '#fff';
+      b.style.borderColor = active ? c : '#e2e8f0';
+      b.style.color = active ? c : '#64748b';
+    });
+  }
+
+  async function submitReview(appId) {
+    const a = myApps.find(x => String(x.id) === String(appId));
+    if (!a) return;
+    const exp = document.getElementById('rv-exp')?.value.trim();
+    const msgEl = document.getElementById('rv-msg');
+    if (!_rvStar) { msgEl.textContent = 'Please select a rating.'; return; }
+    if (!_rvDiff) { msgEl.textContent = 'Please select difficulty.'; return; }
+    if (!_rvOffer) { msgEl.textContent = 'Please select offer status.'; return; }
+    if (!exp) { msgEl.textContent = 'Please describe your experience.'; return; }
+    msgEl.textContent = '';
+    const btn = document.getElementById('rv-submit-btn');
+    if (btn) { btn.textContent = 'Submitting…'; btn.disabled = true; }
+    const { error } = await sb.from('interview_reviews').upsert({
+      candidate_id: String(candidate.id),
+      employer_id: String(a.jobs?.employer_id || ''),
+      job_id: String(a.job_id),
+      job_title: a.jobs?.title || '',
+      rating: _rvStar,
+      difficulty: _rvDiff,
+      got_offer: _rvOffer,
+      experience: exp
+    }, { onConflict: 'candidate_id,job_id' });
+    if (error) {
+      if (btn) { btn.textContent = 'Submit Review'; btn.disabled = false; }
+      msgEl.textContent = 'Failed to submit. Please try again.';
+      return;
+    }
+    _reviewedJobIds.add(String(a.job_id));
+    document.getElementById('review-overlay')?.remove();
+    const card = document.getElementById(`app-card-${appId}`);
+    if (card) {
+      const reviewBtn = card.querySelector('[onclick^="openReviewModal"]');
+      if (reviewBtn) reviewBtn.outerHTML = `<span style="background:#dcfce7;color:#15803d;border-radius:7px;padding:0.35rem 0.8rem;font-size:0.75rem;font-weight:600;">✓ Shared</span>`;
+    }
+    _rvStar = 0; _rvDiff = ''; _rvOffer = '';
+    showToast('Experience shared! Thank you. 🙏');
   }
 
   function shareProfile() {

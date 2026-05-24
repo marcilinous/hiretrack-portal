@@ -264,6 +264,46 @@ body { padding-top: 64px; background: #f8fafc; }
   font-size: 0.9rem;
 }
 
+/* ── Interview Reviews ── */
+.ir-summary-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.ir-avg-num { font-size: 2.5rem; font-weight: 900; color: #0f172a; line-height: 1; }
+.ir-avg-stars { color: #f59e0b; font-size: 1.1rem; letter-spacing: 2px; }
+.ir-avg-count { font-size: 0.78rem; color: #94a3b8; margin-top: 3px; }
+.ir-breakdown { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 160px; }
+.ir-bar-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
+.ir-bar-label { color: #64748b; font-weight: 600; width: 50px; flex-shrink: 0; }
+.ir-bar-track { flex: 1; background: #f1f5f9; border-radius: 4px; height: 6px; overflow: hidden; }
+.ir-bar-fill { height: 100%; border-radius: 4px; background: #2563eb; }
+.ir-bar-pct { color: #94a3b8; width: 28px; text-align: right; flex-shrink: 0; }
+.ir-review-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.65rem;
+}
+.ir-review-header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.ir-stars { color: #f59e0b; font-size: 0.92rem; letter-spacing: 1px; }
+.ir-chip { font-size: 0.7rem; font-weight: 600; padding: 2px 9px; border-radius: 6px; }
+.ir-chip-Easy { background: #dcfce7; color: #15803d; }
+.ir-chip-Medium { background: #fef3c7; color: #b45309; }
+.ir-chip-Hard { background: #fee2e2; color: #dc2626; }
+.ir-chip-Yes { background: #dcfce7; color: #15803d; }
+.ir-chip-No { background: #fee2e2; color: #dc2626; }
+.ir-chip-Pending { background: #fef3c7; color: #b45309; }
+.ir-review-exp { font-size: 0.85rem; color: #334155; line-height: 1.6; margin-bottom: 0.4rem; }
+.ir-review-meta { font-size: 0.72rem; color: #94a3b8; }
+
 @media (max-width: 600px) {
   .ep-header-card { flex-direction: column; gap: 1rem; }
   .ep-logo, .ep-initials { width: 60px; height: 60px; font-size: 1.5rem; }
@@ -329,9 +369,10 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
   }
 
   // Fetch employer (public-safe fields only — no email/password/mobile)
-  const [{ data: employer, error: empErr }, { data: jobs, error: jobsErr }] = await Promise.all([
+  const [{ data: employer, error: empErr }, { data: jobs }, { data: reviews }] = await Promise.all([
     sb.from('employers').select('id,company,contact_name,city,company_logo,plan,plan_expires_at,created_at').eq('id', employerId).single(),
     sb.from('jobs').select('id,title,location,salary,experience,job_type,skills,posted_at,expires_at,views').eq('employer_id', employerId).eq('delisted', false).order('posted_at', { ascending: false }),
+    sb.from('interview_reviews').select('rating,difficulty,got_offer,experience,job_title,created_at').eq('employer_id', employerId).order('created_at', { ascending: false }).limit(50),
   ]);
 
   if (empErr || !employer) {
@@ -412,6 +453,7 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
     <div class="ep-section-heading">Current Openings (${activeJobs.length})</div>
     ${jobsHtml}
+    ${renderReviews(reviews || [])}
   `;
 })();
 
@@ -440,6 +482,52 @@ function renderJobCard(job) {
         <span class="ep-apply-hint">Apply →</span>
       </div>
     </a>`;
+}
+
+function renderReviews(reviews) {
+  if (!reviews.length) return '';
+  const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+  const avgRounded = Math.round(avg * 10) / 10;
+  const diffCounts = { Easy: 0, Medium: 0, Hard: 0 };
+  reviews.forEach(r => { if (r.difficulty in diffCounts) diffCounts[r.difficulty]++; });
+  const total = reviews.length;
+  const diffBar = (label, count) => {
+    const pct = total ? Math.round(count / total * 100) : 0;
+    return `<div class="ir-bar-row"><span class="ir-bar-label">${label}</span><div class="ir-bar-track"><div class="ir-bar-fill" style="width:${pct}%;"></div></div><span class="ir-bar-pct">${pct}%</span></div>`;
+  };
+  const cards = reviews.map(r => {
+    const filled = Math.round(r.rating);
+    const starsHtml = '★'.repeat(filled) + '☆'.repeat(5 - filled);
+    const date = new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return `<div class="ir-review-card">
+      <div class="ir-review-header">
+        <span class="ir-stars">${starsHtml}</span>
+        <span class="ir-chip ir-chip-${esc(r.difficulty)}">${esc(r.difficulty)}</span>
+        <span class="ir-chip ir-chip-${esc(r.got_offer)}">Offer: ${esc(r.got_offer)}</span>
+        ${r.job_title ? `<span style="font-size:0.7rem;color:#94a3b8;">· ${esc(r.job_title)}</span>` : ''}
+      </div>
+      <div class="ir-review-exp">${esc(r.experience)}</div>
+      <div class="ir-review-meta">Verified Candidate · ${date}</div>
+    </div>`;
+  }).join('');
+  const avgFilled = Math.round(avg);
+  return `
+    <div style="margin-top:2rem;">
+      <div class="ep-section-heading">Interview Reviews (${total})</div>
+      <div class="ir-summary-card">
+        <div style="text-align:center;">
+          <div class="ir-avg-num">${avgRounded}</div>
+          <div class="ir-avg-stars">${'★'.repeat(avgFilled)}${'☆'.repeat(5 - avgFilled)}</div>
+          <div class="ir-avg-count">${total} review${total !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="ir-breakdown">
+          ${diffBar('Easy', diffCounts.Easy)}
+          ${diffBar('Medium', diffCounts.Medium)}
+          ${diffBar('Hard', diffCounts.Hard)}
+        </div>
+      </div>
+      ${cards}
+    </div>`;
 }
 
 function esc(s) {
