@@ -98,15 +98,15 @@ img { max-width:100%; }
 /* ── HERO ── */
 .hero {
   background: transparent;
-  padding: 2.5rem 2rem 3rem;
-  text-align:center;
-  position:relative;
+  padding: 4rem 2rem 4.5rem;
+  text-align: center;
+  position: relative;
 }
 .hero-badge { display:inline-flex; align-items:center; gap:6px; background:#EFF6FF; border:1px solid #BFDBFE; color:#1D4ED8; padding:0.35rem 1rem; border-radius:20px; font-size:0.8rem; font-weight:600; margin-bottom:1.2rem; letter-spacing:0.5px; }
 .hero h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:800; color:#0F172A; line-height:1.15; margin-bottom:1rem; letter-spacing:-0.025em; }
 .hero h1 span { color:#1A73E8; }
 .hero p { color:#475569; font-size:1.05rem; max-width:520px; margin:0 auto 2rem; }
-.search-wrap { max-width:600px; margin:0 auto 1.75rem; }
+.search-wrap { max-width:680px; margin:0 auto 1.75rem; }
 .search-box { display:flex; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(15,23,42,0.10), 0 1px 4px rgba(15,23,42,0.06); border:1px solid #E2E8F0; }
 .search-box input { flex:1; border:none; outline:none; padding:1rem 1.2rem; font-size:0.95rem; font-family:inherit; color:var(--text); }
 .search-box button { background:var(--blue); color:#fff; border:none; padding:1rem 1.6rem; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.2s; white-space:nowrap; }
@@ -345,14 +345,14 @@ footer span { color:var(--blue); }
 .jd-desc{font-size:0.92rem;line-height:1.75;color:var(--navy2);white-space:pre-wrap;border-top:1px solid var(--gray3);padding-top:1rem;margin-bottom:1.2rem;}
 .jd-actions{display:flex;gap:10px;}
 
-/* ── Hero Centered Layout ── */
+/* ── Hero Wide Centered Layout ── */
 .hero-inner {
-  max-width: 760px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 1rem;
+  padding: 0 2rem;
   position: relative;
   z-index: 1;
 }
@@ -363,13 +363,14 @@ footer span { color:var(--blue); }
   align-items: center;
   gap: 0;
   text-align: center;
+  width: 100%;
 }
 
-/* Badge — properly centred, not misplaced */
-.hero-badge-wrap { width: 100%; display: flex; justify-content: center; margin-bottom: 0.5rem; }
-.hero-left h1 { text-align: center; margin-bottom: 0.6rem; font-size: clamp(1.8rem,4vw,2.8rem); width: 100%; }
-.hero-left p { text-align: center; margin: 0 0 1rem; max-width: 440px; color: #475569; }
-.hero-left .search-wrap { width: 100%; margin: 0 0 1.1rem; }
+/* Badge — centered */
+.hero-badge-wrap { width: 100%; display: flex; justify-content: center; margin-bottom: 0.6rem; }
+.hero-left h1 { text-align: center; margin-bottom: 0.75rem; width: 100%; }
+.hero-left p { text-align: center; margin: 0 auto 1.25rem; max-width: 600px; color: #475569; }
+.hero-left .search-wrap { width: 100%; margin: 0 0 1.25rem; }
 
 /* CTA Buttons */
 .hero-ctas {
@@ -396,8 +397,8 @@ footer span { color:var(--blue); }
 }
 .btn-hero-employer:hover { background: #fbbf24; }
 
-/* Stats — centred, with breathing room */
-.hero-left .hero-stats { justify-content: center; gap: 2.5rem; margin-bottom: 1.25rem; padding: 1.1rem 0; }
+/* Stats — centered, with breathing room */
+.hero-left .hero-stats { justify-content: center; gap: 3rem; margin-bottom: 1.25rem; padding: 1.1rem 0; }
 
 /* Employer secondary bar */
 .hero-employer-bar {
@@ -420,8 +421,7 @@ footer span { color:var(--blue); }
 
 /* Mobile */
 @media (max-width: 768px) {
-  .hero-left { align-items: center; }
-  .hero-left .hero-badge { align-self: center; }
+  .hero-inner { padding: 0 1.25rem; }
   .hero-left h1, .hero-left p { text-align: center; }
   .hero-left .hero-stats { justify-content: center; }
   .hero-ctas { justify-content: center; }
