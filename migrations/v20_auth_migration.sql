@@ -148,7 +148,7 @@ BEGIN
         UPDATE public.conversations SET employer_id = new_uid WHERE employer_id = r.id;
         UPDATE public.messages SET sender_id = new_uid WHERE sender_id = r.id AND sender_type = 'employer';
         UPDATE public.feed_posts SET author_id = new_uid WHERE author_id = r.id AND author_type = 'company';
-        UPDATE public.job_views SET employer_id = new_uid WHERE employer_id = r.id;
+        UPDATE public.job_views SET employer_id = new_uid::text WHERE employer_id = r.id::text;
         UPDATE public.interview_reviews SET employer_id = new_uid::text WHERE employer_id = r.id::text;
         
         UPDATE public.employers SET id = new_uid WHERE id = r.id;
