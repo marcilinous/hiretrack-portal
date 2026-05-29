@@ -62,7 +62,6 @@ WHERE contype = 'f'
 DO $$
 DECLARE
     r RECORD;
-    v_exists boolean;
 BEGIN
     FOR r IN SELECT * FROM temp_fk_constraints LOOP
         EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I', r.table_name, r.constraint_name);
@@ -397,6 +396,14 @@ BEGIN
         EXECUTE format('ALTER TABLE %s ADD CONSTRAINT %I %s', r.table_name, r.constraint_name, r.constraint_def);
     END LOOP;
 END $$;
+
+-- Fix any previously migrated users who have NULL values in token columns (due to earlier script executions)
+UPDATE auth.users 
+SET 
+    confirmation_token = COALESCE(confirmation_token, ''),
+    email_change = COALESCE(email_change, ''),
+    email_change_token_new = COALESCE(email_change_token_new, ''),
+    recovery_token = COALESCE(recovery_token, '');
 
 -- Drop the temporary migration helper function
 DROP FUNCTION IF EXISTS public.migrate_column_uuid(text, text, text, uuid, text);
