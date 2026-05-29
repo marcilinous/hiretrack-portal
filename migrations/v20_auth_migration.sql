@@ -77,10 +77,10 @@ BEGIN
         END IF;
         
         UPDATE public.applications SET candidate_id = new_uid WHERE candidate_id = r.id;
-        UPDATE public.conversations SET candidate_id = new_uid::text WHERE candidate_id = r.id::text;
-        UPDATE public.messages SET sender_id = new_uid::text WHERE sender_id = r.id::text AND sender_type = 'candidate';
+        UPDATE public.conversations SET candidate_id = new_uid WHERE candidate_id::text = r.id::text;
+        UPDATE public.messages SET sender_id = new_uid::text WHERE sender_id::text = r.id::text AND sender_type = 'candidate';
         UPDATE public.feed_likes SET user_id = new_uid WHERE user_id = r.id;
-        UPDATE public.feed_posts SET author_id = new_uid WHERE author_id = r.id AND author_type = 'candidate';
+        UPDATE public.feed_posts SET author_id = new_uid WHERE author_id::text = r.id::text AND author_type = 'candidate';
         UPDATE public.interview_reviews SET candidate_id = new_uid WHERE candidate_id = r.id;
         
         -- Swap the candidate record's ID
@@ -145,9 +145,9 @@ BEGIN
         END IF;
         
         UPDATE public.jobs SET employer_id = new_uid WHERE employer_id = r.id;
-        UPDATE public.conversations SET employer_id = new_uid::text WHERE employer_id = r.id::text;
-        UPDATE public.messages SET sender_id = new_uid::text WHERE sender_id = r.id::text AND sender_type = 'employer';
-        UPDATE public.feed_posts SET author_id = new_uid WHERE author_id = r.id AND author_type = 'company';
+        UPDATE public.conversations SET employer_id = new_uid WHERE employer_id::text = r.id::text;
+        UPDATE public.messages SET sender_id = new_uid::text WHERE sender_id::text = r.id::text AND sender_type = 'employer';
+        UPDATE public.feed_posts SET author_id = new_uid WHERE author_id::text = r.id::text AND author_type = 'company';
         UPDATE public.job_views SET employer_id = new_uid WHERE employer_id = r.id;
         
         UPDATE public.employers SET id = new_uid WHERE id = r.id;
