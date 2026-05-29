@@ -125,6 +125,7 @@ BEGIN
         PERFORM public.migrate_column_uuid('feed_likes', 'user_id', r.id::text, new_uid);
         PERFORM public.migrate_column_uuid('feed_posts', 'author_id', r.id::text, new_uid, 'AND author_type = ''candidate''');
         PERFORM public.migrate_column_uuid('interview_reviews', 'candidate_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('notifications', 'candidate_id', r.id::text, new_uid);
         
         -- Swap the candidate record's ID
         PERFORM public.migrate_column_uuid('candidates', 'id', r.id::text, new_uid);
@@ -367,6 +368,12 @@ CREATE POLICY "msg_insert" ON public.messages FOR INSERT WITH CHECK (
     AND (auth.uid()::text = candidate_id::text OR auth.uid()::text = employer_id::text)
   )
 );
+
+-- Clean up any orphaned references in child tables before restoring FK constraints to ensure it succeeds
+DELETE FROM public.applications WHERE candidate_id NOT IN (SELECT id FROM public.candidates);
+DELETE FROM public.jobs WHERE employer_id NOT IN (SELECT id FROM public.employers);
+DELETE FROM public.notifications WHERE candidate_id::text NOT IN (SELECT id::text FROM public.candidates);
+DELETE FROM public.interview_reviews WHERE candidate_id::text NOT IN (SELECT id::text FROM public.candidates) OR employer_id::text NOT IN (SELECT id::text FROM public.employers);
 
 -- Recreate foreign key constraints dynamically
 DO $$
