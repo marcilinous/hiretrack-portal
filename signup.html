@@ -361,11 +361,8 @@
 
     if(!preferredJobType||!expectedSalary||!noticePeriod){errEl.textContent='Please complete all job preferences.';errEl.style.display='block';return;}
 
-    let resumeName='',resumeData='';
-    if(resumeFile){
+    if(resumeFile) {
       if(resumeFile.size>5*1024*1024){errEl.textContent='Resume must be under 5MB.';errEl.style.display='block';return;}
-      resumeName=resumeFile.name;
-      resumeData=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(resumeFile);});
     }
 
     const btn=document.getElementById('btn-submit');
@@ -373,11 +370,17 @@
 
     const result=await CandidateAuth.register({
       name,mobile,email,city,password,jobtitle,experience,skills,
-      resumeName,resumeData,
       about,currentCompany,preferredJobType,expectedSalary,noticePeriod
-    });
+    }, resumeFile);
 
     if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account ✓';btn.disabled=false;return;}
+    
+    if (result.msg && result.msg.includes('check your email')) {
+      alert(result.msg);
+      window.location.href = 'login.html';
+      return;
+    }
+
     fetch('/api/email?action=welcome-candidate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,city,skills})}).catch(()=>{});
     const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
     sessionStorage.removeItem('redirect_after_login');

@@ -35,30 +35,76 @@ const Session = {
 };
 
 const CandidateAuth = {
-  async register(data) {
-    const { data: existing } = await sb.from('candidates').select('id').eq('email', data.email).maybeSingle();
-    if (existing) return { ok: false, msg: 'Email already registered' };
-    const { data: candidate, error } = await sb.from('candidates').insert([{
-      name: data.name, email: data.email, mobile: data.mobile,
-      password: data.password, city: data.city, experience: data.experience,
-      jobtitle: data.jobtitle, skills: data.skills || [],
-      resume_name: data.resumeName || '', resume_data: data.resumeData || '',
-      about: data.about || '', current_company: data.currentCompany || '',
-      preferred_job_type: data.preferredJobType || '',
-      expected_salary: data.expectedSalary || '',
-      notice_period: data.noticePeriod || ''
-    }]).select().single();
+  async register(data, resumeFile = null) {
+    const { data: res, error } = await sb.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          role: 'candidate',
+          name: data.name,
+          mobile: data.mobile,
+          city: data.city,
+          experience: data.experience,
+          jobtitle: data.jobtitle,
+          skills: data.skills || [],
+          about: data.about || '',
+          current_company: data.currentCompany || '',
+          preferred_job_type: data.preferredJobType || '',
+          expected_salary: data.expectedSalary || '',
+          notice_period: data.noticePeriod || ''
+        }
+      }
+    });
     if (error) return { ok: false, msg: error.message };
-    Session.setCandidate(candidate);
-    return { ok: true, candidate };
+
+    const user = res.user;
+    const session = res.session;
+
+    // Handle resume file upload if session is active (logged in immediately)
+    if (session && resumeFile) {
+      try {
+        const ext = resumeFile.name.split('.').pop().toLowerCase() || 'pdf';
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await sb.storage.from('resumes').upload(path, resumeFile, { upsert: true, contentType: resumeFile.type });
+        if (!upErr) {
+          const { data: { publicUrl } } = sb.storage.from('resumes').getPublicUrl(path);
+          await sb.from('candidates').update({ resume_url: publicUrl, resume_name: resumeFile.name }).eq('id', user.id);
+        }
+      } catch (e) {
+        console.error('Resume upload error on signup:', e);
+      }
+    }
+
+    if (session) {
+      const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+      if (candidate) {
+        Session.setCandidate(candidate);
+        return { ok: true, candidate };
+      }
+    }
+
+    return { ok: true, msg: 'Verification link sent! Please check your email.', user };
   },
   async login(email, password) {
-    const { data: candidate } = await sb.from('candidates').select('*').eq('email', email).eq('password', password).maybeSingle();
-    if (!candidate) return { ok: false, msg: 'Invalid email or password' };
+    const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) return { ok: false, msg: error.message };
+
+    const { data: candidate } = await sb.from('candidates').select('*').eq('id', authData.user.id).maybeSingle();
+    if (!candidate) {
+      await sb.auth.signOut();
+      return { ok: false, msg: 'Candidate profile not found' };
+    }
+
     Session.setCandidate(candidate);
     return { ok: true, candidate };
   },
-  logout() { Session.clearCandidate(); window.location.href = 'index.html'; }
+  async logout() {
+    await sb.auth.signOut();
+    Session.clearCandidate();
+    Session.clearEmployer();
+    window.location.href = 'index.html';
+  }
 };
 
 const EmployerAuth = {
@@ -67,26 +113,102 @@ const EmployerAuth = {
     return data || null;
   },
   async register(data) {
-    const { data: existing } = await sb.from('employers').select('id').eq('email', data.email).maybeSingle();
-    if (existing) return { ok: false, msg: 'Email already registered' };
-    const { data: employer, error } = await sb.from('employers').insert([{
-      company: data.company, contact_name: data.contactName,
-      email: data.email, mobile: data.mobile, password: data.password,
-      city: data.city, industry: data.industry,
-      plan: 'free', job_limit: 1, day_limit: 15
-    }]).select().single();
+    const { data: res, error } = await sb.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          role: 'employer',
+          company: data.company,
+          contact_name: data.contactName,
+          mobile: data.mobile,
+          city: data.city,
+          industry: data.industry
+        }
+      }
+    });
     if (error) return { ok: false, msg: error.message };
-    Session.setEmployer(employer);
-    return { ok: true, employer };
+
+    const user = res.user;
+    const session = res.session;
+
+    if (session) {
+      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+      if (employer) {
+        Session.setEmployer(employer);
+        return { ok: true, employer };
+      }
+    }
+
+    return { ok: true, msg: 'Verification link sent! Please check your email.', user };
   },
   async login(identifier, password) {
-    const { data: employer } = await sb.from('employers').select('*').or(`email.eq.${identifier},mobile.eq.${identifier}`).eq('password', password).maybeSingle();
-    if (!employer) return { ok: false, msg: 'Invalid credentials' };
+    let email = identifier;
+    if (!identifier.includes('@')) {
+      const { data } = await sb.from('employers').select('email').eq('mobile', identifier).maybeSingle();
+      if (data?.email) email = data.email;
+    }
+
+    const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) return { ok: false, msg: error.message };
+
+    const { data: employer } = await sb.from('employers').select('*').eq('id', authData.user.id).maybeSingle();
+    if (!employer) {
+      await sb.auth.signOut();
+      return { ok: false, msg: 'Employer profile not found' };
+    }
+
     Session.setEmployer(employer);
     return { ok: true, employer };
   },
-  logout() { Session.clearEmployer(); window.location.href = 'index.html'; }
+  async logout() {
+    await sb.auth.signOut();
+    Session.clearCandidate();
+    Session.clearEmployer();
+    window.location.href = 'index.html';
+  }
 };
+
+// ── SESSION & AUTH STATE SYNCHRONIZATION ──
+async function syncSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const user = session.user;
+    const role = user.user_metadata?.role;
+    if (role === 'candidate' && !Session.getCandidate()) {
+      const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+      if (candidate) Session.setCandidate(candidate);
+    } else if (role === 'employer' && !Session.getEmployer()) {
+      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+      if (employer) Session.setEmployer(employer);
+    }
+  }
+}
+
+syncSession();
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session) {
+    const user = session.user;
+    const role = user.user_metadata?.role;
+    if (role === 'candidate') {
+      const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+      if (candidate) {
+        Session.setCandidate(candidate);
+        Session.clearEmployer();
+      }
+    } else if (role === 'employer') {
+      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+      if (employer) {
+        Session.setEmployer(employer);
+        Session.clearCandidate();
+      }
+    }
+  } else {
+    Session.clearCandidate();
+    Session.clearEmployer();
+  }
+});
 
 const JobsDB = {
   async getEmployerJobs(employerId) {
