@@ -6,6 +6,48 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Helper function to perform type-safe column updates dynamically at runtime
+CREATE OR REPLACE FUNCTION public.migrate_column_uuid(
+    p_table_name text,
+    p_column_name text,
+    p_old_id text,
+    p_new_uid uuid,
+    p_extra_where text DEFAULT ''
+) RETURNS void AS $$
+DECLARE
+    v_data_type text;
+    v_sql text;
+BEGIN
+    SELECT data_type INTO v_data_type
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = p_table_name
+      AND column_name = p_column_name;
+      
+    IF v_data_type IS NULL THEN
+        RETURN;
+    END IF;
+    
+    IF v_data_type = 'uuid' THEN
+        BEGIN
+            v_sql := format(
+                'UPDATE public.%I SET %I = %L WHERE %I = %L %s',
+                p_table_name, p_column_name, p_new_uid, p_column_name, p_old_id::uuid, COALESCE(p_extra_where, '')
+            );
+            EXECUTE v_sql;
+        EXCEPTION WHEN others THEN
+            -- Ignore if old ID is not in valid UUID format for this column
+        END;
+    ELSE
+        v_sql := format(
+            'UPDATE public.%I SET %I = %L WHERE %I = %L %s',
+            p_table_name, p_column_name, p_new_uid::text, p_column_name, p_old_id, COALESCE(p_extra_where, '')
+        );
+        EXECUTE v_sql;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Capture all foreign key constraints referencing candidates and employers
 CREATE TEMP TABLE temp_fk_constraints AS
 SELECT 
@@ -76,15 +118,16 @@ BEGIN
             new_uid := existing_uid;
         END IF;
         
-        UPDATE public.applications SET candidate_id = new_uid WHERE candidate_id = r.id;
-        UPDATE public.conversations SET candidate_id = new_uid WHERE candidate_id = r.id;
-        UPDATE public.messages SET sender_id = new_uid WHERE sender_id = r.id AND sender_type = 'candidate';
-        UPDATE public.feed_likes SET user_id = new_uid WHERE user_id = r.id;
-        UPDATE public.feed_posts SET author_id = new_uid WHERE author_id = r.id AND author_type = 'candidate';
-        UPDATE public.interview_reviews SET candidate_id = new_uid::text WHERE candidate_id = r.id::text;
+        -- Migrate columns using our helper function
+        PERFORM public.migrate_column_uuid('applications', 'candidate_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('conversations', 'candidate_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('messages', 'sender_id', r.id::text, new_uid, 'AND sender_type = ''candidate''');
+        PERFORM public.migrate_column_uuid('feed_likes', 'user_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('feed_posts', 'author_id', r.id::text, new_uid, 'AND author_type = ''candidate''');
+        PERFORM public.migrate_column_uuid('interview_reviews', 'candidate_id', r.id::text, new_uid);
         
         -- Swap the candidate record's ID
-        UPDATE public.candidates SET id = new_uid WHERE id = r.id;
+        PERFORM public.migrate_column_uuid('candidates', 'id', r.id::text, new_uid);
     END LOOP;
 
     -- Re-enable user triggers
@@ -144,14 +187,16 @@ BEGIN
             new_uid := existing_uid;
         END IF;
         
-        UPDATE public.jobs SET employer_id = new_uid WHERE employer_id = r.id;
-        UPDATE public.conversations SET employer_id = new_uid WHERE employer_id = r.id;
-        UPDATE public.messages SET sender_id = new_uid WHERE sender_id = r.id AND sender_type = 'employer';
-        UPDATE public.feed_posts SET author_id = new_uid WHERE author_id = r.id AND author_type = 'company';
-        UPDATE public.job_views SET employer_id = new_uid::text WHERE employer_id = r.id::text;
-        UPDATE public.interview_reviews SET employer_id = new_uid::text WHERE employer_id = r.id::text;
+        -- Migrate columns using our helper function
+        PERFORM public.migrate_column_uuid('jobs', 'employer_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('conversations', 'employer_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('messages', 'sender_id', r.id::text, new_uid, 'AND sender_type = ''employer''');
+        PERFORM public.migrate_column_uuid('feed_posts', 'author_id', r.id::text, new_uid, 'AND author_type = ''company''');
+        PERFORM public.migrate_column_uuid('job_views', 'employer_id', r.id::text, new_uid);
+        PERFORM public.migrate_column_uuid('interview_reviews', 'employer_id', r.id::text, new_uid);
         
-        UPDATE public.employers SET id = new_uid WHERE id = r.id;
+        -- Swap the employer record's ID
+        PERFORM public.migrate_column_uuid('employers', 'id', r.id::text, new_uid);
     END LOOP;
 
     ALTER TABLE IF EXISTS public.jobs ENABLE TRIGGER USER;
@@ -332,5 +377,8 @@ BEGIN
         EXECUTE format('ALTER TABLE %s ADD CONSTRAINT %I %s', r.table_name, r.constraint_name, r.constraint_def);
     END LOOP;
 END $$;
+
+-- Drop the temporary migration helper function
+DROP FUNCTION IF EXISTS public.migrate_column_uuid(text, text, text, uuid, text);
 
 COMMIT;
