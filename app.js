@@ -25,14 +25,50 @@ const JOBS = [
   { id:'static-12', title:'MIS Officer', company:'Apollo Hospitals', location:'Bengaluru', salary:'₹4–6 LPA', type:'Full Time', tags:['MIS','Excel','Reporting'], posted:'2 days ago', phone:'9210987654' },
 ];
 
+let _candidateMem = null;
+let _employerMem = null;
+
 const Session = {
-  getCandidate() { return JSON.parse(sessionStorage.getItem('ht_candidate') || 'null'); },
-  setCandidate(c) { sessionStorage.setItem('ht_candidate', JSON.stringify(c)); },
-  clearCandidate() { sessionStorage.removeItem('ht_candidate'); },
-  getEmployer() { return JSON.parse(sessionStorage.getItem('ht_employer') || 'null'); },
-  setEmployer(e) { sessionStorage.setItem('ht_employer', JSON.stringify(e)); },
-  clearEmployer() { sessionStorage.removeItem('ht_employer'); }
+  getCandidate() {
+    try {
+      return JSON.parse(sessionStorage.getItem('ht_candidate') || 'null');
+    } catch {
+      return _candidateMem;
+    }
+  },
+  setCandidate(c) {
+    try {
+      sessionStorage.setItem('ht_candidate', JSON.stringify(c));
+    } catch {}
+    _candidateMem = c;
+  },
+  clearCandidate() {
+    try {
+      sessionStorage.removeItem('ht_candidate');
+    } catch {}
+    _candidateMem = null;
+  },
+  getEmployer() {
+    try {
+      return JSON.parse(sessionStorage.getItem('ht_employer') || 'null');
+    } catch {
+      return _employerMem;
+    }
+  },
+  setEmployer(e) {
+    try {
+      sessionStorage.setItem('ht_employer', JSON.stringify(e));
+    } catch {}
+    _employerMem = e;
+  },
+  clearEmployer() {
+    try {
+      sessionStorage.removeItem('ht_employer');
+    } catch {}
+    _employerMem = null;
+  }
 };
+window.Session = Session;
 
 const CandidateAuth = {
   async register(data, resumeFile = null) {
