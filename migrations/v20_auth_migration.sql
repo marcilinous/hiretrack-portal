@@ -1,10 +1,30 @@
 -- v20: Standard Supabase Auth & RLS Migration
--- Run in Supabase SQL Editor as superuser.
+-- Run in Supabase SQL Editor as superuser / table owner.
 -- Idempotent: safe to run.
 
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Capture all foreign key constraints referencing candidates and employers
+CREATE TEMP TABLE temp_fk_constraints AS
+SELECT 
+    conrelid::regclass::text AS table_name,
+    conname AS constraint_name,
+    pg_get_constraintdef(oid) AS constraint_def
+FROM pg_constraint
+WHERE contype = 'f' 
+  AND confrelid::regclass::text IN ('public.candidates', 'public.employers', 'candidates', 'employers');
+
+-- Drop foreign key constraints dynamically to avoid violation during key updates
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT * FROM temp_fk_constraints LOOP
+        EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I', r.table_name, r.constraint_name);
+    END LOOP;
+END $$;
 
 -- 1. Migrate Existing Candidates to auth.users
 DO $$
@@ -13,14 +33,14 @@ DECLARE
     new_uid UUID;
     existing_uid UUID;
 BEGIN
-    -- Disable triggers to prevent foreign key errors during key migration
-    ALTER TABLE IF EXISTS public.applications DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.conversations DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.messages DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.feed_posts DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.feed_likes DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.interview_reviews DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.candidates DISABLE TRIGGER ALL;
+    -- Disable user triggers (system triggers like FK constraints are already dropped temporarily)
+    ALTER TABLE IF EXISTS public.applications DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.conversations DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.messages DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.feed_posts DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.feed_likes DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.interview_reviews DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.candidates DISABLE TRIGGER USER;
 
     FOR r IN SELECT * FROM public.candidates WHERE email IS NOT NULL AND password IS NOT NULL AND id NOT IN (SELECT id FROM auth.users) LOOP
         -- Check if user already exists in auth.users by email
@@ -68,14 +88,14 @@ BEGIN
         UPDATE public.candidates SET id = new_uid WHERE id = r.id;
     END LOOP;
 
-    -- Re-enable triggers
-    ALTER TABLE IF EXISTS public.applications ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.conversations ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.messages ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.feed_posts ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.feed_likes ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.interview_reviews ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.candidates ENABLE TRIGGER ALL;
+    -- Re-enable user triggers
+    ALTER TABLE IF EXISTS public.applications ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.conversations ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.messages ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.feed_posts ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.feed_likes ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.interview_reviews ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.candidates ENABLE TRIGGER USER;
 END $$;
 
 -- 2. Migrate Existing Employers to auth.users
@@ -85,12 +105,12 @@ DECLARE
     new_uid UUID;
     existing_uid UUID;
 BEGIN
-    ALTER TABLE IF EXISTS public.jobs DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.conversations DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.messages DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.feed_posts DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.job_views DISABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.employers DISABLE TRIGGER ALL;
+    ALTER TABLE IF EXISTS public.jobs DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.conversations DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.messages DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.feed_posts DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.job_views DISABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.employers DISABLE TRIGGER USER;
 
     FOR r IN SELECT * FROM public.employers WHERE email IS NOT NULL AND password IS NOT NULL AND id NOT IN (SELECT id FROM auth.users) LOOP
         -- Check if user already exists in auth.users by email
@@ -135,12 +155,12 @@ BEGIN
         UPDATE public.employers SET id = new_uid WHERE id = r.id;
     END LOOP;
 
-    ALTER TABLE IF EXISTS public.jobs ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.conversations ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.messages ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.feed_posts ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.job_views ENABLE TRIGGER ALL;
-    ALTER TABLE IF EXISTS public.employers ENABLE TRIGGER ALL;
+    ALTER TABLE IF EXISTS public.jobs ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.conversations ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.messages ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.feed_posts ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.job_views ENABLE TRIGGER USER;
+    ALTER TABLE IF EXISTS public.employers ENABLE TRIGGER USER;
 END $$;
 
 
@@ -303,5 +323,15 @@ CREATE POLICY "msg_insert" ON public.messages FOR INSERT WITH CHECK (
     AND (auth.uid()::text = candidate_id OR auth.uid()::text = employer_id)
   )
 );
+
+-- Recreate foreign key constraints dynamically
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT * FROM temp_fk_constraints LOOP
+        EXECUTE format('ALTER TABLE %s ADD CONSTRAINT %I %s', r.table_name, r.constraint_name, r.constraint_def);
+    END LOOP;
+END $$;
 
 COMMIT;
