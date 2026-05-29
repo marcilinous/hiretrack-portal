@@ -39,7 +39,9 @@ body { padding-top:50px !important; background:#f1f5f9; }
 
   document.getElementById('navbar') && (document.getElementById('navbar').innerHTML = '');
 
-  Chat.initEmployer('employer-chat-root', employer);
+  if (employer) {
+    Chat.initEmployer('employer-chat-root', employer);
+  }
 </script>
 </body>
 </html>

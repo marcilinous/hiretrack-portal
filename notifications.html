@@ -203,16 +203,18 @@ const NOTIF_CLASSES = { Viewed:'ni-status', Shortlisted:'ni-shortlist', Intervie
 
 let allNotifs = [];
 
-(async function load() {
-  const { data, error } = await sb
-    .from('notifications')
-    .select('*')
-    .eq('candidate_id', candidate.id)
-    .order('created_at', { ascending: false });
+if (candidate) {
+  (async function load() {
+    const { data, error } = await sb
+      .from('notifications')
+      .select('*')
+      .eq('candidate_id', candidate.id)
+      .order('created_at', { ascending: false });
 
-  allNotifs = data || [];
-  render();
-})();
+    allNotifs = data || [];
+    render();
+  })();
+}
 
 function render() {
   const content = document.getElementById('nc-content');

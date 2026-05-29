@@ -100,14 +100,14 @@ const CandidateAuth = {
     return { ok: true, candidate };
   },
   async logout() {
-    try {
-      await sb.auth.signOut();
-    } catch (e) {
-      console.error('SignOut error:', e);
-    }
     localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
     Session.clearCandidate();
     Session.clearEmployer();
+    try {
+      sb.auth.signOut();
+    } catch (e) {
+      console.error('SignOut error:', e);
+    }
     window.location.href = 'index.html';
   }
 };
@@ -168,14 +168,14 @@ const EmployerAuth = {
     return { ok: true, employer };
   },
   async logout() {
-    try {
-      await sb.auth.signOut();
-    } catch (e) {
-      console.error('SignOut error:', e);
-    }
     localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
     Session.clearCandidate();
     Session.clearEmployer();
+    try {
+      sb.auth.signOut();
+    } catch (e) {
+      console.error('SignOut error:', e);
+    }
     window.location.href = 'index.html';
   }
 };
@@ -183,17 +183,30 @@ window.EmployerAuth = EmployerAuth;
 
 // ── SESSION & AUTH STATE SYNCHRONIZATION ──
 async function syncSession() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    const user = session.user;
-    const role = user.user_metadata?.role;
-    if (role === 'candidate' && !Session.getCandidate()) {
-      const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
-      if (candidate) Session.setCandidate(candidate);
-    } else if (role === 'employer' && !Session.getEmployer()) {
-      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-      if (employer) Session.setEmployer(employer);
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const user = session.user;
+      const role = user.user_metadata?.role;
+      if (role === 'candidate') {
+        const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+        if (candidate) {
+          Session.setCandidate(candidate);
+          Session.clearEmployer();
+        }
+      } else if (role === 'employer') {
+        const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+        if (employer) {
+          Session.setEmployer(employer);
+          Session.clearCandidate();
+        }
+      }
+    } else {
+      Session.clearCandidate();
+      Session.clearEmployer();
     }
+  } catch (e) {
+    console.error('syncSession error:', e);
   }
 }
 
@@ -216,7 +229,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         Session.clearCandidate();
       }
     }
-  } else {
+  } else if (event === 'SIGNED_OUT') {
     Session.clearCandidate();
     Session.clearEmployer();
   }
