@@ -283,9 +283,9 @@ DROP POLICY IF EXISTS "cand_update" ON public.candidates;
 -- Candidates can be viewed by anyone (recruiters search them)
 CREATE POLICY "cand_select" ON public.candidates FOR SELECT USING (true);
 -- Profile creation is handled by database trigger (definer), but keep policy for safety
-CREATE POLICY "cand_insert" ON public.candidates FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "cand_insert" ON public.candidates FOR INSERT WITH CHECK (auth.uid()::text = id::text);
 -- Only the owner candidate can update their profile
-CREATE POLICY "cand_update" ON public.candidates FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE POLICY "cand_update" ON public.candidates FOR UPDATE USING (auth.uid()::text = id::text) WITH CHECK (auth.uid()::text = id::text);
 
 
 -- ── employers ──
@@ -294,8 +294,8 @@ DROP POLICY IF EXISTS "emp_insert" ON public.employers;
 DROP POLICY IF EXISTS "emp_update" ON public.employers;
 
 CREATE POLICY "emp_select" ON public.employers FOR SELECT USING (true);
-CREATE POLICY "emp_insert" ON public.employers FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "emp_update" ON public.employers FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE POLICY "emp_insert" ON public.employers FOR INSERT WITH CHECK (auth.uid()::text = id::text);
+CREATE POLICY "emp_update" ON public.employers FOR UPDATE USING (auth.uid()::text = id::text) WITH CHECK (auth.uid()::text = id::text);
 
 
 -- ── jobs ──
@@ -307,10 +307,10 @@ DROP POLICY IF EXISTS "jobs_delete" ON public.jobs;
 -- Public can select jobs
 CREATE POLICY "jobs_select" ON public.jobs FOR SELECT USING (true);
 -- Only authenticated employers can post jobs under their own id
-CREATE POLICY "jobs_insert" ON public.jobs FOR INSERT WITH CHECK (auth.uid() = employer_id);
+CREATE POLICY "jobs_insert" ON public.jobs FOR INSERT WITH CHECK (auth.uid()::text = employer_id::text);
 -- Only the owning employer can update/delete their jobs
-CREATE POLICY "jobs_update" ON public.jobs FOR UPDATE USING (auth.uid() = employer_id) WITH CHECK (auth.uid() = employer_id);
-CREATE POLICY "jobs_delete" ON public.jobs FOR DELETE USING (auth.uid() = employer_id);
+CREATE POLICY "jobs_update" ON public.jobs FOR UPDATE USING (auth.uid()::text = employer_id::text) WITH CHECK (auth.uid()::text = employer_id::text);
+CREATE POLICY "jobs_delete" ON public.jobs FOR DELETE USING (auth.uid()::text = employer_id::text);
 
 
 -- ── applications ──
@@ -320,15 +320,15 @@ DROP POLICY IF EXISTS "apps_update" ON public.applications;
 
 -- Candidates can view their own applications, employers can view applications for their posted jobs
 CREATE POLICY "apps_select" ON public.applications FOR SELECT USING (
-  auth.uid() = candidate_id 
-  OR auth.uid() IN (SELECT employer_id FROM public.jobs WHERE id::text = job_id)
+  auth.uid()::text = candidate_id::text 
+  OR auth.uid()::text IN (SELECT employer_id::text FROM public.jobs WHERE id::text = job_id::text)
 );
 -- Candidates can insert their own applications
-CREATE POLICY "apps_insert" ON public.applications FOR INSERT WITH CHECK (auth.uid() = candidate_id);
+CREATE POLICY "apps_insert" ON public.applications FOR INSERT WITH CHECK (auth.uid()::text = candidate_id::text);
 -- Candidates/Employers can update status (employers change state, candidate cancel app)
 CREATE POLICY "apps_update" ON public.applications FOR UPDATE USING (
-  auth.uid() = candidate_id 
-  OR auth.uid() IN (SELECT employer_id FROM public.jobs WHERE id::text = job_id)
+  auth.uid()::text = candidate_id::text 
+  OR auth.uid()::text IN (SELECT employer_id::text FROM public.jobs WHERE id::text = job_id::text)
 );
 
 
@@ -338,13 +338,13 @@ DROP POLICY IF EXISTS "conv_insert" ON public.conversations;
 DROP POLICY IF EXISTS "conv_update" ON public.conversations;
 
 CREATE POLICY "conv_select" ON public.conversations FOR SELECT USING (
-  auth.uid()::text = candidate_id OR auth.uid()::text = employer_id
+  auth.uid()::text = candidate_id::text OR auth.uid()::text = employer_id::text
 );
 CREATE POLICY "conv_insert" ON public.conversations FOR INSERT WITH CHECK (
-  auth.uid()::text = candidate_id OR auth.uid()::text = employer_id
+  auth.uid()::text = candidate_id::text OR auth.uid()::text = employer_id::text
 );
 CREATE POLICY "conv_update" ON public.conversations FOR UPDATE USING (
-  auth.uid()::text = candidate_id OR auth.uid()::text = employer_id
+  auth.uid()::text = candidate_id::text OR auth.uid()::text = employer_id::text
 );
 
 
@@ -355,16 +355,16 @@ DROP POLICY IF EXISTS "msg_insert" ON public.messages;
 CREATE POLICY "msg_select" ON public.messages FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM public.conversations 
-    WHERE id = conversation_id 
-    AND (auth.uid()::text = candidate_id OR auth.uid()::text = employer_id)
+    WHERE id::text = conversation_id::text 
+    AND (auth.uid()::text = candidate_id::text OR auth.uid()::text = employer_id::text)
   )
 );
 CREATE POLICY "msg_insert" ON public.messages FOR INSERT WITH CHECK (
-  auth.uid()::text = sender_id 
+  auth.uid()::text = sender_id::text 
   AND EXISTS (
     SELECT 1 FROM public.conversations 
-    WHERE id = conversation_id 
-    AND (auth.uid()::text = candidate_id OR auth.uid()::text = employer_id)
+    WHERE id::text = conversation_id::text 
+    AND (auth.uid()::text = candidate_id::text OR auth.uid()::text = employer_id::text)
   )
 );
 
