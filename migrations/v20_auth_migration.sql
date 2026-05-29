@@ -54,7 +54,7 @@ BEGIN
                 id, instance_id, email, encrypted_password, email_confirmed_at,
                 role, aud, raw_user_meta_data, created_at, updated_at,
                 raw_app_meta_data, is_super_admin, phone, phone_confirmed_at,
-                confirmed_at, last_sign_in_at
+                last_sign_in_at
             ) VALUES (
                 new_uid,
                 '00000000-0000-0000-0000-000000000000',
@@ -69,7 +69,6 @@ BEGIN
                 '{"provider":"email","providers":["email"]}',
                 false,
                 r.mobile,
-                now(),
                 now(),
                 now()
             );
@@ -123,7 +122,7 @@ BEGIN
                 id, instance_id, email, encrypted_password, email_confirmed_at,
                 role, aud, raw_user_meta_data, created_at, updated_at,
                 raw_app_meta_data, is_super_admin, phone, phone_confirmed_at,
-                confirmed_at, last_sign_in_at
+                last_sign_in_at
             ) VALUES (
                 new_uid,
                 '00000000-0000-0000-0000-000000000000',
@@ -138,7 +137,6 @@ BEGIN
                 '{"provider":"email","providers":["email"]}',
                 false,
                 r.mobile,
-                now(),
                 now(),
                 now()
             );
