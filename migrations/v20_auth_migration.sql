@@ -74,7 +74,14 @@ DECLARE
     r RECORD;
     new_uid UUID;
     existing_uid UUID;
+    v_instance_id UUID;
 BEGIN
+    -- Dynamically fetch instance_id from Supabase instances
+    SELECT id INTO v_instance_id FROM auth.instances LIMIT 1;
+    IF v_instance_id IS NULL THEN
+        v_instance_id := '00000000-0000-0000-0000-000000000000'::uuid;
+    END IF;
+
     -- Disable user triggers (system triggers like FK constraints are already dropped temporarily)
     ALTER TABLE IF EXISTS public.applications DISABLE TRIGGER USER;
     ALTER TABLE IF EXISTS public.conversations DISABLE TRIGGER USER;
@@ -95,11 +102,10 @@ BEGIN
             INSERT INTO auth.users (
                 id, instance_id, email, encrypted_password, email_confirmed_at,
                 role, aud, raw_user_meta_data, created_at, updated_at,
-                raw_app_meta_data, is_super_admin, phone, phone_confirmed_at,
-                last_sign_in_at
+                raw_app_meta_data, is_super_admin, last_sign_in_at
             ) VALUES (
                 new_uid,
-                '00000000-0000-0000-0000-000000000000',
+                v_instance_id,
                 r.email,
                 crypt(r.password, gen_salt('bf', 10)),
                 now(),
@@ -108,10 +114,8 @@ BEGIN
                 jsonb_build_object('role', 'candidate', 'name', r.name, 'mobile', r.mobile, 'city', r.city),
                 COALESCE(r.created_at, now()),
                 now(),
-                '{"provider":"email","providers":["email"]}',
+                '{"provider":"email","providers":["email"]}'::jsonb,
                 false,
-                r.mobile,
-                now(),
                 now()
             );
         ELSE
@@ -147,7 +151,14 @@ DECLARE
     r RECORD;
     new_uid UUID;
     existing_uid UUID;
+    v_instance_id UUID;
 BEGIN
+    -- Dynamically fetch instance_id from Supabase instances
+    SELECT id INTO v_instance_id FROM auth.instances LIMIT 1;
+    IF v_instance_id IS NULL THEN
+        v_instance_id := '00000000-0000-0000-0000-000000000000'::uuid;
+    END IF;
+
     ALTER TABLE IF EXISTS public.jobs DISABLE TRIGGER USER;
     ALTER TABLE IF EXISTS public.conversations DISABLE TRIGGER USER;
     ALTER TABLE IF EXISTS public.messages DISABLE TRIGGER USER;
@@ -165,11 +176,10 @@ BEGIN
             INSERT INTO auth.users (
                 id, instance_id, email, encrypted_password, email_confirmed_at,
                 role, aud, raw_user_meta_data, created_at, updated_at,
-                raw_app_meta_data, is_super_admin, phone, phone_confirmed_at,
-                last_sign_in_at
+                raw_app_meta_data, is_super_admin, last_sign_in_at
             ) VALUES (
                 new_uid,
-                '00000000-0000-0000-0000-000000000000',
+                v_instance_id,
                 r.email,
                 crypt(r.password, gen_salt('bf', 10)),
                 now(),
@@ -178,10 +188,8 @@ BEGIN
                 jsonb_build_object('role', 'employer', 'company', r.company, 'contact_name', r.contact_name),
                 COALESCE(r.created_at, now()),
                 now(),
-                '{"provider":"email","providers":["email"]}',
+                '{"provider":"email","providers":["email"]}'::jsonb,
                 false,
-                r.mobile,
-                now(),
                 now()
             );
         ELSE
