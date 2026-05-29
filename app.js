@@ -100,7 +100,11 @@ const CandidateAuth = {
     return { ok: true, candidate };
   },
   async logout() {
-    await sb.auth.signOut();
+    try {
+      await sb.auth.signOut();
+    } catch (e) {
+      console.error('SignOut error:', e);
+    }
     Session.clearCandidate();
     Session.clearEmployer();
     window.location.href = 'index.html';
@@ -162,7 +166,11 @@ const EmployerAuth = {
     return { ok: true, employer };
   },
   async logout() {
-    await sb.auth.signOut();
+    try {
+      await sb.auth.signOut();
+    } catch (e) {
+      console.error('SignOut error:', e);
+    }
     Session.clearCandidate();
     Session.clearEmployer();
     window.location.href = 'index.html';
