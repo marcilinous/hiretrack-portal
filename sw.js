@@ -47,7 +47,10 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.match(request).then(cached => {
         const network = fetch(request).then(resp => {
-          if (resp.ok) caches.open(CACHE).then(c => c.put(request, resp.clone()));
+          if (resp.ok) {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put(request, copy));
+          }
           return resp;
         });
         return cached || network;
@@ -58,7 +61,10 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(request)
         .then(resp => {
-          if (resp.ok) caches.open(CACHE).then(c => c.put(request, resp.clone()));
+          if (resp.ok) {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put(request, copy));
+          }
           return resp;
         })
         .catch(() => caches.match(request) || caches.match('/index.html'))
