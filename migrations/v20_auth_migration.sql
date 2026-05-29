@@ -62,6 +62,7 @@ WHERE contype = 'f'
 DO $$
 DECLARE
     r RECORD;
+    v_exists boolean;
 BEGIN
     FOR r IN SELECT * FROM temp_fk_constraints LOOP
         EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I', r.table_name, r.constraint_name);
@@ -102,7 +103,8 @@ BEGIN
             INSERT INTO auth.users (
                 id, instance_id, email, encrypted_password, email_confirmed_at,
                 role, aud, raw_user_meta_data, created_at, updated_at,
-                raw_app_meta_data, is_super_admin, last_sign_in_at
+                raw_app_meta_data, is_super_admin, last_sign_in_at,
+                confirmation_token, email_change, email_change_token_new, recovery_token
             ) VALUES (
                 new_uid,
                 v_instance_id,
@@ -116,7 +118,8 @@ BEGIN
                 now(),
                 '{"provider":"email","providers":["email"]}'::jsonb,
                 false,
-                now()
+                now(),
+                '', '', '', ''
             );
         ELSE
             new_uid := existing_uid;
@@ -176,7 +179,8 @@ BEGIN
             INSERT INTO auth.users (
                 id, instance_id, email, encrypted_password, email_confirmed_at,
                 role, aud, raw_user_meta_data, created_at, updated_at,
-                raw_app_meta_data, is_super_admin, last_sign_in_at
+                raw_app_meta_data, is_super_admin, last_sign_in_at,
+                confirmation_token, email_change, email_change_token_new, recovery_token
             ) VALUES (
                 new_uid,
                 v_instance_id,
@@ -190,7 +194,8 @@ BEGIN
                 now(),
                 '{"provider":"email","providers":["email"]}'::jsonb,
                 false,
-                now()
+                now(),
+                '', '', '', ''
             );
         ELSE
             new_uid := existing_uid;
