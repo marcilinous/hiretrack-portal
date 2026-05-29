@@ -105,11 +105,13 @@ const CandidateAuth = {
     } catch (e) {
       console.error('SignOut error:', e);
     }
+    localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
     Session.clearCandidate();
     Session.clearEmployer();
     window.location.href = 'index.html';
   }
 };
+window.CandidateAuth = CandidateAuth;
 
 const EmployerAuth = {
   async checkExists(identifier) {
@@ -171,11 +173,13 @@ const EmployerAuth = {
     } catch (e) {
       console.error('SignOut error:', e);
     }
+    localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
     Session.clearCandidate();
     Session.clearEmployer();
     window.location.href = 'index.html';
   }
 };
+window.EmployerAuth = EmployerAuth;
 
 // ── SESSION & AUTH STATE SYNCHRONIZATION ──
 async function syncSession() {
