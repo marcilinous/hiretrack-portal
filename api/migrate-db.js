@@ -1,12 +1,13 @@
 const pg = require('pg');
 
 module.exports = async function handler(req, res) {
-  // Allow GET/POST for quick trigger
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Temporary token-free execution for live audit migration
+  // Dump keys of process.env to see what is available
+  const keys = Object.keys(process.env);
+
   const connectionString = 
     process.env.DATABASE_URL || 
     process.env.POSTGRES_URL || 
@@ -24,7 +25,8 @@ module.exports = async function handler(req, res) {
     }
     
     return res.status(500).json({ 
-      error: 'No database connection environment variable found.'
+      error: 'No database connection environment variable found.',
+      available_env_keys: keys
     });
   }
 
