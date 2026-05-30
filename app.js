@@ -4,8 +4,10 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── SUPABASE CONFIG ──
-const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
+const supabaseUrl = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
+const SUPABASE_URL = supabaseUrl;
+const SUPABASE_KEY = supabaseAnonKey;
 
 // Safe storage engine to prevent SecurityError in restricted environments (e.g. Private Mode)
 let _storageMem = {};
@@ -35,7 +37,7 @@ const safeLocalStorage = {
 let sb;
 try {
   if (typeof supabase !== 'undefined') {
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    sb = supabase.createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         storage: safeLocalStorage,
         persistSession: true,
