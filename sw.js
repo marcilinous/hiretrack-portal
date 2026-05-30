@@ -1,4 +1,4 @@
-const CACHE = 'hiretrack-v4';
+const CACHE = 'hiretrack-v5';
 
 const SHELL = [
   '/index.html',
@@ -28,6 +28,13 @@ self.addEventListener('activate', event => {
   );
 });
 
+// Allow app.js to force-activate a waiting service worker
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', event => {
   const { request } = event;
 
@@ -39,8 +46,8 @@ self.addEventListener('fetch', event => {
   // Never cache: API routes, Supabase, payment endpoints
   if (url.pathname.startsWith('/api/')) return;
 
-  // Always use network-first for app.js to prevent serving stale auth config
-  if (url.pathname === '/app.js' || url.pathname.endsWith('/app.js')) {
+  // Network-first for ALL JS files to prevent stale code
+  if (url.pathname.endsWith('.js')) {
     event.respondWith(
       fetch(request)
         .then(resp => {

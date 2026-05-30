@@ -1,6 +1,34 @@
-// ── SERVICE WORKER ──
+// ── SERVICE WORKER + STALE CACHE NUKE ──
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  // Purge all old caches immediately on page load
+  if ('caches' in window) {
+    caches.keys().then(keys => {
+      keys.forEach(key => {
+        if (key !== 'hiretrack-v5') {
+          caches.delete(key);
+          console.log('[HT] Purged stale cache:', key);
+        }
+      });
+    });
+  }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      // Force the new SW to install and activate immediately
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (newSW) {
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'activated') {
+              console.log('[HT] New service worker activated');
+            }
+          });
+        }
+      });
+    }).catch(() => {});
+  });
 }
 
 // ── SUPABASE CONFIG ──

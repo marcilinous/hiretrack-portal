@@ -733,7 +733,7 @@ body { padding-top:50px !important; }
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 <script src="js/browse-jobs.js"></script>
 <script src="js/apply-modal.js"></script>
 <script src="js/feed.js"></script>
@@ -780,65 +780,79 @@ body { padding-top:50px !important; }
 
   // ── Init ──
   async function init() {
-    const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('p-avatar').textContent = initials;
-    document.getElementById('p-name').textContent = candidate.name;
-    document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
-    document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
-    document.getElementById('p-exp').textContent = '🎓 ' + (candidate.experience||'—');
-    document.getElementById('p-mobile').textContent = '📞 ' + (candidate.mobile||'—');
-    document.getElementById('d-email').textContent = candidate.email||'—';
-    document.getElementById('d-mobile').textContent = candidate.mobile||'—';
-    document.getElementById('d-city').textContent = candidate.city||'—';
-    document.getElementById('d-exp').textContent = candidate.experience||'—';
-    document.getElementById('d-title').textContent = candidate.jobtitle||'—';
-    document.getElementById('d-company').textContent = candidate.current_company||'—';
-    document.getElementById('d-jobtype').textContent = candidate.preferred_job_type||'—';
-    document.getElementById('d-salary').textContent = candidate.expected_salary||'—';
-    document.getElementById('d-notice').textContent = candidate.notice_period||'—';
-    document.getElementById('d-about').textContent = candidate.about||'Not added yet.';
-    document.getElementById('sum-since').textContent = candidate.created_at ? new Date(candidate.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'}) : '—';
+    try {
+      const initials = candidate.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+      document.getElementById('p-avatar').textContent = initials;
+      document.getElementById('p-name').textContent = candidate.name;
+      document.getElementById('p-title').textContent = candidate.jobtitle || 'Job Seeker';
+      document.getElementById('p-city').textContent = '📍 ' + (candidate.city||'—');
+      document.getElementById('p-exp').textContent = '🎓 ' + (candidate.experience||'—');
+      document.getElementById('p-mobile').textContent = '📞 ' + (candidate.mobile||'—');
+      document.getElementById('d-email').textContent = candidate.email||'—';
+      document.getElementById('d-mobile').textContent = candidate.mobile||'—';
+      document.getElementById('d-city').textContent = candidate.city||'—';
+      document.getElementById('d-exp').textContent = candidate.experience||'—';
+      document.getElementById('d-title').textContent = candidate.jobtitle||'—';
+      document.getElementById('d-company').textContent = candidate.current_company||'—';
+      document.getElementById('d-jobtype').textContent = candidate.preferred_job_type||'—';
+      document.getElementById('d-salary').textContent = candidate.expected_salary||'—';
+      document.getElementById('d-notice').textContent = candidate.notice_period||'—';
+      document.getElementById('d-about').textContent = candidate.about||'Not added yet.';
+      document.getElementById('sum-since').textContent = candidate.created_at ? new Date(candidate.created_at).toLocaleDateString('en-IN',{month:'short',year:'numeric'}) : '—';
 
-    if (candidate.skills?.length) {
-      document.getElementById('d-skills').innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
-    }
-    renderWorkHistory();
-    renderEducation();
-    renderResumeSection();
+      if (candidate.skills?.length) {
+        document.getElementById('d-skills').innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
+      }
+      renderWorkHistory();
+      renderEducation();
+      renderResumeSection();
+    } catch(e) { console.error('[HT] init profile render error:', e); }
 
-    const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
-    myApps = apps || [];
-    syncDrawerStats();
+    // ── Fetch applications (isolated so a failure here doesn't break the rest) ──
+    try {
+      const { data: apps } = await sb.from('applications').select('*').eq('candidate_id', candidate.id).order('applied_at', { ascending: false });
+      myApps = apps || [];
+      syncDrawerStats();
 
-    // Batch fetch all jobs in one query instead of N+1
-    const jobIds = [...new Set(myApps.map(a => a.job_id).filter(Boolean))];
-    if (jobIds.length) {
-      const { data: jobs } = await sb.from('jobs').select('id,title,company,location,salary,employer_id').in('id', jobIds);
-      const jobMap = new Map((jobs || []).map(j => [String(j.id), j]));
-      myApps.forEach(a => {
-        a.jobs = jobMap.get(String(a.job_id)) || JOBS.find(j => String(j.id) === String(a.job_id)) || null;
-      });
-    }
+      // Batch fetch all jobs in one query instead of N+1
+      const jobIds = [...new Set(myApps.map(a => a.job_id).filter(Boolean))];
+      if (jobIds.length) {
+        const { data: jobs } = await sb.from('jobs').select('id,title,company,location,salary,employer_id').in('id', jobIds);
+        const jobMap = new Map((jobs || []).map(j => [String(j.id), j]));
+        myApps.forEach(a => {
+          a.jobs = jobMap.get(String(a.job_id)) || (typeof JOBS !== 'undefined' && JOBS.find(j => String(j.id) === String(a.job_id))) || null;
+        });
+      }
 
-    document.getElementById('sum-total').textContent = myApps.length;
-    document.getElementById('sum-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
-    document.getElementById('sum-inter').textContent = myApps.filter(a=>a.status==='Interview').length;
-    document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
+      document.getElementById('sum-total').textContent = myApps.length;
+      document.getElementById('sum-short').textContent = myApps.filter(a=>a.status==='Shortlisted').length;
+      document.getElementById('sum-inter').textContent = myApps.filter(a=>a.status==='Interview').length;
+      document.getElementById('sum-hired').textContent = myApps.filter(a=>a.status==='Hired').length;
+    } catch(e) { console.error('[HT] init apps error:', e); }
 
-    renderProfileScore();
+    // ── Profile score (isolated) ──
+    try {
+      renderProfileScore();
+    } catch(e) { console.error('[HT] init profile score error:', e); }
 
-    const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
-    myNotifs = notifs || [];
-    updateNotifBadge();
+    // ── Notifications (isolated) ──
+    try {
+      const { data: notifs } = await sb.from('notifications').select('*').eq('candidate_id', candidate.id).order('created_at', { ascending: false });
+      myNotifs = notifs || [];
+      updateNotifBadge();
+    } catch(e) { console.error('[HT] init notifs error:', e); }
 
     // Re-render current view if data-dependent
     // Fetch interview reviews already submitted by this candidate
     sb.from('interview_reviews').select('job_id').eq('candidate_id', candidate.id)
-      .then(({ data }) => { _reviewedJobIds = new Set((data || []).map(r => r.job_id)); });
+      .then(({ data }) => { _reviewedJobIds = new Set((data || []).map(r => r.job_id)); })
+      .catch(() => {});
 
-    const currentView = (location.hash || '#jobs').replace(/^#/,'').split('/')[0];
-    if (currentView === 'applications') renderApps(myApps);
-    if (currentView === 'jobs') loadJobsView();
+    try {
+      const currentView = (location.hash || '#jobs').replace(/^#/,'').split('/')[0];
+      if (currentView === 'applications') renderApps(myApps);
+      if (currentView === 'jobs') loadJobsView();
+    } catch(e) { console.error('[HT] init route error:', e); }
 
     await Chat.initBubble(candidate).catch(() => {});
   }
