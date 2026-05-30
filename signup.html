@@ -368,23 +368,31 @@
     const btn=document.getElementById('btn-submit');
     btn.textContent='Creating account...'; btn.disabled=true;
 
-    const result=await CandidateAuth.register({
-      name,mobile,email,city,password,jobtitle,experience,skills,
-      about,currentCompany,preferredJobType,expectedSalary,noticePeriod
-    }, resumeFile);
+    try {
+      const result=await CandidateAuth.register({
+        name,mobile,email,city,password,jobtitle,experience,skills,
+        about,currentCompany,preferredJobType,expectedSalary,noticePeriod
+      }, resumeFile);
 
-    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account ✓';btn.disabled=false;return;}
-    
-    if (result.msg && result.msg.includes('check your email')) {
-      alert(result.msg);
-      window.location.href = 'login.html';
-      return;
+      if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Create Account ✓';btn.disabled=false;return;}
+      
+      if (result.msg && result.msg.includes('check your email')) {
+        alert(result.msg);
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/api/email?action=welcome-candidate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,city,skills})}).catch(()=>{});
+      const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
+      sessionStorage.removeItem('redirect_after_login');
+      window.location.href=redirect;
+    } catch (e) {
+      console.error('Candidate registration exception:', e);
+      errEl.textContent=e.message || 'An unexpected error occurred. Please try again.';
+      errEl.style.display='block';
+      btn.textContent='Create Account ✓';
+      btn.disabled=false;
     }
-
-    fetch('/api/email?action=welcome-candidate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,city,skills})}).catch(()=>{});
-    const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
-    sessionStorage.removeItem('redirect_after_login');
-    window.location.href=redirect;
   }
 </script>
 </body>

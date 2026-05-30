@@ -253,43 +253,50 @@
     currentMobile = mobile;
     currentEmail = email;
 
-    // Check if employer already exists
-    const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
-    const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
-    existingEmployer = byEmail || byMobile;
+    try {
+      // Check if employer already exists
+      const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
+      const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
+      existingEmployer = byEmail || byMobile;
 
-    if (existingEmployer) {
-      btn.textContent = 'Continue →'; btn.disabled = false;
-      document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
-      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-      document.getElementById('step3-existing').classList.add('active');
-      setStepUI(2);
-      return;
-    }
-
-    // New employer: send OTP via standard Supabase Auth
-    const { error } = await sb.auth.signInWithOtp({
-      email: currentEmail,
-      options: {
-        data: {
-          role: 'employer',
-          mobile: currentMobile
-        }
+      if (existingEmployer) {
+        btn.textContent = 'Continue →'; btn.disabled = false;
+        document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step3-existing').classList.add('active');
+        setStepUI(2);
+        return;
       }
-    });
 
-    btn.textContent = 'Continue →'; btn.disabled = false;
+      // New employer: send OTP via standard Supabase Auth
+      const { error } = await sb.auth.signInWithOtp({
+        email: currentEmail,
+        options: {
+          data: {
+            role: 'employer',
+            mobile: currentMobile
+          }
+        }
+      });
 
-    if (error) {
-      errEl.textContent = 'Failed to send OTP: ' + error.message;
+      btn.textContent = 'Continue →'; btn.disabled = false;
+
+      if (error) {
+        errEl.textContent = 'Failed to send OTP: ' + error.message;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('otp-email-display').textContent = currentEmail;
+      goStep(2);
+      otpExpiry = Date.now() + 2 * 60 * 1000;
+      startTimer();
+    } catch (e) {
+      console.error('Employer sendEmailOTP error:', e);
+      errEl.textContent = 'Failed to check account or send OTP. Please check your internet connection.';
       errEl.style.display = 'block';
-      return;
+      btn.textContent = 'Continue →'; btn.disabled = false;
     }
-
-    document.getElementById('otp-email-display').textContent = currentEmail;
-    goStep(2);
-    otpExpiry = Date.now() + 2 * 60 * 1000;
-    startTimer();
   }
 
   // ── Existing employer chose OTP method: send OTP then go to step 2 ──
@@ -299,18 +306,25 @@
     errEl.style.display = 'none';
     if (btn) { btn.textContent = 'Sending OTP...'; btn.disabled = true; }
 
-    const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
-    if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
+    try {
+      const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
+      if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
 
-    if (error) {
-      errEl.textContent = 'Failed to send OTP: ' + error.message;
+      if (error) {
+        errEl.textContent = 'Failed to send OTP: ' + error.message;
+        errEl.style.display = 'block';
+        return;
+      }
+      document.getElementById('otp-email-display').textContent = currentEmail;
+      goStep(2);
+      otpExpiry = Date.now() + 2 * 60 * 1000;
+      startTimer();
+    } catch (e) {
+      console.error('Employer sendOTPForLogin error:', e);
+      errEl.textContent = 'Failed: ' + (e.message || 'An unexpected error occurred.');
       errEl.style.display = 'block';
-      return;
+      if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
     }
-    document.getElementById('otp-email-display').textContent = currentEmail;
-    goStep(2);
-    otpExpiry = Date.now() + 2 * 60 * 1000;
-    startTimer();
   }
 
   // ── OTP Input handlers ──
@@ -350,13 +364,18 @@
 
     const btn = document.getElementById('resend-btn');
     btn.textContent = 'Sending...'; btn.disabled = true;
-    const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
-    if (error) {
-      showToast('Failed to resend OTP: ' + error.message);
-    } else {
-      showToast('OTP resent to ' + currentEmail);
-      otpExpiry = Date.now() + 2 * 60 * 1000;
-      startTimer();
+    try {
+      const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
+      if (error) {
+        showToast('Failed to resend OTP: ' + error.message);
+      } else {
+        showToast('OTP resent to ' + currentEmail);
+        otpExpiry = Date.now() + 2 * 60 * 1000;
+        startTimer();
+      }
+    } catch (e) {
+      console.error('Resend OTP error:', e);
+      showToast('Error: ' + (e.message || 'Could not resend OTP.'));
     }
     btn.textContent = 'Resend OTP';
     document.getElementById('ob1').focus();
@@ -373,51 +392,58 @@
     const btn = document.querySelector('#step2 .btn-primary');
     btn.textContent = 'Verifying...'; btn.disabled = true;
 
-    // Verify OTP using Supabase
-    const { data: verifyData, error } = await sb.auth.verifyOtp({
-      email: currentEmail,
-      token: entered,
-      type: 'email'
-    });
+    try {
+      // Verify OTP using Supabase
+      const { data: verifyData, error } = await sb.auth.verifyOtp({
+        email: currentEmail,
+        token: entered,
+        type: 'email'
+      });
 
-    if (error) {
-      errEl.textContent = 'Invalid OTP or expired. Please check and try again.';
+      if (error) {
+        errEl.textContent = 'Invalid OTP or expired. Please check and try again.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
+        return;
+      }
+
+      clearInterval(timerInterval);
+      btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
+
+      if (existingEmployer) {
+        if (isResetMode) {
+          // OTP verified for password reset — show new password form
+          document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+          document.getElementById('step3-existing').classList.add('active');
+          setStepUI(3);
+          document.getElementById('welcome-name').textContent = 'Reset Password';
+          document.getElementById('otp-login-section').style.display = 'none';
+          document.getElementById('pwd-login-section').style.display = 'block';
+          document.getElementById('pwd-label').textContent = 'New Password *';
+          document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
+          document.getElementById('btn-login').textContent = 'Set New Password →';
+          document.getElementById('login-pwd').focus();
+        } else {
+          // Logged in successfully via OTP
+          const { data: employer } = await sb.from('employers').select('*').eq('id', verifyData.user.id).maybeSingle();
+          if (employer) {
+            Session.setEmployer(employer);
+            const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+            sessionStorage.removeItem('redirect_after_employer_login');
+            window.location.href = redirect;
+          } else {
+            errEl.textContent = 'Employer record not found.'; errEl.style.display = 'block';
+          }
+        }
+      } else {
+        // New employer: authenticated, proceed to complete profile
+        goStep(3, 'step3-new');
+      }
+    } catch (e) {
+      console.error('Verify OTP error:', e);
+      errEl.textContent = 'Verification failed: ' + (e.message || 'An unexpected error occurred.');
       errEl.style.display = 'block';
       btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
-      return;
-    }
-
-    clearInterval(timerInterval);
-    btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
-
-    if (existingEmployer) {
-      if (isResetMode) {
-        // OTP verified for password reset — show new password form
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step3-existing').classList.add('active');
-        setStepUI(3);
-        document.getElementById('welcome-name').textContent = 'Reset Password';
-        document.getElementById('otp-login-section').style.display = 'none';
-        document.getElementById('pwd-login-section').style.display = 'block';
-        document.getElementById('pwd-label').textContent = 'New Password *';
-        document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
-        document.getElementById('btn-login').textContent = 'Set New Password →';
-        document.getElementById('login-pwd').focus();
-      } else {
-        // Logged in successfully via OTP
-        const { data: employer } = await sb.from('employers').select('*').eq('id', verifyData.user.id).maybeSingle();
-        if (employer) {
-          Session.setEmployer(employer);
-          const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
-          sessionStorage.removeItem('redirect_after_employer_login');
-          window.location.href = redirect;
-        } else {
-          errEl.textContent = 'Employer record not found.'; errEl.style.display = 'block';
-        }
-      }
-    } else {
-      // New employer: authenticated, proceed to complete profile
-      goStep(3, 'step3-new');
     }
   }
 
@@ -439,34 +465,41 @@
     const btn = document.querySelector('#step3-new .btn-primary');
     btn.textContent = 'Creating...'; btn.disabled = true;
 
-    // Set the password on the newly authenticated user
-    const { error: pwdErr } = await sb.auth.updateUser({ password });
-    if (pwdErr) {
-      errEl.textContent = 'Failed to set password: ' + pwdErr.message;
+    try {
+      // Set the password on the newly authenticated user
+      const { error: pwdErr } = await sb.auth.updateUser({ password });
+      if (pwdErr) {
+        errEl.textContent = 'Failed to set password: ' + pwdErr.message;
+        errEl.style.display = 'block';
+        btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
+        return;
+      }
+
+      // Update profile in employers table
+      const { data: { user } } = await sb.auth.getUser();
+      const updates = { company, contact_name: contactName, city, industry };
+      const { error: dbErr } = await sb.from('employers').update(updates).eq('id', user.id);
+      
+      if (dbErr) {
+        errEl.textContent = 'Profile save failed: ' + dbErr.message;
+        errEl.style.display = 'block';
+        btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
+        return;
+      }
+
+      // Load full profile
+      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).single();
+      Session.setEmployer(employer);
+
+      const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'post-job.html';
+      sessionStorage.removeItem('redirect_after_employer_login');
+      window.location.href = redirect;
+    } catch (e) {
+      console.error('Employer registration complete exception:', e);
+      errEl.textContent = 'Registration failed: ' + (e.message || 'An unexpected error occurred.');
       errEl.style.display = 'block';
       btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
-      return;
     }
-
-    // Update profile in employers table
-    const { data: { user } } = await sb.auth.getUser();
-    const updates = { company, contact_name: contactName, city, industry };
-    const { error: dbErr } = await sb.from('employers').update(updates).eq('id', user.id);
-    
-    if (dbErr) {
-      errEl.textContent = 'Profile save failed: ' + dbErr.message;
-      errEl.style.display = 'block';
-      btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
-      return;
-    }
-
-    // Load full profile
-    const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).single();
-    Session.setEmployer(employer);
-
-    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'post-job.html';
-    sessionStorage.removeItem('redirect_after_employer_login');
-    window.location.href = redirect;
   }
 
   function showPasswordSection() {
@@ -485,38 +518,45 @@
     const btn = document.getElementById('btn-login');
     btn.textContent = 'Loading...'; btn.disabled = true;
 
-    if (isResetMode) {
-      if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; btn.textContent = 'Set New Password →'; btn.disabled = false; return; }
-      
-      const { error: pwdErr } = await sb.auth.updateUser({ password });
-      if (pwdErr) {
-        errEl.textContent = 'Failed to reset password: ' + pwdErr.message;
-        errEl.style.display = 'block';
-        btn.textContent = 'Set New Password →'; btn.disabled = false;
+    try {
+      if (isResetMode) {
+        if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; btn.textContent = 'Set New Password →'; btn.disabled = false; return; }
+        
+        const { error: pwdErr } = await sb.auth.updateUser({ password });
+        if (pwdErr) {
+          errEl.textContent = 'Failed to reset password: ' + pwdErr.message;
+          errEl.style.display = 'block';
+          btn.textContent = 'Set New Password →'; btn.disabled = false;
+          return;
+        }
+        
+        const { data: { user } } = await sb.auth.getUser();
+        const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+        Session.setEmployer(employer);
+        showToast('Password reset! Redirecting...');
+        setTimeout(() => window.location.href = 'employer-dashboard.html', 1200);
         return;
       }
+
+      // Password login
+      const result = await EmployerAuth.login(currentEmail, password);
+      btn.textContent = 'Login to Dashboard →'; btn.disabled = false;
       
-      const { data: { user } } = await sb.auth.getUser();
-      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-      Session.setEmployer(employer);
-      showToast('Password reset! Redirecting...');
-      setTimeout(() => window.location.href = 'employer-dashboard.html', 1200);
-      return;
-    }
+      if (!result.ok) {
+        errEl.textContent = result.msg;
+        errEl.style.display = 'block';
+        return;
+      }
 
-    // Password login
-    const result = await EmployerAuth.login(currentEmail, password);
-    btn.textContent = 'Login to Dashboard →'; btn.disabled = false;
-    
-    if (!result.ok) {
-      errEl.textContent = result.msg;
+      const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+      sessionStorage.removeItem('redirect_after_employer_login');
+      window.location.href = redirect;
+    } catch (e) {
+      console.error('Employer login complete exception:', e);
+      errEl.textContent = 'Login failed: ' + (e.message || 'An unexpected error occurred.');
       errEl.style.display = 'block';
-      return;
+      btn.textContent = 'Login to Dashboard →'; btn.disabled = false;
     }
-
-    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
-    sessionStorage.removeItem('redirect_after_employer_login');
-    window.location.href = redirect;
   }
 
   function showReset() {

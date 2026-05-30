@@ -6,7 +6,93 @@ if ('serviceWorker' in navigator) {
 // ── SUPABASE CONFIG ──
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Safe storage engine to prevent SecurityError in restricted environments (e.g. Private Mode)
+let _storageMem = {};
+const safeLocalStorage = {
+  getItem(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return _storageMem[key] || null;
+    }
+  },
+  setItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      _storageMem[key] = value;
+    }
+  },
+  removeItem(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {}
+    delete _storageMem[key];
+  }
+};
+
+let sb;
+try {
+  if (typeof supabase !== 'undefined') {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        storage: safeLocalStorage,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    });
+  } else {
+    console.error('Supabase library is not loaded. JSDelivr CDN might be blocked.');
+    const mockFunc = () => { throw new Error('Authentication service is currently unavailable. Please check your internet connection or disable ad-blockers.'); };
+    sb = {
+      auth: {
+        signUp: mockFunc,
+        signInWithPassword: mockFunc,
+        signInWithOtp: mockFunc,
+        verifyOtp: mockFunc,
+        signOut: mockFunc,
+        getSession: mockFunc,
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        resetPasswordForEmail: mockFunc,
+        updateUser: mockFunc,
+        getUser: mockFunc
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: mockFunc,
+            single: mockFunc,
+            order: mockFunc
+          }),
+          or: () => ({
+            maybeSingle: mockFunc
+          }),
+          order: mockFunc
+        }),
+        insert: () => ({
+          select: () => ({
+            single: mockFunc
+          })
+        }),
+        update: () => ({
+          eq: mockFunc
+        }),
+        delete: () => ({
+          eq: mockFunc
+        })
+      }),
+      storage: {
+        from: () => ({
+          upload: mockFunc,
+          getPublicUrl: () => ({ data: { publicUrl: '' } })
+        })
+      }
+    };
+  }
+} catch (e) {
+  console.error('Failed to initialize Supabase client:', e);
+}
 window.sb = sb;
 
 
@@ -72,71 +158,85 @@ window.Session = Session;
 
 const CandidateAuth = {
   async register(data, resumeFile = null) {
-    const { data: res, error } = await sb.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          role: 'candidate',
-          name: data.name,
-          mobile: data.mobile,
-          city: data.city,
-          experience: data.experience,
-          jobtitle: data.jobtitle,
-          skills: data.skills || [],
-          about: data.about || '',
-          current_company: data.currentCompany || '',
-          preferred_job_type: data.preferredJobType || '',
-          expected_salary: data.expectedSalary || '',
-          notice_period: data.noticePeriod || ''
+    try {
+      const { data: res, error } = await sb.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            role: 'candidate',
+            name: data.name,
+            mobile: data.mobile,
+            city: data.city,
+            experience: data.experience,
+            jobtitle: data.jobtitle,
+            skills: data.skills || [],
+            about: data.about || '',
+            current_company: data.currentCompany || '',
+            preferred_job_type: data.preferredJobType || '',
+            expected_salary: data.expectedSalary || '',
+            notice_period: data.noticePeriod || ''
+          }
+        }
+      });
+      if (error) return { ok: false, msg: error.message };
+
+      const user = res.user;
+      const session = res.session;
+
+      // Handle resume file upload if session is active (logged in immediately)
+      if (session && resumeFile) {
+        try {
+          const ext = resumeFile.name.split('.').pop().toLowerCase() || 'pdf';
+          const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+          const { error: upErr } = await sb.storage.from('resumes').upload(path, resumeFile, { upsert: true, contentType: resumeFile.type });
+          if (!upErr) {
+            const { data: { publicUrl } } = sb.storage.from('resumes').getPublicUrl(path);
+            await sb.from('candidates').update({ resume_url: publicUrl, resume_name: resumeFile.name }).eq('id', user.id);
+          }
+        } catch (e) {
+          console.error('Resume upload error on signup:', e);
         }
       }
-    });
-    if (error) return { ok: false, msg: error.message };
 
-    const user = res.user;
-    const session = res.session;
-
-    // Handle resume file upload if session is active (logged in immediately)
-    if (session && resumeFile) {
-      try {
-        const ext = resumeFile.name.split('.').pop().toLowerCase() || 'pdf';
-        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await sb.storage.from('resumes').upload(path, resumeFile, { upsert: true, contentType: resumeFile.type });
-        if (!upErr) {
-          const { data: { publicUrl } } = sb.storage.from('resumes').getPublicUrl(path);
-          await sb.from('candidates').update({ resume_url: publicUrl, resume_name: resumeFile.name }).eq('id', user.id);
+      if (session) {
+        const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+        if (candidate) {
+          Session.setCandidate(candidate);
+          return { ok: true, candidate };
         }
-      } catch (e) {
-        console.error('Resume upload error on signup:', e);
       }
-    }
 
-    if (session) {
-      const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
-      if (candidate) {
-        Session.setCandidate(candidate);
-        return { ok: true, candidate };
-      }
+      return { ok: true, msg: 'Verification link sent! Please check your email.', user };
+    } catch (e) {
+      console.error('Registration error:', e);
+      return { ok: false, msg: e.message || 'An error occurred during registration. Please try again.' };
     }
-
-    return { ok: true, msg: 'Verification link sent! Please check your email.', user };
   },
   async login(email, password) {
-    const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) return { ok: false, msg: error.message };
+    try {
+      const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) return { ok: false, msg: error.message };
 
-    const { data: candidate } = await sb.from('candidates').select('*').eq('id', authData.user.id).maybeSingle();
-    if (!candidate) {
-      await sb.auth.signOut();
-      return { ok: false, msg: 'Candidate profile not found' };
+      const { data: candidate } = await sb.from('candidates').select('*').eq('id', authData.user.id).maybeSingle();
+      if (!candidate) {
+        await sb.auth.signOut();
+        return { ok: false, msg: 'Candidate profile not found' };
+      }
+
+      Session.setCandidate(candidate);
+      return { ok: true, candidate };
+    } catch (e) {
+      console.error('Login error:', e);
+      return { ok: false, msg: e.message || 'An error occurred during login. Please check your network connection.' };
     }
-
-    Session.setCandidate(candidate);
-    return { ok: true, candidate };
   },
   async logout() {
-    localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
+    try {
+      localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
+    } catch (e) {
+      console.warn('localStorage access failed:', e);
+    }
     Session.clearCandidate();
     Session.clearEmployer();
     try {
@@ -151,60 +251,79 @@ window.CandidateAuth = CandidateAuth;
 
 const EmployerAuth = {
   async checkExists(identifier) {
-    const { data } = await sb.from('employers').select('*').or(`email.eq.${identifier},mobile.eq.${identifier}`).maybeSingle();
-    return data || null;
+    try {
+      const { data } = await sb.from('employers').select('*').or(`email.eq.${identifier},mobile.eq.${identifier}`).maybeSingle();
+      return data || null;
+    } catch (e) {
+      console.error('Check exists error:', e);
+      return null;
+    }
   },
   async register(data) {
-    const { data: res, error } = await sb.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          role: 'employer',
-          company: data.company,
-          contact_name: data.contactName,
-          mobile: data.mobile,
-          city: data.city,
-          industry: data.industry
+    try {
+      const { data: res, error } = await sb.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            role: 'employer',
+            company: data.company,
+            contact_name: data.contactName,
+            mobile: data.mobile,
+            city: data.city,
+            industry: data.industry
+          }
+        }
+      });
+      if (error) return { ok: false, msg: error.message };
+
+      const user = res.user;
+      const session = res.session;
+
+      if (session) {
+        const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+        if (employer) {
+          Session.setEmployer(employer);
+          return { ok: true, employer };
         }
       }
-    });
-    if (error) return { ok: false, msg: error.message };
 
-    const user = res.user;
-    const session = res.session;
-
-    if (session) {
-      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-      if (employer) {
-        Session.setEmployer(employer);
-        return { ok: true, employer };
-      }
+      return { ok: true, msg: 'Verification link sent! Please check your email.', user };
+    } catch (e) {
+      console.error('Employer registration error:', e);
+      return { ok: false, msg: e.message || 'An error occurred during registration. Please try again.' };
     }
-
-    return { ok: true, msg: 'Verification link sent! Please check your email.', user };
   },
   async login(identifier, password) {
-    let email = identifier;
-    if (!identifier.includes('@')) {
-      const { data } = await sb.from('employers').select('email').eq('mobile', identifier).maybeSingle();
-      if (data?.email) email = data.email;
+    try {
+      let email = identifier;
+      if (!identifier.includes('@')) {
+        const { data } = await sb.from('employers').select('email').eq('mobile', identifier).maybeSingle();
+        if (data?.email) email = data.email;
+      }
+
+      const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) return { ok: false, msg: error.message };
+
+      const { data: employer } = await sb.from('employers').select('*').eq('id', authData.user.id).maybeSingle();
+      if (!employer) {
+        await sb.auth.signOut();
+        return { ok: false, msg: 'Employer profile not found' };
+      }
+
+      Session.setEmployer(employer);
+      return { ok: true, employer };
+    } catch (e) {
+      console.error('Employer login error:', e);
+      return { ok: false, msg: e.message || 'An error occurred during login. Please check your network connection.' };
     }
-
-    const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) return { ok: false, msg: error.message };
-
-    const { data: employer } = await sb.from('employers').select('*').eq('id', authData.user.id).maybeSingle();
-    if (!employer) {
-      await sb.auth.signOut();
-      return { ok: false, msg: 'Employer profile not found' };
-    }
-
-    Session.setEmployer(employer);
-    return { ok: true, employer };
   },
   async logout() {
-    localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
+    try {
+      localStorage.removeItem('sb-pdjnpqyzayidthpfmvjk-auth-token');
+    } catch (e) {
+      console.warn('localStorage access failed:', e);
+    }
     Session.clearCandidate();
     Session.clearEmployer();
     try {

@@ -41,11 +41,19 @@
     if(!email||!password){errEl.textContent='Please enter email and password.';errEl.style.display='block';return;}
     const btn=document.querySelector('.btn-primary');
     btn.textContent='Logging in...'; btn.disabled=true;
-    const result=await CandidateAuth.login(email,password);
-    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Login';btn.disabled=false;return;}
-    const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
-    sessionStorage.removeItem('redirect_after_login');
-    window.location.href=redirect;
+    try {
+      const result=await CandidateAuth.login(email,password);
+      if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Login';btn.disabled=false;return;}
+      const redirect=sessionStorage.getItem('redirect_after_login')||'profile.html';
+      sessionStorage.removeItem('redirect_after_login');
+      window.location.href=redirect;
+    } catch (e) {
+      console.error('Candidate login exception:', e);
+      errEl.textContent=e.message || 'An unexpected error occurred. Please try again.';
+      errEl.style.display='block';
+      btn.textContent='Login';
+      btn.disabled=false;
+    }
   }
   document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
@@ -58,7 +66,7 @@
           <h3 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0 0 0.4rem;">Reset Password</h3>
           <p style="font-size:0.82rem;color:#64748b;margin:0 0 1.2rem;">Enter your registered email. We'll send you a password reset link.</p>
           <input type="email" id="forgot-email" placeholder="your@email.com"
-            style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.65rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;margin-bottom:0.75rem;box-sizing:border-box;"/>
+             style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.65rem 0.85rem;font-size:0.88rem;font-family:inherit;outline:none;margin-bottom:0.75rem;box-sizing:border-box;"/>
           <div id="forgot-msg" style="font-size:0.8rem;margin-bottom:0.75rem;min-height:18px;"></div>
           <button onclick="sendResetEmail()" style="width:100%;background:#3b82f6;color:#fff;border:none;padding:0.8rem;border-radius:8px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:0.5rem;">Send Reset Link</button>
           <button onclick="document.getElementById('forgot-modal').remove()" style="width:100%;background:#f1f5f9;color:#374151;border:none;padding:0.75rem;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
@@ -71,14 +79,19 @@
     const msg = document.getElementById('forgot-msg');
     if (!email) { msg.style.color='#dc2626'; msg.textContent='Please enter your email.'; return; }
     msg.style.color='#64748b'; msg.textContent='Sending...';
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/login.html'
-    });
-    if (error) {
-      msg.style.color='#dc2626'; msg.textContent='Email not found. Please check and try again.';
-    } else {
-      msg.style.color='#22c55e'; msg.textContent='✅ Reset link sent! Check your email inbox.';
-      setTimeout(() => document.getElementById('forgot-modal')?.remove(), 3000);
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login.html'
+      });
+      if (error) {
+        msg.style.color='#dc2626'; msg.textContent=error.message || 'Email not found. Please check and try again.';
+      } else {
+        msg.style.color='#22c55e'; msg.textContent='✅ Reset link sent! Check your email inbox.';
+        setTimeout(() => document.getElementById('forgot-modal')?.remove(), 3000);
+      }
+    } catch (e) {
+      console.error('Reset password exception:', e);
+      msg.style.color='#dc2626'; msg.textContent=e.message || 'Error occurred. Please check your connection.';
     }
   }
 
