@@ -1,4 +1,4 @@
-const CACHE = 'hiretrack-v3';
+const CACHE = 'hiretrack-v4';
 
 const SHELL = [
   '/index.html',
@@ -9,7 +9,6 @@ const SHELL = [
   '/job-alerts.html',
   '/style.css',
   '/mobile.css',
-  '/app.js',
   '/js/browse-jobs.js',
   '/js/chat.js',
   '/icons/icon.svg',
@@ -39,6 +38,22 @@ self.addEventListener('fetch', event => {
 
   // Never cache: API routes, Supabase, payment endpoints
   if (url.pathname.startsWith('/api/')) return;
+
+  // Always use network-first for app.js to prevent serving stale auth config
+  if (url.pathname === '/app.js' || url.pathname.endsWith('/app.js')) {
+    event.respondWith(
+      fetch(request)
+        .then(resp => {
+          if (resp.ok) {
+            const copy = resp.clone();
+            caches.open(CACHE).then(c => c.put(request, copy));
+          }
+          return resp;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
 
   const isStaticAsset = /\.(css|js|svg|png|jpg|jpeg|webp|woff2?|ico|json)$/.test(url.pathname);
 

@@ -220,10 +220,23 @@ const CandidateAuth = {
       const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) return { ok: false, msg: error.message };
 
-      const { data: candidate } = await sb.from('candidates').select('*').eq('id', authData.user.id).maybeSingle();
+      // Race the candidate profile fetch against a 10s timeout
+      const candidatePromise = sb.from('candidates').select('*').eq('id', authData.user.id).maybeSingle();
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Database query timed out. Please try again.')), 10000));
+
+      let candidateResult;
+      try {
+        candidateResult = await Promise.race([candidatePromise, timeoutPromise]);
+      } catch (timeoutErr) {
+        console.error('Candidate fetch timeout:', timeoutErr);
+        await sb.auth.signOut();
+        return { ok: false, msg: timeoutErr.message };
+      }
+
+      const candidate = candidateResult?.data;
       if (!candidate) {
         await sb.auth.signOut();
-        return { ok: false, msg: 'Candidate profile not found' };
+        return { ok: false, msg: 'Candidate profile not found. If you registered as an employer, please use Employer Login.' };
       }
 
       Session.setCandidate(candidate);
