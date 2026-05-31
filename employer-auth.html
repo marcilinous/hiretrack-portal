@@ -20,18 +20,15 @@
 .step-label { font-size:0.7rem; color:var(--gray4); font-weight:500; white-space:nowrap; }
 .step-line { width:48px; height:2px; background:var(--gray3); margin-bottom:18px; transition:background 0.3s; }
 .step-line.done { background:var(--green); }
-.otp-boxes { display:flex; gap:0.75rem; justify-content:center; margin:1.2rem 0; }
-.otp-box { width:58px; height:58px; text-align:center; font-size:1.5rem; font-weight:800; border:2px solid var(--gray3); border-radius:12px; outline:none; font-family:inherit; transition:all 0.2s; }
-.otp-box:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
-.otp-box.filled { border-color:var(--blue); background:#f0f7ff; }
 .timer { text-align:center; font-size:0.85rem; color:var(--gray5); margin:0.5rem 0 1rem; }
 .timer strong { color:var(--blue); }
 .timer.expired strong { color:#ef4444; }
 .resend { background:none; border:none; color:var(--blue); font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; display:block; margin:0 auto 1rem; }
 .resend:disabled { color:var(--gray4); cursor:default; }
-.mobile-note { background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:0.75rem 1rem; font-size:0.82rem; color:#15803d; margin-bottom:1rem; display:flex; gap:8px; align-items:flex-start; }
-.verify-note { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.75rem 1rem; font-size:0.82rem; color:#1d4ed8; margin-bottom:1rem; display:flex; gap:8px; align-items:flex-start; }
-.success-icon { font-size:3rem; text-align:center; display:block; margin-bottom:0.5rem; }
+.otp-boxes { display:flex; gap:0.75rem; justify-content:center; margin:1.2rem 0; }
+.otp-box { width:58px; height:58px; text-align:center; font-size:1.5rem; font-weight:800; border:2px solid var(--gray3); border-radius:12px; outline:none; font-family:inherit; transition:all 0.2s; }
+.otp-box:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+.otp-box.filled { border-color:var(--blue); background:#f0f7ff; }
 </style>
 </head>
 <body>
@@ -49,7 +46,7 @@
       <div class="step-line" id="sl1"></div>
       <div class="step-item">
         <div class="step-circle" id="sc2">2</div>
-        <div class="step-label">Verify OTP</div>
+        <div class="step-label">Login</div>
       </div>
       <div class="step-line" id="sl2"></div>
       <div class="step-item">
@@ -58,37 +55,60 @@
       </div>
     </div>
 
-    <!-- STEP 1: Enter mobile + email -->
+    <!-- STEP 1: Enter email or mobile -->
     <div class="step active" id="step1">
-      <h2>Employer Portal</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">Enter your details to get started</p>
-
-      <div class="mobile-note">
-        📱 <div>Your mobile number is collected for WhatsApp notifications and OTP verification.</div>
-      </div>
-
-      <div class="fg-form">
-        <label>Mobile Number *</label>
-        <input type="tel" id="s1-mobile" placeholder="10-digit mobile number" maxlength="10" />
-      </div>
-      <div class="fg-form">
-        <label>Email Address *</label>
-        <input type="email" id="s1-email" placeholder="hr@company.com" />
-        <small style="color:var(--gray5);font-size:0.78rem;margin-top:4px;display:block;">Used for login and OTP verification</small>
-      </div>
+      <h2>Employer Login</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Enter your email or mobile number</p>
 
       <div class="alert alert-error" id="err1"></div>
+
+      <div class="fg-form">
+        <label>Email or Mobile Number *</label>
+        <input type="text" id="s1-identifier" placeholder="Email or 10-digit mobile" />
+        <small style="color:var(--gray5);font-size:0.78rem;margin-top:4px;display:block;">We'll check if you already have an account</small>
+      </div>
+
       <button class="btn-primary" id="step1-btn">Continue →</button>
       <p class="form-switch">Looking for a job? <a href="login.html">Candidate login</a></p>
     </div>
 
-    <!-- STEP 2: Verify OTP -->
+    <!-- STEP 2: Login Method (Existing Employer) -->
     <div class="step" id="step2">
+      <h2>Welcome Back!</h2>
+      <p class="sub" id="welcome-name" style="margin-bottom:1.2rem;">How would you like to sign in?</p>
+
+      <div class="alert alert-error" id="err2"></div>
+
+      <div style="display:grid;gap:1rem;">
+        <button class="btn-primary" id="otp-login-btn">📧 Send OTP to Email</button>
+        <div style="text-align:center;font-size:0.82rem;color:var(--gray4);">— or —</div>
+        <button class="btn-primary" id="pwd-login-btn" style="background:var(--navy);">🔑 Use Password</button>
+        <p class="form-switch"><a href="#" onclick="goToStep(1)">← Not you? Change email</a></p>
+      </div>
+    </div>
+
+    <!-- STEP 2B: Password Login -->
+    <div class="step" id="step2-pwd" style="display:none;">
+      <h2>Login with Password</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">Enter your password to continue</p>
+
+      <div class="alert alert-error" id="err2p"></div>
+
+      <div class="fg-form">
+        <label>Password *</label>
+        <input type="password" id="login-pwd" placeholder="Your password" />
+      </div>
+      <button class="btn-primary" id="pwd-login-submit">Login →</button>
+      <p class="form-switch"><a href="#" onclick="goToStep(2)">← Back</a></p>
+    </div>
+
+    <!-- STEP 2C: OTP Verification -->
+    <div class="step" id="step2-otp" style="display:none;">
       <h2>Verify OTP</h2>
       <p class="sub" id="otp-desc">OTP sent to your email</p>
 
-      <div class="verify-note">
-        📧 <div>OTP sent to <strong id="otp-email-display"></strong> — check your inbox (and spam folder)</div>
+      <div class="verify-note" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:0.75rem 1rem;font-size:0.82rem;color:#1d4ed8;margin-bottom:1rem;">
+        📧 OTP sent to <strong id="otp-email-display"></strong> — check your inbox (and spam folder)
       </div>
 
       <div class="otp-boxes">
@@ -103,14 +123,41 @@
       <div class="timer" id="timer-wrap">OTP expires in <strong id="countdown">2:00</strong></div>
       <button class="resend" id="resend-btn" onclick="resendOTP()" disabled>Resend OTP</button>
 
-      <div class="alert alert-error" id="err2"></div>
-      <button class="btn-primary" id="step2-btn">Verify OTP ✓</button>
-      <p class="form-switch"><a href="#" onclick="goToStep(1)">← Change email</a></p>
+      <div class="alert alert-error" id="err2o"></div>
+      <button class="btn-primary" id="otp-verify-btn">Verify OTP ✓</button>
+      <p class="form-switch"><a href="#" onclick="goToStep(2)">← Back</a></p>
     </div>
 
-    <!-- STEP 3: Set Password / Login -->
+    <!-- STEP 3: New Employer — Set Password -->
     <div class="step" id="step3">
-      <div id="step3-content"></div>
+      <h2>Create Your Account</h2>
+      <p class="sub" style="margin-bottom:1.2rem;">You're new here! Set up your employer account.</p>
+
+      <div class="alert alert-error" id="err3"></div>
+
+      <div class="form-row">
+        <div class="fg-form"><label>Company Name *</label><input type="text" id="r-company" placeholder="Your company name" /></div>
+        <div class="fg-form"><label>Contact Person *</label><input type="text" id="r-contact" placeholder="Your full name" /></div>
+      </div>
+      <div class="fg-form"><label>City *</label>
+        <select id="r-city">
+          <option value="">Select city</option>
+          <option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option>
+          <option>Hubballi</option><option>Other Karnataka</option>
+        </select>
+      </div>
+      <div class="fg-form"><label>Industry</label>
+        <select id="r-industry">
+          <option>IT & Software</option><option>Healthcare</option><option>Manufacturing</option>
+          <option>Retail & E-commerce</option><option>Banking & Finance</option>
+          <option>Logistics</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="fg-form"><label>Set Password *</label><input type="password" id="r-password" placeholder="Min 6 characters" /></div>
+        <div class="fg-form"><label>Confirm Password *</label><input type="password" id="r-confirm" placeholder="Repeat password" /></div>
+      </div>
+      <button class="btn-primary" id="register-btn">Create Account →</button>
     </div>
 
   </div>
@@ -122,19 +169,25 @@
   document.getElementById('navbar').innerHTML = renderNavbar('');
   if (Session.getEmployer()) window.location.href = 'employer-dashboard.html';
 
+  let currentIdentifier = '';
   let currentEmail = '';
   let currentMobile = '';
   let existingEmployer = null;
   let otpExpiry = null;
   let timerInterval = null;
-  let isNewEmployer = false;
-
-  console.log('Employer auth script loaded');
+  let otpCode = '';
 
   // ── Step Navigation ──
-  function goToStep(n) {
+  function goToStep(n, subStep) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    document.getElementById('step' + n).classList.add('active');
+    
+    if (n === 2 && subStep) {
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('step2-' + subStep).style.display = 'block';
+      document.getElementById('step2-' + subStep).classList.add('active');
+    } else {
+      document.getElementById('step' + n).classList.add('active');
+    }
     
     for (let i = 1; i <= 3; i++) {
       const c = document.getElementById('sc' + i);
@@ -149,24 +202,16 @@
     }
   }
 
-  // ── Step 1: Handle form submission ──
+  // ── Step 1: Check if employer exists ──
   document.getElementById('step1-btn').addEventListener('click', handleStep1);
 
   async function handleStep1() {
-    const mobile = document.getElementById('s1-mobile').value.trim();
-    const email = document.getElementById('s1-email').value.trim();
+    const identifier = document.getElementById('s1-identifier').value.trim();
     const errEl = document.getElementById('err1');
     errEl.style.display = 'none';
 
-    console.log('Step 1: Checking mobile:', mobile, 'email:', email);
-
-    if (!mobile || mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      errEl.textContent = 'Please enter a valid 10-digit mobile number.';
-      errEl.style.display = 'block';
-      return;
-    }
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      errEl.textContent = 'Please enter a valid email address.';
+    if (!identifier) {
+      errEl.textContent = 'Please enter email or mobile number.';
       errEl.style.display = 'block';
       return;
     }
@@ -175,50 +220,154 @@
     btn.textContent = 'Checking...';
     btn.disabled = true;
     
-    currentMobile = mobile;
-    currentEmail = email;
+    currentIdentifier = identifier;
 
     try {
-      // Check if employer already exists
-      console.log('Checking if employer exists...');
-      const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
-      const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
-      existingEmployer = byEmail || byMobile;
-      console.log('Existing employer:', existingEmployer ? 'Yes' : 'No');
-
-      // Send OTP via Supabase Auth
-      console.log('Sending OTP to:', currentEmail);
-      const { error } = await sb.auth.signInWithOtp({
-        email: currentEmail,
-        options: {
-          data: { role: 'employer', mobile: currentMobile }
-        }
-      });
-
-      if (error) {
-        console.error('OTP send error:', error);
-        errEl.textContent = 'Failed to send OTP: ' + error.message;
-        errEl.style.display = 'block';
-        btn.textContent = 'Continue →';
-        btn.disabled = false;
-        return;
+      // Check if identifier is email or mobile
+      const isEmail = /\S+@\S+\.\S+/.test(identifier);
+      
+      let query = sb.from('employers').select('*');
+      if (isEmail) {
+        query = query.eq('email', identifier);
+      } else {
+        query = query.eq('mobile', identifier);
       }
+      
+      const { data: employer } = await query.maybeSingle();
+      existingEmployer = employer;
 
-      console.log('OTP sent successfully');
-
-      // Show OTP step
-      document.getElementById('otp-email-display').textContent = currentEmail;
-      goToStep(2);
-      otpExpiry = Date.now() + 2 * 60 * 1000;
-      startTimer();
+      if (existingEmployer) {
+        currentEmail = existingEmployer.email;
+        currentMobile = existingEmployer.mobile;
+        document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
+        goToStep(2);
+      } else {
+        // New employer — go to registration
+        if (isEmail) {
+          currentEmail = identifier;
+        } else {
+          currentMobile = identifier;
+          // Ask for email
+          const email = prompt('Please enter your email address:');
+          if (!email || !/\S+@\S+\.\S+/.test(email)) {
+            errEl.textContent = 'Valid email is required for registration.';
+            errEl.style.display = 'block';
+            btn.textContent = 'Continue →';
+            btn.disabled = false;
+            return;
+          }
+          currentEmail = email;
+        }
+        goToStep(3);
+      }
       
       btn.textContent = 'Continue →';
       btn.disabled = false;
     } catch (e) {
       console.error('Step 1 error:', e);
-      errEl.textContent = 'Failed to process: ' + (e.message || 'Unknown error');
+      errEl.textContent = 'Failed to check account: ' + (e.message || 'Unknown error');
       errEl.style.display = 'block';
       btn.textContent = 'Continue →';
+      btn.disabled = false;
+    }
+  }
+
+  // ── Step 2: Login Method ──
+  document.getElementById('otp-login-btn').addEventListener('click', function() {
+    sendOTP();
+  });
+
+  document.getElementById('pwd-login-btn').addEventListener('click', function() {
+    goToStep(2, 'pwd');
+    document.getElementById('login-pwd').focus();
+  });
+
+  // ── Password Login ──
+  document.getElementById('pwd-login-submit').addEventListener('click', handlePasswordLogin);
+
+  async function handlePasswordLogin() {
+    const password = document.getElementById('login-pwd').value;
+    const errEl = document.getElementById('err2p');
+    errEl.style.display = 'none';
+
+    if (!password) {
+      errEl.textContent = 'Please enter your password.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('pwd-login-submit');
+    btn.textContent = 'Logging in...';
+    btn.disabled = true;
+
+    try {
+      // Check password against stored password
+      if (password === existingEmployer.password) {
+        Session.setEmployer(existingEmployer);
+        const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+        sessionStorage.removeItem('redirect_after_employer_login');
+        window.location.href = redirect;
+      } else {
+        errEl.textContent = 'Incorrect password.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Login →';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      console.error('Password login error:', e);
+      errEl.textContent = 'Login failed: ' + (e.message || 'Unknown error');
+      errEl.style.display = 'block';
+      btn.textContent = 'Login →';
+      btn.disabled = false;
+    }
+  }
+
+  // ── OTP Login ──
+  async function sendOTP() {
+    const btn = document.getElementById('otp-login-btn');
+    const errEl = document.getElementById('err2');
+    errEl.style.display = 'none';
+    
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      // Generate 6-digit OTP
+      otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Send OTP via email API
+      const response = await fetch('/api/email?action=send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          destination: currentEmail,
+          otp: otpCode
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!result.ok) {
+        errEl.textContent = 'Failed to send OTP: ' + (result.error || 'Unknown error');
+        errEl.style.display = 'block';
+        btn.textContent = '📧 Send OTP to Email';
+        btn.disabled = false;
+        return;
+      }
+
+      // Show OTP step
+      document.getElementById('otp-email-display').textContent = currentEmail;
+      goToStep(2, 'otp');
+      otpExpiry = Date.now() + 2 * 60 * 1000;
+      startTimer();
+      
+      btn.textContent = '📧 Send OTP to Email';
+      btn.disabled = false;
+    } catch (e) {
+      console.error('Send OTP error:', e);
+      errEl.textContent = 'Failed to send OTP: ' + (e.message || 'Unknown error');
+      errEl.style.display = 'block';
+      btn.textContent = '📧 Send OTP to Email';
       btn.disabled = false;
     }
   }
@@ -266,13 +415,26 @@
     btn.disabled = true;
     
     try {
-      const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
-      if (error) {
-        showToast('Failed to resend OTP: ' + error.message);
-      } else {
+      // Generate new OTP
+      otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      const response = await fetch('/api/email?action=send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          destination: currentEmail,
+          otp: otpCode
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.ok) {
         showToast('OTP resent to ' + currentEmail);
         otpExpiry = Date.now() + 2 * 60 * 1000;
         startTimer();
+      } else {
+        showToast('Failed to resend OTP: ' + (result.error || 'Unknown error'));
       }
     } catch (e) {
       console.error('Resend error:', e);
@@ -282,12 +444,12 @@
     document.getElementById('ob1').focus();
   }
 
-  // ── Step 2: Verify OTP ──
-  document.getElementById('step2-btn').addEventListener('click', verifyOTP);
+  // ── Verify OTP ──
+  document.getElementById('otp-verify-btn').addEventListener('click', verifyOTP);
 
   async function verifyOTP() {
     const entered = [1,2,3,4,5,6].map(i => document.getElementById('ob' + i).value).join('');
-    const errEl = document.getElementById('err2');
+    const errEl = document.getElementById('err2o');
     errEl.style.display = 'none';
 
     if (entered.length !== 6) {
@@ -296,93 +458,29 @@
       return;
     }
 
-    const btn = document.getElementById('step2-btn');
+    const btn = document.getElementById('otp-verify-btn');
     btn.textContent = 'Verifying...';
     btn.disabled = true;
 
-    try {
-      const { data, error } = await sb.auth.verifyOtp({
-        email: currentEmail,
-        token: entered,
-        type: 'email'
-      });
-
-      if (error) {
-        console.error('OTP verify error:', error);
-        errEl.textContent = 'Invalid OTP or expired. Please try again.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Verify OTP ✓';
-        btn.disabled = false;
-        return;
-      }
-
-      console.log('OTP verified successfully');
-      clearInterval(timerInterval);
-      
-      if (existingEmployer) {
-        // Existing employer — log them in
-        const { data: employer } = await sb.from('employers').select('*').eq('id', data.user.id).maybeSingle();
-        if (employer) {
-          Session.setEmployer(employer);
-          const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
-          sessionStorage.removeItem('redirect_after_employer_login');
-          window.location.href = redirect;
-        } else {
-          errEl.textContent = 'Employer record not found.';
-          errEl.style.display = 'block';
-        }
-      } else {
-        // New employer — show password setup
-        isNewEmployer = true;
-        showPasswordSetup();
-      }
-      
-      btn.textContent = 'Verify OTP ✓';
-      btn.disabled = false;
-    } catch (e) {
-      console.error('Verify OTP error:', e);
-      errEl.textContent = 'Verification failed: ' + (e.message || 'An unexpected error occurred.');
+    if (entered !== otpCode) {
+      errEl.textContent = 'Invalid OTP. Please try again.';
       errEl.style.display = 'block';
       btn.textContent = 'Verify OTP ✓';
       btn.disabled = false;
+      return;
     }
+
+    clearInterval(timerInterval);
+    
+    // Login successful
+    Session.setEmployer(existingEmployer);
+    const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+    sessionStorage.removeItem('redirect_after_employer_login');
+    window.location.href = redirect;
   }
 
-  // ── Step 3: Password Setup ──
-  function showPasswordSetup() {
-    goToStep(3);
-    document.getElementById('step3-content').innerHTML = `
-      <span class="success-icon">🎉</span>
-      <h2>Complete Your Profile</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Set up your employer account.</p>
-      
-      <div class="alert alert-error" id="err3"></div>
-      
-      <div class="form-row">
-        <div class="fg-form"><label>Company Name *</label><input type="text" id="r-company" placeholder="Your company name" /></div>
-        <div class="fg-form"><label>Contact Person *</label><input type="text" id="r-contact" placeholder="Your full name" /></div>
-      </div>
-      <div class="fg-form"><label>City *</label>
-        <select id="r-city">
-          <option value="">Select city</option>
-          <option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option>
-          <option>Hubballi</option><option>Other Karnataka</option>
-        </select>
-      </div>
-      <div class="fg-form"><label>Industry</label>
-        <select id="r-industry">
-          <option>IT & Software</option><option>Healthcare</option><option>Manufacturing</option>
-          <option>Retail & E-commerce</option><option>Banking & Finance</option>
-          <option>Logistics</option><option>Other</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <div class="fg-form"><label>Set Password *</label><input type="password" id="r-password" placeholder="Min 6 characters" /></div>
-        <div class="fg-form"><label>Confirm Password *</label><input type="password" id="r-confirm" placeholder="Repeat password" /></div>
-      </div>
-      <button class="btn-primary" onclick="completeRegistration()">Create Account & Continue →</button>
-    `;
-  }
+  // ── Step 3: Register New Employer ──
+  document.getElementById('register-btn').addEventListener('click', completeRegistration);
 
   async function completeRegistration() {
     const company = document.getElementById('r-company').value.trim();
@@ -409,56 +507,52 @@
       return;
     }
 
-    const btn = document.querySelector('#step3 .btn-primary');
+    const btn = document.getElementById('register-btn');
     btn.textContent = 'Creating...';
     btn.disabled = true;
 
     try {
-      const { data: { user } } = await sb.auth.getUser();
-      if (!user) {
-        errEl.textContent = 'Session expired. Please start over.';
+      // Check if email already exists
+      const { data: existing } = await sb.from('employers').select('id').eq('email', currentEmail).maybeSingle();
+      if (existing) {
+        errEl.textContent = 'This email is already registered. Please login instead.';
         errEl.style.display = 'block';
-        btn.textContent = 'Create Account & Continue →';
+        btn.textContent = 'Create Account →';
         btn.disabled = false;
         return;
       }
 
-      const { error: pwdErr } = await sb.auth.updateUser({ password });
-      if (pwdErr) {
-        errEl.textContent = 'Failed to set password: ' + pwdErr.message;
+      // Create new employer
+      const { data: employer, error } = await sb.from('employers').insert([{
+        company: company,
+        contact_name: contactName,
+        email: currentEmail,
+        mobile: currentMobile || null,
+        city: city,
+        industry: document.getElementById('r-industry').value,
+        password: password,
+        plan: 'free',
+        job_limit: 1,
+        day_limit: 15
+      }]).select().single();
+
+      if (error) {
+        errEl.textContent = 'Registration failed: ' + error.message;
         errEl.style.display = 'block';
-        btn.textContent = 'Create Account & Continue →';
+        btn.textContent = 'Create Account →';
         btn.disabled = false;
         return;
       }
 
-      const updates = { 
-        company, 
-        contact_name: contactName, 
-        city, 
-        mobile: currentMobile,
-        email: currentEmail
-      };
-      const { error: dbErr } = await sb.from('employers').update(updates).eq('id', user.id);
-      if (dbErr) {
-        errEl.textContent = 'Profile save failed: ' + dbErr.message;
-        errEl.style.display = 'block';
-        btn.textContent = 'Create Account & Continue →';
-        btn.disabled = false;
-        return;
-      }
-
-      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).single();
       Session.setEmployer(employer);
-
       const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
       sessionStorage.removeItem('redirect_after_employer_login');
       window.location.href = redirect;
     } catch (e) {
       console.error('Registration error:', e);
-      errEl.textContent = 'Registration failed: ' + (e.message || 'An unexpected error occurred.');
+      errEl.textContent = 'Registration failed: ' + (e.message || 'Unknown error');
       errEl.style.display = 'block';
-      btn.textContent = 'Create Account & Continue →';
+      btn.textContent = 'Create Account →';
       btn.disabled = false;
     }
   }
@@ -466,9 +560,9 @@
   // ── Enter key support ──
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
-      const step = document.querySelector('.step.active');
-      if (step) {
-        const btn = step.querySelector('.btn-primary');
+      const activeStep = document.querySelector('.step.active');
+      if (activeStep) {
+        const btn = activeStep.querySelector('.btn-primary');
         if (btn) btn.click();
       }
     }
