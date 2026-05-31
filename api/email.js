@@ -38,7 +38,8 @@ export default async function handler(req, res) {
 // ── Send OTP ───────────────────────────────────────────────────────────────
 async function sendOtp(req, res, body) {
   const { destination, otp } = body || {};
-  const RESEND_KEY = process.env.RESEND_API_KEY || 're_Gv372zee_4dn4Rzb1h1G8YPaFEqSkZR55';
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service not configured' });
 
   if (!destination || !otp) return res.status(200).json({ ok: false, error: 'Missing fields' });
 
