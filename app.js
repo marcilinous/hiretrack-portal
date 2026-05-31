@@ -4,7 +4,7 @@ if ('serviceWorker' in navigator) {
   if ('caches' in window) {
     caches.keys().then(keys => {
       keys.forEach(key => {
-        if (key !== 'hiretrack-v5') {
+        if (key !== 'hiretrack-v6') {
           caches.delete(key);
           console.log('[HT] Purged stale cache:', key);
         }

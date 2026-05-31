@@ -321,12 +321,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=6"></script>
 <script src="js/feed.js"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('home');
 
   async function loadHome() {
+    try {
     const dbJobs = await JobsDB.getAllPublicJobs();
     window._employerJobs = dbJobs;
     const allJobs = [...JOBS, ...dbJobs.map(j=>({...j,type:j.job_type}))];
@@ -388,6 +389,11 @@
     const feedLink = document.getElementById('feed-cta-link');
     if (feedLink && candidate) feedLink.href = 'profile.html#feed';
     Feed.initPreview('feed-preview-root');
+    } catch (err) {
+      console.error('loadHome error:', err);
+      const el = document.getElementById('jobs-container');
+      if (el) el.innerHTML = '<div class="empty-state" style="padding:2rem;text-align:center;color:#94a3b8;"><p>⚠️ Failed to load jobs. Please refresh the page.</p><p style="margin-top:0.5rem;"><button onclick="location.reload()" style="background:#2563eb;color:#fff;border:none;padding:0.5rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;">Refresh Page</button></p></div>';
+    }
   }
 
   function openJobModal(jobId) {

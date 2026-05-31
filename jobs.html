@@ -414,9 +414,9 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
-<script src="js/browse-jobs.js"></script>
-<script src="js/apply-modal.js"></script>
+<script src="app.js?v=6"></script>
+<script src="js/browse-jobs.js?v=6"></script>
+<script src="js/apply-modal.js?v=6"></script>
 <script>
 document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
@@ -571,13 +571,19 @@ async function loadInitial() {
   container.innerHTML = '<div class="bj-empty" style="padding:3rem;text-align:center;color:#94a3b8;"><p>Loading jobs…</p></div>';
 
   try {
+    if (!window.sb || typeof window.sb.from !== 'function') {
+      throw new Error('Database client not ready. Please refresh or check your connection.');
+    }
+    if (!window.BrowseJobs || typeof window.BrowseJobs.fetchForGuest !== 'function') {
+      throw new Error('Job listing module failed to load. Please clear cache and refresh.');
+    }
     const { jobs, hasMore } = await BrowseJobs.fetchForGuest({ offset: 0, limit: PAGE_SIZE });
     allFetched    = jobs;
     currentOffset = PAGE_SIZE;
     doRender();
     if (hasMore) setupScroll();
   } catch (err) {
-    container.innerHTML = '<div class="bj-empty" style="padding:3rem;text-align:center;color:#94a3b8;"><p>⚠️ Failed to load jobs. Please refresh.</p></div>';
+    container.innerHTML = '<div class="bj-empty" style="padding:3rem;text-align:center;color:#94a3b8;"><p>⚠️ Failed to load jobs: ' + (err.message || 'Unknown error') + '</p><p style="margin-top:0.5rem;"><button onclick="location.reload()" style="background:#2563eb;color:#fff;border:none;padding:0.5rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;">Refresh Page</button></p></div>';
     console.error('fetchForGuest error:', err);
   }
 }
