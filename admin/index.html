@@ -36,7 +36,7 @@
   <label>Password</label>
   <input type="password" id="password" placeholder="Enter admin password" />
 
-  <button class="btn" onclick="doLogin()">Login to Admin Panel</button>
+  <button class="btn" id="login-btn">Login to Admin Panel</button>
   <div class="back"><a href="/">← Back to HireTrack</a></div>
 </div>
 
@@ -50,6 +50,7 @@
     window.location.href = '/admin/dashboard.html';
   }
 
+  // Define login function
   function doLogin() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
@@ -71,10 +72,20 @@
     }
   }
 
+  // Attach click event to button using JavaScript
+  document.addEventListener('DOMContentLoaded', function() {
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', doLogin);
+    }
+  });
+
   // Enter key support
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') doLogin();
   });
+
+  console.log('Admin login script loaded successfully');
 </script>
 </body>
 </html>
