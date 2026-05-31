@@ -42,8 +42,8 @@
 
 <script>
   // Admin credentials — change these to your own
-  const ADMIN_EMAIL = 'admin@hiretrack.co.in';
-  const ADMIN_PASSWORD = 'HireTrack@Admin2025';
+  const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@hiretrack.co.in';
+  const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'HireTrack@Admin2025';
 
   // Redirect if already logged in
   if (sessionStorage.getItem('ht_admin')) window.location.href = '/admin/dashboard.html';
