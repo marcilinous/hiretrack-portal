@@ -64,7 +64,7 @@
       <p class="sub" style="margin-bottom:1.2rem;">Enter your details to get started</p>
 
       <div class="mobile-note">
-        📱 <div>Your mobile number is collected for future WhatsApp notifications and OTP verification.</div>
+        📱 <div>Your mobile number is collected for WhatsApp notifications and OTP verification.</div>
       </div>
 
       <div class="fg-form">
@@ -78,7 +78,7 @@
       </div>
 
       <div class="alert alert-error" id="err1"></div>
-      <button class="btn-primary" onclick="sendEmailOTP()">Continue →</button>
+      <button class="btn-primary" id="step1-btn">Continue →</button>
       <p class="form-switch">Looking for a job? <a href="login.html">Candidate login</a></p>
     </div>
 
@@ -92,30 +92,272 @@
       </div>
 
       <div class="otp-boxes">
-        <input type="text" class="otp-box" id="ob1" maxlength="1" oninput="ob(this,1)" onkeydown="obk(event,1)">
-        <input type="text" class="otp-box" id="ob2" maxlength="1" oninput="ob(this,2)" onkeydown="obk(event,2)">
-        <input type="text" class="otp-box" id="ob3" maxlength="1" oninput="ob(this,3)" onkeydown="obk(event,3)">
-        <input type="text" class="otp-box" id="ob4" maxlength="1" oninput="ob(this,4)" onkeydown="obk(event,4)">
-        <input type="text" class="otp-box" id="ob5" maxlength="1" oninput="ob(this,5)" onkeydown="obk(event,5)">
-        <input type="text" class="otp-box" id="ob6" maxlength="1" oninput="ob(this,6)" onkeydown="obk(event,6)">
+        <input type="text" class="otp-box" id="ob1" maxlength="1" oninput="otpInput(this,1)" onkeydown="otpKeydown(event,1)">
+        <input type="text" class="otp-box" id="ob2" maxlength="1" oninput="otpInput(this,2)" onkeydown="otpKeydown(event,2)">
+        <input type="text" class="otp-box" id="ob3" maxlength="1" oninput="otpInput(this,3)" onkeydown="otpKeydown(event,3)">
+        <input type="text" class="otp-box" id="ob4" maxlength="1" oninput="otpInput(this,4)" onkeydown="otpKeydown(event,4)">
+        <input type="text" class="otp-box" id="ob5" maxlength="1" oninput="otpInput(this,5)" onkeydown="otpKeydown(event,5)">
+        <input type="text" class="otp-box" id="ob6" maxlength="1" oninput="otpInput(this,6)" onkeydown="otpKeydown(event,6)">
       </div>
 
       <div class="timer" id="timer-wrap">OTP expires in <strong id="countdown">2:00</strong></div>
       <button class="resend" id="resend-btn" onclick="resendOTP()" disabled>Resend OTP</button>
 
       <div class="alert alert-error" id="err2"></div>
-      <button class="btn-primary" onclick="verifyOTP()">Verify OTP ✓</button>
-      <p class="form-switch"><a href="#" onclick="goStep(1)">← Change email</a></p>
+      <button class="btn-primary" id="step2-btn">Verify OTP ✓</button>
+      <p class="form-switch"><a href="#" onclick="goToStep(1)">← Change email</a></p>
     </div>
 
-    <!-- STEP 3A: New employer — set password + company details -->
-    <div class="step" id="step3-new">
+    <!-- STEP 3: Set Password / Login -->
+    <div class="step" id="step3">
+      <div id="step3-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js?v=6"></script>
+<script>
+  document.getElementById('navbar').innerHTML = renderNavbar('');
+  if (Session.getEmployer()) window.location.href = 'employer-dashboard.html';
+
+  let currentEmail = '';
+  let currentMobile = '';
+  let existingEmployer = null;
+  let otpExpiry = null;
+  let timerInterval = null;
+  let isNewEmployer = false;
+
+  console.log('Employer auth script loaded');
+
+  // ── Step Navigation ──
+  function goToStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    
+    for (let i = 1; i <= 3; i++) {
+      const c = document.getElementById('sc' + i);
+      const l = document.getElementById('sl' + i);
+      c.classList.remove('active', 'done');
+      if (i < n) { c.classList.add('done'); c.textContent = '✓'; }
+      else if (i === n) { c.classList.add('active'); c.textContent = i; l.classList.add('active'); }
+      else { c.textContent = i; }
+    }
+    for (let i = 1; i <= 2; i++) {
+      document.getElementById('sl' + i).classList.toggle('done', i < n);
+    }
+  }
+
+  // ── Step 1: Handle form submission ──
+  document.getElementById('step1-btn').addEventListener('click', handleStep1);
+
+  async function handleStep1() {
+    const mobile = document.getElementById('s1-mobile').value.trim();
+    const email = document.getElementById('s1-email').value.trim();
+    const errEl = document.getElementById('err1');
+    errEl.style.display = 'none';
+
+    console.log('Step 1: Checking mobile:', mobile, 'email:', email);
+
+    if (!mobile || mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+      errEl.textContent = 'Please enter a valid 10-digit mobile number.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      errEl.textContent = 'Please enter a valid email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('step1-btn');
+    btn.textContent = 'Checking...';
+    btn.disabled = true;
+    
+    currentMobile = mobile;
+    currentEmail = email;
+
+    try {
+      // Check if employer already exists
+      console.log('Checking if employer exists...');
+      const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
+      const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
+      existingEmployer = byEmail || byMobile;
+      console.log('Existing employer:', existingEmployer ? 'Yes' : 'No');
+
+      // Send OTP via Supabase Auth
+      console.log('Sending OTP to:', currentEmail);
+      const { error } = await sb.auth.signInWithOtp({
+        email: currentEmail,
+        options: {
+          data: { role: 'employer', mobile: currentMobile }
+        }
+      });
+
+      if (error) {
+        console.error('OTP send error:', error);
+        errEl.textContent = 'Failed to send OTP: ' + error.message;
+        errEl.style.display = 'block';
+        btn.textContent = 'Continue →';
+        btn.disabled = false;
+        return;
+      }
+
+      console.log('OTP sent successfully');
+
+      // Show OTP step
+      document.getElementById('otp-email-display').textContent = currentEmail;
+      goToStep(2);
+      otpExpiry = Date.now() + 2 * 60 * 1000;
+      startTimer();
+      
+      btn.textContent = 'Continue →';
+      btn.disabled = false;
+    } catch (e) {
+      console.error('Step 1 error:', e);
+      errEl.textContent = 'Failed to process: ' + (e.message || 'Unknown error');
+      errEl.style.display = 'block';
+      btn.textContent = 'Continue →';
+      btn.disabled = false;
+    }
+  }
+
+  // ── OTP Input ──
+  function otpInput(el, idx) {
+    el.value = el.value.replace(/\D/g, '');
+    el.classList.toggle('filled', el.value.length > 0);
+    if (el.value && idx < 6) {
+      document.getElementById('ob' + (idx + 1)).focus();
+    }
+    if (idx === 6 && el.value) {
+      verifyOTP();
+    }
+  }
+
+  function otpKeydown(e, idx) {
+    if (e.key === 'Backspace' && !document.getElementById('ob' + idx).value && idx > 1) {
+      document.getElementById('ob' + (idx - 1)).focus();
+    }
+  }
+
+  // ── Timer ──
+  function startTimer() {
+    clearInterval(timerInterval);
+    document.getElementById('resend-btn').disabled = true;
+    document.getElementById('timer-wrap').classList.remove('expired');
+    timerInterval = setInterval(() => {
+      const rem = Math.max(0, otpExpiry - Date.now());
+      const m = Math.floor(rem / 60000);
+      const s = Math.floor((rem % 60000) / 1000);
+      document.getElementById('countdown').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+      if (rem === 0) {
+        clearInterval(timerInterval);
+        document.getElementById('timer-wrap').classList.add('expired');
+        document.getElementById('countdown').textContent = 'Expired';
+        document.getElementById('resend-btn').disabled = false;
+      }
+    }, 1000);
+  }
+
+  async function resendOTP() {
+    const btn = document.getElementById('resend-btn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    
+    try {
+      const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
+      if (error) {
+        showToast('Failed to resend OTP: ' + error.message);
+      } else {
+        showToast('OTP resent to ' + currentEmail);
+        otpExpiry = Date.now() + 2 * 60 * 1000;
+        startTimer();
+      }
+    } catch (e) {
+      console.error('Resend error:', e);
+      showToast('Error: ' + (e.message || 'Could not resend OTP.'));
+    }
+    btn.textContent = 'Resend OTP';
+    document.getElementById('ob1').focus();
+  }
+
+  // ── Step 2: Verify OTP ──
+  document.getElementById('step2-btn').addEventListener('click', verifyOTP);
+
+  async function verifyOTP() {
+    const entered = [1,2,3,4,5,6].map(i => document.getElementById('ob' + i).value).join('');
+    const errEl = document.getElementById('err2');
+    errEl.style.display = 'none';
+
+    if (entered.length !== 6) {
+      errEl.textContent = 'Please enter all 6 digits.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('step2-btn');
+    btn.textContent = 'Verifying...';
+    btn.disabled = true;
+
+    try {
+      const { data, error } = await sb.auth.verifyOtp({
+        email: currentEmail,
+        token: entered,
+        type: 'email'
+      });
+
+      if (error) {
+        console.error('OTP verify error:', error);
+        errEl.textContent = 'Invalid OTP or expired. Please try again.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Verify OTP ✓';
+        btn.disabled = false;
+        return;
+      }
+
+      console.log('OTP verified successfully');
+      clearInterval(timerInterval);
+      
+      if (existingEmployer) {
+        // Existing employer — log them in
+        const { data: employer } = await sb.from('employers').select('*').eq('id', data.user.id).maybeSingle();
+        if (employer) {
+          Session.setEmployer(employer);
+          const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
+          sessionStorage.removeItem('redirect_after_employer_login');
+          window.location.href = redirect;
+        } else {
+          errEl.textContent = 'Employer record not found.';
+          errEl.style.display = 'block';
+        }
+      } else {
+        // New employer — show password setup
+        isNewEmployer = true;
+        showPasswordSetup();
+      }
+      
+      btn.textContent = 'Verify OTP ✓';
+      btn.disabled = false;
+    } catch (e) {
+      console.error('Verify OTP error:', e);
+      errEl.textContent = 'Verification failed: ' + (e.message || 'An unexpected error occurred.');
+      errEl.style.display = 'block';
+      btn.textContent = 'Verify OTP ✓';
+      btn.disabled = false;
+    }
+  }
+
+  // ── Step 3: Password Setup ──
+  function showPasswordSetup() {
+    goToStep(3);
+    document.getElementById('step3-content').innerHTML = `
       <span class="success-icon">🎉</span>
       <h2>Complete Your Profile</h2>
       <p class="sub" style="margin-bottom:1.2rem;">OTP verified! Set up your employer account.</p>
-
+      
       <div class="alert alert-error" id="err3"></div>
-
+      
       <div class="form-row">
         <div class="fg-form"><label>Company Name *</label><input type="text" id="r-company" placeholder="Your company name" /></div>
         <div class="fg-form"><label>Contact Person *</label><input type="text" id="r-contact" placeholder="Your full name" /></div>
@@ -138,437 +380,99 @@
         <div class="fg-form"><label>Set Password *</label><input type="password" id="r-password" placeholder="Min 6 characters" /></div>
         <div class="fg-form"><label>Confirm Password *</label><input type="password" id="r-confirm" placeholder="Repeat password" /></div>
       </div>
-      <button class="btn-primary" onclick="completeRegister()">Create Account & Continue →</button>
-    </div>
-
-    <!-- STEP 3B: Existing employer — choose sign-in method -->
-    <div class="step" id="step3-existing">
-      <span class="success-icon">👋</span>
-      <h2 id="welcome-name">Welcome Back!</h2>
-      <p class="sub" style="margin-bottom:1.2rem;">How would you like to sign in?</p>
-
-      <div class="alert alert-error" id="err4"></div>
-
-      <!-- Method picker (shown first) -->
-      <div id="otp-login-section">
-        <button class="btn-primary" onclick="sendOTPForLogin()">Send OTP to Email →</button>
-        <div style="text-align:center;margin:0.85rem 0;font-size:0.82rem;color:var(--gray4);">— or —</div>
-        <button onclick="showPasswordSection()" style="width:100%;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;padding:0.75rem;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;">Use password instead</button>
-        <p class="form-switch"><a href="#" onclick="goStep(1)">← Change details</a></p>
-      </div>
-
-      <!-- Password entry (revealed on demand) -->
-      <div id="pwd-login-section" style="display:none;">
-        <div class="fg-form">
-          <label id="pwd-label">Password *</label>
-          <input type="password" id="login-pwd" placeholder="Your password" />
-        </div>
-        <button class="btn-primary" id="btn-login" onclick="completeLogin()">Login to Dashboard →</button>
-        <p class="form-switch"><a href="#" onclick="showReset()">Forgot password? Reset with OTP</a></p>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<footer class="ht-footer">
-  <div class="ht-footer-top">
-    <p class="ht-follow-label">Follow Us</p>
-    <div class="ht-underline"></div>
-    <div class="ht-socials">
-      <a class="ht-social" href="#" title="Facebook"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg></a>
-      <a class="ht-social" href="#" title="LinkedIn"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
-      <a class="ht-social" href="#" title="Twitter / X"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      <a class="ht-social" href="#" title="Instagram"><svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-    </div>
-    <nav class="ht-nav-links">
-      <a href="about.html">About</a><span class="ht-sep">·</span>
-      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
-      <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
-      <a href="pricing.html">Pricing</a><span class="ht-sep">·</span>
-      <a href="privacy.html">Privacy Policy</a><span class="ht-sep">·</span>
-      <a href="terms.html">Terms of Use</a>
-    </nav>
-  </div>
-  <div class="ht-footer-bottom">
-    <p>© 2025 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
-  </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=6"></script>
-<script>
-  document.getElementById('navbar').innerHTML = renderNavbar('');
-  if (Session.getEmployer()) window.location.href = 'employer-dashboard.html';
-  let otpExpiry = null;
-  let timerInterval = null;
-  let currentEmail = '';
-  let currentMobile = '';
-  let existingEmployer = null;
-  let isResetMode = false;
-
-  function setStepUI(step) {
-    [1,2,3].forEach(i => {
-      const c = document.getElementById('sc'+i);
-      c.classList.remove('active','done');
-      if (i < step) c.classList.add('done'), c.textContent = '✓';
-      else if (i === step) c.classList.add('active'), c.textContent = i;
-      else c.textContent = i;
-    });
-    [1,2].forEach(i => {
-      document.getElementById('sl'+i).classList.toggle('done', i < step);
-    });
+      <button class="btn-primary" onclick="completeRegistration()">Create Account & Continue →</button>
+    `;
   }
 
-  function goStep(n, section='') {
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    const id = n === 3 ? (section || 'step3-new') : 'step'+n;
-    document.getElementById(id).classList.add('active');
-    setStepUI(n);
-    if (n === 2) document.getElementById('ob1').focus();
-    if (n === 1) {
-      existingEmployer = null;
-      isResetMode = false;
-      document.getElementById('otp-login-section').style.display = 'block';
-      document.getElementById('pwd-login-section').style.display = 'none';
-    }
-  }
-
-  // ── STEP 1: Check existence, route to OTP or method picker ──
-  async function sendEmailOTP() {
-    const mobile = document.getElementById('s1-mobile').value.trim();
-    const email = document.getElementById('s1-email').value.trim();
-    const errEl = document.getElementById('err1');
-    errEl.style.display = 'none';
-
-    if (!mobile || mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      errEl.textContent = 'Please enter a valid 10-digit mobile number.'; errEl.style.display = 'block'; return;
-    }
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;
-    }
-
-    const btn = document.querySelector('#step1 .btn-primary');
-    btn.textContent = 'Checking...'; btn.disabled = true;
-    currentMobile = mobile;
-    currentEmail = email;
-
-    try {
-      // Check if employer already exists
-      const { data: byEmail } = await sb.from('employers').select('*').eq('email', currentEmail).maybeSingle();
-      const { data: byMobile } = await sb.from('employers').select('*').eq('mobile', currentMobile).maybeSingle();
-      existingEmployer = byEmail || byMobile;
-
-      if (existingEmployer) {
-        btn.textContent = 'Continue →'; btn.disabled = false;
-        document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;
-        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-        document.getElementById('step3-existing').classList.add('active');
-        setStepUI(2);
-        return;
-      }
-
-      // New employer: send OTP via standard Supabase Auth
-      const { error } = await sb.auth.signInWithOtp({
-        email: currentEmail,
-        options: {
-          data: {
-            role: 'employer',
-            mobile: currentMobile
-          }
-        }
-      });
-
-      btn.textContent = 'Continue →'; btn.disabled = false;
-
-      if (error) {
-        errEl.textContent = 'Failed to send OTP: ' + error.message;
-        errEl.style.display = 'block';
-        return;
-      }
-
-      document.getElementById('otp-email-display').textContent = currentEmail;
-      goStep(2);
-      otpExpiry = Date.now() + 2 * 60 * 1000;
-      startTimer();
-    } catch (e) {
-      console.error('Employer sendEmailOTP error:', e);
-      errEl.textContent = 'Failed to check account or send OTP. Please check your internet connection.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Continue →'; btn.disabled = false;
-    }
-  }
-
-  // ── Existing employer chose OTP method: send OTP then go to step 2 ──
-  async function sendOTPForLogin() {
-    const btn = document.querySelector('#otp-login-section .btn-primary');
-    const errEl = document.getElementById('err4');
-    errEl.style.display = 'none';
-    if (btn) { btn.textContent = 'Sending OTP...'; btn.disabled = true; }
-
-    try {
-      const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
-      if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
-
-      if (error) {
-        errEl.textContent = 'Failed to send OTP: ' + error.message;
-        errEl.style.display = 'block';
-        return;
-      }
-      document.getElementById('otp-email-display').textContent = currentEmail;
-      goStep(2);
-      otpExpiry = Date.now() + 2 * 60 * 1000;
-      startTimer();
-    } catch (e) {
-      console.error('Employer sendOTPForLogin error:', e);
-      errEl.textContent = 'Failed: ' + (e.message || 'An unexpected error occurred.');
-      errEl.style.display = 'block';
-      if (btn) { btn.textContent = 'Send OTP to Email →'; btn.disabled = false; }
-    }
-  }
-
-  // ── OTP Input handlers ──
-  function ob(el, idx) {
-    el.value = el.value.replace(/\D/g,'');
-    el.classList.toggle('filled', el.value.length > 0);
-    if (el.value && idx < 6) document.getElementById('ob'+(idx+1)).focus();
-    if (idx === 6 && el.value) verifyOTP();
-  }
-
-  function obk(e, idx) {
-    if (e.key === 'Backspace' && !document.getElementById('ob'+idx).value && idx > 1)
-      document.getElementById('ob'+(idx-1)).focus();
-  }
-
-  // ── Timer ──
-  function startTimer() {
-    clearInterval(timerInterval);
-    document.getElementById('resend-btn').disabled = true;
-    document.getElementById('timer-wrap').classList.remove('expired');
-    timerInterval = setInterval(() => {
-      const rem = Math.max(0, otpExpiry - Date.now());
-      const m = Math.floor(rem/60000), s = Math.floor((rem%60000)/1000);
-      document.getElementById('countdown').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-      if (rem === 0) {
-        clearInterval(timerInterval);
-        document.getElementById('timer-wrap').classList.add('expired');
-        document.getElementById('countdown').textContent = 'Expired';
-        document.getElementById('resend-btn').disabled = false;
-      }
-    }, 1000);
-  }
-
-  async function resendOTP() {
-    [1,2,3,4,5,6].forEach(i => { const el=document.getElementById('ob'+i); el.value=''; el.classList.remove('filled'); });
-    document.getElementById('err2').style.display = 'none';
-
-    const btn = document.getElementById('resend-btn');
-    btn.textContent = 'Sending...'; btn.disabled = true;
-    try {
-      const { error } = await sb.auth.signInWithOtp({ email: currentEmail });
-      if (error) {
-        showToast('Failed to resend OTP: ' + error.message);
-      } else {
-        showToast('OTP resent to ' + currentEmail);
-        otpExpiry = Date.now() + 2 * 60 * 1000;
-        startTimer();
-      }
-    } catch (e) {
-      console.error('Resend OTP error:', e);
-      showToast('Error: ' + (e.message || 'Could not resend OTP.'));
-    }
-    btn.textContent = 'Resend OTP';
-    document.getElementById('ob1').focus();
-  }
-
-  // ── STEP 2: Verify OTP ──
-  async function verifyOTP() {
-    const entered = [1,2,3,4,5,6].map(i => document.getElementById('ob'+i).value).join('');
-    const errEl = document.getElementById('err2');
-    errEl.style.display = 'none';
-
-    if (entered.length !== 6) { errEl.textContent='Please enter all 6 digits.'; errEl.style.display='block'; return; }
-
-    const btn = document.querySelector('#step2 .btn-primary');
-    btn.textContent = 'Verifying...'; btn.disabled = true;
-
-    try {
-      // Verify OTP using Supabase
-      const { data: verifyData, error } = await sb.auth.verifyOtp({
-        email: currentEmail,
-        token: entered,
-        type: 'email'
-      });
-
-      if (error) {
-        errEl.textContent = 'Invalid OTP or expired. Please check and try again.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
-        return;
-      }
-
-      clearInterval(timerInterval);
-      btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
-
-      if (existingEmployer) {
-        if (isResetMode) {
-          // OTP verified for password reset — show new password form
-          document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-          document.getElementById('step3-existing').classList.add('active');
-          setStepUI(3);
-          document.getElementById('welcome-name').textContent = 'Reset Password';
-          document.getElementById('otp-login-section').style.display = 'none';
-          document.getElementById('pwd-login-section').style.display = 'block';
-          document.getElementById('pwd-label').textContent = 'New Password *';
-          document.getElementById('login-pwd').placeholder = 'Enter new password (min 6 chars)';
-          document.getElementById('btn-login').textContent = 'Set New Password →';
-          document.getElementById('login-pwd').focus();
-        } else {
-          // Logged in successfully via OTP
-          const { data: employer } = await sb.from('employers').select('*').eq('id', verifyData.user.id).maybeSingle();
-          if (employer) {
-            Session.setEmployer(employer);
-            const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
-            sessionStorage.removeItem('redirect_after_employer_login');
-            window.location.href = redirect;
-          } else {
-            errEl.textContent = 'Employer record not found.'; errEl.style.display = 'block';
-          }
-        }
-      } else {
-        // New employer: authenticated, proceed to complete profile
-        goStep(3, 'step3-new');
-      }
-    } catch (e) {
-      console.error('Verify OTP error:', e);
-      errEl.textContent = 'Verification failed: ' + (e.message || 'An unexpected error occurred.');
-      errEl.style.display = 'block';
-      btn.textContent = 'Verify OTP ✓'; btn.disabled = false;
-    }
-  }
-
-  // ── STEP 3A: Register new employer ──
-  async function completeRegister() {
+  async function completeRegistration() {
     const company = document.getElementById('r-company').value.trim();
     const contactName = document.getElementById('r-contact').value.trim();
     const city = document.getElementById('r-city').value;
-    const industry = document.getElementById('r-industry').value;
     const password = document.getElementById('r-password').value;
     const confirm = document.getElementById('r-confirm').value;
     const errEl = document.getElementById('err3');
     errEl.style.display = 'none';
 
-    if (!company||!contactName||!city||!password) { errEl.textContent='Please fill all required fields.'; errEl.style.display='block'; return; }
-    if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
-    if (password !== confirm) { errEl.textContent='Passwords do not match.'; errEl.style.display='block'; return; }
+    if (!company || !contactName || !city || !password) {
+      errEl.textContent = 'Please fill all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (password.length < 6) {
+      errEl.textContent = 'Password must be at least 6 characters.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (password !== confirm) {
+      errEl.textContent = 'Passwords do not match.';
+      errEl.style.display = 'block';
+      return;
+    }
 
-    const btn = document.querySelector('#step3-new .btn-primary');
-    btn.textContent = 'Creating...'; btn.disabled = true;
+    const btn = document.querySelector('#step3 .btn-primary');
+    btn.textContent = 'Creating...';
+    btn.disabled = true;
 
     try {
-      // Set the password on the newly authenticated user
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) {
+        errEl.textContent = 'Session expired. Please start over.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Create Account & Continue →';
+        btn.disabled = false;
+        return;
+      }
+
       const { error: pwdErr } = await sb.auth.updateUser({ password });
       if (pwdErr) {
         errEl.textContent = 'Failed to set password: ' + pwdErr.message;
         errEl.style.display = 'block';
-        btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
+        btn.textContent = 'Create Account & Continue →';
+        btn.disabled = false;
         return;
       }
 
-      // Update profile in employers table
-      const { data: { user } } = await sb.auth.getUser();
-      const updates = { company, contact_name: contactName, city, industry };
+      const updates = { 
+        company, 
+        contact_name: contactName, 
+        city, 
+        mobile: currentMobile,
+        email: currentEmail
+      };
       const { error: dbErr } = await sb.from('employers').update(updates).eq('id', user.id);
-      
       if (dbErr) {
         errEl.textContent = 'Profile save failed: ' + dbErr.message;
         errEl.style.display = 'block';
-        btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
+        btn.textContent = 'Create Account & Continue →';
+        btn.disabled = false;
         return;
       }
 
-      // Load full profile
       const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).single();
       Session.setEmployer(employer);
-
-      const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'post-job.html';
-      sessionStorage.removeItem('redirect_after_employer_login');
-      window.location.href = redirect;
-    } catch (e) {
-      console.error('Employer registration complete exception:', e);
-      errEl.textContent = 'Registration failed: ' + (e.message || 'An unexpected error occurred.');
-      errEl.style.display = 'block';
-      btn.textContent = 'Create Account & Continue →'; btn.disabled = false;
-    }
-  }
-
-  function showPasswordSection() {
-    document.getElementById('otp-login-section').style.display = 'none';
-    document.getElementById('pwd-login-section').style.display = 'block';
-    document.getElementById('login-pwd').focus();
-  }
-
-  // ── STEP 3B: Password login / Password reset ──
-  async function completeLogin() {
-    const password = document.getElementById('login-pwd').value;
-    const errEl = document.getElementById('err4');
-    errEl.style.display = 'none';
-    if (!password) { errEl.textContent='Please enter your password.'; errEl.style.display='block'; return; }
-
-    const btn = document.getElementById('btn-login');
-    btn.textContent = 'Loading...'; btn.disabled = true;
-
-    try {
-      if (isResetMode) {
-        if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; btn.textContent = 'Set New Password →'; btn.disabled = false; return; }
-        
-        const { error: pwdErr } = await sb.auth.updateUser({ password });
-        if (pwdErr) {
-          errEl.textContent = 'Failed to reset password: ' + pwdErr.message;
-          errEl.style.display = 'block';
-          btn.textContent = 'Set New Password →'; btn.disabled = false;
-          return;
-        }
-        
-        const { data: { user } } = await sb.auth.getUser();
-        const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-        Session.setEmployer(employer);
-        showToast('Password reset! Redirecting...');
-        setTimeout(() => window.location.href = 'employer-dashboard.html', 1200);
-        return;
-      }
-
-      // Password login
-      const result = await EmployerAuth.login(currentEmail, password);
-      btn.textContent = 'Login to Dashboard →'; btn.disabled = false;
-      
-      if (!result.ok) {
-        errEl.textContent = result.msg;
-        errEl.style.display = 'block';
-        return;
-      }
 
       const redirect = sessionStorage.getItem('redirect_after_employer_login') || 'employer-dashboard.html';
       sessionStorage.removeItem('redirect_after_employer_login');
       window.location.href = redirect;
     } catch (e) {
-      console.error('Employer login complete exception:', e);
-      errEl.textContent = 'Login failed: ' + (e.message || 'An unexpected error occurred.');
+      console.error('Registration error:', e);
+      errEl.textContent = 'Registration failed: ' + (e.message || 'An unexpected error occurred.');
       errEl.style.display = 'block';
-      btn.textContent = 'Login to Dashboard →'; btn.disabled = false;
+      btn.textContent = 'Create Account & Continue →';
+      btn.disabled = false;
     }
   }
 
-  function showReset() {
-    isResetMode = true;
-    sendOTPForLogin();
-  }
-
-  // Enter key support
-  document.getElementById('s1-email').addEventListener('keydown', e => { if(e.key==='Enter') sendEmailOTP(); });
-  document.getElementById('login-pwd').addEventListener('keydown', e => { if(e.key==='Enter') completeLogin(); });
-
-
+  // ── Enter key support ──
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const step = document.querySelector('.step.active');
+      if (step) {
+        const btn = step.querySelector('.btn-primary');
+        if (btn) btn.click();
+      }
+    }
+  });
 </script>
 </body>
 </html>
