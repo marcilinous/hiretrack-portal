@@ -42,11 +42,13 @@
 
 <script>
   // Admin credentials — change these to your own
-  const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@hiretrack.co.in';
-  const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'HireTrack@Admin2025';
+  const ADMIN_EMAIL = 'admin@hiretrack.co.in';
+  const ADMIN_PASSWORD = 'HireTrack@Admin2025';
 
   // Redirect if already logged in
-  if (sessionStorage.getItem('ht_admin')) window.location.href = '/admin/dashboard.html';
+  if (sessionStorage.getItem('ht_admin')) {
+    window.location.href = '/admin/dashboard.html';
+  }
 
   function doLogin() {
     const email = document.getElementById('email').value.trim();
@@ -56,8 +58,10 @@
 
     if (!email || !password) {
       err.textContent = 'Please enter email and password.';
-      err.style.display = 'block'; return;
+      err.style.display = 'block';
+      return;
     }
+    
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       sessionStorage.setItem('ht_admin', 'true');
       window.location.href = '/admin/dashboard.html';
@@ -67,7 +71,10 @@
     }
   }
 
-  document.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+  // Enter key support
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
 </script>
 </body>
 </html>
