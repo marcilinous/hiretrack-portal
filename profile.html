@@ -26,12 +26,6 @@ body { padding-top:50px !important; }
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
 
-/* ── Cards ── */
-.card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; margin-bottom:1rem; }
-.card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
-.card-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
-.card-hd h3 { margin-bottom:0; }
-
 /* ── Profile Jobs Filter Bar ── */
 .pjf-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:0.5rem; align-items:flex-start; }
 .pjf-kw { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.45rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
@@ -274,257 +268,111 @@ body { padding-top:50px !important; }
 
 </div>
 
-<!-- ── SCRIPTS ── -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=6"></script>
-<script src="js/browse-jobs.js?v=6"></script>
-<script src="js/apply-modal.js?v=6"></script>
-<script src="js/feed.js?v=6"></script>
-<script src="js/chat.js?v=6"></script>
+<script src="app.js?v=7"></script>
+<script src="js/browse-jobs.js?v=7"></script>
+<script src="js/apply-modal.js?v=7"></script>
+<script src="js/feed.js?v=7"></script>
+<script src="js/chat.js?v=7"></script>
 
 <script>
-  console.log('✅ app.js loaded:', typeof Session !== 'undefined');
-  console.log('✅ BrowseJobs loaded:', typeof BrowseJobs !== 'undefined');
-  console.log('✅ sb loaded:', typeof sb !== 'undefined');
+  // ── Test if scripts loaded ──
+  console.log('📦 app.js loaded:', typeof Session !== 'undefined');
+  console.log('📦 BrowseJobs loaded:', typeof BrowseJobs !== 'undefined');
+  console.log('📦 sb loaded:', typeof sb !== 'undefined');
 
-  // ── Get candidate from session ──
+  // ── Get candidate ──
   const candidate = Session.getCandidate();
   if (!candidate) {
     window.location.href = 'login.html';
+    throw new Error('Not logged in');
   }
+  console.log('👤 Candidate:', candidate.name);
 
-  console.log('✅ Candidate logged in:', candidate.name);
-
-  // ── Router ──
-  const VIEWS = ['jobs','profile','applications','saved','pro','feed','chat'];
-
-  function route(raw) {
-    const hash = (raw || '#jobs').replace(/^#/, '');
-    const [view, sub] = hash.split('/');
-    const target = VIEWS.includes(view) ? view : 'jobs';
-
-    VIEWS.forEach(v => {
-      const el = document.getElementById('view-' + v);
-      if (el) el.style.display = v === target ? 'block' : 'none';
-    });
-
+  // ── Route ──
+  function route() {
+    const hash = location.hash || '#jobs';
+    document.querySelectorAll('[id^="view-"]').forEach(el => el.style.display = 'none');
+    const target = hash.replace('#', '').split('/')[0] || 'jobs';
+    const el = document.getElementById('view-' + target);
+    if (el) el.style.display = 'block';
     document.querySelectorAll('.dr-nav-item').forEach(a => {
-      const itemView = a.getAttribute('href').replace('#','');
-      a.classList.toggle('active', itemView === target);
+      a.classList.toggle('active', a.getAttribute('href') === hash);
     });
-
-    if (target === 'jobs') loadJobsView();
-    if (target === 'feed') Feed.init('feed-root', candidate);
-    if (target === 'chat') Chat.init('chat-root', candidate);
-
+    if (target === 'jobs') loadJobs();
     closeDrawer();
   }
 
-  window.addEventListener('hashchange', () => route(location.hash));
+  window.addEventListener('hashchange', route);
 
   // ── Drawer ──
   function openDrawer() {
     document.getElementById('profile-drawer').classList.add('open');
     document.getElementById('drawer-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
-    closeNotifPanel();
   }
-
   function closeDrawer() {
     document.getElementById('profile-drawer').classList.remove('open');
     document.getElementById('drawer-overlay').classList.remove('open');
     document.body.style.overflow = '';
   }
 
-  // ── Notification Popover ──
-  function toggleNotifPanel() {
-    const open = document.getElementById('notif-popover').classList.contains('open');
-    open ? closeNotifPanel() : openNotifPanel();
-  }
-
-  function openNotifPanel() {
-    document.getElementById('notif-popover').classList.add('open');
-    document.getElementById('notif-backdrop').classList.add('open');
-  }
-
-  function closeNotifPanel() {
-    document.getElementById('notif-popover').classList.remove('open');
-    document.getElementById('notif-backdrop').classList.remove('open');
-  }
-
-  // ── Jobs View ──
-  let _pjfJobs = [];
-  let _pjfAppMap = {};
-  let _pjfSavedIds = new Set();
-  let _pjfLoaded = false;
-  let _pjfTeardown = null;
-  let _pjfVisible = 20;
-  const PJF_PAGE = 20;
-
-  const _pjf = {
-    keyword: '',
-    locations: [],
-    jobTypes: [],
-    expBand: '',
-    salBand: '',
-    recency: 'any',
-    minMatch: 0,
-    sort: 'match'
-  };
-
-  async function loadJobsView() {
+  // ── Load Jobs ──
+  async function loadJobs() {
     const container = document.getElementById('bj-container-profile');
     if (!container) return;
-    _pjfVisible = PJF_PAGE;
-    if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
-    if (!_pjfLoaded) {
-      container.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading jobs…</div>';
-      try {
-        const jobs = await BrowseJobs.fetchForCandidate(candidate.id);
-        _pjfJobs = jobs || [];
-        _pjfAppMap = await BrowseJobs.fetchApplicationStatuses(candidate.id);
-        const saved = await sb.from('saved_jobs').select('job_id').eq('candidate_id', candidate.id);
-        _pjfSavedIds = new Set((saved.data || []).map(x => x.job_id));
-      } catch (e) {
-        console.error('Error loading jobs:', e);
-        _pjfJobs = [];
-        _pjfAppMap = {};
-        _pjfSavedIds = new Set();
+    container.innerHTML = '<div style="padding:3rem;text-align:center;color:#94a3b8;">Loading jobs…</div>';
+
+    try {
+      // Fetch jobs
+      const jobs = await BrowseJobs.fetchForCandidate(candidate.id);
+      const appMap = await BrowseJobs.fetchApplicationStatuses(candidate.id);
+      const saved = await sb.from('saved_jobs').select('job_id').eq('candidate_id', candidate.id);
+      const savedIds = new Set((saved.data || []).map(x => x.job_id));
+
+      if (!jobs || jobs.length === 0) {
+        container.innerHTML = '<div style="padding:3rem;text-align:center;color:#94a3b8;">No jobs found matching your profile.</div>';
+        return;
       }
-      _pjfLoaded = true;
-    }
-    _renderPjf();
-  }
 
-  function _pjfDeriveFiltered() {
-    return BrowseJobs.applyClientFilters(_pjfJobs, {
-      keyword: _pjf.keyword,
-      locations: _pjf.locations,
-      jobTypes: _pjf.jobTypes,
-      experienceBands: _pjf.expBand ? [_pjf.expBand] : [],
-      salaryBands: _pjf.salBand ? [_pjf.salBand] : [],
-      recency: _pjf.recency,
-      minMatchScore: _pjf.minMatch,
-    });
-  }
-
-  function _pjfSort(arr) {
-    if (_pjf.sort === 'recent')
-      return arr.slice().sort((a,b) => new Date(b.posted_at||0) - new Date(a.posted_at||0));
-    return arr.slice().sort((a,b) =>
-      (b.match_score||0) - (a.match_score||0) || new Date(b.posted_at||0) - new Date(a.posted_at||0));
-  }
-
-  function _renderPjf() {
-    const container = document.getElementById('bj-container-profile');
-    if (!container) return;
-    const sorted = _pjfSort(_pjfDeriveFiltered());
-    const countEl = document.getElementById('pjf-count');
-    if (countEl) countEl.textContent = sorted.length + ' job' + (sorted.length !== 1 ? 's' : '') + ' found';
-    const page = sorted.slice(0, _pjfVisible);
-    const hasMore = _pjfVisible < sorted.length;
-    BrowseJobs.render(container, page, {
-      applicationStatusMap: _pjfAppMap,
-      isLoggedIn: true,
-      savedJobIds: _pjfSavedIds,
-      onApplyClick: (jid, job) => {
-        const wa = encodeURIComponent(
-          `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
-        );
-        ApplyModal.open(job, {
-          isLoggedIn: true,
-          applicationStatus: _pjfAppMap[String(jid)] || null,
-          onApply: () => _doApply(jid, job),
-          onWhatsApp: () => whatsappApply(job.phone, wa),
-        });
-      },
-      onViewApplicationClick: () => { location.hash = '#applications'; },
-      onSaveToggle: async (jid, isSaved, btn) => {
-        if (isSaved) {
-          _pjfSavedIds.delete(jid);
-          btn.dataset.saved = '';
-          btn.classList.remove('bj-saved');
-          await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jid);
-          showToast('Removed from saved jobs');
-        } else {
-          _pjfSavedIds.add(jid);
-          btn.dataset.saved = '1';
-          btn.classList.add('bj-saved');
-          await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: jid }]);
-          showToast('Saved! View in Saved Jobs →');
+      // Render
+      BrowseJobs.render(container, jobs, {
+        applicationStatusMap: appMap,
+        isLoggedIn: true,
+        savedJobIds: savedIds,
+        onApplyClick: (jid, job) => {
+          ApplyModal.open(job, {
+            isLoggedIn: true,
+            applicationStatus: appMap[jid] || null,
+            onApply: () => ApplicationsDB.apply(candidate.id, jid),
+            onWhatsApp: () => {
+              const wa = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`);
+              window.open(`https://wa.me/91${job.phone}?text=${wa}`, '_blank');
+            }
+          });
+        },
+        onViewApplicationClick: () => location.hash = '#applications',
+        onSaveToggle: async (jid, isSaved, btn) => {
+          if (isSaved) {
+            await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jid);
+            btn.dataset.saved = '';
+            btn.classList.remove('bj-saved');
+          } else {
+            await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: jid }]);
+            btn.dataset.saved = '1';
+            btn.classList.add('bj-saved');
+          }
         }
-      },
-    });
-    if (hasMore) {
-      _pjfTeardown = BrowseJobs.setupInfiniteScroll(container, async () => {
-        _pjfVisible += PJF_PAGE;
-        _renderPjf();
-        return { hasMore: false };
       });
+    } catch (e) {
+      console.error('❌ loadJobs error:', e);
+      container.innerHTML = '<div style="padding:3rem;text-align:center;color:#ef4444;">Failed to load jobs. Please refresh.</div>';
     }
   }
 
-  async function _doApply(jid, job) {
-    const { error } = await ApplicationsDB.apply(candidate.id, jid);
-    if (error) throw error;
-    _pjfAppMap[String(jid)] = 'Applied';
-    showToast('Applied successfully!');
-    if (job?.email) {
-      fetch('/api/email?action=notify-employer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          employerEmail: job.email,
-          company: job.company,
-          jobTitle: job.title,
-          candidateName: candidate.name,
-          candidateCity: candidate.city,
-          candidateExperience: candidate.experience,
-          candidateSkills: candidate.skills || []
-        })
-      }).catch(() => {});
-    }
-    _renderPjf();
-  }
+  // ── Init ──
+  route();
+</script>
 
-  // ── Filter bar wiring ──
-  function _initPjfFilters() {
-    const kw = document.getElementById('pjf-kw');
-    if (kw) {
-      kw.addEventListener('input', () => {
-        _pjf.keyword = kw.value.trim();
-        _pjfVisible = PJF_PAGE;
-        _renderPjf();
-      });
-    }
-
-    // Close dropdowns on outside click
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.pjf-fdd.open').forEach(el => el.classList.remove('open'));
-    });
-
-    // Location multi-select
-    const locFdd = document.getElementById('pfdd-loc');
-    const locChip = document.getElementById('pfchip-loc');
-    if (locFdd && locChip) {
-      locChip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.pjf-fdd.open').forEach(el => el.classList.remove('open'));
-        locFdd.classList.toggle('open');
-      });
-      locFdd.querySelector('.pjf-dd-panel').addEventListener('change', () => {
-        _pjf.locations = Array.from(locFdd.querySelectorAll('input:checked')).map(el => el.value);
-        locChip.textContent = _pjf.locations.length ? '📍 ' + _pjf.locations.length + ' location' + (_pjf.locations.length > 1 ? 's' : '') : '📍 Location';
-        locChip.classList.toggle('pjf-chip-active', _pjf.locations.length > 0);
-        _pjfVisible = PJF_PAGE;
-        _renderPjf();
-      });
-    }
-
-    // Single-select dropdowns
-    const SINGLE_DDS = [
-      { id:'pfdd-type', chipId:'pfchip-type', fKey:'jobTypes', defaultLabel:'Job Type', toVal: v => v ? [v] : [] },
-      { id:'pfdd-exp', chipId:'pfchip-exp', fKey:'expBand', defaultLabel:'Experience', toVal: v => v },
-      { id:'pfdd-sal', chipId:'pfchip-sal', fKey:'salBand', defaultLabel:'Salary', toVal: v => v },
-      { id:'pfdd-rec', chipId:'pfchip-rec', fKey:'recency', defaultLabel:'Any time', toVal: v => v || 'any' },
-      { id:'pfdd-match', chipId:'pfchip-match',
+</body>
+</html>
