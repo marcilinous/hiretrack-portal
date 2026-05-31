@@ -26,156 +26,11 @@ body { padding-top:50px !important; }
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
 
-/* ── Profile Score ── */
-.score-wrap { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
-.score-ring-wrap { position:relative; width:100px; height:100px; flex-shrink:0; }
-.score-ring-wrap svg { transform:rotate(-90deg); }
-.score-ring-bg { fill:none; stroke:#f1f5f9; stroke-width:8; }
-.score-ring-fill { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
-.score-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.score-pct { font-size:1.4rem; font-weight:800; color:#0f172a; line-height:1; }
-.score-label { font-size:0.6rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; }
-.score-info { flex:1; min-width:200px; }
-.score-info h3 { font-size:0.95rem; font-weight:800; margin-bottom:0.25rem; }
-.score-info p { font-size:0.8rem; color:#64748b; margin-bottom:1rem; }
-.score-items { display:flex; flex-direction:column; gap:0.5rem; }
-.score-item { display:flex; align-items:center; justify-content:space-between; gap:0.75rem; padding:0.5rem 0.75rem; border-radius:8px; font-size:0.82rem; }
-.score-item.done { background:#f0fdf4; }
-.score-item.missing { background:#fef9c3; }
-.score-item-left { display:flex; align-items:center; gap:8px; }
-.score-item-icon { font-size:0.9rem; }
-.score-item-label { font-weight:600; }
-.score-item-pts { font-size:0.72rem; font-weight:700; }
-.score-item.done .score-item-pts { color:#15803d; }
-.score-item.missing .score-item-pts { color:#b45309; }
-.btn-fix { background:#2563eb; color:#fff; border:none; padding:3px 10px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
-.score-level { display:inline-block; padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; margin-bottom:0.5rem; }
-.level-starter { background:#fef3c7; color:#b45309; }
-.level-good { background:#dbeafe; color:#1d4ed8; }
-.level-pro { background:#f5f3ff; color:#6d28d9; }
-.level-complete { background:#dcfce7; color:#15803d; }
-
 /* ── Cards ── */
 .card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; margin-bottom:1rem; }
 .card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
 .card-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
 .card-hd h3 { margin-bottom:0; }
-.card-add-btn { background:#eff6ff; color:#2563eb; border:1.5px solid #bfdbfe; border-radius:8px; padding:4px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; font-family:inherit; }
-.card-add-btn:hover { background:#dbeafe; }
-.hist-entry { display:flex; align-items:flex-start; gap:0.75rem; padding:0.75rem 0; border-bottom:1px solid #f1f5f9; }
-.hist-entry:last-child { border-bottom:none; padding-bottom:0; }
-.hist-dot { width:9px; height:9px; border-radius:50%; background:#3b82f6; margin-top:5px; flex-shrink:0; }
-.hist-body { flex:1; min-width:0; }
-.hist-title { font-size:0.87rem; font-weight:700; color:#0f172a; }
-.hist-sub { font-size:0.8rem; color:#475569; margin-top:1px; }
-.hist-year { font-size:0.71rem; color:#94a3b8; margin-top:2px; font-weight:600; }
-.hist-desc { font-size:0.78rem; color:#64748b; margin-top:4px; line-height:1.5; }
-.hist-actions { display:flex; gap:2px; flex-shrink:0; margin-top:1px; }
-.hist-btn { background:none; border:none; cursor:pointer; font-size:0.82rem; padding:3px 7px; border-radius:6px; color:#94a3b8; line-height:1; }
-.hist-btn:hover { background:#f1f5f9; color:#374151; }
-.hist-empty { font-size:0.82rem; color:#94a3b8; padding:0.25rem 0; }
-.info-row { display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid #f1f5f9; font-size:0.85rem; }
-.info-row:last-child { border-bottom:none; }
-.info-row .label { color:#64748b; }
-.info-row .value { font-weight:600; color:#0f172a; }
-.skill-chip { background:#eff6ff; color:#1d4ed8; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; display:inline-block; margin:3px; }
-.resume-box { background:#f8fafc; border-radius:10px; padding:1rem; display:flex; align-items:center; justify-content:space-between; margin-top:0.5rem; }
-.btn-dl { background:#2563eb; color:#fff; border:none; padding:0.4rem 1rem; border-radius:7px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
-
-/* ── Applications ── */
-.app-item { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1.2rem; margin-bottom:0.75rem; display:flex; gap:1rem; align-items:flex-start; transition:border-color 0.2s; }
-.app-item:hover { border-color:#2563eb; }
-.app-company-logo { width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,#2563eb,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.85rem; font-weight:800; flex-shrink:0; }
-.app-info { flex:1; }
-.app-title { font-size:0.92rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
-.app-company { font-size:0.8rem; color:#64748b; margin-bottom:0.5rem; }
-.app-meta { display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap; }
-.status-badge { padding:3px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; }
-.s-Applied { background:#eff6ff; color:#1d4ed8; }
-.s-Viewed { background:#f5f3ff; color:#6d28d9; }
-.s-Shortlisted { background:#fef3c7; color:#b45309; }
-.s-Interview { background:#ecfeff; color:#0e7490; }
-.s-Hired { background:#dcfce7; color:#15803d; }
-.s-Rejected { background:#fef2f2; color:#b91c1c; }
-.app-date { font-size:0.75rem; color:#94a3b8; }
-.app-progress { display:flex; gap:0; margin-top:0.75rem; }
-.prog-step { flex:1; text-align:center; position:relative; }
-.prog-step::before { content:''; position:absolute; top:10px; left:50%; right:-50%; height:2px; background:#e2e8f0; z-index:0; }
-.prog-step:last-child::before { display:none; }
-.prog-dot { width:20px; height:20px; border-radius:50%; border:2px solid #e2e8f0; background:#fff; margin:0 auto 4px; position:relative; z-index:1; display:flex; align-items:center; justify-content:center; font-size:0.6rem; }
-.prog-dot.done { background:#2563eb; border-color:#2563eb; color:#fff; }
-.prog-dot.current { background:#fff; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.15); }
-.prog-dot.rejected { background:#ef4444; border-color:#ef4444; color:#fff; }
-.prog-label { font-size:0.62rem; color:#94a3b8; }
-.prog-label.done { color:#2563eb; font-weight:600; }
-.prog-label.current { color:#2563eb; font-weight:700; }
-.btn-prep { background:#f5f3ff; color:#6d28d9; border:none; padding:0.35rem 0.8rem; border-radius:7px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; }
-
-/* ── Notifications (popover items) ── */
-.notif-item { background:#fff; border-radius:10px; border:1.5px solid #e2e8f0; padding:0.85rem 1rem; margin-bottom:0.45rem; display:flex; gap:0.75rem; align-items:flex-start; transition:all 0.15s; cursor:pointer; }
-.notif-item:hover { border-color:#bfdbfe; background:#f8fbff; }
-.notif-item.unread { border-color:#bfdbfe; background:#f0f7ff; }
-.notif-icon { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
-.ni-status { background:#eff6ff; }
-.ni-shortlist { background:#fef3c7; }
-.ni-interview { background:#ecfeff; }
-.ni-hired { background:#dcfce7; }
-.ni-rejected { background:#fef2f2; }
-.notif-body { flex:1; min-width:0; }
-.notif-msg { font-size:0.82rem; font-weight:600; color:#0f172a; margin-bottom:0.15rem; line-height:1.4; }
-.notif-time { font-size:0.7rem; color:#94a3b8; }
-.unread-dot { width:7px; height:7px; border-radius:50%; background:#2563eb; flex-shrink:0; margin-top:5px; }
-
-/* ── Notification Popover ── */
-.notif-backdrop { position:fixed; inset:0; z-index:399; display:none; }
-.notif-backdrop.open { display:block; }
-.notif-popover { position:fixed; top:50px; right:1rem; width:360px; max-height:480px; background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; box-shadow:0 8px 32px rgba(0,0,0,0.15); z-index:400; display:none; flex-direction:column; overflow:hidden; }
-.notif-popover.open { display:flex; }
-.np-head { display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1rem; border-bottom:1.5px solid #e2e8f0; flex-shrink:0; }
-.np-head-title { font-size:0.88rem; font-weight:800; }
-.np-mark-all { background:none; border:none; color:#2563eb; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; }
-.np-body { overflow-y:auto; padding:0.5rem; flex:1; -webkit-overflow-scrolling:touch; }
-.np-empty { text-align:center; padding:2rem; color:#94a3b8; font-size:0.85rem; }
-
-/* ── Interview Prep ── */
-.prep-hero { background:linear-gradient(135deg,#4f46e5,#7c3aed); border-radius:14px; padding:1.5rem; color:#fff; margin-bottom:1.5rem; }
-.prep-hero h2 { font-size:1.1rem; font-weight:800; margin-bottom:0.3rem; }
-.prep-hero p { font-size:0.82rem; color:#ddd6fe; margin-bottom:1rem; }
-.prep-ai-row { display:flex; gap:0.75rem; }
-.prep-ai-row input { flex:1; padding:0.6rem 1rem; border-radius:8px; border:none; font-size:0.85rem; font-family:inherit; outline:none; }
-.prep-ai-row button { background:#fff; color:#4f46e5; border:none; padding:0.6rem 1.2rem; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
-.prep-categories { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1.5rem; }
-.prep-cat { background:#fff; border-radius:12px; border:1.5px solid #e2e8f0; padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; }
-.prep-cat:hover { border-color:#4f46e5; transform:translateY(-2px); box-shadow:0 4px 12px rgba(79,70,229,0.1); }
-.prep-cat .cat-icon { font-size:1.5rem; margin-bottom:0.4rem; }
-.prep-cat h4 { font-size:0.82rem; font-weight:700; margin-bottom:0.2rem; }
-.prep-cat p { font-size:0.72rem; color:#64748b; }
-.sal-neg-wrap { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; margin-top:1.25rem; overflow:hidden; }
-.sal-neg-hd { display:flex; align-items:center; gap:0.75rem; padding:1rem 1.25rem; }
-.sal-neg-title { font-size:0.88rem; font-weight:800; color:#0f172a; }
-.sal-neg-sub { font-size:0.75rem; color:#64748b; margin-top:2px; }
-.sal-neg-btn { margin-left:auto; background:#16a34a; color:#fff; border:none; padding:0.5rem 1rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; }
-.sal-neg-btn:disabled { opacity:0.6; cursor:not-allowed; }
-.sal-tip { display:flex; gap:10px; padding:0.65rem 0; border-bottom:1px solid #f1f5f9; font-size:0.84rem; line-height:1.6; color:#334155; }
-.sal-tip:last-child { border-bottom:none; }
-.sal-tip-num { background:#f0fdf4; color:#15803d; border-radius:50%; min-width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; flex-shrink:0; margin-top:2px; }
-.qa-box { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; overflow:hidden; }
-.qa-header { padding:1rem 1.2rem; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; }
-.qa-header h3 { font-size:0.9rem; font-weight:800; }
-.qa-item { padding:1rem 1.2rem; border-bottom:1px solid #f1f5f9; }
-.qa-item:last-child { border-bottom:none; }
-.qa-q { font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem; display:flex; gap:8px; }
-.qa-q .q-num { background:#eff6ff; color:#2563eb; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.72rem; flex-shrink:0; }
-.qa-a { font-size:0.82rem; color:#475569; line-height:1.6; padding-left:30px; display:none; }
-.qa-item.open .qa-a { display:block; }
-.qa-toggle { background:#f1f5f9; border:none; padding:4px 10px; border-radius:6px; font-size:0.72rem; font-weight:600; cursor:pointer; font-family:inherit; color:#64748b; margin-left:30px; margin-top:0.4rem; }
-.ai-loading { color:#6d28d9; font-size:0.85rem; animation:pulse 1.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-/* ── Pro Plan sub-tabs ── */
-.pro-tabs { display:flex; border-bottom:2px solid #e2e8f0; margin-bottom:1.25rem; background:#fff; border-radius:12px 12px 0 0; overflow:hidden; border:1.5px solid #e2e8f0; border-bottom:none; }
-.pro-tab { flex:1; padding:0.85rem; font-size:0.85rem; font-weight:600; color:#64748b; border:none; background:none; cursor:pointer; font-family:inherit; border-bottom:3px solid transparent; transition:all 0.2s; }
-.pro-tab.active { color:#2563eb; border-bottom-color:#2563eb; background:#f0f7ff; }
 
 /* ── Profile Jobs Filter Bar ── */
 .pjf-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:0.5rem; align-items:flex-start; }
@@ -227,8 +82,6 @@ body { padding-top:50px !important; }
   .pjf-mobile-btn { display:inline-flex; }
   .notif-popover { width:calc(100% - 2rem); left:1rem; right:1rem; border-radius:0 0 14px 14px; }
 }
-@media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
-@media(max-width:640px) { .drawer { width:80vw; max-width:300px; } }
 </style>
 </head>
 <body>
@@ -314,4 +167,364 @@ body { padding-top:50px !important; }
             <div class="pjf-dd-opt" data-val="Remote">Remote</div>
             <div class="pjf-dd-opt" data-val="Part Time">Part Time</div>
           </div>
-        </
+        </div>
+        <div class="pjf-fdd" id="pfdd-exp">
+          <button class="pjf-chip" id="pfchip-exp">Experience</button>
+          <div class="pjf-dd-panel" id="pfddp-exp">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="">Any</div>
+            <div class="pjf-dd-opt" data-val="fresher">Fresher</div>
+            <div class="pjf-dd-opt" data-val="1-3">1–3 yrs</div>
+            <div class="pjf-dd-opt" data-val="3-5">3–5 yrs</div>
+            <div class="pjf-dd-opt" data-val="5+">5+ yrs</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-sal">
+          <button class="pjf-chip" id="pfchip-sal">Salary</button>
+          <div class="pjf-dd-panel" id="pfddp-sal">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="">Any</div>
+            <div class="pjf-dd-opt" data-val="0-3">0–3 LPA</div>
+            <div class="pjf-dd-opt" data-val="3-6">3–6 LPA</div>
+            <div class="pjf-dd-opt" data-val="6-10">6–10 LPA</div>
+            <div class="pjf-dd-opt" data-val="10+">10+ LPA</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-rec">
+          <button class="pjf-chip" id="pfchip-rec">Any time</button>
+          <div class="pjf-dd-panel" id="pfddp-rec">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="any">Any time</div>
+            <div class="pjf-dd-opt" data-val="24h">Last 24 hrs</div>
+            <div class="pjf-dd-opt" data-val="7d">Last 7 days</div>
+            <div class="pjf-dd-opt" data-val="30d">Last 30 days</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-match">
+          <button class="pjf-chip" id="pfchip-match">Match %</button>
+          <div class="pjf-dd-panel" id="pfddp-match">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="0">Any</div>
+            <div class="pjf-dd-opt" data-val="50">50%+</div>
+            <div class="pjf-dd-opt" data-val="70">70%+</div>
+            <div class="pjf-dd-opt" data-val="90">90%+</div>
+          </div>
+        </div>
+        <div class="pjf-fdd" id="pfdd-sort">
+          <button class="pjf-chip" id="pfchip-sort">Best Match</button>
+          <div class="pjf-dd-panel" id="pfddp-sort">
+            <div class="pjf-dd-opt pjf-dd-opt-sel" data-val="match">Best Match</div>
+            <div class="pjf-dd-opt" data-val="recent">Most Recent</div>
+          </div>
+        </div>
+      </div>
+      <button class="pjf-mobile-btn" id="pjf-mobile-btn">⚙️ Filters</button>
+    </div>
+    <div id="pjf-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;min-height:1.2em;"></div>
+    <div id="bj-container-profile"></div>
+  </div>
+
+  <!-- VIEW: My Profile (#profile) -->
+  <div id="view-profile" style="display:none;">
+    <div id="score-card" style="background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;padding:1.5rem;margin-bottom:1.5rem;"></div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;">
+      <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Personal Info</h3>
+          <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;"><span style="color:#64748b;">Email</span><span style="font-weight:600;color:#0f172a;" id="d-email">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;"><span style="color:#64748b;">Mobile</span><span style="font-weight:600;color:#0f172a;" id="d-mobile">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;"><span style="color:#64748b;">City</span><span style="font-weight:600;color:#0f172a;" id="d-city">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;"><span style="color:#64748b;">Experience</span><span style="font-weight:600;color:#0f172a;" id="d-exp">—</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <h3>Skills</h3>
+          <div id="d-skills"><p style="font-size:0.82rem;color:#94a3b8;">No skills added</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: My Applications (#applications) -->
+  <div id="view-applications" style="display:none;">
+    <h2 style="font-size:1rem;font-weight:800;">My Applications</h2>
+    <div id="apps-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- VIEW: Saved Jobs (#saved) -->
+  <div id="view-saved" style="display:none;">
+    <h2 style="font-size:1rem;font-weight:800;">🔖 Saved Jobs</h2>
+    <div id="saved-list"><div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div></div>
+  </div>
+
+  <!-- VIEW: Pro Plan (#pro) -->
+  <div id="view-pro" style="display:none;">
+    <h2 style="font-size:1rem;font-weight:800;">⭐ Pro Plan</h2>
+    <p style="color:#64748b;">Upgrade to Pro for unlimited interview prep and resume templates.</p>
+  </div>
+
+  <!-- VIEW: Feed (#feed) -->
+  <div id="view-feed" style="display:none;">
+    <h2 style="font-size:1rem;font-weight:800;">📢 Community Feed</h2>
+    <div id="feed-root"></div>
+  </div>
+
+  <!-- VIEW: Chat (#chat) -->
+  <div id="view-chat" style="display:none;">
+    <h2 style="font-size:1rem;font-weight:800;">💬 Messages</h2>
+    <div id="chat-root"></div>
+  </div>
+
+</div>
+
+<!-- ── SCRIPTS ── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js?v=6"></script>
+<script src="js/browse-jobs.js?v=6"></script>
+<script src="js/apply-modal.js?v=6"></script>
+<script src="js/feed.js?v=6"></script>
+<script src="js/chat.js?v=6"></script>
+
+<script>
+  console.log('✅ app.js loaded:', typeof Session !== 'undefined');
+  console.log('✅ BrowseJobs loaded:', typeof BrowseJobs !== 'undefined');
+  console.log('✅ sb loaded:', typeof sb !== 'undefined');
+
+  // ── Get candidate from session ──
+  const candidate = Session.getCandidate();
+  if (!candidate) {
+    window.location.href = 'login.html';
+  }
+
+  console.log('✅ Candidate logged in:', candidate.name);
+
+  // ── Router ──
+  const VIEWS = ['jobs','profile','applications','saved','pro','feed','chat'];
+
+  function route(raw) {
+    const hash = (raw || '#jobs').replace(/^#/, '');
+    const [view, sub] = hash.split('/');
+    const target = VIEWS.includes(view) ? view : 'jobs';
+
+    VIEWS.forEach(v => {
+      const el = document.getElementById('view-' + v);
+      if (el) el.style.display = v === target ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.dr-nav-item').forEach(a => {
+      const itemView = a.getAttribute('href').replace('#','');
+      a.classList.toggle('active', itemView === target);
+    });
+
+    if (target === 'jobs') loadJobsView();
+    if (target === 'feed') Feed.init('feed-root', candidate);
+    if (target === 'chat') Chat.init('chat-root', candidate);
+
+    closeDrawer();
+  }
+
+  window.addEventListener('hashchange', () => route(location.hash));
+
+  // ── Drawer ──
+  function openDrawer() {
+    document.getElementById('profile-drawer').classList.add('open');
+    document.getElementById('drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeNotifPanel();
+  }
+
+  function closeDrawer() {
+    document.getElementById('profile-drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ── Notification Popover ──
+  function toggleNotifPanel() {
+    const open = document.getElementById('notif-popover').classList.contains('open');
+    open ? closeNotifPanel() : openNotifPanel();
+  }
+
+  function openNotifPanel() {
+    document.getElementById('notif-popover').classList.add('open');
+    document.getElementById('notif-backdrop').classList.add('open');
+  }
+
+  function closeNotifPanel() {
+    document.getElementById('notif-popover').classList.remove('open');
+    document.getElementById('notif-backdrop').classList.remove('open');
+  }
+
+  // ── Jobs View ──
+  let _pjfJobs = [];
+  let _pjfAppMap = {};
+  let _pjfSavedIds = new Set();
+  let _pjfLoaded = false;
+  let _pjfTeardown = null;
+  let _pjfVisible = 20;
+  const PJF_PAGE = 20;
+
+  const _pjf = {
+    keyword: '',
+    locations: [],
+    jobTypes: [],
+    expBand: '',
+    salBand: '',
+    recency: 'any',
+    minMatch: 0,
+    sort: 'match'
+  };
+
+  async function loadJobsView() {
+    const container = document.getElementById('bj-container-profile');
+    if (!container) return;
+    _pjfVisible = PJF_PAGE;
+    if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
+    if (!_pjfLoaded) {
+      container.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading jobs…</div>';
+      try {
+        const jobs = await BrowseJobs.fetchForCandidate(candidate.id);
+        _pjfJobs = jobs || [];
+        _pjfAppMap = await BrowseJobs.fetchApplicationStatuses(candidate.id);
+        const saved = await sb.from('saved_jobs').select('job_id').eq('candidate_id', candidate.id);
+        _pjfSavedIds = new Set((saved.data || []).map(x => x.job_id));
+      } catch (e) {
+        console.error('Error loading jobs:', e);
+        _pjfJobs = [];
+        _pjfAppMap = {};
+        _pjfSavedIds = new Set();
+      }
+      _pjfLoaded = true;
+    }
+    _renderPjf();
+  }
+
+  function _pjfDeriveFiltered() {
+    return BrowseJobs.applyClientFilters(_pjfJobs, {
+      keyword: _pjf.keyword,
+      locations: _pjf.locations,
+      jobTypes: _pjf.jobTypes,
+      experienceBands: _pjf.expBand ? [_pjf.expBand] : [],
+      salaryBands: _pjf.salBand ? [_pjf.salBand] : [],
+      recency: _pjf.recency,
+      minMatchScore: _pjf.minMatch,
+    });
+  }
+
+  function _pjfSort(arr) {
+    if (_pjf.sort === 'recent')
+      return arr.slice().sort((a,b) => new Date(b.posted_at||0) - new Date(a.posted_at||0));
+    return arr.slice().sort((a,b) =>
+      (b.match_score||0) - (a.match_score||0) || new Date(b.posted_at||0) - new Date(a.posted_at||0));
+  }
+
+  function _renderPjf() {
+    const container = document.getElementById('bj-container-profile');
+    if (!container) return;
+    const sorted = _pjfSort(_pjfDeriveFiltered());
+    const countEl = document.getElementById('pjf-count');
+    if (countEl) countEl.textContent = sorted.length + ' job' + (sorted.length !== 1 ? 's' : '') + ' found';
+    const page = sorted.slice(0, _pjfVisible);
+    const hasMore = _pjfVisible < sorted.length;
+    BrowseJobs.render(container, page, {
+      applicationStatusMap: _pjfAppMap,
+      isLoggedIn: true,
+      savedJobIds: _pjfSavedIds,
+      onApplyClick: (jid, job) => {
+        const wa = encodeURIComponent(
+          `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
+        );
+        ApplyModal.open(job, {
+          isLoggedIn: true,
+          applicationStatus: _pjfAppMap[String(jid)] || null,
+          onApply: () => _doApply(jid, job),
+          onWhatsApp: () => whatsappApply(job.phone, wa),
+        });
+      },
+      onViewApplicationClick: () => { location.hash = '#applications'; },
+      onSaveToggle: async (jid, isSaved, btn) => {
+        if (isSaved) {
+          _pjfSavedIds.delete(jid);
+          btn.dataset.saved = '';
+          btn.classList.remove('bj-saved');
+          await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jid);
+          showToast('Removed from saved jobs');
+        } else {
+          _pjfSavedIds.add(jid);
+          btn.dataset.saved = '1';
+          btn.classList.add('bj-saved');
+          await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: jid }]);
+          showToast('Saved! View in Saved Jobs →');
+        }
+      },
+    });
+    if (hasMore) {
+      _pjfTeardown = BrowseJobs.setupInfiniteScroll(container, async () => {
+        _pjfVisible += PJF_PAGE;
+        _renderPjf();
+        return { hasMore: false };
+      });
+    }
+  }
+
+  async function _doApply(jid, job) {
+    const { error } = await ApplicationsDB.apply(candidate.id, jid);
+    if (error) throw error;
+    _pjfAppMap[String(jid)] = 'Applied';
+    showToast('Applied successfully!');
+    if (job?.email) {
+      fetch('/api/email?action=notify-employer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employerEmail: job.email,
+          company: job.company,
+          jobTitle: job.title,
+          candidateName: candidate.name,
+          candidateCity: candidate.city,
+          candidateExperience: candidate.experience,
+          candidateSkills: candidate.skills || []
+        })
+      }).catch(() => {});
+    }
+    _renderPjf();
+  }
+
+  // ── Filter bar wiring ──
+  function _initPjfFilters() {
+    const kw = document.getElementById('pjf-kw');
+    if (kw) {
+      kw.addEventListener('input', () => {
+        _pjf.keyword = kw.value.trim();
+        _pjfVisible = PJF_PAGE;
+        _renderPjf();
+      });
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.pjf-fdd.open').forEach(el => el.classList.remove('open'));
+    });
+
+    // Location multi-select
+    const locFdd = document.getElementById('pfdd-loc');
+    const locChip = document.getElementById('pfchip-loc');
+    if (locFdd && locChip) {
+      locChip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.pjf-fdd.open').forEach(el => el.classList.remove('open'));
+        locFdd.classList.toggle('open');
+      });
+      locFdd.querySelector('.pjf-dd-panel').addEventListener('change', () => {
+        _pjf.locations = Array.from(locFdd.querySelectorAll('input:checked')).map(el => el.value);
+        locChip.textContent = _pjf.locations.length ? '📍 ' + _pjf.locations.length + ' location' + (_pjf.locations.length > 1 ? 's' : '') : '📍 Location';
+        locChip.classList.toggle('pjf-chip-active', _pjf.locations.length > 0);
+        _pjfVisible = PJF_PAGE;
+        _renderPjf();
+      });
+    }
+
+    // Single-select dropdowns
+    const SINGLE_DDS = [
+      { id:'pfdd-type', chipId:'pfchip-type', fKey:'jobTypes', defaultLabel:'Job Type', toVal: v => v ? [v] : [] },
+      { id:'pfdd-exp', chipId:'pfchip-exp', fKey:'expBand', defaultLabel:'Experience', toVal: v => v },
+      { id:'pfdd-sal', chipId:'pfchip-sal', fKey:'salBand', defaultLabel:'Salary', toVal: v => v },
+      { id:'pfdd-rec', chipId:'pfchip-rec', fKey:'recency', defaultLabel:'Any time', toVal: v => v || 'any' },
+      { id:'pfdd-match', chipId:'pfchip-match',
