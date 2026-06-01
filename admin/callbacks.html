@@ -59,18 +59,28 @@ select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78
 <div class="toast" id="toast"></div>
 <script>
   if(!sessionStorage.getItem('ht_admin')){window.location.href='/admin/index.html';}
-  const BASE='https://pdjnpqyzayidthpfmvjk.supabase.co/rest/v1';
-  const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
-  const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
   let cbs=[],execs=[];
 
+  // Service-role admin API — callback_requests is RLS-protected (PII), so it can't
+  // be read with the browser anon key. Auth via the token from admin login.
+  async function adminApi(action, payload){
+    const token=sessionStorage.getItem('ht_admin_token')||'';
+    const r=await fetch('/api/admin?action='+action,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-token':token},
+      body:JSON.stringify(payload||{})
+    });
+    return r.json();
+  }
+
   async function load(){
-    const [r1,r2]=await Promise.all([
-      fetch(BASE+'/callback_requests?order=created_at.desc',{headers:H}),
-      fetch(BASE+'/executives?select=id,name&order=created_at.asc',{headers:H})
-    ]);
-    cbs=await r1.json();
-    execs=await r2.json();
+    const r=await adminApi('callbacks');
+    if(!r.ok){
+      document.getElementById('tbl').innerHTML='<div class="empty">'+(r.error==='Unauthorized'?'Admin API token missing — log out and log in again.':'Failed to load callbacks.')+'</div>';
+      return;
+    }
+    cbs=r.callbacks||[];
+    execs=r.executives||[];
     document.getElementById('count').textContent=cbs.length+' total requests';
     render(cbs);
   }
@@ -101,10 +111,8 @@ select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78
   }
 
   async function reassign(id,execId){
-    await fetch(BASE+'/callback_requests?id=eq.'+id,{
-      method:'PATCH',headers:{...H,'Prefer':'return=minimal'},
-      body:JSON.stringify({assigned_to:execId||null,assigned_at:new Date().toISOString()})
-    });
+    const r=await adminApi('callback-update',{id,patch:{assigned_to:execId||null,assigned_at:new Date().toISOString()}});
+    if(!r.ok){toast('Reassign failed.');return;}
     toast('Reassigned!'); load();
   }
 

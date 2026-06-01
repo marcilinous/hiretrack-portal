@@ -237,6 +237,18 @@
     installSbRestShim(sb, { url: SUPABASE_URL, anonKey: SUPABASE_KEY, storageKey: 'sb-pdjnpqyzayidthpfmvjk-auth-token' });
   }
 
+  // Service-role admin API — for RLS-protected tables (executives, callback_requests)
+  // that the browser anon key cannot read/write. Auth via the token from admin login.
+  async function adminApi(action, payload) {
+    const token = sessionStorage.getItem('ht_admin_token') || '';
+    const r = await fetch('/api/admin?action=' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      body: JSON.stringify(payload || {}),
+    });
+    return r.json();
+  }
+
   // ── DATA HELPERS ──
   async function getCandidates() {
     const { data } = await sb.from('candidates').select('id,name,email,city,experience,skills,created_at,pro_expires_at').order('created_at',{ascending:false}).limit(200);
@@ -471,40 +483,42 @@
   }
 
   async function renderExecutivesTable() {
-    const { data: executives } = await sb.from('executives').select('*').order('created_at', { ascending: false });
     const tbody = document.getElementById('exec-table');
-    if (!executives?.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No executives registered yet</td></tr>`; return; }
-    const rows = await Promise.all(executives.map(async e => {
-      const [{ data: referrals }, { data: callbacks }, { data: jobs }] = await Promise.all([
-        sb.from('employers').select('id').eq('referred_by', e.id),
-        sb.from('callback_requests').select('id').eq('assigned_to', e.id),
-        sb.from('jobs').select('id').eq('posted_by_executive', e.id)
-      ]);
-      return `<tr>
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+    const r = await adminApi('executives');
+    if (!r.ok) {
+      tbody.innerHTML = `<tr><td colspan="8" class="empty">${r.error === 'Unauthorized'
+        ? 'Admin API token missing — please log out and log in again.'
+        : 'Failed to load executives.'}</td></tr>`;
+      return;
+    }
+    const executives = r.executives || [];
+    if (!executives.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No executives registered yet</td></tr>`; return; }
+    tbody.innerHTML = executives.map(e => `<tr>
         <td><strong>${e.name}</strong></td>
         <td>${e.email}</td>
         <td>${e.mobile}</td>
-        <td><span class="badge badge-blue">${referrals?.length||0} referrals</span></td>
-        <td><span class="badge badge-orange">${callbacks?.length||0} callbacks</span></td>
-        <td><span class="badge badge-green">${jobs?.length||0} jobs</span></td>
+        <td><span class="badge badge-blue">${e.referral_count||0} referrals</span></td>
+        <td><span class="badge badge-orange">${e.callback_count||0} callbacks</span></td>
+        <td><span class="badge badge-green">${e.job_count||0} jobs</span></td>
         <td><span class="badge ${e.is_active!==false?'badge-green':'badge-red'}">${e.is_active!==false?'Active':'Inactive'}</span></td>
         <td style="display:flex;gap:6px;">
           <button class="btn-sm ${e.is_active!==false?'btn-reject':'btn-approve'}" onclick="toggleExecStatus('${e.id}',${e.is_active===false})">${e.is_active!==false?'Deactivate':'Activate'}</button>
           <button class="btn-sm btn-delete" onclick="deleteExec('${e.id}')">Delete</button>
         </td>
-      </tr>`;
-    }));
-    tbody.innerHTML = rows.join('');
+      </tr>`).join('');
   }
 
   async function toggleExecStatus(id, activate) {
-    await sb.from('executives').update({ is_active: activate }).eq('id', id);
+    const r = await adminApi('executive-update', { id, patch: { is_active: activate } });
+    if (!r.ok) { toast('Update failed.'); return; }
     toast(activate?'Executive activated!':'Executive deactivated!'); renderExecutivesTable();
   }
 
   async function deleteExec(id) {
     if (!confirm('Delete this executive? This cannot be undone.')) return;
-    await sb.from('executives').delete().eq('id', id);
+    const r = await adminApi('executive-delete', { id });
+    if (!r.ok) { toast('Delete failed.'); return; }
     toast('Executive deleted!'); renderExecutivesTable();
   }
 

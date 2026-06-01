@@ -51,7 +51,7 @@
   }
 
   // Define login function
-  function doLogin() {
+  async function doLogin() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const err = document.getElementById('err');
@@ -62,9 +62,23 @@
       err.style.display = 'block';
       return;
     }
-    
+
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       sessionStorage.setItem('ht_admin', 'true');
+      // Best-effort: obtain a service-role API token so the dashboard can read
+      // RLS-protected tables (executives, callback_requests). This succeeds only
+      // when the Vercel env ADMIN_SECRET equals the password entered here. If it
+      // fails, the dashboard still loads — those two sections just show a notice.
+      try {
+        const r = await fetch('/api/admin?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const d = await r.json();
+        if (d && d.ok && d.token) sessionStorage.setItem('ht_admin_token', d.token);
+        else sessionStorage.removeItem('ht_admin_token');
+      } catch (e) { /* offline / API down — proceed without token */ }
       window.location.href = '/admin/dashboard.html';
     } else {
       err.textContent = 'Invalid email or password.';

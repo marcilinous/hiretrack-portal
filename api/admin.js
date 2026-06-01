@@ -48,6 +48,11 @@ export default async function handler(req, res) {
       case 'candidates': return await getCandidates(req, res, body);
       case 'delist':  return await delistJob(req, res, body);
       case 'relist':  return await relistJob(req, res, body);
+      case 'executives':        return await getExecutives(req, res);
+      case 'callbacks':         return await getCallbacks(req, res);
+      case 'callback-update':   return await updateCallbackRow(req, res, body);
+      case 'executive-update':  return await updateExecutiveRow(req, res, body);
+      case 'executive-delete':  return await deleteExecutiveRow(req, res, body);
       default:
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
@@ -195,5 +200,77 @@ async function relistJob(req, res, body) {
     body: JSON.stringify({ delisted: false }),
   });
 
+  return res.json({ ok: r.ok });
+}
+
+// ── Executives & Callbacks (RLS-protected — must use the service role) ──
+
+async function getExecutives(req, res) {
+  const executives = await sbQuery('executives?select=*&order=created_at.desc');
+  const list = Array.isArray(executives) ? executives : [];
+  let referrals = [], callbacks = [], jobs = [];
+  const ids = list.map(e => e.id).filter(Boolean);
+  if (ids.length) {
+    const inList = `(${ids.join(',')})`;
+    [referrals, callbacks, jobs] = await Promise.all([
+      sbQuery(`employers?select=referred_by&referred_by=in.${inList}`),
+      sbQuery(`callback_requests?select=assigned_to&assigned_to=in.${inList}`),
+      sbQuery(`jobs?select=posted_by_executive&posted_by_executive=in.${inList}`),
+    ]);
+  }
+  const countBy = (arr, key, id) => (Array.isArray(arr) ? arr.filter(x => x[key] === id).length : 0);
+  return res.json({
+    ok: true,
+    executives: list.map(e => ({
+      ...e,
+      referral_count: countBy(referrals, 'referred_by', e.id),
+      callback_count: countBy(callbacks, 'assigned_to', e.id),
+      job_count:      countBy(jobs, 'posted_by_executive', e.id),
+    })),
+  });
+}
+
+async function getCallbacks(req, res) {
+  const [callbacks, executives] = await Promise.all([
+    sbQuery('callback_requests?select=*&order=created_at.desc'),
+    sbQuery('executives?select=id,name&order=created_at.asc'),
+  ]);
+  return res.json({
+    ok: true,
+    callbacks:  Array.isArray(callbacks)  ? callbacks  : [],
+    executives: Array.isArray(executives) ? executives : [],
+  });
+}
+
+async function updateCallbackRow(req, res, body) {
+  const { id, patch } = body || {};
+  if (!id || !patch) return res.status(400).json({ ok: false, error: 'id and patch required' });
+  const allowed = {};
+  ['assigned_to', 'assigned_at', 'status'].forEach(k => { if (k in patch) allowed[k] = patch[k]; });
+  if (!Object.keys(allowed).length) return res.status(400).json({ ok: false, error: 'no allowed fields' });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/callback_requests?id=eq.${id}`, {
+    method: 'PATCH', headers: sbHeaders(), body: JSON.stringify(allowed),
+  });
+  return res.json({ ok: r.ok });
+}
+
+async function updateExecutiveRow(req, res, body) {
+  const { id, patch } = body || {};
+  if (!id || !patch) return res.status(400).json({ ok: false, error: 'id and patch required' });
+  const allowed = {};
+  ['is_active'].forEach(k => { if (k in patch) allowed[k] = patch[k]; });
+  if (!Object.keys(allowed).length) return res.status(400).json({ ok: false, error: 'no allowed fields' });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/executives?id=eq.${id}`, {
+    method: 'PATCH', headers: sbHeaders(), body: JSON.stringify(allowed),
+  });
+  return res.json({ ok: r.ok });
+}
+
+async function deleteExecutiveRow(req, res, body) {
+  const { id } = body || {};
+  if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/executives?id=eq.${id}`, {
+    method: 'DELETE', headers: sbHeaders(),
+  });
   return res.json({ ok: r.ok });
 }
