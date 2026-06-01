@@ -26,12 +26,6 @@ body { padding-top:50px !important; }
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
 
-/* ── Cards ── */
-.card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; margin-bottom:1rem; }
-.card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
-.card-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
-.card-hd h3 { margin-bottom:0; }
-
 /* ── Profile Jobs Filter Bar ── */
 .pjf-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:0.5rem; align-items:flex-start; }
 .pjf-kw { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.45rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
@@ -80,7 +74,6 @@ body { padding-top:50px !important; }
 @media(max-width:768px) {
   .pjf-kw, .pjf-chips { display:none !important; }
   .pjf-mobile-btn { display:inline-flex; }
-  .notif-popover { width:calc(100% - 2rem); left:1rem; right:1rem; border-radius:0 0 14px 14px; }
 }
 </style>
 </head>
@@ -92,9 +85,6 @@ body { padding-top:50px !important; }
   <a href="/profile.html" class="tb-brand">Hire<span>Track</span></a>
   <button class="tb-bell" id="bell-btn" onclick="toggleNotifPanel()" aria-label="Notifications">🔔</button>
 </div>
-
-<!-- Notification Backdrop -->
-<div class="notif-backdrop" id="notif-backdrop" onclick="closeNotifPanel()"></div>
 
 <!-- Notification Popover -->
 <div class="notif-popover" id="notif-popover">
@@ -329,6 +319,10 @@ body { padding-top:50px !important; }
       const appMap = await BrowseJobs.fetchApplicationStatuses(candidate.id);
       const saved = await sb.from('saved_jobs').select('job_id').eq('candidate_id', candidate.id);
       const savedIds = new Set((saved.data || []).map(x => x.job_id));
+
+      console.log('Jobs loaded:', jobs.length);
+      console.log('Application statuses:', appMap);
+      console.log('Saved jobs:', savedIds);
 
       if (!jobs || jobs.length === 0) {
         container.innerHTML = '<div style="padding:3rem;text-align:center;color:#94a3b8;">No jobs found matching your profile.</div>';
