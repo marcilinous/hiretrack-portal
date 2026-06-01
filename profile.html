@@ -2406,8 +2406,12 @@ body { padding-top:50px !important; }
     renderSkillCategories();
     renderIndustryCategories();
     _initPjfFilters();
-    freshSync().then(() => init());
     route(location.hash || '#jobs');
+    // Wait for Supabase to confirm the auth session (handles JWT refresh)
+    // before running any queries that require auth.uid() to match RLS policies.
+    sb.auth.getSession().then(() => {
+      freshSync().then(() => init());
+    });
   }
 
   // ════════════════════════════════════════════

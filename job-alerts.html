@@ -319,7 +319,7 @@ async function saveAlertPreference() {
   showToastJA(enabled ? '🔔 Alerts ON' : '🔕 Alerts paused');
 }
 
-init();
+sb.auth.getSession().then(() => init());
 </script>
 
 <footer class="ht-footer">
