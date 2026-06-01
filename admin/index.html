@@ -30,9 +30,6 @@
 
   <div class="err" id="err"></div>
 
-  <label>Admin Email</label>
-  <input type="email" id="email" placeholder="admin@hiretrack.co.in" />
-
   <label>Password</label>
   <input type="password" id="password" placeholder="Enter admin password" />
 
@@ -41,48 +38,49 @@
 </div>
 
 <script>
-  // Admin credentials — change these to your own
-  const ADMIN_EMAIL = 'admin@hiretrack.co.in';
-  const ADMIN_PASSWORD = 'HireTrack@Admin2025';
+  // Login is verified server-side against ADMIN_SECRET via /api/admin (no
+  // password in client source). A successful login returns the service-role
+  // API token, which the dashboard/callbacks pages use for RLS-protected reads.
 
-  // Redirect if already logged in
-  if (sessionStorage.getItem('ht_admin')) {
+  // Redirect if already logged in (must hold a real API token, not just a flag)
+  if (sessionStorage.getItem('ht_admin_token')) {
     window.location.href = '/admin/dashboard.html';
   }
 
-  // Define login function
   async function doLogin() {
-    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const err = document.getElementById('err');
     err.style.display = 'none';
 
-    if (!email || !password) {
-      err.textContent = 'Please enter email and password.';
+    if (!password) {
+      err.textContent = 'Please enter the admin password.';
       err.style.display = 'block';
       return;
     }
 
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('ht_admin', 'true');
-      // Best-effort: obtain a service-role API token so the dashboard can read
-      // RLS-protected tables (executives, callback_requests). This succeeds only
-      // when the Vercel env ADMIN_SECRET equals the password entered here. If it
-      // fails, the dashboard still loads — those two sections just show a notice.
-      try {
-        const r = await fetch('/api/admin?action=login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password }),
-        });
-        const d = await r.json();
-        if (d && d.ok && d.token) sessionStorage.setItem('ht_admin_token', d.token);
-        else sessionStorage.removeItem('ht_admin_token');
-      } catch (e) { /* offline / API down — proceed without token */ }
-      window.location.href = '/admin/dashboard.html';
-    } else {
-      err.textContent = 'Invalid email or password.';
+    const btn = document.getElementById('login-btn');
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    try {
+      const r = await fetch('/api/admin?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d && d.ok && d.token) {
+        sessionStorage.setItem('ht_admin', 'true');
+        sessionStorage.setItem('ht_admin_token', d.token);
+        window.location.href = '/admin/dashboard.html';
+        return;
+      }
+      err.textContent = (d && d.error) ? d.error : 'Invalid password.';
       err.style.display = 'block';
+    } catch (e) {
+      err.textContent = 'Login service unavailable. Please try again.';
+      err.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = original;
     }
   }
 

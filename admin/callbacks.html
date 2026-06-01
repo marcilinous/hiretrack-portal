@@ -43,7 +43,7 @@ select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78
     <a href="/admin/dashboard.html">Overview</a>
     <a href="/admin/callbacks.html" class="active">📞 Callbacks</a>
     <a href="/admin/executives.html">🎯 Executives</a>
-    <a href="#" onclick="sessionStorage.removeItem('ht_admin');window.location.href='/admin/index.html'">Logout</a>
+    <a href="#" onclick="sessionStorage.removeItem('ht_admin');sessionStorage.removeItem('ht_admin_token');window.location.href='/admin/index.html'">Logout</a>
   </div>
 </div>
 <div class="wrap">
@@ -58,7 +58,7 @@ select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78
 </div>
 <div class="toast" id="toast"></div>
 <script>
-  if(!sessionStorage.getItem('ht_admin')){window.location.href='/admin/index.html';}
+  if(!sessionStorage.getItem('ht_admin_token')){window.location.href='/admin/index.html';}
   let cbs=[],execs=[];
 
   // Service-role admin API — callback_requests is RLS-protected (PII), so it can't
