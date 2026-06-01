@@ -69,7 +69,18 @@ try {
       auth: {
         storage: safeLocalStorage,
         persistSession: true,
-        detectSessionInUrl: true
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'sb-pdjnpqyzayidthpfmvjk-auth-token',
+        // ── navigator LockManager deadlock fix ──
+        // supabase-js wraps getSession() (and the token lookup before every query)
+        // in navigator.locks.request(). In some browsers / in-app webviews that lock
+        // is never granted, so getSession() — and everything that awaits it — hangs
+        // forever, even though the JWT is valid in localStorage. This pass-through
+        // lock runs the callback immediately without touching navigator.locks,
+        // resolving the deadlock while leaving session persistence and auto-refresh
+        // fully intact.
+        lock: async (_name, _acquireTimeout, fn) => await fn()
       }
     });
   } else {

@@ -221,7 +221,14 @@
 
   const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkam5wcXl6YXlpZHRocGZtdmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTY4NDgsImV4cCI6MjA5MjU5Mjg0OH0.h0R_BKqPX0GhXS4LBnmkDAVh5ZN91p-qcs2gHrTcSvQ';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      // ── navigator LockManager deadlock fix (see app.js) ──
+      // Pass-through lock so internal getSession()/token lookups never hang on
+      // navigator.locks.request(), which would otherwise stall every query.
+      lock: async (_name, _acquireTimeout, fn) => await fn()
+    }
+  });
 
   // ── DATA HELPERS ──
   async function getCandidates() {

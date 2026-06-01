@@ -739,8 +739,11 @@ body { padding-top:50px !important; }
 <script src="js/feed.js"></script>
 <script src="js/chat.js"></script>
 <script>
-  const candidate = Session.getCandidate();
-  if (!candidate) { window.location.href = 'login.html'; }
+  // `candidate` may be null on a fresh tab (sessionStorage is per-tab) even when a
+  // valid Supabase session exists in localStorage. Don't bounce to login here — the
+  // startup IIFE below confirms the auth session and rehydrates `candidate` from it.
+  // (Kept as `let` so that rehydration can reassign it.)
+  let candidate = Session.getCandidate();
 
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
@@ -2225,8 +2228,8 @@ body { padding-top:50px !important; }
   }
 
   async function profileApplyJob(jid, job) {
-    const { error } = await ApplicationsDB.apply(candidate.id, jid);
-    if (error) throw error;
+    const res = await ApplicationsDB.apply(candidate.id, jid);
+    if (!res.ok) throw new Error(res.msg || 'Failed to apply');
     _pjfAppMap[String(jid)] = 'Applied';
     const newApp = { job_id: jid, status: 'Applied', applied_at: new Date().toISOString() };
     if (job) newApp.jobs = { title: job.title, company: job.company, location: job.location, salary: job.salary };
@@ -2419,7 +2422,7 @@ body { padding-top:50px !important; }
       try {
         const { data: freshCand } = await sb.from('candidates').select('*').eq('id', authUid).maybeSingle();
         if (!freshCand) { window.location.href = '/login.html'; return; }
-        Object.assign(candidate, freshCand);
+        candidate = freshCand;            // reassign (handles the null fresh-tab case)
         Session.setCandidate(candidate);
       } catch(e) { window.location.href = '/login.html'; return; }
     }
