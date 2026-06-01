@@ -115,12 +115,31 @@
 <script src="/js/sb-rest-shim.js"></script>
 <script src="app.js?v=6"></script>
 <script>
-  // Redirect if already logged in
-  if (sessionStorage.getItem('ht_executive')) window.location.href = 'executive-dashboard.html';
+  // Executive auth is verified server-side (/api/exec, service role). The
+  // executives table is RLS-protected and holds credentials, so it is never
+  // queried with the browser anon key. Login/register return a signed token.
+
+  // Redirect if already logged in (must hold a real session token)
+  if (sessionStorage.getItem('ht_exec_token')) window.location.href = 'executive-dashboard.html';
 
   function showStep(id) {
     ['step-choose','step-login','step-register'].forEach(s => document.getElementById(s).style.display = 'none');
     document.getElementById(id).style.display = 'block';
+  }
+
+  async function execApi(action, payload) {
+    const r = await fetch('/api/exec?action=' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+    return r.json().catch(() => ({ ok: false, error: 'Server error. Please try again.' }));
+  }
+
+  function storeSession(d) {
+    sessionStorage.setItem('ht_exec_token', d.token);
+    sessionStorage.setItem('ht_executive', JSON.stringify(d.executive));
+    window.location.href = 'executive-dashboard.html';
   }
 
   async function doLogin() {
@@ -129,10 +148,9 @@
     const errEl = document.getElementById('err-login'); errEl.style.display = 'none';
     if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
     const btn = document.querySelector('#step-login .btn-primary'); btn.textContent = 'Logging in...'; btn.disabled = true;
-    const { data: exec } = await sb.from('executives').select('*').eq('email', email).eq('password', password).maybeSingle();
-    if (!exec) { errEl.textContent = 'Invalid email or password.'; errEl.style.display = 'block'; btn.textContent = 'Login'; btn.disabled = false; return; }
-    sessionStorage.setItem('ht_executive', JSON.stringify(exec));
-    window.location.href = 'executive-dashboard.html';
+    const d = await execApi('login', { email, password });
+    if (!d.ok) { errEl.textContent = d.error || 'Invalid email or password.'; errEl.style.display = 'block'; btn.textContent = 'Login'; btn.disabled = false; return; }
+    storeSession(d);
   }
 
   async function doRegister() {
@@ -149,18 +167,10 @@
     if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
     if (password !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
 
-    // Verify secret code
-    const VALID_SECRET = 'HIRETRACK2025'; // Change this in admin panel later
-    if (secret.toUpperCase() !== VALID_SECRET) { errEl.textContent = 'Invalid secret code. Contact admin.'; errEl.style.display = 'block'; return; }
-
     const btn = document.querySelector('#step-register .btn-primary'); btn.textContent = 'Registering...'; btn.disabled = true;
-    const { data: existing } = await sb.from('executives').select('id').eq('email', email).maybeSingle();
-    if (existing) { errEl.textContent = 'Email already registered.'; errEl.style.display = 'block'; btn.textContent = 'Register as Executive'; btn.disabled = false; return; }
-
-    const { data: exec, error } = await sb.from('executives').insert([{ name, email, mobile, password, secret_code: secret }]).select().single();
-    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; btn.textContent = 'Register as Executive'; btn.disabled = false; return; }
-    sessionStorage.setItem('ht_executive', JSON.stringify(exec));
-    window.location.href = 'executive-dashboard.html';
+    const d = await execApi('register', { name, mobile, email, password, secret });
+    if (!d.ok) { errEl.textContent = d.error || 'Registration failed.'; errEl.style.display = 'block'; btn.textContent = 'Register as Executive'; btn.disabled = false; return; }
+    storeSession(d);
   }
 </script>
 </body>
