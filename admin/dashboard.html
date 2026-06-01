@@ -263,31 +263,10 @@
     return data || [];
   }
   async function getApplications() {
-    // Note: applications uses `applied_at` (not created_at), and job_id is text that
-    // may hold non-UUID demo ids (e.g. "static-1") — so we can't use PostgREST embeds
-    // or pass those ids to a UUID `in` filter. Fetch + join in JS instead.
-    const { data: apps } = await sb.from('applications')
-      .select('id,candidate_id,job_id,status,applied_at')
-      .order('applied_at', { ascending: false }).limit(300);
-    const list = apps || [];
-    if (!list.length) return [];
-
-    const uuidRe = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    const candIds = [...new Set(list.map(a => a.candidate_id).filter(id => id && uuidRe.test(id)))];
-    const jobIds  = [...new Set(list.map(a => a.job_id).filter(id => id && uuidRe.test(id)))];
-
-    const [cands, jobs] = await Promise.all([
-      candIds.length ? sb.from('candidates').select('id,name,email').in('id', candIds).then(r => r.data || []) : Promise.resolve([]),
-      jobIds.length  ? sb.from('jobs').select('id,title,company').in('id', jobIds).then(r => r.data || [])      : Promise.resolve([]),
-    ]);
-    const candMap = new Map(cands.map(c => [String(c.id), c]));
-    const jobMap  = new Map(jobs.map(j => [String(j.id), j]));
-
-    return list.map(a => ({
-      ...a,
-      candidates: candMap.get(String(a.candidate_id)) || null,
-      jobs:       jobMap.get(String(a.job_id)) || null,
-    }));
+    // Read via the service-role API — applications is RLS-protected, so the browser
+    // anon key can't read it once RLS is enforced. The API joins candidate + job.
+    const r = await adminApi('applications');
+    return r.ok ? (r.applications || []) : [];
   }
   async function getAdminSettings() {
     const { data } = await sb.from('admin_settings').select('*').maybeSingle();
@@ -457,7 +436,8 @@
   }
 
   async function updateAppStatus(id, status) {
-    await sb.from('applications').update({ status }).eq('id', id);
+    const r = await adminApi('application-update', { id, status });
+    if (!r.ok) { toast('Update failed.'); return; }
     toast(`Status updated to ${status}`);
   }
 

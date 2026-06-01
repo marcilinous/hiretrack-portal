@@ -48,6 +48,8 @@ export default async function handler(req, res) {
       case 'candidates': return await getCandidates(req, res, body);
       case 'delist':  return await delistJob(req, res, body);
       case 'relist':  return await relistJob(req, res, body);
+      case 'applications':       return await getApplicationsList(req, res);
+      case 'application-update': return await updateApplicationRow(req, res, body);
       case 'executives':        return await getExecutives(req, res);
       case 'callbacks':         return await getCallbacks(req, res);
       case 'callback-update':   return await updateCallbackRow(req, res, body);
@@ -200,6 +202,49 @@ async function relistJob(req, res, body) {
     body: JSON.stringify({ delisted: false }),
   });
 
+  return res.json({ ok: r.ok });
+}
+
+// ── Applications (RLS-protected once enforced — read/write via service role) ──
+
+async function getApplicationsList(req, res) {
+  const apps = await sbQuery('applications?select=id,candidate_id,job_id,status,applied_at&order=applied_at.desc&limit=300');
+  const list = Array.isArray(apps) ? apps : [];
+  if (!list.length) return res.json({ ok: true, applications: [] });
+
+  // job_id is text and may hold non-UUID demo ids (e.g. "static-1"); only query
+  // real UUIDs so the `in` filter doesn't 400.
+  const uuidRe = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  const candIds = [...new Set(list.map(a => a.candidate_id).filter(id => id && uuidRe.test(id)))];
+  const jobIds  = [...new Set(list.map(a => a.job_id).filter(id => id && uuidRe.test(id)))];
+
+  const [cands, jobs] = await Promise.all([
+    candIds.length ? sbQuery(`candidates?select=id,name,email&id=in.(${candIds.join(',')})`) : [],
+    jobIds.length  ? sbQuery(`jobs?select=id,title,company&id=in.(${jobIds.join(',')})`)      : [],
+  ]);
+  const candMap = {}; (Array.isArray(cands) ? cands : []).forEach(c => { candMap[String(c.id)] = c; });
+  const jobMap  = {}; (Array.isArray(jobs)  ? jobs  : []).forEach(j => { jobMap[String(j.id)]  = j; });
+
+  return res.json({
+    ok: true,
+    applications: list.map(a => ({
+      ...a,
+      candidates: candMap[String(a.candidate_id)] || null,
+      jobs:       jobMap[String(a.job_id)] || null,
+    })),
+  });
+}
+
+async function updateApplicationRow(req, res, body) {
+  const { id, status } = body || {};
+  if (!id || !status) return res.status(400).json({ ok: false, error: 'id and status required' });
+  const ALLOWED = ['Applied', 'Viewed', 'Shortlisted', 'Interview', 'Hired', 'Rejected'];
+  if (!ALLOWED.includes(status)) return res.status(400).json({ ok: false, error: 'invalid status' });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/applications?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: sbHeaders(),
+    body: JSON.stringify({ status, status_updated_at: new Date().toISOString() }),
+  });
   return res.json({ ok: r.ok });
 }
 
