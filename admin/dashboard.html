@@ -259,7 +259,7 @@
     return data || [];
   }
   async function getJobs() {
-    const { data } = await sb.from('jobs').select('id,title,company,location,job_type,created_at,expires_at,delisted,employer_id').order('created_at',{ascending:false}).limit(300);
+    const { data } = await sb.from('jobs').select('id,title,company,location,job_type,posted_at,expires_at,delisted,employer_id').order('posted_at',{ascending:false}).limit(300);
     return data || [];
   }
   async function getApplications() {
@@ -350,7 +350,7 @@
         <td>${j.company}</td>
         <td>📍 ${j.location}</td>
         <td><span class="badge ${typeClass[j.job_type]||'badge-gray'}">${j.job_type||'—'}</span></td>
-        <td>${new Date(j.created_at).toLocaleDateString('en-IN')}</td>
+        <td>${j.posted_at ? new Date(j.posted_at).toLocaleDateString('en-IN') : '—'}</td>
         <td><span class="badge ${j.delisted?'badge-red':'badge-green'}">${j.delisted?'Delisted':'Active'}</span></td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn-sm btn-feature" onclick="toggleFeatured('${j.id}')">${isFeatured?'Unfeature':'Feature'}</button>
