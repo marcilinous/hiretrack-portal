@@ -26,6 +26,12 @@ body { padding-top:50px !important; }
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
 
+/* ── Cards ── */
+.card { background:#fff; border-radius:14px; border:1.5px solid #e2e8f0; padding:1.5rem; margin-bottom:1rem; }
+.card h3 { font-size:0.88rem; font-weight:800; color:#0f172a; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.3px; }
+.card-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+.card-hd h3 { margin-bottom:0; }
+
 /* ── Profile Jobs Filter Bar ── */
 .pjf-bar { display:flex; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0; margin-bottom:0.5rem; align-items:flex-start; }
 .pjf-kw { flex:1; min-width:180px; border:1.5px solid #e2e8f0; border-radius:8px; padding:0.45rem 0.75rem; font-size:0.85rem; font-family:inherit; outline:none; }
@@ -276,20 +282,13 @@ body { padding-top:50px !important; }
 <script src="js/chat.js?v=7"></script>
 
 <script>
-  // ── Test if scripts loaded ──
-  console.log('📦 app.js loaded:', typeof Session !== 'undefined');
-  console.log('📦 BrowseJobs loaded:', typeof BrowseJobs !== 'undefined');
-  console.log('📦 sb loaded:', typeof sb !== 'undefined');
-
   // ── Get candidate ──
   const candidate = Session.getCandidate();
   if (!candidate) {
     window.location.href = 'login.html';
-    throw new Error('Not logged in');
   }
-  console.log('👤 Candidate:', candidate.name);
 
-  // ── Route ──
+  // ── Routing ──
   function route() {
     const hash = location.hash || '#jobs';
     document.querySelectorAll('[id^="view-"]').forEach(el => el.style.display = 'none');
@@ -300,6 +299,8 @@ body { padding-top:50px !important; }
       a.classList.toggle('active', a.getAttribute('href') === hash);
     });
     if (target === 'jobs') loadJobs();
+    if (target === 'feed') Feed.init('feed-root', candidate);
+    if (target === 'chat') Chat.init('chat-root', candidate);
     closeDrawer();
   }
 
@@ -324,7 +325,6 @@ body { padding-top:50px !important; }
     container.innerHTML = '<div style="padding:3rem;text-align:center;color:#94a3b8;">Loading jobs…</div>';
 
     try {
-      // Fetch jobs
       const jobs = await BrowseJobs.fetchForCandidate(candidate.id);
       const appMap = await BrowseJobs.fetchApplicationStatuses(candidate.id);
       const saved = await sb.from('saved_jobs').select('job_id').eq('candidate_id', candidate.id);
@@ -335,7 +335,6 @@ body { padding-top:50px !important; }
         return;
       }
 
-      // Render
       BrowseJobs.render(container, jobs, {
         applicationStatusMap: appMap,
         isLoggedIn: true,
