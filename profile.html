@@ -2071,6 +2071,8 @@ body { padding-top:50px !important; }
           if (sk) sk.innerHTML = candidate.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('');
         }
         renderResumeSection();
+        renderSkillCategories();
+        renderProfileScore();
       }
     } catch(e) { console.warn('Fresh sync failed, using session', e); }
   }
