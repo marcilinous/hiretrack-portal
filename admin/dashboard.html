@@ -87,6 +87,7 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/sb-rest-shim.js"></script>
 </head>
 <body>
 
@@ -229,6 +230,12 @@
       lock: async (_name, _acquireTimeout, fn) => await fn()
     }
   });
+  // Route sb.from()/sb.rpc() through the fetch-based REST shim (full auth-lock
+  // bypass — the pass-through lock above is a backstop). Admin uses the anon key
+  // with custom session auth, so the shim falls back to anon, unchanged from before.
+  if (window.installSbRestShim) {
+    installSbRestShim(sb, { url: SUPABASE_URL, anonKey: SUPABASE_KEY, storageKey: 'sb-pdjnpqyzayidthpfmvjk-auth-token' });
+  }
 
   // ── DATA HELPERS ──
   async function getCandidates() {
