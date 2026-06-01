@@ -773,6 +773,13 @@ body { padding-top:50px !important; }
     if (target === 'saved') loadSavedJobs();
     if (target === 'boost') renderBoostView();
 
+    _closePjfSheet();
+
+    const nudge = document.getElementById('profile-nudge');
+    if (nudge && nudge.innerHTML) {
+      nudge.style.display = (target === 'jobs' || target === 'profile') ? 'block' : 'none';
+    }
+
     closeDrawer();
   }
 
