@@ -869,8 +869,9 @@ body { padding-top:50px !important; }
     const el = document.getElementById('saved-list');
     if (!el) return;
     el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading...</div>';
-
-    const { data: rows } = await sb.from('saved_jobs').select('job_id, saved_at').eq('candidate_id', candidate.id).order('saved_at', { ascending: false });
+    try {
+    const { data: rows, error: savedErr } = await sb.from('saved_jobs').select('job_id, saved_at').eq('candidate_id', candidate.id).order('saved_at', { ascending: false });
+    if (savedErr) throw savedErr;
     if (!rows || !rows.length) {
       el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">🔖</div><p>No saved jobs yet.<br><a href="#jobs" style="color:#3b82f6;font-weight:600;" onclick="location.hash=\'#jobs\'">Browse jobs →</a></p></div>';
       return;
@@ -907,6 +908,10 @@ body { padding-top:50px !important; }
         </div>
       </div>`;
     }).join('');
+    } catch(e) {
+      console.error('[HT] loadSavedJobs error:', e);
+      el.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:0.5rem;">🔖</div><p>No saved jobs yet.<br><a href="#jobs" style="color:#3b82f6;font-weight:600;" onclick="location.hash=\'#jobs\'">Browse jobs →</a></p></div>';
+    }
   }
 
   async function unsaveJob(jobId, btn) {
@@ -2407,11 +2412,11 @@ body { padding-top:50px !important; }
     renderIndustryCategories();
     _initPjfFilters();
     route(location.hash || '#jobs');
-    // Wait for Supabase to confirm the auth session (handles JWT refresh)
-    // before running any queries that require auth.uid() to match RLS policies.
-    sb.auth.getSession().then(() => {
-      freshSync().then(() => init());
-    });
+    (async () => {
+      try { await sb.auth.getSession(); } catch(e) {}
+      await freshSync();
+      await init();
+    })();
   }
 
   // ════════════════════════════════════════════

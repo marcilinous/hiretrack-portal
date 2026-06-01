@@ -205,7 +205,7 @@ let allNotifs = [];
 
 if (candidate) {
   (async function load() {
-    await sb.auth.getSession();
+    try { await sb.auth.getSession(); } catch(e) {}
     const { data, error } = await sb
       .from('notifications')
       .select('*')
