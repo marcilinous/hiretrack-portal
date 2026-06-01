@@ -2406,23 +2406,33 @@ body { padding-top:50px !important; }
   }
 
   // ── Startup ──
-  if (candidate) {
+  (async () => {
+    // 1. Confirm Supabase auth session. If missing/expired → login.
+    let session = null;
+    try { const r = await sb.auth.getSession(); session = r?.data?.session; } catch(e) {}
+    if (!session) { window.location.href = '/login.html'; return; }
+
+    // 2. If sessionStorage candidate.id doesn't match auth user (e.g. stale
+    //    session after a DB migration), re-fetch the correct candidate row.
+    const authUid = session.user.id;
+    if (!candidate || String(candidate.id) !== String(authUid)) {
+      try {
+        const { data: freshCand } = await sb.from('candidates').select('*').eq('id', authUid).maybeSingle();
+        if (!freshCand) { window.location.href = '/login.html'; return; }
+        Object.assign(candidate, freshCand);
+        Session.setCandidate(candidate);
+      } catch(e) { window.location.href = '/login.html'; return; }
+    }
+
+    // 3. Auth confirmed, candidate.id === auth.uid() — safe to render and query.
     syncDrawer(candidate);
     renderSkillCategories();
     renderIndustryCategories();
     _initPjfFilters();
-    (async () => {
-      // Confirm Supabase session before making any auth-gated queries.
-      // If session is missing or expired, send to login so the user gets
-      // a fresh JWT — without it all RLS-protected views return empty.
-      let session = null;
-      try { const r = await sb.auth.getSession(); session = r?.data?.session; } catch(e) {}
-      if (!session) { window.location.href = '/login.html'; return; }
-      route(location.hash || '#jobs');
-      await freshSync();
-      await init();
-    })();
-  }
+    route(location.hash || '#jobs');
+    await freshSync();
+    await init();
+  })();
 
   // ════════════════════════════════════════════
   // EDIT PROFILE MODAL
