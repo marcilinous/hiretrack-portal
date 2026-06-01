@@ -1,4 +1,4 @@
-const CACHE = 'hiretrack-v6';
+const CACHE = 'hiretrack-v7';
 
 const SHELL = [
   '/index.html',
