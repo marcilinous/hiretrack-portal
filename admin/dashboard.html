@@ -263,8 +263,31 @@
     return data || [];
   }
   async function getApplications() {
-    const { data } = await sb.from('applications').select('id,candidate_id,job_id,status,created_at,candidates(name,email),jobs(title,company)').order('created_at',{ascending:false}).limit(300);
-    return data || [];
+    // Note: applications uses `applied_at` (not created_at), and job_id is text that
+    // may hold non-UUID demo ids (e.g. "static-1") — so we can't use PostgREST embeds
+    // or pass those ids to a UUID `in` filter. Fetch + join in JS instead.
+    const { data: apps } = await sb.from('applications')
+      .select('id,candidate_id,job_id,status,applied_at')
+      .order('applied_at', { ascending: false }).limit(300);
+    const list = apps || [];
+    if (!list.length) return [];
+
+    const uuidRe = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    const candIds = [...new Set(list.map(a => a.candidate_id).filter(id => id && uuidRe.test(id)))];
+    const jobIds  = [...new Set(list.map(a => a.job_id).filter(id => id && uuidRe.test(id)))];
+
+    const [cands, jobs] = await Promise.all([
+      candIds.length ? sb.from('candidates').select('id,name,email').in('id', candIds).then(r => r.data || []) : Promise.resolve([]),
+      jobIds.length  ? sb.from('jobs').select('id,title,company').in('id', jobIds).then(r => r.data || [])      : Promise.resolve([]),
+    ]);
+    const candMap = new Map(cands.map(c => [String(c.id), c]));
+    const jobMap  = new Map(jobs.map(j => [String(j.id), j]));
+
+    return list.map(a => ({
+      ...a,
+      candidates: candMap.get(String(a.candidate_id)) || null,
+      jobs:       jobMap.get(String(a.job_id)) || null,
+    }));
   }
   async function getAdminSettings() {
     const { data } = await sb.from('admin_settings').select('*').maybeSingle();
@@ -300,7 +323,7 @@
     const activities = [
       ...candidates.slice(0, 3).map(c => ({ color:'#3b82f6', text:`New candidate: ${c.name}${c.city?' from '+c.city:''}`, time: new Date(c.created_at).toLocaleDateString('en-IN') })),
       ...employers.slice(0, 2).map(e => ({ color:'#22c55e', text:`New employer: ${e.company}`, time: new Date(e.created_at).toLocaleDateString('en-IN') })),
-      ...apps.slice(0, 3).map(a => ({ color:'#f97316', text:`${a.candidates?.name||'Candidate'} applied to ${a.jobs?.title||'a job'}`, time: new Date(a.created_at).toLocaleDateString('en-IN') })),
+      ...apps.slice(0, 3).map(a => ({ color:'#f97316', text:`${a.candidates?.name||'Candidate'} applied to ${a.jobs?.title||'a job'}`, time: a.applied_at ? new Date(a.applied_at).toLocaleDateString('en-IN') : '' })),
     ].slice(0, 8);
 
     const list = document.getElementById('activity-list');
@@ -423,7 +446,7 @@
       <td><strong>${a.candidates?.name||'Unknown'}</strong><br><span style="color:#94a3b8;font-size:0.75rem;">${a.candidates?.email||''}</span></td>
       <td>${a.jobs?.title||'—'}</td>
       <td>${a.jobs?.company||'—'}</td>
-      <td>${new Date(a.created_at).toLocaleDateString('en-IN')}</td>
+      <td>${a.applied_at ? new Date(a.applied_at).toLocaleDateString('en-IN') : '—'}</td>
       <td><span class="badge ${statusClass[a.status]||'badge-gray'}">${a.status||'—'}</span></td>
       <td>
         <select onchange="updateAppStatus('${a.id}',this.value)" style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78rem;outline:none;font-family:inherit;">
