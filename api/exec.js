@@ -101,6 +101,10 @@ export default async function handler(req, res) {
       case 'callback-convert': return await convertCallback(req, res, body);
       case 'reminders':        return await getReminders(req, res);
       case 'reminder-done':    return await markReminderDone(req, res, body);
+      case 'pipeline':            return await getPipeline(req, res);
+      case 'payment-link-create': return await createPaymentLink(req, res, body);
+      case 'referral-mark-paid':  return await markReferralPaid(req, res, body);
+      case 'referral-post-job':   return await postJobForReferral(req, res, body);
       case 'post-job':         return await postJob(req, res, body);
       default:         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
@@ -320,6 +324,149 @@ async function markReminderDone(req, res, body) {
     method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ is_done: true }),
   });
   return res.json({ ok: r.ok });
+}
+
+// ── Pipeline (Workflow 1): payment links, mark-paid, post-job-for-referral ──
+
+// Load + verify a referral belongs to the caller.
+async function ownReferral(req, referralId) {
+  const auth = authExec(req);
+  if (!auth) return { error: 401 };
+  const r = await sbGet(`employer_referrals?select=*&id=eq.${referralId}&limit=1`);
+  const ref = Array.isArray(r.data) ? r.data[0] : null;
+  if (!ref) return { error: 404 };
+  if (ref.executive_id !== auth.exec_id) return { error: 403 };
+  return { auth, ref };
+}
+
+async function getPipeline(req, res) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const r = await sbGet(`employer_referrals?select=*&executive_id=eq.${auth.exec_id}&order=created_at.desc`);
+  return res.json({ ok: true, pipeline: Array.isArray(r.data) ? r.data : [] });
+}
+
+async function createPaymentLink(req, res, body) {
+  const { referral_id, amount, validity_days } = body || {};
+  if (!referral_id || amount == null || validity_days == null) return res.status(400).json({ ok: false, error: 'referral, amount and validity required' });
+  const amt = Number(amount), days = Number(validity_days);
+  if (!(amt > 0)) return res.status(400).json({ ok: false, error: 'Enter a valid amount.' });
+  if (![7, 15, 30, 60, 90].includes(days)) return res.status(400).json({ ok: false, error: 'Invalid validity.' });
+
+  const o = await ownReferral(req, referral_id);
+  if (o.error) return res.status(o.error).json({ ok: false, error: o.error === 403 ? 'Not your referral.' : 'Unauthorized' });
+
+  const slug = crypto.randomBytes(9).toString('base64url');
+  const pr = await fetch(`${SUPABASE_URL}/rest/v1/payment_links`, {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({ slug, executive_id: o.auth.exec_id, referral_id, amount: amt, validity_days: days }),
+  });
+  if (!pr.ok) { const t = await pr.text(); let d = null; try { d = JSON.parse(t); } catch {} return res.status(500).json({ ok: false, error: (d && d.message) || 'Could not create link.' }); }
+
+  // Remember the quoted amount/validity on the referral for Mark-as-Paid.
+  await fetch(`${SUPABASE_URL}/rest/v1/employer_referrals?id=eq.${referral_id}`, {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ amount: amt, validity_days: days }),
+  }).catch(() => {});
+
+  return res.json({ ok: true, slug, url: `https://hiretrack.co.in/pay/${slug}` });
+}
+
+async function markReferralPaid(req, res, body) {
+  const { referral_id } = body || {};
+  if (!referral_id) return res.status(400).json({ ok: false, error: 'referral_id required' });
+  const o = await ownReferral(req, referral_id);
+  if (o.error) return res.status(o.error).json({ ok: false, error: o.error === 403 ? 'Not your referral.' : 'Unauthorized' });
+  const { auth, ref } = o;
+
+  const days = Number(body.validity_days) || ref.validity_days || 30;
+  const start = new Date();
+  const end = new Date(); end.setDate(end.getDate() + days);
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/employer_referrals?id=eq.${referral_id}`, {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({ is_paid: true, status: 'plan_active', plan_start: start.toISOString(), plan_end: end.toISOString(), validity_days: days }),
+  });
+  if (!r.ok) return res.json({ ok: false, error: 'Update failed.' });
+
+  // Plan-expiry follow-up reminder, 2 days before expiry.
+  const remind = new Date(end); remind.setDate(remind.getDate() - 2);
+  const who = ref.company || ref.name || 'employer';
+  await createReminder(auth.exec_id, 'plan_expiry', `Follow up with ${who} — plan expires in 2 days`, remind.toISOString(), referral_id);
+  // Settle any open payment links for this referral.
+  await fetch(`${SUPABASE_URL}/rest/v1/payment_links?referral_id=eq.${referral_id}&is_paid=eq.false`, {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ is_paid: true, paid_at: new Date().toISOString() }),
+  }).catch(() => {});
+
+  return res.json({ ok: true, plan_end: end.toISOString() });
+}
+
+// Create (or find) a real employer auth account — used when posting a job for a
+// referral that has no linked employer yet. Mirrors postJob's account creation.
+async function ensureEmployerAccount({ email, mobile, company, contact, city, execId }) {
+  const found = await sbGet(`employers?select=id&email=ilike.${encodeURIComponent(email)}&limit=1`);
+  if (Array.isArray(found.data) && found.data.length) return { id: found.data[0].id };
+
+  const au = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: { apikey: process.env.SUPABASE_SERVICE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: mobile, email_confirm: true, user_metadata: { role: 'employer', company, contact_name: contact, mobile, city: city || '', industry: 'Other' } }),
+  });
+  const at = await au.text(); let ad = null; try { ad = JSON.parse(at); } catch {}
+  if (!au.ok) {
+    const msg = (ad && (ad.msg || ad.message || ad.error_description || ad.error)) || 'Could not create employer account.';
+    const taken = /already|registered|exists/i.test(msg);
+    return { error: taken ? 'An account with this email already exists — ask them to log in, or use a different email.' : msg, status: taken ? 409 : 500 };
+  }
+  const uid = ad.id || (ad.user && ad.user.id);
+  if (!uid) return { error: 'Account creation returned no id.', status: 500 };
+
+  const trial = new Date(); trial.setDate(trial.getDate() + 7);
+  const fields = { company, contact_name: contact, mobile, city: city || '', industry: 'Other', plan: 'free', job_limit: 1, day_limit: 7, referred_by: execId, is_free_trial: true, free_trial_expires_at: trial.toISOString() };
+  const pr = await fetch(`${SUPABASE_URL}/rest/v1/employers?id=eq.${uid}`, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(fields) });
+  let pd = null; { const t = await pr.text(); try { pd = JSON.parse(t); } catch {} }
+  if (pr.ok && !(Array.isArray(pd) ? pd[0] : pd)) {
+    await fetch(`${SUPABASE_URL}/rest/v1/employers`, { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ id: uid, email, ...fields }) }).catch(() => {});
+  }
+  return { id: uid };
+}
+
+async function postJobForReferral(req, res, body) {
+  const b = body || {};
+  if (!b.referral_id) return res.status(400).json({ ok: false, error: 'referral_id required' });
+  const o = await ownReferral(req, b.referral_id);
+  if (o.error) return res.status(o.error).json({ ok: false, error: o.error === 403 ? 'Not your referral.' : 'Unauthorized' });
+  const { auth, ref } = o;
+
+  const f = (k) => (b[k] || '').trim();
+  const title = f('title'), location = f('location'), salary = f('salary'), description = f('description');
+  const jobType = f('jobType') || 'Full Time', skills = f('skills');
+  const company = ref.company || f('company') || '';
+  const mobile = ref.phone || f('mobile') || '';
+  const phone = f('phone') || mobile;
+  const email = (f('email') || ref.email || '').trim();
+  const contact = f('contact') || ref.name || 'Employer';
+
+  if (!title || !location || !description) return res.status(400).json({ ok: false, error: 'Job title, location and description are required.' });
+
+  let employerId = ref.employer_id;
+  if (!employerId) {
+    if (!email) return res.status(400).json({ ok: false, error: 'Employer email is required to create their account.' });
+    if (!/^\d{10}$/.test(mobile)) return res.status(400).json({ ok: false, error: 'A valid 10-digit employer mobile is required.' });
+    const acct = await ensureEmployerAccount({ email, mobile, company, contact, execId: auth.exec_id });
+    if (acct.error) return res.status(acct.status || 500).json({ ok: false, error: acct.error });
+    employerId = acct.id;
+    await fetch(`${SUPABASE_URL}/rest/v1/employer_referrals?id=eq.${b.referral_id}`, {
+      method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ employer_id: employerId, email }),
+    }).catch(() => {});
+  }
+
+  // Job runs to the plan end if the plan is active, else a 7-day trial.
+  const expiry = (ref.plan_end && new Date(ref.plan_end) > new Date()) ? new Date(ref.plan_end) : (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d; })();
+  const jr = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({ employer_id: employerId, title, company, location, job_type: jobType, salary, skills, phone, description, email, expires_at: expiry.toISOString(), posted_by_executive: auth.exec_id }),
+  });
+  if (!jr.ok) { const t = await jr.text(); let d = null; try { d = JSON.parse(t); } catch {} return res.status(500).json({ ok: false, error: (d && d.message) || 'Failed to post job.' }); }
+  return res.json({ ok: true });
 }
 
 async function postJob(req, res, body) {

@@ -49,6 +49,16 @@
 .rem-row.overdue .rem-due { color:#dc2626; font-weight:700; }
 .rem-done { background:#dcfce7; color:#15803d; border:none; border-radius:7px; padding:6px 12px; font-size:0.74rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
 .tab-badge { display:inline-block; background:#dc2626; color:#fff; border-radius:20px; font-size:0.66rem; font-weight:800; padding:1px 7px; margin-left:5px; }
+.status-lead { background:#f1f5f9; color:#64748b; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.status-plan_active { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.pl-act { border:none; border-radius:8px; padding:6px 12px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.pl-act-link { background:#eef2ff; color:#4f46e5; }
+.pl-act-paid { background:#dcfce7; color:#15803d; }
+.pl-act-job { background:#2563eb; color:#fff; }
+.pl-modal-bg { position:fixed; inset:0; background:rgba(15,23,42,0.55); display:none; align-items:center; justify-content:center; z-index:1000; padding:1rem; }
+.pl-modal-bg.open { display:flex; }
+.pl-modal { background:#fff; border-radius:16px; padding:1.5rem; max-width:460px; width:100%; max-height:90vh; overflow:auto; }
+.pl-modal h3 { font-size:1.05rem; font-weight:800; margin-bottom:1rem; }
 @media(max-width:768px) { .exec-stats { grid-template-columns:1fr 1fr; } }
 </style>
 <!-- Google Analytics -->
@@ -88,6 +98,7 @@
     <button class="tab-btn active" onclick="switchTab('post-job')">📝 Post Job for Employer</button>
     <button class="tab-btn" onclick="switchTab('callbacks')">📞 Callback Requests</button>
     <button class="tab-btn" onclick="switchTab('referrals')">🎯 My Referrals</button>
+    <button class="tab-btn" onclick="switchTab('pipeline')">💳 Pipeline</button>
     <button class="tab-btn" onclick="switchTab('reminders')">🔔 Reminders<span id="rem-badge" class="tab-badge" style="display:none;">0</span></button>
   </div>
 
@@ -164,6 +175,15 @@
     </div>
   </div>
 
+  <!-- PIPELINE TAB -->
+  <div class="tab-content" id="tab-pipeline">
+    <div class="exec-card">
+      <h2>Deal Pipeline</h2>
+      <p style="font-size:0.85rem;color:var(--gray5);margin-bottom:1rem;">Converted callbacks. Generate a payment link, mark as paid to activate the plan, or post a job on their behalf.</p>
+      <div id="pipeline-list"><div class="loading-spinner">Loading pipeline...</div></div>
+    </div>
+  </div>
+
   <!-- REFERRALS TAB -->
   <div class="tab-content" id="tab-referrals">
     <div class="exec-card">
@@ -172,6 +192,48 @@
     </div>
   </div>
 
+</div>
+
+<!-- PAYMENT LINK MODAL -->
+<div class="pl-modal-bg" id="pay-modal">
+  <div class="pl-modal">
+    <h3>💳 Generate Payment Link</h3>
+    <div class="alert alert-error" id="pay-err" style="display:none;"></div>
+    <div class="fg-form"><label>Amount (₹) *</label><input type="number" id="pay-amount" placeholder="e.g. 999" min="1" /></div>
+    <div class="fg-form"><label>Validity *</label>
+      <select id="pay-validity">
+        <option value="7">7 days</option><option value="15">15 days</option>
+        <option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option>
+      </select>
+    </div>
+    <div id="pay-result" style="display:none;background:#eff6ff;border-radius:8px;padding:0.7rem;font-size:0.82rem;color:#1d4ed8;word-break:break-all;margin-bottom:0.8rem;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="pl-act" style="background:#f1f5f9;color:#475569;" onclick="closeModal('pay-modal')">Close</button>
+      <button class="pl-act pl-act-link" id="pay-gen-btn" onclick="generatePaymentLink()">Generate &amp; Copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST JOB (for referral) MODAL -->
+<div class="pl-modal-bg" id="rjob-modal">
+  <div class="pl-modal">
+    <h3>📝 Post Job for Employer</h3>
+    <div class="alert alert-error" id="rjob-err" style="display:none;"></div>
+    <div id="rjob-emp" style="background:#f8fafc;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--gray5);margin-bottom:0.9rem;"></div>
+    <div class="fg-form" id="rjob-email-wrap"><label>Employer Email *</label><input type="email" id="rjob-email" placeholder="hr@company.com" /></div>
+    <div class="fg-form"><label>Job Title *</label><input type="text" id="rjob-title" placeholder="e.g. MIS Executive" /></div>
+    <div class="form-row">
+      <div class="fg-form"><label>Location *</label>
+        <select id="rjob-location"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Remote</option><option>Other Karnataka</option></select>
+      </div>
+      <div class="fg-form"><label>Salary</label><input type="text" id="rjob-salary" placeholder="₹4–6 LPA" /></div>
+    </div>
+    <div class="fg-form"><label>Description *</label><textarea id="rjob-desc" rows="4" placeholder="Role and requirements..."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="pl-act" style="background:#f1f5f9;color:#475569;" onclick="closeModal('rjob-modal')">Close</button>
+      <button class="pl-act pl-act-job" id="rjob-btn" onclick="submitReferralJob()">Post Job</button>
+    </div>
+  </div>
 </div>
 
 <footer><p>© 2025 <span>HireTrack</span> — Executive Portal</p></footer>
@@ -203,13 +265,14 @@
   function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach((b,i) => { b.classList.remove('active'); });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const tabs = ['post-job','callbacks','referrals','reminders'];
+    const tabs = ['post-job','callbacks','referrals','pipeline','reminders'];
     const idx = tabs.indexOf(tab);
     document.querySelectorAll('.tab-btn')[idx].classList.add('active');
     document.getElementById(`tab-${tab}`).classList.add('active');
     if (tab === 'callbacks') loadCallbacks();
     if (tab === 'referrals') loadReferrals();
     if (tab === 'reminders') loadReminders();
+    if (tab === 'pipeline') loadPipeline();
   }
 
   async function loadStats() {
@@ -327,6 +390,127 @@
     if (!r.ok) { showToast('Could not update'); return; }
     showToast('Reminder cleared');
     loadReminders();
+  }
+
+  // ── Pipeline (Workflow 1) ──
+  let _pipeline = [];
+
+  async function loadPipeline() {
+    const r = await execApi('pipeline');
+    _pipeline = r.ok ? (r.pipeline || []) : [];
+    renderPipeline();
+  }
+
+  function renderPipeline() {
+    const list = document.getElementById('pipeline-list');
+    if (!_pipeline.length) {
+      list.innerHTML = '<div class="empty-state"><div class="es-icon">💳</div><p>No pipeline entries yet.<br><small style="color:var(--gray4);">Use “Convert” on a callback to add a deal here.</small></p></div>';
+      return;
+    }
+    list.innerHTML = _pipeline.map(p => {
+      const st = p.status || 'lead';
+      const plan = (st === 'plan_active' && p.plan_end)
+        ? `<p style="font-size:0.76rem;color:#15803d;margin-top:3px;">✅ Plan active until ${new Date(p.plan_end).toLocaleDateString('en-IN')}</p>` : '';
+      return `<div class="ref-row" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div class="ref-info">
+            <h4>${esc(p.name || '')}${p.company ? ' — ' + esc(p.company) : ''}</h4>
+            <p>📞 ${esc(p.phone || '')}${p.email ? ' · ✉️ ' + esc(p.email) : ''} · 📅 ${new Date(p.created_at).toLocaleDateString('en-IN')}</p>
+            ${plan}
+          </div>
+          <span class="status-${st}">${st === 'plan_active' ? 'Plan Active' : st === 'lead' ? 'Lead' : esc(st)}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+          <button class="pl-act pl-act-link" onclick="openPaymentModal('${p.id}')">💳 Payment Link</button>
+          ${p.is_paid ? '' : `<button class="pl-act pl-act-paid" onclick="markPaid('${p.id}')">✓ Mark as Paid</button>`}
+          <button class="pl-act pl-act-job" onclick="openPostJobModal('${p.id}')">📝 Post Job</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else { fallbackCopy(text); }
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  // Payment link modal
+  let _payReferralId = null;
+  function openPaymentModal(id) {
+    _payReferralId = id;
+    document.getElementById('pay-amount').value = '';
+    document.getElementById('pay-validity').value = '30';
+    document.getElementById('pay-result').style.display = 'none';
+    document.getElementById('pay-err').style.display = 'none';
+    const btn = document.getElementById('pay-gen-btn');
+    btn.disabled = false; btn.textContent = 'Generate & Copy'; btn.onclick = generatePaymentLink;
+    document.getElementById('pay-modal').classList.add('open');
+  }
+  async function generatePaymentLink() {
+    const amount = document.getElementById('pay-amount').value;
+    const validity_days = document.getElementById('pay-validity').value;
+    const err = document.getElementById('pay-err'); err.style.display = 'none';
+    if (!amount || Number(amount) <= 0) { err.textContent = 'Enter a valid amount.'; err.style.display = 'block'; return; }
+    const btn = document.getElementById('pay-gen-btn'); btn.disabled = true; btn.textContent = 'Generating…';
+    const r = await execApi('payment-link-create', { referral_id: _payReferralId, amount, validity_days });
+    if (!r.ok) { err.textContent = r.error || 'Failed.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Generate & Copy'; return; }
+    const res = document.getElementById('pay-result');
+    res.textContent = r.url; res.style.display = 'block';
+    copyToClipboard(r.url);
+    showToast('Link generated & copied!');
+    btn.disabled = false; btn.textContent = 'Copy Link Again';
+    btn.onclick = () => { copyToClipboard(r.url); showToast('Copied!'); };
+  }
+
+  // Post-job-for-referral modal
+  let _rjobReferral = null;
+  function openPostJobModal(id) {
+    _rjobReferral = _pipeline.find(p => p.id === id) || { id };
+    document.getElementById('rjob-err').style.display = 'none';
+    ['rjob-title','rjob-salary','rjob-desc','rjob-email'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
+    document.getElementById('rjob-location').selectedIndex = 0;
+    const hasEmployer = !!_rjobReferral.employer_id;
+    document.getElementById('rjob-email-wrap').style.display = hasEmployer ? 'none' : 'block';
+    if (_rjobReferral.email) document.getElementById('rjob-email').value = _rjobReferral.email;
+    document.getElementById('rjob-emp').textContent = `Employer: ${_rjobReferral.company || _rjobReferral.name || '—'} · 📞 ${_rjobReferral.phone || '—'}`;
+    const btn = document.getElementById('rjob-btn'); btn.disabled = false; btn.textContent = 'Post Job';
+    document.getElementById('rjob-modal').classList.add('open');
+  }
+  async function submitReferralJob() {
+    const err = document.getElementById('rjob-err'); err.style.display = 'none';
+    const payload = {
+      referral_id: _rjobReferral.id,
+      email: document.getElementById('rjob-email').value.trim(),
+      title: document.getElementById('rjob-title').value.trim(),
+      location: document.getElementById('rjob-location').value,
+      salary: document.getElementById('rjob-salary').value.trim(),
+      description: document.getElementById('rjob-desc').value.trim(),
+    };
+    if (!payload.title || !payload.location || !payload.description) { err.textContent = 'Title, location and description are required.'; err.style.display = 'block'; return; }
+    const btn = document.getElementById('rjob-btn'); btn.disabled = true; btn.textContent = 'Posting…';
+    const r = await execApi('referral-post-job', payload);
+    if (!r.ok) { err.textContent = r.error || 'Failed to post job.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Post Job'; return; }
+    showToast('Job posted!');
+    closeModal('rjob-modal');
+    loadPipeline(); loadStats();
+  }
+
+  async function markPaid(id) {
+    if (!confirm('Mark this referral as paid and activate the plan?')) return;
+    const r = await execApi('referral-mark-paid', { referral_id: id });
+    if (!r.ok) { showToast(r.error || 'Failed'); return; }
+    showToast('Marked paid — plan activated & reminder set');
+    loadPipeline(); loadReminderBadge();
   }
 
   async function loadReferrals() {
