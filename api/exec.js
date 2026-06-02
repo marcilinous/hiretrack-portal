@@ -262,18 +262,55 @@ async function postJob(req, res, body) {
   if (existed) {
     employer = found.data[0];
   } else {
+    // Create a REAL Supabase Auth account so the employer can log into the portal
+    // (password = their mobile, matching the credentials email). The
+    // on_auth_user_created trigger then creates the public.employers row (id =
+    // auth uid); we stamp the exec/trial fields onto it.
+    const au = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+      method: 'POST',
+      headers: {
+        apikey: process.env.SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email, password: mobile, email_confirm: true,
+        user_metadata: { role: 'employer', company, contact_name: contact, mobile, city, industry: 'Other' },
+      }),
+    });
+    const at = await au.text(); let ad = null; try { ad = JSON.parse(at); } catch {}
+    if (!au.ok) {
+      const msg = (ad && (ad.msg || ad.message || ad.error_description || ad.error)) || 'Could not create employer account.';
+      const taken = /already|registered|exists/i.test(msg);
+      return res.status(taken ? 409 : 500).json({
+        ok: false,
+        error: taken ? 'An account with this email already exists — ask them to log in, or use a different email.' : msg,
+      });
+    }
+    const uid = ad.id || (ad.user && ad.user.id);
+    if (!uid) return res.status(500).json({ ok: false, error: 'Employer account creation returned no id.' });
+
     const trial = new Date(); trial.setDate(trial.getDate() + 7);
-    const empRow = {
-      company, contact_name: contact, email, mobile, password: mobile,
-      city, industry: 'Other', plan: 'free', job_limit: 1, day_limit: 7,
+    const fields = {
+      company, contact_name: contact, mobile, city, industry: 'Other',
+      plan: 'free', job_limit: 1, day_limit: 7,
       referred_by: id, is_free_trial: true, free_trial_expires_at: trial.toISOString(),
     };
-    const er = await fetch(`${SUPABASE_URL}/rest/v1/employers`, {
-      method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(empRow),
+    // Stamp the trigger-created row; if the trigger didn't create it, insert explicitly.
+    const pr = await fetch(`${SUPABASE_URL}/rest/v1/employers?id=eq.${uid}`, {
+      method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(fields),
     });
-    const et = await er.text(); let ed = null; try { ed = JSON.parse(et); } catch {}
-    if (!er.ok) return res.status(500).json({ ok: false, error: (ed && ed.message) || 'Failed to create employer.' });
-    employer = Array.isArray(ed) ? ed[0] : ed;
+    let pd = null; { const t = await pr.text(); try { pd = JSON.parse(t); } catch {} }
+    let row = Array.isArray(pd) ? pd[0] : pd;
+    if (pr.ok && !row) {
+      const ir = await fetch(`${SUPABASE_URL}/rest/v1/employers`, {
+        method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }),
+        body: JSON.stringify({ id: uid, email, ...fields }),
+      });
+      const it = await ir.text(); let idd = null; try { idd = JSON.parse(it); } catch {}
+      row = Array.isArray(idd) ? idd[0] : idd;
+    }
+    employer = row || { id: uid };
   }
 
   // Post the job (7-day trial)
