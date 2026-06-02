@@ -37,6 +37,9 @@ export default async function handler(req, res) {
       case 'employer-verify':  return await employerVerify(req, res, body);
       case 'boost-order':      return await boostOrder(req, res, body);
       case 'boost-verify':     return await boostVerify(req, res, body);
+      case 'paylink-info':     return await paylinkInfo(req, res, body);
+      case 'paylink-order':    return await paylinkOrder(req, res, body);
+      case 'paylink-verify':   return await paylinkVerify(req, res, body);
       default:
         return res.status(400).json({ ok: false, error: `Unknown action: ${action}` });
     }
@@ -153,6 +156,100 @@ async function employerVerify(req, res, body) {
 
   console.log(`Plan ${planName} activated for employer ${employerId} until ${planExpiresISO}`);
   return res.status(200).json({ ok: true, plan_expires_at: planExpiresISO, job_limit: plan.jobs, day_limit: plan.days });
+}
+
+// ── Executive payment links (slug = unguessable capability) ────────────────
+function svcHeaders(key, extra) {
+  return Object.assign({ 'Content-Type': 'application/json', apikey: key, Authorization: `Bearer ${key}` }, extra || {});
+}
+async function sbGetOne(path, key) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: svcHeaders(key) });
+  const d = await r.json().catch(() => null);
+  return Array.isArray(d) ? (d[0] || null) : (d || null);
+}
+async function sbPatch(path, body, key) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'PATCH', headers: svcHeaders(key, { Prefer: 'return=minimal' }), body: JSON.stringify(body) });
+}
+async function sbPost(path, body, key) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'POST', headers: svcHeaders(key, { Prefer: 'return=minimal' }), body: JSON.stringify(body) });
+}
+
+async function paylinkInfo(req, res, body) {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ ok: false, error: 'Server not configured' });
+  const slug = (body?.slug || '').trim();
+  if (!slug) return res.status(400).json({ ok: false, error: 'Missing link' });
+  const link = await sbGetOne(`payment_links?select=amount,validity_days,is_paid,referral_id&slug=eq.${encodeURIComponent(slug)}&limit=1`, SERVICE_KEY);
+  if (!link) return res.status(404).json({ ok: false, error: 'Payment link not found.' });
+  let company = '';
+  if (link.referral_id) {
+    const ref = await sbGetOne(`employer_referrals?select=company,name&id=eq.${link.referral_id}&limit=1`, SERVICE_KEY);
+    company = ref ? (ref.company || ref.name || '') : '';
+  }
+  return res.status(200).json({ ok: true, amount: link.amount, validity_days: link.validity_days, is_paid: link.is_paid, company });
+}
+
+async function paylinkOrder(req, res, body) {
+  const KEY_ID = process.env.RAZORPAY_KEY_ID;
+  const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!KEY_ID || !KEY_SECRET || !SERVICE_KEY) return res.status(500).json({ ok: false, error: 'Payment not configured' });
+  const slug = (body?.slug || '').trim();
+  const link = await sbGetOne(`payment_links?select=id,amount,is_paid&slug=eq.${encodeURIComponent(slug)}&limit=1`, SERVICE_KEY);
+  if (!link) return res.status(404).json({ ok: false, error: 'Payment link not found.' });
+  if (link.is_paid) return res.status(400).json({ ok: false, error: 'This link has already been paid.' });
+  const amountPaise = Math.round(Number(link.amount) * 100);
+  if (!(amountPaise > 0)) return res.status(400).json({ ok: false, error: 'Invalid amount.' });
+
+  const auth = Buffer.from(`${KEY_ID}:${KEY_SECRET}`).toString('base64');
+  const r = await fetch('https://api.razorpay.com/v1/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${auth}` },
+    body: JSON.stringify({ amount: amountPaise, currency: 'INR', receipt: `ht_pl_${Date.now()}`, notes: { product: 'exec_payment_link', slug } }),
+  });
+  const order = await r.json();
+  if (!order.id) return res.status(500).json({ ok: false, error: order.error?.description || 'Order creation failed' });
+  return res.status(200).json({ ok: true, key: KEY_ID, orderId: order.id, amount: amountPaise });
+}
+
+async function paylinkVerify(req, res, body) {
+  const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!KEY_SECRET || !SERVICE_KEY) return res.status(500).json({ ok: false, error: 'Server not configured' });
+  const { slug, razorpay_payment_id, razorpay_order_id, razorpay_signature } = body || {};
+  if (!slug || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) return res.status(400).json({ ok: false, error: 'Missing payment fields' });
+
+  const digest = crypto.createHmac('sha256', KEY_SECRET).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest('hex');
+  if (digest !== razorpay_signature) {
+    console.error('Paylink signature mismatch', razorpay_payment_id);
+    return res.status(400).json({ ok: false, error: 'Payment verification failed' });
+  }
+
+  const link = await sbGetOne(`payment_links?select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`, SERVICE_KEY);
+  if (!link) return res.status(404).json({ ok: false, error: 'Payment link not found.' });
+  if (link.is_paid) return res.status(200).json({ ok: true, alreadyPaid: true });
+
+  const days = Number(link.validity_days) || 30;
+  const start = new Date();
+  const end = new Date(); end.setDate(end.getDate() + days);
+
+  if (link.referral_id) {
+    const ref = await sbGetOne(`employer_referrals?select=company,name,executive_id&id=eq.${link.referral_id}&limit=1`, SERVICE_KEY);
+    await sbPatch(`employer_referrals?id=eq.${link.referral_id}`, {
+      is_paid: true, status: 'plan_active', plan_start: start.toISOString(), plan_end: end.toISOString(), validity_days: days,
+    }, SERVICE_KEY);
+    if (ref && ref.executive_id) {
+      const remind = new Date(end); remind.setDate(remind.getDate() - 2);
+      const who = ref.company || ref.name || 'employer';
+      await sbPost('executive_reminders', {
+        executive_id: ref.executive_id, type: 'plan_expiry',
+        message: `Follow up with ${who} — plan expires in 2 days`, due_date: remind.toISOString(), related_id: link.referral_id,
+      }, SERVICE_KEY).catch(() => {});
+    }
+  }
+  await sbPatch(`payment_links?id=eq.${link.id}`, { is_paid: true, paid_at: new Date().toISOString() }, SERVICE_KEY);
+  console.log(`Payment link ${slug} paid (${razorpay_payment_id})`);
+  return res.status(200).json({ ok: true, plan_end: end.toISOString() });
 }
 
 // ── Profile boost order (₹99) ─────────────────────────────────────────────

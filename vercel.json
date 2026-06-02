@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/pay/:slug", "destination": "/pay.html?slug=:slug" }
   ],
   "crons": [
     { "path": "/api/cron-expiry", "schedule": "0 3 * * *" },
