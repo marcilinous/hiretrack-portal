@@ -59,6 +59,10 @@
 .pl-modal-bg.open { display:flex; }
 .pl-modal { background:#fff; border-radius:16px; padding:1.5rem; max-width:460px; width:100%; max-height:90vh; overflow:auto; }
 .pl-modal h3 { font-size:1.05rem; font-weight:800; margin-bottom:1rem; }
+.pin-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; }
+.pin-in, .pin-sel { border:1.5px solid #e2e8f0; border-radius:8px; padding:0.6rem 0.75rem; font-size:0.88rem; font-family:inherit; outline:none; width:100%; box-sizing:border-box; }
+.pin-sel { background:#fff; margin-top:0.4rem; }
+.pin-status { font-size:0.7rem; color:#94a3b8; margin-top:3px; min-height:14px; }
 @media(max-width:768px) { .exec-stats { grid-template-columns:1fr 1fr; } }
 </style>
 <!-- Google Analytics -->
@@ -134,7 +138,12 @@
       <div class="form-row">
         <div class="fg-form"><label>Job Title *</label><input type="text" id="job-title" placeholder="e.g. MIS Executive" /></div>
         <div class="fg-form"><label>Location *</label>
-          <select id="job-location"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Remote</option><option>Other Karnataka</option></select>
+          <div class="pin-grid">
+            <input type="text" id="job-pincode" placeholder="Pincode" maxlength="6" inputmode="numeric" class="pin-in" />
+            <input type="text" id="job-city" placeholder="City (auto-filled)" class="pin-in" />
+          </div>
+          <select id="job-subcity" class="pin-sel"><option value="">Area / Sub-city</option></select>
+          <div id="job-pincode-status" class="pin-status"></div>
         </div>
       </div>
       <div class="form-row">
@@ -222,12 +231,15 @@
     <div id="rjob-emp" style="background:#f8fafc;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--gray5);margin-bottom:0.9rem;"></div>
     <div class="fg-form" id="rjob-email-wrap"><label>Employer Email *</label><input type="email" id="rjob-email" placeholder="hr@company.com" /></div>
     <div class="fg-form"><label>Job Title *</label><input type="text" id="rjob-title" placeholder="e.g. MIS Executive" /></div>
-    <div class="form-row">
-      <div class="fg-form"><label>Location *</label>
-        <select id="rjob-location"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Remote</option><option>Other Karnataka</option></select>
+    <div class="fg-form"><label>Location *</label>
+      <div class="pin-grid">
+        <input type="text" id="rjob-pincode" placeholder="Pincode" maxlength="6" inputmode="numeric" class="pin-in" />
+        <input type="text" id="rjob-city" placeholder="City (auto-filled)" class="pin-in" />
       </div>
-      <div class="fg-form"><label>Salary</label><input type="text" id="rjob-salary" placeholder="₹4–6 LPA" /></div>
+      <select id="rjob-subcity" class="pin-sel"><option value="">Area / Sub-city</option></select>
+      <div id="rjob-pincode-status" class="pin-status"></div>
     </div>
+    <div class="fg-form"><label>Salary</label><input type="text" id="rjob-salary" placeholder="₹4–6 LPA" /></div>
     <div class="fg-form"><label>Description *</label><textarea id="rjob-desc" rows="4" placeholder="Role and requirements..."></textarea></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="pl-act" style="background:#f1f5f9;color:#475569;" onclick="closeModal('rjob-modal')">Close</button>
@@ -240,6 +252,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/sb-rest-shim.js"></script>
+<script src="/pincode.js"></script>
 <script src="app.js?v=6"></script>
 <script>
   const executive = JSON.parse(sessionStorage.getItem('ht_executive') || 'null');
@@ -477,8 +490,9 @@
   function openPostJobModal(id) {
     _rjobReferral = _pipeline.find(p => p.id === id) || { id };
     document.getElementById('rjob-err').style.display = 'none';
-    ['rjob-title','rjob-salary','rjob-desc','rjob-email'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
-    document.getElementById('rjob-location').selectedIndex = 0;
+    ['rjob-title','rjob-salary','rjob-desc','rjob-email','rjob-pincode','rjob-city'].forEach(i => { const el = document.getElementById(i); if (el) el.value = ''; });
+    const _rsc = document.getElementById('rjob-subcity'); if (_rsc) _rsc.innerHTML = '<option value="">Area / Sub-city</option>';
+    const _rst = document.getElementById('rjob-pincode-status'); if (_rst) _rst.textContent = '';
     const hasEmployer = !!_rjobReferral.employer_id;
     document.getElementById('rjob-email-wrap').style.display = hasEmployer ? 'none' : 'block';
     if (_rjobReferral.email) document.getElementById('rjob-email').value = _rjobReferral.email;
@@ -492,7 +506,7 @@
       referral_id: _rjobReferral.id,
       email: document.getElementById('rjob-email').value.trim(),
       title: document.getElementById('rjob-title').value.trim(),
-      location: document.getElementById('rjob-location').value,
+      location: [document.getElementById('rjob-subcity').value.trim(), document.getElementById('rjob-city').value.trim()].filter(Boolean).join(', '),
       salary: document.getElementById('rjob-salary').value.trim(),
       description: document.getElementById('rjob-desc').value.trim(),
     };
@@ -537,7 +551,9 @@
     const empMobile = document.getElementById('emp-mobile').value.trim();
     const empCity = document.getElementById('emp-city').value;
     const jobTitle = document.getElementById('job-title').value.trim();
-    const jobLocation = document.getElementById('job-location').value;
+    const jobCity = document.getElementById('job-city').value.trim();
+    const jobSubcity = document.getElementById('job-subcity').value.trim();
+    const jobLocation = [jobSubcity, jobCity].filter(Boolean).join(', ');
     const jobType = document.getElementById('job-type').value;
     const jobSalary = document.getElementById('job-salary').value.trim();
     const jobSkills = document.getElementById('job-skills').value.trim();
@@ -577,12 +593,19 @@
 
     // Clear form
     ['emp-company','emp-contact','emp-email','emp-mobile','job-title','job-salary','job-skills','job-phone','job-desc'].forEach(id=>document.getElementById(id).value='');
-    ['emp-city','job-location'].forEach(id=>document.getElementById(id).selectedIndex=0);
+    document.getElementById('emp-city').selectedIndex=0;
+    ['job-pincode','job-city'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const _jsc=document.getElementById('job-subcity'); if(_jsc)_jsc.innerHTML='<option value="">Area / Sub-city</option>';
+    const _jst=document.getElementById('job-pincode-status'); if(_jst)_jst.textContent='';
     setTimeout(()=>{btn.textContent='🚀 Post Job (7-Day Free Trial)';btn.disabled=false;},2000);
   }
 
   loadStats();
   loadReminderBadge();
+  if (window.PincodeUtil) {
+    PincodeUtil.attach('job-pincode', 'job-city', 'job-subcity');
+    PincodeUtil.attach('rjob-pincode', 'rjob-city', 'rjob-subcity');
+  }
 </script>
 </body>
 </html>
