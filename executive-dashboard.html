@@ -31,6 +31,24 @@
 .status-pending { background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
 .status-called { background:#dbeafe; color:#1d4ed8; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
 .status-converted { background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.status-yet_to_call { background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.status-interested { background:#dbeafe; color:#1d4ed8; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.status-not_interested { background:#f1f5f9; color:#64748b; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+.cb-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.cb-act { border:none; border-radius:7px; padding:5px 11px; font-size:0.74rem; font-weight:700; cursor:pointer; font-family:inherit; }
+.cb-act-call { background:#dbeafe; color:#1d4ed8; }
+.cb-act-int { background:#dcfce7; color:#15803d; }
+.cb-act-no { background:#f1f5f9; color:#64748b; }
+.cb-act-conv { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+.cb-note-input { width:100%; margin-top:9px; border:1px solid var(--gray3); border-radius:7px; padding:6px 9px; font-size:0.8rem; font-family:inherit; outline:none; box-sizing:border-box; }
+.cb-filter { margin-bottom:1rem; border:1px solid var(--gray3); border-radius:8px; padding:6px 10px; font-size:0.85rem; font-family:inherit; outline:none; }
+.rem-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:0.85rem; border-radius:10px; border:1px solid var(--gray3); margin-bottom:0.6rem; }
+.rem-row.overdue { border-color:#fecaca; background:#fef2f2; }
+.rem-msg { font-size:0.85rem; font-weight:600; color:var(--navy); }
+.rem-due { font-size:0.75rem; color:var(--gray5); margin-top:2px; }
+.rem-row.overdue .rem-due { color:#dc2626; font-weight:700; }
+.rem-done { background:#dcfce7; color:#15803d; border:none; border-radius:7px; padding:6px 12px; font-size:0.74rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.tab-badge { display:inline-block; background:#dc2626; color:#fff; border-radius:20px; font-size:0.66rem; font-weight:800; padding:1px 7px; margin-left:5px; }
 @media(max-width:768px) { .exec-stats { grid-template-columns:1fr 1fr; } }
 </style>
 <!-- Google Analytics -->
@@ -70,6 +88,7 @@
     <button class="tab-btn active" onclick="switchTab('post-job')">📝 Post Job for Employer</button>
     <button class="tab-btn" onclick="switchTab('callbacks')">📞 Callback Requests</button>
     <button class="tab-btn" onclick="switchTab('referrals')">🎯 My Referrals</button>
+    <button class="tab-btn" onclick="switchTab('reminders')">🔔 Reminders<span id="rem-badge" class="tab-badge" style="display:none;">0</span></button>
   </div>
 
   <!-- POST JOB TAB -->
@@ -125,7 +144,23 @@
   <div class="tab-content" id="tab-callbacks">
     <div class="exec-card">
       <h2>Callback Requests</h2>
+      <select class="cb-filter" id="cb-filter" onchange="renderCallbacks()">
+        <option value="">All statuses</option>
+        <option value="yet_to_call">Yet to Call</option>
+        <option value="called">Called</option>
+        <option value="interested">Interested</option>
+        <option value="not_interested">Not Interested</option>
+        <option value="converted">Converted</option>
+      </select>
       <div id="callbacks-list"><div class="loading-spinner">Loading callbacks...</div></div>
+    </div>
+  </div>
+
+  <!-- REMINDERS TAB -->
+  <div class="tab-content" id="tab-reminders">
+    <div class="exec-card">
+      <h2>Reminders</h2>
+      <div id="reminders-list"><div class="loading-spinner">Loading reminders...</div></div>
     </div>
   </div>
 
@@ -168,12 +203,13 @@
   function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach((b,i) => { b.classList.remove('active'); });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const tabs = ['post-job','callbacks','referrals'];
+    const tabs = ['post-job','callbacks','referrals','reminders'];
     const idx = tabs.indexOf(tab);
     document.querySelectorAll('.tab-btn')[idx].classList.add('active');
     document.getElementById(`tab-${tab}`).classList.add('active');
     if (tab === 'callbacks') loadCallbacks();
     if (tab === 'referrals') loadReferrals();
+    if (tab === 'reminders') loadReminders();
   }
 
   async function loadStats() {
@@ -185,39 +221,112 @@
     document.getElementById('stat-jobs').textContent = r.jobs || 0;
   }
 
-  async function loadCallbacks() {
-    const list = document.getElementById('callbacks-list');
-    const r = await execApi('callbacks');
-    const callbacks = r.ok ? r.callbacks : [];
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  let _callbacks = [];
+  const CB_LABEL = { yet_to_call:'Yet to Call', called:'Called', interested:'Interested', not_interested:'Not Interested', converted:'Converted' };
 
-    if (!callbacks?.length) {
-      list.innerHTML = '<div class="empty-state"><div class="es-icon">📞</div><p>No callbacks assigned to you yet.<br><small style="color:var(--gray4);">Callbacks are auto-assigned via round robin.</small></p></div>';
-      return;
-    }
-    list.innerHTML = callbacks.map(c => `
-      <div class="cb-row">
-        <div class="cb-info">
-          <h4>${c.name} — ${c.company}</h4>
-          <p>📞 ${c.mobile} · ⏰ ${c.preferred_time} · 📅 ${new Date(c.created_at).toLocaleDateString('en-IN')}</p>
-          ${c.message ? `<p style="margin-top:4px;color:var(--gray5);font-style:italic;">"${c.message}"</p>` : ''}
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-          <span class="status-${c.status.toLowerCase()}">${c.status}</span>
-          <select onchange="updateCallbackStatus('${c.id}',this.value)" style="border:1px solid var(--gray3);border-radius:6px;padding:3px 6px;font-size:0.75rem;outline:none;font-family:inherit;">
-            <option ${c.status==='Pending'?'selected':''}>Pending</option>
-            <option ${c.status==='Called'?'selected':''}>Called</option>
-            <option ${c.status==='Converted'?'selected':''}>Converted</option>
-          </select>
-          <a href="tel:${c.mobile}" style="background:#dcfce7;color:#15803d;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;">📞 Call Now</a>
-        </div>
-      </div>`).join('');
+  async function loadCallbacks() {
+    const r = await execApi('callbacks');
+    _callbacks = r.ok ? (r.callbacks || []) : [];
+    renderCallbacks();
   }
 
-  async function updateCallbackStatus(id, status) {
+  function renderCallbacks() {
+    const list = document.getElementById('callbacks-list');
+    const filter = document.getElementById('cb-filter')?.value || '';
+    const rows = filter ? _callbacks.filter(c => c.status === filter) : _callbacks;
+    if (!rows.length) {
+      list.innerHTML = `<div class="empty-state"><div class="es-icon">📞</div><p>${filter ? 'No callbacks with this status.' : 'No callbacks assigned to you yet.'}</p></div>`;
+      return;
+    }
+    list.innerHTML = rows.map(c => {
+      const st = c.status || 'yet_to_call';
+      const when = new Date(c.created_at).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+      const converted = st === 'converted';
+      return `
+      <div class="cb-row" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div class="cb-info">
+            <h4>${esc(c.name)}${c.company ? ' — ' + esc(c.company) : ''}</h4>
+            <p>📞 ${esc(c.mobile || '')} · 📅 ${when}</p>
+            ${c.message ? `<p style="margin-top:4px;color:var(--gray5);font-style:italic;">"${esc(c.message)}"</p>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+            <span class="status-${st}">${CB_LABEL[st] || st}</span>
+            <a href="tel:${esc(c.mobile || '')}" style="background:#dcfce7;color:#15803d;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:700;text-decoration:none;">📞 Call</a>
+          </div>
+        </div>
+        <input class="cb-note-input" placeholder="Add a note…" value="${esc(c.notes || '')}" onchange="cbSaveNote('${c.id}', this.value)" />
+        <div class="cb-actions">
+          <button class="cb-act cb-act-call" onclick="cbAction('${c.id}','called')">Mark Called</button>
+          <button class="cb-act cb-act-int" onclick="cbAction('${c.id}','interested')">Interested</button>
+          <button class="cb-act cb-act-no" onclick="cbAction('${c.id}','not_interested')">Not Interested</button>
+          ${converted
+            ? `<span class="cb-act cb-act-conv" style="cursor:default;opacity:0.7;">✓ Converted</span>`
+            : `<button class="cb-act cb-act-conv" onclick="cbConvert('${c.id}')">Convert →</button>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function cbAction(id, status) {
     const r = await execApi('callback-status', { id, status });
     if (!r.ok) { showToast(r.error || 'Update failed'); return; }
-    showToast(`Status updated to ${status}`);
+    showToast(status === 'interested' ? 'Marked interested — follow-up reminder set' : 'Updated');
+    const c = _callbacks.find(x => x.id === id); if (c) { c.status = status; }
+    renderCallbacks();
+    if (status === 'interested') loadReminderBadge();
+  }
+
+  async function cbSaveNote(id, notes) {
+    const r = await execApi('callback-status', { id, notes });
+    if (!r.ok) { showToast('Could not save note'); return; }
+    const c = _callbacks.find(x => x.id === id); if (c) c.notes = notes;
+    showToast('Note saved');
+  }
+
+  async function cbConvert(id) {
+    const r = await execApi('callback-convert', { id });
+    if (!r.ok) { showToast(r.error || 'Convert failed'); return; }
+    showToast('Converted — added to your pipeline');
     loadCallbacks();
+    loadStats();
+  }
+
+  // ── Reminders ──
+  async function loadReminderBadge() {
+    const r = await execApi('reminders');
+    const n = r.ok ? (r.reminders || []).length : 0;
+    const badge = document.getElementById('rem-badge');
+    if (badge) { badge.textContent = n; badge.style.display = n ? 'inline-block' : 'none'; }
+  }
+
+  async function loadReminders() {
+    const list = document.getElementById('reminders-list');
+    const r = await execApi('reminders');
+    const reminders = r.ok ? (r.reminders || []) : [];
+    const badge = document.getElementById('rem-badge');
+    if (badge) { badge.textContent = reminders.length; badge.style.display = reminders.length ? 'inline-block' : 'none'; }
+    if (!reminders.length) { list.innerHTML = '<div class="empty-state"><div class="es-icon">🔔</div><p>No pending reminders. 🎉</p></div>'; return; }
+    const now = Date.now();
+    list.innerHTML = reminders.map(rm => {
+      const overdue = new Date(rm.due_date).getTime() < now;
+      const due = new Date(rm.due_date).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+      return `<div class="rem-row ${overdue ? 'overdue' : ''}">
+        <div>
+          <div class="rem-msg">${esc(rm.message)}</div>
+          <div class="rem-due">${overdue ? '⚠ Overdue · ' : '⏰ '}Due ${due}</div>
+        </div>
+        <button class="rem-done" onclick="reminderDone('${rm.id}')">✓ Mark Done</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function reminderDone(id) {
+    const r = await execApi('reminder-done', { id });
+    if (!r.ok) { showToast('Could not update'); return; }
+    showToast('Reminder cleared');
+    loadReminders();
   }
 
   async function loadReferrals() {
@@ -289,6 +398,7 @@
   }
 
   loadStats();
+  loadReminderBadge();
 </script>
 </body>
 </html>

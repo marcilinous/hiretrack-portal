@@ -97,8 +97,11 @@ export default async function handler(req, res) {
       case 'summary':   return await getSummary(req, res);
       case 'callbacks': return await getCallbacks(req, res);
       case 'referrals': return await getReferrals(req, res);
-      case 'callback-status': return await updateCallbackStatusRow(req, res, body);
-      case 'post-job':        return await postJob(req, res, body);
+      case 'callback-status':  return await updateCallbackStatusRow(req, res, body);
+      case 'callback-convert': return await convertCallback(req, res, body);
+      case 'reminders':        return await getReminders(req, res);
+      case 'reminder-done':    return await markReminderDone(req, res, body);
+      case 'post-job':         return await postJob(req, res, body);
       default:         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
   } catch (e) {
@@ -195,12 +198,21 @@ async function getCallbacks(req, res) {
   // Solo executive sees all callbacks (assigned + unassigned); otherwise only own.
   const active = await sbGet('executives?select=id&is_active=eq.true');
   const isSolo = Array.isArray(active.data) && active.data.length === 1;
-  const cols = 'id,name,company,mobile,preferred_time,message,status,created_at,assigned_to';
+  const cols = 'id,name,company,mobile,preferred_time,message,status,notes,called_at,converted_referral_id,created_at,assigned_to';
   const path = isSolo
     ? `callback_requests?select=${cols}&order=created_at.desc`
     : `callback_requests?select=${cols}&assigned_to=eq.${id}&order=created_at.desc`;
   const cbs = await sbGet(path);
-  return res.json({ ok: true, isSolo, callbacks: Array.isArray(cbs.data) ? cbs.data : [] });
+  const list = (Array.isArray(cbs.data) ? cbs.data : []).map(c => ({ ...c, status: normalizeCbStatus(c.status) }));
+  return res.json({ ok: true, isSolo, callbacks: list });
+}
+
+// Map any legacy callback status to the new vocabulary.
+function normalizeCbStatus(s) {
+  if (s === 'Pending' || !s) return 'yet_to_call';
+  if (s === 'Called') return 'called';
+  if (s === 'Converted') return 'converted';
+  return s;
 }
 
 async function getReferrals(req, res) {
@@ -215,25 +227,97 @@ async function getReferrals(req, res) {
 
 // ── Dashboard writes (service role; authorized + scoped to the token's exec) ──
 
-async function updateCallbackStatusRow(req, res, body) {
+// Fetch a callback + verify the caller may act on it (own, or solo exec).
+async function authCallback(req, id) {
   const auth = authExec(req);
-  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
-  const { id, status } = body || {};
-  if (!id || !status) return res.status(400).json({ ok: false, error: 'id and status required' });
-  if (!['Pending', 'Called', 'Converted'].includes(status)) return res.status(400).json({ ok: false, error: 'invalid status' });
-
-  // A non-solo exec may only update callbacks assigned to them.
+  if (!auth) return { error: 401 };
+  const cbRes = await sbGet(`callback_requests?select=*&id=eq.${id}&limit=1`);
+  const cb = Array.isArray(cbRes.data) ? cbRes.data[0] : null;
+  if (!cb) return { error: 404 };
   const active = await sbGet('executives?select=id&is_active=eq.true');
   const isSolo = Array.isArray(active.data) && active.data.length === 1;
-  if (!isSolo) {
-    const cb = await sbGet(`callback_requests?select=assigned_to&id=eq.${id}&limit=1`);
-    const row = Array.isArray(cb.data) ? cb.data[0] : null;
-    if (!row || row.assigned_to !== auth.exec_id) {
-      return res.status(403).json({ ok: false, error: 'Not your callback.' });
-    }
+  if (!isSolo && cb.assigned_to !== auth.exec_id) return { error: 403 };
+  return { auth, cb };
+}
+
+async function createReminder(execId, type, message, dueDate, relatedId) {
+  return fetch(`${SUPABASE_URL}/rest/v1/executive_reminders`, {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({ executive_id: execId, type, message, due_date: dueDate, related_id: relatedId || null }),
+  }).catch(() => {});
+}
+
+async function updateCallbackStatusRow(req, res, body) {
+  const { id, status, notes } = body || {};
+  if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+  const ALLOWED = ['yet_to_call', 'called', 'interested', 'not_interested', 'converted'];
+  if (status && !ALLOWED.includes(status)) return res.status(400).json({ ok: false, error: 'invalid status' });
+
+  const a = await authCallback(req, id);
+  if (a.error) return res.status(a.error).json({ ok: false, error: a.error === 403 ? 'Not your callback.' : 'Unauthorized' });
+
+  const patch = {};
+  if (status) patch.status = status;
+  if (notes !== undefined) patch.notes = notes;
+  if (status === 'called') patch.called_at = new Date().toISOString();
+  if (Object.keys(patch).length) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/callback_requests?id=eq.${id}`, {
+      method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(patch),
+    });
+    if (!r.ok) return res.json({ ok: false, error: 'Update failed.' });
   }
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/callback_requests?id=eq.${id}`, {
-    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ status }),
+  // "Interested" → schedule a 2-day follow-up reminder.
+  if (status === 'interested') {
+    const due = new Date(); due.setDate(due.getDate() + 2);
+    const who = a.cb.name || a.cb.company || 'lead';
+    await createReminder(a.auth.exec_id, 'callback_followup', `Follow up with ${who} — interested lead`, due.toISOString(), id);
+  }
+  return res.json({ ok: true });
+}
+
+async function convertCallback(req, res, body) {
+  const { id } = body || {};
+  if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+  const a = await authCallback(req, id);
+  if (a.error) return res.status(a.error).json({ ok: false, error: a.error === 403 ? 'Not your callback.' : 'Unauthorized' });
+  const { auth, cb } = a;
+
+  if (cb.converted_referral_id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/callback_requests?id=eq.${id}`, {
+      method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ status: 'converted' }),
+    }).catch(() => {});
+    return res.json({ ok: true, referral_id: cb.converted_referral_id, alreadyConverted: true });
+  }
+
+  const er = await fetch(`${SUPABASE_URL}/rest/v1/employer_referrals`, {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }),
+    body: JSON.stringify({ executive_id: auth.exec_id, name: cb.name, company: cb.company, phone: cb.mobile, status: 'lead', source_callback_id: id }),
+  });
+  const et = await er.text(); let ed = null; try { ed = JSON.parse(et); } catch {}
+  if (!er.ok) return res.status(500).json({ ok: false, error: (ed && ed.message) || 'Failed to create pipeline entry.' });
+  const referral = Array.isArray(ed) ? ed[0] : ed;
+
+  await fetch(`${SUPABASE_URL}/rest/v1/callback_requests?id=eq.${id}`, {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({ status: 'converted', converted_referral_id: referral.id }),
+  }).catch(() => {});
+  return res.json({ ok: true, referral_id: referral.id });
+}
+
+async function getReminders(req, res) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const r = await sbGet(`executive_reminders?select=*&executive_id=eq.${auth.exec_id}&is_done=eq.false&order=due_date.asc`);
+  return res.json({ ok: true, reminders: Array.isArray(r.data) ? r.data : [] });
+}
+
+async function markReminderDone(req, res, body) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const { id } = body || {};
+  if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/executive_reminders?id=eq.${id}&executive_id=eq.${auth.exec_id}`, {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ is_done: true }),
   });
   return res.json({ ok: r.ok });
 }
