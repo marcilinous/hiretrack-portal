@@ -97,6 +97,8 @@ export default async function handler(req, res) {
       case 'summary':   return await getSummary(req, res);
       case 'callbacks': return await getCallbacks(req, res);
       case 'referrals': return await getReferrals(req, res);
+      case 'callback-status': return await updateCallbackStatusRow(req, res, body);
+      case 'post-job':        return await postJob(req, res, body);
       default:         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
   } catch (e) {
@@ -209,4 +211,84 @@ async function getReferrals(req, res) {
   const cols = 'id,company,contact_name,email,mobile,city,plan,is_free_trial,created_at';
   const refs = await sbGet(`employers?select=${cols}&referred_by=eq.${id}&order=created_at.desc`);
   return res.json({ ok: true, referrals: Array.isArray(refs.data) ? refs.data : [] });
+}
+
+// ── Dashboard writes (service role; authorized + scoped to the token's exec) ──
+
+async function updateCallbackStatusRow(req, res, body) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const { id, status } = body || {};
+  if (!id || !status) return res.status(400).json({ ok: false, error: 'id and status required' });
+  if (!['Pending', 'Called', 'Converted'].includes(status)) return res.status(400).json({ ok: false, error: 'invalid status' });
+
+  // A non-solo exec may only update callbacks assigned to them.
+  const active = await sbGet('executives?select=id&is_active=eq.true');
+  const isSolo = Array.isArray(active.data) && active.data.length === 1;
+  if (!isSolo) {
+    const cb = await sbGet(`callback_requests?select=assigned_to&id=eq.${id}&limit=1`);
+    const row = Array.isArray(cb.data) ? cb.data[0] : null;
+    if (!row || row.assigned_to !== auth.exec_id) {
+      return res.status(403).json({ ok: false, error: 'Not your callback.' });
+    }
+  }
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/callback_requests?id=eq.${id}`, {
+    method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ status }),
+  });
+  return res.json({ ok: r.ok });
+}
+
+async function postJob(req, res, body) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const id = auth.exec_id;
+  const b = body || {};
+  const f = (k) => (b[k] || '').trim();
+  const company = f('company'), contact = f('contact'), email = f('email'), mobile = f('mobile'), city = f('city');
+  const title = f('title'), location = f('location'), jobType = f('jobType'), salary = f('salary');
+  const skills = f('skills'), phone = f('phone'), description = f('description');
+
+  if (!company || !contact || !email || !mobile || !city || !title || !location || !phone || !description) {
+    return res.status(400).json({ ok: false, error: 'Please fill all required fields.' });
+  }
+  if (!/^\d{10}$/.test(mobile) || !/^\d{10}$/.test(phone)) {
+    return res.status(400).json({ ok: false, error: 'Enter valid 10-digit mobile numbers.' });
+  }
+
+  // Find or create the employer (referred by this exec, 7-day free trial)
+  let employer = null;
+  const found = await sbGet(`employers?select=id&email=ilike.${encodeURIComponent(email)}&limit=1`);
+  const existed = Array.isArray(found.data) && found.data.length > 0;
+  if (existed) {
+    employer = found.data[0];
+  } else {
+    const trial = new Date(); trial.setDate(trial.getDate() + 7);
+    const empRow = {
+      company, contact_name: contact, email, mobile, password: mobile,
+      city, industry: 'Other', plan: 'free', job_limit: 1, day_limit: 7,
+      referred_by: id, is_free_trial: true, free_trial_expires_at: trial.toISOString(),
+    };
+    const er = await fetch(`${SUPABASE_URL}/rest/v1/employers`, {
+      method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(empRow),
+    });
+    const et = await er.text(); let ed = null; try { ed = JSON.parse(et); } catch {}
+    if (!er.ok) return res.status(500).json({ ok: false, error: (ed && ed.message) || 'Failed to create employer.' });
+    employer = Array.isArray(ed) ? ed[0] : ed;
+  }
+
+  // Post the job (7-day trial)
+  const expiry = new Date(); expiry.setDate(expiry.getDate() + 7);
+  const jobRow = {
+    employer_id: employer.id, title, company, location, job_type: jobType, salary,
+    skills, phone, description, email, expires_at: expiry.toISOString(),
+    posted_by_executive: id, is_free_trial: true,
+  };
+  const jr = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(jobRow),
+  });
+  if (!jr.ok) {
+    const jt = await jr.text(); let jd = null; try { jd = JSON.parse(jt); } catch {}
+    return res.status(500).json({ ok: false, error: (jd && jd.message) || 'Failed to post job.' });
+  }
+  return res.json({ ok: true, employerExisted: existed });
 }

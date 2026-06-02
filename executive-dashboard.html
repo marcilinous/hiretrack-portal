@@ -214,7 +214,8 @@
   }
 
   async function updateCallbackStatus(id, status) {
-    await sb.from('callback_requests').update({ status }).eq('id', id);
+    const r = await execApi('callback-status', { id, status });
+    if (!r.ok) { showToast(r.error || 'Update failed'); return; }
     showToast(`Status updated to ${status}`);
     loadCallbacks();
   }
@@ -259,34 +260,12 @@
 
     const btn = document.querySelector('#tab-post-job .btn-primary'); btn.textContent='Posting...'; btn.disabled=true;
 
-    // Check if employer already exists
-    let { data: employer } = await sb.from('employers').select('*').eq('email', empEmail).maybeSingle();
-
-    if (!employer) {
-      // Create new employer with free trial
-      const trialExpiry = new Date(); trialExpiry.setDate(trialExpiry.getDate() + 7);
-      const { data: newEmp, error } = await sb.from('employers').insert([{
-        company: empCompany, contact_name: empContact, email: empEmail, mobile: empMobile,
-        password: empMobile,
-        city: empCity, industry: 'Other', plan: 'free',
-        job_limit: 1, day_limit: 7,
-        referred_by: executive.id, is_free_trial: true, free_trial_expires_at: trialExpiry.toISOString()
-      }]).select().single();
-      if (error) { errEl.textContent=error.message; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
-      employer = newEmp;
-    }
-
-    // Post the job
-    const expiryDate = new Date(); expiryDate.setDate(expiryDate.getDate() + 7);
-    const { error: jobError } = await sb.from('jobs').insert([{
-      employer_id: employer.id, title: jobTitle, company: empCompany,
-      location: jobLocation, job_type: jobType, salary: jobSalary,
-      skills: jobSkills, phone: jobPhone, description: jobDesc,
-      email: empEmail, expires_at: expiryDate.toISOString(),
-      posted_by_executive: executive.id, is_free_trial: true
-    }]);
-
-    if (jobError) { errEl.textContent=jobError.message; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
+    // Create employer (if new) + post job — service-role, scoped to this exec.
+    const d = await execApi('post-job', {
+      company: empCompany, contact: empContact, email: empEmail, mobile: empMobile, city: empCity,
+      title: jobTitle, location: jobLocation, jobType, salary: jobSalary, skills: jobSkills, phone: jobPhone, description: jobDesc
+    });
+    if (!d.ok) { errEl.textContent = d.error || 'Failed to post job.'; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
 
     // Send email to employer with login details
     await fetch('https://api.web3forms.com/submit', {
