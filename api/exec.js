@@ -94,6 +94,9 @@ export default async function handler(req, res) {
     switch (action) {
       case 'login':    return await doLogin(req, res, body);
       case 'register': return await doRegister(req, res, body);
+      case 'summary':   return await getSummary(req, res);
+      case 'callbacks': return await getCallbacks(req, res);
+      case 'referrals': return await getReferrals(req, res);
       default:         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
   } catch (e) {
@@ -155,4 +158,55 @@ async function doRegister(req, res, body) {
   if (!r.ok) return res.status(500).json({ ok: false, error: (data && data.message) || 'Registration failed.' });
   const exec = Array.isArray(data) ? data[0] : data;
   return res.json({ ok: true, token: execToken(exec), executive: stripExec(exec) });
+}
+
+// ── Dashboard reads (scoped to the exec id from the verified token) ──
+
+function authExec(req) {
+  const token = req.headers['x-exec-token'] || (req.body && req.body.token);
+  return verifyExecToken(token); // { exec_id, email, name, exp } or null
+}
+
+async function getSummary(req, res) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const id = auth.exec_id;
+  const [refs, cbs, jobs] = await Promise.all([
+    sbGet(`employers?select=id,plan&referred_by=eq.${id}`),
+    sbGet(`callback_requests?select=id,status&assigned_to=eq.${id}`),
+    sbGet(`jobs?select=id&posted_by_executive=eq.${id}`),
+  ]);
+  const refList = Array.isArray(refs.data) ? refs.data : [];
+  return res.json({
+    ok: true,
+    referrals:   refList.length,
+    conversions: refList.filter(r => r.plan && r.plan !== 'free').length,
+    callbacks:   Array.isArray(cbs.data) ? cbs.data.length : 0,
+    jobs:        Array.isArray(jobs.data) ? jobs.data.length : 0,
+  });
+}
+
+async function getCallbacks(req, res) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const id = auth.exec_id;
+  // Solo executive sees all callbacks (assigned + unassigned); otherwise only own.
+  const active = await sbGet('executives?select=id&is_active=eq.true');
+  const isSolo = Array.isArray(active.data) && active.data.length === 1;
+  const cols = 'id,name,company,mobile,preferred_time,message,status,created_at,assigned_to';
+  const path = isSolo
+    ? `callback_requests?select=${cols}&order=created_at.desc`
+    : `callback_requests?select=${cols}&assigned_to=eq.${id}&order=created_at.desc`;
+  const cbs = await sbGet(path);
+  return res.json({ ok: true, isSolo, callbacks: Array.isArray(cbs.data) ? cbs.data : [] });
+}
+
+async function getReferrals(req, res) {
+  const auth = authExec(req);
+  if (!auth) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  const id = auth.exec_id;
+  // Explicit columns — never return the employer password hash.
+  const cols = 'id,company,contact_name,email,mobile,city,plan,is_free_trial,created_at';
+  const refs = await sbGet(`employers?select=${cols}&referred_by=eq.${id}&order=created_at.desc`);
+  return res.json({ ok: true, referrals: Array.isArray(refs.data) ? refs.data : [] });
 }
