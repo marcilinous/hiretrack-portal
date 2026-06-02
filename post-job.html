@@ -109,7 +109,7 @@
 
     const btn=document.querySelector('.btn-primary'); btn.textContent='Posting...'; btn.disabled=true;
     const locFull=getLocationData();const locationFull=[locFull.subcity,locFull.city].filter(Boolean).join(', ')||location;
-    const result=await JobsDB.postJob({title,company,location:locationFull,pincode:locFull.pincode,subcity:locFull.subcity,jobType,salary,experience,skills,phone,description,email,employerId:employer.id,dayLimit:employer.day_limit||15});
+    const result=await JobsDB.postJob({title,company,location:locationFull,pincode:locFull.pincode,city:locFull.city,subcity:locFull.subcity,jobType,salary,experience,skills,phone,description,email,employerId:employer.id,dayLimit:employer.day_limit||15});
     if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Post Job for Free';btn.disabled=false;return;}
     successEl.textContent='✅ Job posted successfully! It is now live on HireTrack.'; successEl.style.display='block';
     btn.textContent='Posted ✓';

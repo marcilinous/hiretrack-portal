@@ -463,7 +463,7 @@ async function postJobForReferral(req, res, body) {
   const expiry = (ref.plan_end && new Date(ref.plan_end) > new Date()) ? new Date(ref.plan_end) : (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d; })();
   const jr = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
     method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
-    body: JSON.stringify({ employer_id: employerId, title, company, location, job_type: jobType, salary, skills, phone, description, email, expires_at: expiry.toISOString(), posted_by_executive: auth.exec_id }),
+    body: JSON.stringify({ employer_id: employerId, title, company, location, job_type: jobType, salary, skills, phone, description, email, expires_at: expiry.toISOString(), posted_by_executive: auth.exec_id, pincode: f('pincode') || null, city: f('city') || null, subcity: f('subcity') || null }),
   });
   if (!jr.ok) { const t = await jr.text(); let d = null; try { d = JSON.parse(t); } catch {} return res.status(500).json({ ok: false, error: (d && d.message) || 'Failed to post job.' }); }
   return res.json({ ok: true });
@@ -550,6 +550,7 @@ async function postJob(req, res, body) {
     employer_id: employer.id, title, company, location, job_type: jobType, salary,
     skills, phone, description, email, expires_at: expiry.toISOString(),
     posted_by_executive: id, is_free_trial: true,
+    pincode: f('pincode') || null, city: city || null, subcity: f('subcity') || null,
   };
   const jr = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
     method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(jobRow),

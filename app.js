@@ -529,7 +529,8 @@ async sendJobAlerts(job) {
       employer_id: job.employerId, title: job.title, company: job.company,
       location: job.location, job_type: job.jobType, salary: job.salary,
       experience: job.experience, skills: job.skills, phone: job.phone,
-      description: job.description, email: job.email, expires_at: expiryDate.toISOString()
+      description: job.description, email: job.email, expires_at: expiryDate.toISOString(),
+      pincode: job.pincode || null, city: job.city || null, subcity: job.subcity || null
     }]).select().single();
     if (error) return { ok: false, msg: error.message };
     return { ok: true, job: data };

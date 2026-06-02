@@ -498,13 +498,17 @@
   }
   async function submitReferralJob() {
     const err = document.getElementById('rjob-err'); err.style.display = 'none';
+    const rjCity = document.getElementById('rjob-city').value.trim();
+    const rjSubcity = document.getElementById('rjob-subcity').value.trim();
     const payload = {
       referral_id: _rjobReferral.id,
       email: document.getElementById('rjob-email').value.trim(),
       title: document.getElementById('rjob-title').value.trim(),
-      location: [document.getElementById('rjob-subcity').value.trim(), document.getElementById('rjob-city').value.trim()].filter(Boolean).join(', '),
+      location: [rjSubcity, rjCity].filter(Boolean).join(', '),
       salary: document.getElementById('rjob-salary').value.trim(),
       description: document.getElementById('rjob-desc').value.trim(),
+      pincode: document.getElementById('rjob-pincode').value.trim(),
+      city: rjCity, subcity: rjSubcity,
     };
     if (!payload.title || !payload.location || !payload.description) { err.textContent = 'Title, location and description are required.'; err.style.display = 'block'; return; }
     const btn = document.getElementById('rjob-btn'); btn.disabled = true; btn.textContent = 'Posting…';
@@ -549,6 +553,7 @@
     const jobCity = document.getElementById('job-city').value.trim();
     const empCity = jobCity; // employer city = the job's pincode-resolved city
     const jobSubcity = document.getElementById('job-subcity').value.trim();
+    const jobPincode = document.getElementById('job-pincode').value.trim();
     const jobLocation = [jobSubcity, jobCity].filter(Boolean).join(', ');
     const jobType = document.getElementById('job-type').value;
     const jobSalary = document.getElementById('job-salary').value.trim();
@@ -568,7 +573,8 @@
     // Create employer (if new) + post job — service-role, scoped to this exec.
     const d = await execApi('post-job', {
       company: empCompany, contact: empContact, email: empEmail, mobile: empMobile, city: empCity,
-      title: jobTitle, location: jobLocation, jobType, salary: jobSalary, skills: jobSkills, phone: jobPhone, description: jobDesc
+      title: jobTitle, location: jobLocation, jobType, salary: jobSalary, skills: jobSkills, phone: jobPhone, description: jobDesc,
+      pincode: jobPincode, subcity: jobSubcity
     });
     if (!d.ok) { errEl.textContent = d.error || 'Failed to post job.'; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
 
