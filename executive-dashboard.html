@@ -128,10 +128,6 @@
         <div class="fg-form"><label>Employer Email *</label><input type="email" id="emp-email" placeholder="hr@company.com" /></div>
         <div class="fg-form"><label>Employer Mobile *</label><input type="tel" id="emp-mobile" placeholder="9XXXXXXXXX" maxlength="10" /></div>
       </div>
-      <div class="fg-form"><label>City *</label>
-        <select id="emp-city"><option value="">Select city</option><option>Bengaluru</option><option>Mysuru</option><option>Mangaluru</option><option>Hubballi</option><option>Other Karnataka</option></select>
-      </div>
-
       <hr style="border:none;border-top:1px solid var(--gray3);margin:1.2rem 0;">
       <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;color:var(--gray5);">JOB DETAILS</h3>
 
@@ -549,9 +545,9 @@
     const empContact = document.getElementById('emp-contact').value.trim();
     const empEmail = document.getElementById('emp-email').value.trim();
     const empMobile = document.getElementById('emp-mobile').value.trim();
-    const empCity = document.getElementById('emp-city').value;
     const jobTitle = document.getElementById('job-title').value.trim();
     const jobCity = document.getElementById('job-city').value.trim();
+    const empCity = jobCity; // employer city = the job's pincode-resolved city
     const jobSubcity = document.getElementById('job-subcity').value.trim();
     const jobLocation = [jobSubcity, jobCity].filter(Boolean).join(', ');
     const jobType = document.getElementById('job-type').value;
@@ -593,7 +589,6 @@
 
     // Clear form
     ['emp-company','emp-contact','emp-email','emp-mobile','job-title','job-salary','job-skills','job-phone','job-desc'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('emp-city').selectedIndex=0;
     ['job-pincode','job-city'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     const _jsc=document.getElementById('job-subcity'); if(_jsc)_jsc.innerHTML='<option value="">Area / Sub-city</option>';
     const _jst=document.getElementById('job-pincode-status'); if(_jst)_jst.textContent='';
@@ -602,7 +597,7 @@
 
   loadStats();
   loadReminderBadge();
-  if (window.PincodeUtil) {
+  if (typeof PincodeUtil !== 'undefined') {
     PincodeUtil.attach('job-pincode', 'job-city', 'job-subcity');
     PincodeUtil.attach('rjob-pincode', 'rjob-city', 'rjob-subcity');
   }
