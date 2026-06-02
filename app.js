@@ -372,18 +372,51 @@ const EmployerAuth = {
       const { data: authData, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) return { ok: false, msg: error.message };
 
-      const { data: employer } = await sb.from('employers').select('*').eq('id', authData.user.id).maybeSingle();
-      if (!employer) {
-        await sb.auth.signOut();
-        return { ok: false, msg: 'Employer profile not found' };
-      }
-
-      Session.setEmployer(employer);
-      return { ok: true, employer };
+      return await this._loadAfterAuth(authData.user.id);
     } catch (e) {
       console.error('Employer login error:', e);
       return { ok: false, msg: e.message || 'An error occurred during login. Please check your network connection.' };
     }
+  },
+
+  // ── Email OTP (Supabase-native, server-verified by GoTrue) ──
+  // sendOtp emails a code to an EXISTING employer. shouldCreateUser:false stops a
+  // non-employer email from silently creating an auth user. The 6-digit code is
+  // delivered via the Supabase email template ({{ .Token }}).
+  async sendOtp(email) {
+    try {
+      const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      if (error) return { ok: false, msg: error.message };
+      return { ok: true };
+    } catch (e) {
+      console.error('Employer sendOtp error:', e);
+      return { ok: false, msg: e.message || 'Failed to send OTP. Please try again.' };
+    }
+  },
+  // verifyOtp validates the emailed code with GoTrue and, on success, loads the
+  // employer profile and establishes the session.
+  async verifyOtp(email, token) {
+    try {
+      const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+      if (error) return { ok: false, msg: error.message };
+      if (!data?.user) return { ok: false, msg: 'Verification failed. Please try again.' };
+      return await this._loadAfterAuth(data.user.id);
+    } catch (e) {
+      console.error('Employer verifyOtp error:', e);
+      return { ok: false, msg: e.message || 'Failed to verify OTP. Please try again.' };
+    }
+  },
+
+  // Shared: after a real Supabase Auth session exists, load the employer row
+  // (id == auth.uid() universally post-v20) and set the session.
+  async _loadAfterAuth(userId) {
+    const { data: employer } = await sb.from('employers').select('*').eq('id', userId).maybeSingle();
+    if (!employer) {
+      await sb.auth.signOut();
+      return { ok: false, msg: 'Employer profile not found. If you registered as a candidate, please use Candidate Login.' };
+    }
+    Session.setEmployer(employer);
+    return { ok: true, employer };
   },
   async logout() {
     try {
