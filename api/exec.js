@@ -94,6 +94,7 @@ export default async function handler(req, res) {
     switch (action) {
       case 'login':    return await doLogin(req, res, body);
       case 'register': return await doRegister(req, res, body);
+      case 'callback-submit': return await submitCallback(req, res, body); // PUBLIC (no token)
       case 'summary':   return await getSummary(req, res);
       case 'callbacks': return await getCallbacks(req, res);
       case 'referrals': return await getReferrals(req, res);
@@ -326,6 +327,47 @@ async function markReminderDone(req, res, body) {
   return res.json({ ok: r.ok });
 }
 
+// ── Public: callback request submission (the request-a-callback form). No token;
+//    runs as service role so it works despite RLS on callback_requests/executives. ──
+async function submitCallback(req, res, body) {
+  const b = body || {};
+  const f = (k) => (b[k] || '').trim();
+  const name = f('name'), company = f('company'), mobile = f('mobile');
+  const preferred_time = f('preferred_time'), message = f('message');
+  if (!name || !company || !mobile) return res.status(400).json({ ok: false, error: 'Name, company and mobile are required.' });
+  if (!/^\d{10}$/.test(mobile)) return res.status(400).json({ ok: false, error: 'Enter a valid 10-digit mobile.' });
+
+  // Round-robin across active executives (server-side; rotates off the last assignment).
+  let assigned = null;
+  const execsRes = await sbGet('executives?select=id,name&is_active=eq.true&order=created_at.asc');
+  const execs = Array.isArray(execsRes.data) ? execsRes.data : [];
+  if (execs.length === 1) {
+    assigned = execs[0];
+  } else if (execs.length > 1) {
+    const lastRes = await sbGet('callback_requests?select=assigned_to&assigned_to=not.is.null&order=assigned_at.desc&limit=1');
+    const last = Array.isArray(lastRes.data) ? lastRes.data[0] : null;
+    if (!last || !last.assigned_to) assigned = execs[0];
+    else {
+      const idx = execs.findIndex(e => e.id === last.assigned_to);
+      assigned = idx === -1 ? execs[0] : execs[(idx + 1) % execs.length];
+    }
+  }
+
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/callback_requests`, {
+    method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
+    body: JSON.stringify({
+      name, company, mobile,
+      preferred_time: preferred_time || null,
+      message: message || null,
+      status: 'yet_to_call',
+      assigned_to: assigned ? assigned.id : null,
+      assigned_at: assigned ? new Date().toISOString() : null,
+    }),
+  });
+  if (!r.ok) { const t = await r.text(); let d = null; try { d = JSON.parse(t); } catch {} return res.status(500).json({ ok: false, error: (d && d.message) || 'Could not submit request.' }); }
+  return res.json({ ok: true, assignedName: assigned ? assigned.name : null });
+}
+
 // ── Pipeline (Workflow 1): payment links, mark-paid, post-job-for-referral ──
 
 // Load + verify a referral belongs to the caller.
@@ -486,68 +528,15 @@ async function postJob(req, res, body) {
     return res.status(400).json({ ok: false, error: 'Enter valid 10-digit mobile numbers.' });
   }
 
-  // Find or create the employer (referred by this exec, 7-day free trial)
-  let employer = null;
-  const found = await sbGet(`employers?select=id&email=ilike.${encodeURIComponent(email)}&limit=1`);
-  const existed = Array.isArray(found.data) && found.data.length > 0;
-  if (existed) {
-    employer = found.data[0];
-  } else {
-    // Create a REAL Supabase Auth account so the employer can log into the portal
-    // (password = their mobile, matching the credentials email). The
-    // on_auth_user_created trigger then creates the public.employers row (id =
-    // auth uid); we stamp the exec/trial fields onto it.
-    const au = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-      method: 'POST',
-      headers: {
-        apikey: process.env.SUPABASE_SERVICE_KEY,
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email, password: mobile, email_confirm: true,
-        user_metadata: { role: 'employer', company, contact_name: contact, mobile, city, industry: 'Other' },
-      }),
-    });
-    const at = await au.text(); let ad = null; try { ad = JSON.parse(at); } catch {}
-    if (!au.ok) {
-      const msg = (ad && (ad.msg || ad.message || ad.error_description || ad.error)) || 'Could not create employer account.';
-      const taken = /already|registered|exists/i.test(msg);
-      return res.status(taken ? 409 : 500).json({
-        ok: false,
-        error: taken ? 'An account with this email already exists — ask them to log in, or use a different email.' : msg,
-      });
-    }
-    const uid = ad.id || (ad.user && ad.user.id);
-    if (!uid) return res.status(500).json({ ok: false, error: 'Employer account creation returned no id.' });
-
-    const trial = new Date(); trial.setDate(trial.getDate() + 7);
-    const fields = {
-      company, contact_name: contact, mobile, city, industry: 'Other',
-      plan: 'free', job_limit: 1, day_limit: 7,
-      referred_by: id, is_free_trial: true, free_trial_expires_at: trial.toISOString(),
-    };
-    // Stamp the trigger-created row; if the trigger didn't create it, insert explicitly.
-    const pr = await fetch(`${SUPABASE_URL}/rest/v1/employers?id=eq.${uid}`, {
-      method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(fields),
-    });
-    let pd = null; { const t = await pr.text(); try { pd = JSON.parse(t); } catch {} }
-    let row = Array.isArray(pd) ? pd[0] : pd;
-    if (pr.ok && !row) {
-      const ir = await fetch(`${SUPABASE_URL}/rest/v1/employers`, {
-        method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }),
-        body: JSON.stringify({ id: uid, email, ...fields }),
-      });
-      const it = await ir.text(); let idd = null; try { idd = JSON.parse(it); } catch {}
-      row = Array.isArray(idd) ? idd[0] : idd;
-    }
-    employer = row || { id: uid };
-  }
+  // Find or create the employer (real auth account if new) — shared helper.
+  const acct = await ensureEmployerAccount({ email, mobile, company, contact, city, execId: id });
+  if (acct.error) return res.status(acct.status || 500).json({ ok: false, error: acct.error });
+  const employerId = acct.id;
 
   // Post the job (7-day trial)
   const expiry = new Date(); expiry.setDate(expiry.getDate() + 7);
   const jobRow = {
-    employer_id: employer.id, title, company, location, job_type: jobType, salary,
+    employer_id: employerId, title, company, location, job_type: jobType, salary,
     skills, phone, description, email, expires_at: expiry.toISOString(),
     posted_by_executive: id, is_free_trial: true,
     pincode: f('pincode') || null, city: city || null, subcity: f('subcity') || null,

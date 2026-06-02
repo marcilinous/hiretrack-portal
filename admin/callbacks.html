@@ -31,6 +31,7 @@ tr:hover td{background:#f8fafc;}
 .b-orange{background:#ffedd5;color:#c2410c;}
 .b-blue{background:#dbeafe;color:#1d4ed8;}
 .b-green{background:#dcfce7;color:#15803d;}
+.b-gray{background:#f1f5f9;color:#64748b;}
 select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78rem;outline:none;font-family:inherit;}
 .empty,.loading{text-align:center;padding:3rem;color:#94a3b8;}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:0.75rem 1.2rem;border-radius:10px;font-size:0.88rem;font-weight:600;z-index:999;display:none;}
@@ -86,7 +87,8 @@ select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78
   }
 
   function render(data){
-    const sc={Pending:'b-orange',Called:'b-blue',Converted:'b-green'};
+    const sc={yet_to_call:'b-orange',called:'b-blue',interested:'b-green',not_interested:'b-gray',converted:'b-green',Pending:'b-orange',Called:'b-blue',Converted:'b-green'};
+    const lbl={yet_to_call:'Yet to Call',called:'Called',interested:'Interested',not_interested:'Not Interested',converted:'Converted'};
     document.getElementById('tbl').innerHTML=data.length?`<table>
       <thead><tr><th>Name</th><th>Company</th><th>Mobile</th><th>Preferred Time</th><th>Assigned To</th><th>Status</th><th>Date</th><th>Message</th></tr></thead>
       <tbody>${data.map(c=>`<tr>
@@ -98,7 +100,7 @@ select{border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:0.78
           <option value="">Unassigned</option>
           ${execs.map(e=>`<option value="${e.id}"${c.assigned_to===e.id?' selected':''}>${e.name}</option>`).join('')}
         </select></td>
-        <td><span class="badge ${sc[c.status]||'b-orange'}">${c.status||'Pending'}</span></td>
+        <td><span class="badge ${sc[c.status]||'b-gray'}">${lbl[c.status]||c.status||'Yet to Call'}</span></td>
         <td>${new Date(c.created_at).toLocaleDateString('en-IN')}</td>
         <td style="max-width:180px;color:#64748b;font-size:0.8rem;">${c.message||'—'}</td>
       </tr>`).join('')}</tbody></table>`

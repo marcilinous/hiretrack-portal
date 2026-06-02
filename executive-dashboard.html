@@ -99,11 +99,11 @@
   </div>
 
   <div class="tab-btns">
-    <button class="tab-btn active" onclick="switchTab('post-job')">📝 Post Job for Employer</button>
-    <button class="tab-btn" onclick="switchTab('callbacks')">📞 Callback Requests</button>
-    <button class="tab-btn" onclick="switchTab('referrals')">🎯 My Referrals</button>
-    <button class="tab-btn" onclick="switchTab('pipeline')">💳 Pipeline</button>
-    <button class="tab-btn" onclick="switchTab('reminders')">🔔 Reminders<span id="rem-badge" class="tab-badge" style="display:none;">0</span></button>
+    <button class="tab-btn active" data-tab="post-job" onclick="switchTab('post-job')">📝 Post Job for Employer</button>
+    <button class="tab-btn" data-tab="callbacks" onclick="switchTab('callbacks')">📞 Callback Requests</button>
+    <button class="tab-btn" data-tab="referrals" onclick="switchTab('referrals')">🎯 My Referrals</button>
+    <button class="tab-btn" data-tab="pipeline" onclick="switchTab('pipeline')">💳 Pipeline</button>
+    <button class="tab-btn" data-tab="reminders" onclick="switchTab('reminders')">🔔 Reminders<span id="rem-badge" class="tab-badge" style="display:none;">0</span></button>
   </div>
 
   <!-- POST JOB TAB -->
@@ -272,12 +272,9 @@
   function doLogout() { sessionStorage.removeItem('ht_executive'); sessionStorage.removeItem('ht_exec_token'); window.location.href = 'executive.html'; }
 
   function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach((b,i) => { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const tabs = ['post-job','callbacks','referrals','pipeline','reminders'];
-    const idx = tabs.indexOf(tab);
-    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
-    document.getElementById(`tab-${tab}`).classList.add('active');
+    const el = document.getElementById('tab-' + tab); if (el) el.classList.add('active');
     if (tab === 'callbacks') loadCallbacks();
     if (tab === 'referrals') loadReferrals();
     if (tab === 'reminders') loadReminders();

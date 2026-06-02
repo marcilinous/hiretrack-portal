@@ -185,40 +185,15 @@
     const btn = document.querySelector('.btn-primary');
     btn.textContent = 'Submitting...'; btn.disabled = true;
 
-    // Round robin assignment — find next executive in line
-    async function getNextExecutive() {
-      const { data: executives } = await sb.from('executives')
-        .select('id, name').eq('is_active', true).order('created_at', { ascending: true });
-      if (!executives || !executives.length) return null;
-      if (executives.length === 1) return executives[0]; // Only 1 executive — assign all to them
-
-      // Get the last assigned callback (only ones that have been assigned)
-      const { data: lastCallback } = await sb.from('callback_requests')
-        .select('assigned_to').not('assigned_to', 'is', null)
-        .order('assigned_at', { ascending: false }).limit(1).maybeSingle();
-
-      if (!lastCallback?.assigned_to) {
-        return executives[0]; // No assignments yet — start with first
-      }
-
-      const currentIdx = executives.findIndex(e => e.id === lastCallback.assigned_to);
-      if (currentIdx === -1) return executives[0]; // Executive not found — start fresh
-      const nextIdx = (currentIdx + 1) % executives.length;
-      return executives[nextIdx];
-    }
-
-    const assignedExec = await getNextExecutive();
-
-    // Save to Supabase with assignment
-    const { error } = await sb.from('callback_requests').insert([{
-      name, company, mobile,
-      preferred_time: selectedTime,
-      message: message || null,
-      assigned_to: assignedExec?.id || null,
-      assigned_at: new Date().toISOString()
-    }]);
-
-    if (error) { errEl.textContent = 'Failed to submit. Please try again.'; errEl.style.display = 'block'; btn.textContent = '📞 Request Callback'; btn.disabled = false; return; }
+    // Submit via the service-role endpoint (callback_requests/executives are RLS-
+    // protected, so the anon key can't insert/round-robin). The server assigns.
+    const resp = await fetch('/api/exec?action=callback-submit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, company, mobile, preferred_time: selectedTime, message })
+    });
+    const result = await resp.json().catch(() => ({ ok: false }));
+    if (!result.ok) { errEl.textContent = result.error || 'Failed to submit. Please try again.'; errEl.style.display = 'block'; btn.textContent = '📞 Request Callback'; btn.disabled = false; return; }
+    const assignedExec = result.assignedName ? { name: result.assignedName } : null;
 
     // Send email notification to admin
     await fetch('https://api.web3forms.com/submit', {
