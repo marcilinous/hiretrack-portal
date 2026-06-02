@@ -424,8 +424,12 @@ async function syncSession() {
         }
       }
     } else {
+      // Employers authenticate against the employers table (custom auth) and have
+      // NO Supabase Auth session, so a null getSession() must NOT clear their
+      // sessionStorage login — doing so bounced them straight back to the login
+      // page. Only candidates (real Supabase Auth) are cleared when their session
+      // is gone.
       Session.clearCandidate();
-      Session.clearEmployer();
     }
   } catch (e) {
     console.error('syncSession error:', e);
