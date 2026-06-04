@@ -643,7 +643,9 @@ const JobForm = {
     const el = document.getElementById(containerId);
     if (!el) return;
     el.innerHTML = this.fieldsHTML();
-    if (window.PincodeUtil) PincodeUtil.attach('jf-pincode', 'jf-city', 'jf-subcity');
+    // PincodeUtil (pincode.js) is a top-level `const`, so it's a global lexical
+    // binding — NOT a property of window. Reference it directly, not via window.
+    if (typeof PincodeUtil !== 'undefined') PincodeUtil.attach('jf-pincode', 'jf-city', 'jf-subcity');
   },
 
   collect() {
