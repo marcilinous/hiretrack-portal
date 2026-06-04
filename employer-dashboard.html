@@ -437,8 +437,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script src="app.js?v=6"></script>
 <script src="js/chat.js"></script>
 <script>
-  const employer = Session.getEmployer();
-  if (!employer) window.location.href = 'employer-auth.html';
+  let employer = Session.getEmployer();
+  // NOTE: redirect decision is deferred to the async bootstrap at the bottom —
+  // a fresh tab has an empty sessionStorage but may still have a valid Supabase
+  // session in localStorage that syncSession() will rehydrate.
 
   let myJobs = [], allApps = [], currentView = 'board';
   const STATUSES = ['Viewed','Applied','Shortlisted','Interview','Hired','Rejected'];
@@ -1225,7 +1227,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCandidateProfile(); });
 
-  if (employer) { init(); }
+  // ── Auth bootstrap ──
+  // If sessionStorage has no employer (e.g. a fresh tab), wait for the Supabase
+  // session restore before deciding to redirect — so a still-logged-in employer
+  // isn't bounced to the login page.
+  (async () => {
+    if (!employer && window.htSessionReady) {
+      try { await window.htSessionReady; } catch (e) {}
+      employer = Session.getEmployer();
+    }
+    if (!employer) { window.location.href = 'employer-auth.html'; return; }
+    init();
+  })();
 
   // ── Company Logo Upload ──
   async function handleLogoUpload(input) {

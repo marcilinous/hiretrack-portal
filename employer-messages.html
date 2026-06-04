@@ -35,14 +35,16 @@ body { padding-top:50px !important; background:#f1f5f9; }
 <script src="app.js?v=6"></script>
 <script src="js/chat.js"></script>
 <script>
-  const employer = Session.getEmployer();
-  if (!employer) window.location.href = '/employer-auth.html';
-
+  let employer = Session.getEmployer();
   document.getElementById('navbar') && (document.getElementById('navbar').innerHTML = '');
 
-  if (employer) {
+  // Wait for the Supabase session restore before redirecting (a fresh tab has an
+  // empty sessionStorage but may still hold a valid session in localStorage).
+  (async () => {
+    if (!employer && window.htSessionReady) { try { await window.htSessionReady; } catch (e) {} employer = Session.getEmployer(); }
+    if (!employer) { window.location.href = '/employer-auth.html'; return; }
     Chat.initEmployer('employer-chat-root', employer);
-  }
+  })();
 </script>
 </body>
 </html>

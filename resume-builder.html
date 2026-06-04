@@ -884,8 +884,14 @@
 <script>
 document.getElementById('navbar').innerHTML = renderNavbar('resume-builder');
 
-const candidate = Session.getCandidate();
-if (!candidate) { window.location.href = 'login.html'; }
+let candidate = Session.getCandidate();
+// Redirect decision deferred — a fresh tab may still have a valid Supabase
+// session that syncSession() will restore (which also repopulates sessionStorage,
+// so later Session.getCandidate() reads succeed).
+(async () => {
+  if (!candidate && window.htSessionReady) { try { await window.htSessionReady; } catch (e) {} candidate = Session.getCandidate(); }
+  if (!candidate) window.location.href = 'login.html';
+})();
 
 // ── State ──
 let selectedTemplate = 'modern';
