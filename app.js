@@ -766,10 +766,16 @@ function getExpiryLabel(job) {
 function renderNavbar(activePage) {
   const candidate = Session.getCandidate();
   const employer = Session.getEmployer();
+  // For accounts that are BOTH candidate and employer (same email), prefer the
+  // employer identity on employer-context pages; candidate-first everywhere else.
+  const EMPLOYER_PAGES = ['postjob', 'dashboard', 'pricing', 'messages'];
+  const preferEmployer = EMPLOYER_PAGES.indexOf(activePage) !== -1;
+  const asEmployer = !!employer && (preferEmployer || !candidate);
+  const asCandidate = !!candidate && !asEmployer;
   let rightHTML = '';
-  if (candidate) {
+  if (asCandidate) {
     rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${candidate.name.split(' ')[0]}</span></span><span class="btn-logout" onclick="CandidateAuth.logout()">Logout</span></div>`;
-  } else if (employer) {
+  } else if (asEmployer) {
     rightHTML = `<div class="nav-user"><span class="nav-user-name">Hi, <span>${employer.contact_name.split(' ')[0]}</span></span><a href="/employer-messages.html" class="btn-employer" ${activePage==='messages'?'style="background:#ff9933;border-color:#ff9933;"':''}>💬 Messages</a><a href="/post-job.html" class="btn-signup">+ Post Job</a></div>`;
   } else {
     rightHTML = `<a href="/login.html" class="btn-login">Login</a><a href="/signup.html" class="btn-signup">Sign Up</a><a href="/employer-auth.html" class="btn-employer">For Employers</a>`;
@@ -777,18 +783,18 @@ function renderNavbar(activePage) {
 
   // Mobile nav links
   let mobileLinks = '';
-  if (candidate) {
+  if (asCandidate) {
     mobileLinks = `<a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="/profile.html" ${activePage==='profile'?'class="active"':''}>My Profile</a>`;
-  } else if (employer) {
+  } else if (asEmployer) {
     mobileLinks = `<a href="/employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a><a href="/post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a><a href="/employer-messages.html" ${activePage==='messages'?'class="active"':''}>💬 Messages</a><a href="/pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a><div class="nav-divider"></div><a href="#" onclick="EmployerAuth.logout()">Logout</a>`;
   } else {
     mobileLinks = `<a href="/index.html" ${activePage==='home'?'class="active"':''}>Home</a><a href="/jobs.html" ${activePage==='jobs'?'class="active"':''}>Browse Jobs</a><a href="/blog.html" ${activePage==='blog'?'class="active"':''}>Blog</a><div class="nav-divider"></div><a href="/login.html">Candidate Login</a><a href="/employer-auth.html">Employer Login</a><a href="/signup.html">Sign Up Free</a>`;
   }
 
   return `<nav class="navbar">
-    <a href="${candidate ? '/profile.html' : employer ? '/employer-dashboard.html' : '/index.html'}" class="nav-logo">Hire<span>Track</span></a>
+    <a href="${asCandidate ? '/profile.html' : asEmployer ? '/employer-dashboard.html' : '/index.html'}" class="nav-logo">Hire<span>Track</span></a>
     <div class="nav-center">
-      ${employer ? `
+      ${asEmployer ? `
         <a href="/employer-dashboard.html" ${activePage==='dashboard'?'class="active"':''}>Dashboard</a>
         <a href="/post-job.html" ${activePage==='postjob'?'class="active"':''}>Post a Job</a>
         <a href="/pricing.html" ${activePage==='pricing'?'class="active"':''}>Pricing</a>
