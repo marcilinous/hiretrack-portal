@@ -15,6 +15,7 @@
   <div class="form-card">
     <h2>Welcome Back</h2>
     <p class="sub">Login to your HireTrack candidate account</p>
+    <div class="alert alert-success" id="reset-ok"></div>
     <div class="alert alert-error" id="err-msg"></div>
     <div class="fg-form"><label>Email Address *</label><input type="email" id="email" placeholder="you@example.com" /></div>
     <div class="fg-form"><label>Password *</label><input type="password" id="password" placeholder="Your password" /></div>
@@ -34,6 +35,12 @@
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('');
   if (Session.getCandidate()) window.location.href = 'profile.html';
+
+  // Success banner after a completed password reset (reset-password.html redirects here).
+  if (new URLSearchParams(location.search).get('reset') === 'success') {
+    const ok = document.getElementById('reset-ok');
+    if (ok) { ok.textContent = '✅ Password updated! Please log in with your new password.'; ok.style.display = 'block'; }
+  }
 
   async function doLogin() {
     const email = document.getElementById('email').value.trim();
@@ -107,7 +114,7 @@
     msg.style.color='#64748b'; msg.textContent='Sending...';
     try {
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/login.html'
+        redirectTo: window.location.origin + '/reset-password.html'
       });
       if (error) {
         msg.style.color='#dc2626'; msg.textContent=error.message || 'Email not found. Please check and try again.';
