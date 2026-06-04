@@ -145,7 +145,10 @@
 document.getElementById('navbar').innerHTML = renderNavbar('');
 
 async function upgradePro() {
-  const candidate = Session.getCandidate();
+  let candidate = Session.getCandidate();
+  // A fresh tab may not have the cached profile yet — confirm via the Supabase
+  // session restore before treating the user as logged out.
+  if (!candidate && window.htSessionReady) { try { await window.htSessionReady; } catch (e) {} candidate = Session.getCandidate(); }
   if (!candidate) {
     sessionStorage.setItem('redirect_after_login', 'pricing-candidate.html');
     window.location.href = 'login.html';

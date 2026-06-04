@@ -469,7 +469,11 @@ async function syncSession() {
   }
 }
 
-syncSession();
+// Expose the in-flight restore so page guards can await it before redirecting.
+// (Employer/candidate profiles live in per-tab sessionStorage, but the real
+// Supabase session is in persistent localStorage — a fresh tab must wait for
+// syncSession() to rehydrate the profile instead of bouncing to login.)
+window.htSessionReady = syncSession();
 
 sb.auth.onAuthStateChange(async (event, session) => {
   if (session) {

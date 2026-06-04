@@ -37,16 +37,20 @@
 <script src="app.js?v=6"></script>
 <script>
   document.getElementById('navbar').innerHTML = renderNavbar('postjob');
-  const employer = Session.getEmployer();
-  if (!employer) { sessionStorage.setItem('redirect_after_employer_login','post-job.html'); window.location.href='employer-auth.html'; }
+  let employer = Session.getEmployer();
 
-  // Render the shared job fields, then prefill employer context.
+  // Render the shared job fields immediately; confirm auth + prefill below.
   JobForm.renderInto('jf-container');
-  if (employer) {
+
+  // Wait for the Supabase session restore before redirecting (a fresh tab has an
+  // empty sessionStorage but may still hold a valid session in localStorage).
+  (async () => {
+    if (!employer && window.htSessionReady) { try { await window.htSessionReady; } catch (e) {} employer = Session.getEmployer(); }
+    if (!employer) { sessionStorage.setItem('redirect_after_employer_login','post-job.html'); window.location.href='employer-auth.html'; return; }
     document.getElementById('company').value = employer.company || '';
     document.getElementById('email').value = employer.email || '';
     const phoneEl = document.getElementById('jf-phone'); if (phoneEl) phoneEl.value = employer.mobile || '';
-  }
+  })();
 
   async function generateJD() {
     const input=document.getElementById('ai-jd-input').value.trim(); if(!input) return;

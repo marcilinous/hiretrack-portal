@@ -196,27 +196,26 @@ body { padding-top:50px !important; }
 <script src="/js/sb-rest-shim.js"></script>
 <script src="app.js?v=6"></script>
 <script>
-const candidate = Session.getCandidate?.();
-if (!candidate) window.location.href = '/login.html';
+let candidate = Session.getCandidate?.();
+// Redirect decision deferred to the bootstrap below (fresh tab may still have a
+// valid Supabase session in localStorage to restore from).
 
 const NOTIF_ICONS   = { Viewed:'👁️', Shortlisted:'⭐', Interview:'📅', Hired:'🎉', Rejected:'❌', Applied:'📥' };
 const NOTIF_CLASSES = { Viewed:'ni-status', Shortlisted:'ni-shortlist', Interview:'ni-interview', Hired:'ni-hired', Rejected:'ni-rejected' };
 
 let allNotifs = [];
 
-if (candidate) {
-  (async function load() {
-    try { await sb.auth.getSession(); } catch(e) {}
-    const { data, error } = await sb
-      .from('notifications')
-      .select('*')
-      .eq('candidate_id', candidate.id)
-      .order('created_at', { ascending: false });
-
-    allNotifs = data || [];
-    render();
-  })();
-}
+(async function bootstrap() {
+  if (!candidate && window.htSessionReady) { try { await window.htSessionReady; } catch (e) {} candidate = Session.getCandidate?.(); }
+  if (!candidate) { window.location.href = '/login.html'; return; }
+  const { data } = await sb
+    .from('notifications')
+    .select('*')
+    .eq('candidate_id', candidate.id)
+    .order('created_at', { ascending: false });
+  allNotifs = data || [];
+  render();
+})();
 
 function render() {
   const content = document.getElementById('nc-content');
