@@ -131,26 +131,8 @@
       <hr style="border:none;border-top:1px solid var(--gray3);margin:1.2rem 0;">
       <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;color:var(--gray5);">JOB DETAILS</h3>
 
-      <div class="form-row">
-        <div class="fg-form"><label>Job Title *</label><input type="text" id="job-title" placeholder="e.g. MIS Executive" /></div>
-        <div class="fg-form"><label>Location *</label>
-          <div class="pin-grid">
-            <input type="text" id="job-pincode" placeholder="Pincode" maxlength="6" inputmode="numeric" class="pin-in" />
-            <input type="text" id="job-city" placeholder="City (auto-filled)" class="pin-in" />
-          </div>
-          <select id="job-subcity" class="pin-sel"><option value="">Area / Sub-city</option></select>
-          <div id="job-pincode-status" class="pin-status"></div>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="fg-form"><label>Job Type</label>
-          <select id="job-type"><option>Full Time</option><option>Contract</option><option>Remote</option></select>
-        </div>
-        <div class="fg-form"><label>Salary Range</label><input type="text" id="job-salary" placeholder="e.g. ₹4–6 LPA" /></div>
-      </div>
-      <div class="fg-form"><label>Required Skills</label><input type="text" id="job-skills" placeholder="Excel, SQL, Power BI" /></div>
-      <div class="fg-form"><label>WhatsApp Number for Applications *</label><input type="tel" id="job-phone" placeholder="10-digit mobile" maxlength="10" /></div>
-      <div class="fg-form"><label>Job Description *</label><textarea id="job-desc" rows="5" placeholder="Describe the role and requirements..."></textarea></div>
+      <!-- Shared job fields (JobForm — identical to the employer post-job page) -->
+      <div id="jf-container"></div>
 
       <button class="btn-primary" onclick="postJobForEmployer()">🚀 Post Job (7-Day Free Trial)</button>
     </div>
@@ -546,32 +528,28 @@
     const empContact = document.getElementById('emp-contact').value.trim();
     const empEmail = document.getElementById('emp-email').value.trim();
     const empMobile = document.getElementById('emp-mobile').value.trim();
-    const jobTitle = document.getElementById('job-title').value.trim();
-    const jobCity = document.getElementById('job-city').value.trim();
-    const empCity = jobCity; // employer city = the job's pincode-resolved city
-    const jobSubcity = document.getElementById('job-subcity').value.trim();
-    const jobPincode = document.getElementById('job-pincode').value.trim();
-    const jobLocation = [jobSubcity, jobCity].filter(Boolean).join(', ');
-    const jobType = document.getElementById('job-type').value;
-    const jobSalary = document.getElementById('job-salary').value.trim();
-    const jobSkills = document.getElementById('job-skills').value.trim();
-    const jobPhone = document.getElementById('job-phone').value.trim();
-    const jobDesc = document.getElementById('job-desc').value.trim();
+    const job = JobForm.collect();              // shared job fields
+    const empCity = job.city;                   // employer city = job's pincode-resolved city
     const errEl = document.getElementById('job-err'); const successEl = document.getElementById('job-success');
     errEl.style.display='none'; successEl.style.display='none';
 
-    if (!empCompany||!empContact||!empEmail||!empMobile||!empCity||!jobTitle||!jobLocation||!jobPhone||!jobDesc) {
-      errEl.textContent='Please fill all required fields.'; errEl.style.display='block'; return;
+    const fieldErr = JobForm.validate(job);
+    if (!empCompany||!empContact||!empEmail||!empMobile||!empCity) {
+      errEl.textContent='Please fill all employer details (company, contact, email, mobile, location).'; errEl.style.display='block'; return;
     }
-    if (empMobile.length!==10||jobPhone.length!==10) { errEl.textContent='Enter valid 10-digit mobile numbers.'; errEl.style.display='block'; return; }
+    if (fieldErr) { errEl.textContent = fieldErr; errEl.style.display='block'; return; }
+    if (empMobile.length!==10) { errEl.textContent='Enter a valid 10-digit employer mobile number.'; errEl.style.display='block'; return; }
 
     const btn = document.querySelector('#tab-post-job .btn-primary'); btn.textContent='Posting...'; btn.disabled=true;
 
     // Create employer (if new) + post job — service-role, scoped to this exec.
+    // Server enforces Bug-2 rules (existing-job trial / active paid plan).
     const d = await execApi('post-job', {
       company: empCompany, contact: empContact, email: empEmail, mobile: empMobile, city: empCity,
-      title: jobTitle, location: jobLocation, jobType, salary: jobSalary, skills: jobSkills, phone: jobPhone, description: jobDesc,
-      pincode: jobPincode, subcity: jobSubcity
+      title: job.title, location: job.location, jobType: job.jobType, salary: job.salary,
+      skills: job.skills, phone: job.phone, description: job.description,
+      experience: job.experience, application_deadline: job.application_deadline, openings: job.openings,
+      pincode: job.pincode, subcity: job.subcity
     });
     if (!d.ok) { errEl.textContent = d.error || 'Failed to post job.'; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
 
@@ -590,18 +568,17 @@
     successEl.style.display='block'; btn.textContent='Posted ✓';
     loadStats();
 
-    // Clear form
-    ['emp-company','emp-contact','emp-email','emp-mobile','job-title','job-salary','job-skills','job-phone','job-desc'].forEach(id=>document.getElementById(id).value='');
-    ['job-pincode','job-city'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    const _jsc=document.getElementById('job-subcity'); if(_jsc)_jsc.innerHTML='<option value="">Area / Sub-city</option>';
-    const _jst=document.getElementById('job-pincode-status'); if(_jst)_jst.textContent='';
+    // Clear form: reset employer fields + re-render the shared job fields.
+    ['emp-company','emp-contact','emp-email','emp-mobile'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    if (typeof JobForm !== 'undefined') JobForm.renderInto('jf-container');
     setTimeout(()=>{btn.textContent='🚀 Post Job (7-Day Free Trial)';btn.disabled=false;},2000);
   }
 
   loadStats();
   loadReminderBadge();
+  // Render the shared job fields (JobForm attaches its own pincode lookup).
+  if (typeof JobForm !== 'undefined') JobForm.renderInto('jf-container');
   if (typeof PincodeUtil !== 'undefined') {
-    PincodeUtil.attach('job-pincode', 'job-city', 'job-subcity');
     PincodeUtil.attach('rjob-pincode', 'rjob-city', 'rjob-subcity');
   }
 </script>

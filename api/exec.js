@@ -505,7 +505,7 @@ async function postJobForReferral(req, res, body) {
   const expiry = (ref.plan_end && new Date(ref.plan_end) > new Date()) ? new Date(ref.plan_end) : (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d; })();
   const jr = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
     method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }),
-    body: JSON.stringify({ employer_id: employerId, title, company, location, job_type: jobType, salary, skills, phone, description, email, expires_at: expiry.toISOString(), posted_by_executive: auth.exec_id, pincode: f('pincode') || null, city: f('city') || null, subcity: f('subcity') || null }),
+    body: JSON.stringify({ employer_id: employerId, title, company, location, job_type: jobType, salary, skills, phone, description, email, expires_at: expiry.toISOString(), posted_by_executive: auth.exec_id, experience: f('experience') || null, application_deadline: b.application_deadline || null, openings: Number(b.openings) || 1, pincode: f('pincode') || null, city: f('city') || null, subcity: f('subcity') || null }),
   });
   if (!jr.ok) { const t = await jr.text(); let d = null; try { d = JSON.parse(t); } catch {} return res.status(500).json({ ok: false, error: (d && d.message) || 'Failed to post job.' }); }
   return res.json({ ok: true });
@@ -528,6 +528,25 @@ async function postJob(req, res, body) {
     return res.status(400).json({ ok: false, error: 'Enter valid 10-digit mobile numbers.' });
   }
 
+  // ── Bug 2: validate against the EXISTING employer (if any) BEFORE creating
+  // anything. Brand-new employers (no row yet) skip these checks. ──
+  const existingRes = await sbGet(`employers?select=id,plan,plan_expires_at,is_free_trial,job_limit&email=ilike.${encodeURIComponent(email)}&limit=1`);
+  const existingEmp = Array.isArray(existingRes.data) ? existingRes.data[0] : null;
+  if (existingEmp) {
+    // 2b: employer already has an active paid plan → not a free-post candidate.
+    const paidActive = existingEmp.plan && existingEmp.plan !== 'free'
+      && (!existingEmp.plan_expires_at || new Date(existingEmp.plan_expires_at) > new Date());
+    if (paidActive) {
+      return res.status(409).json({ ok: false, error: 'This employer already has an active plan. Direct them to post from their own dashboard.' });
+    }
+    // 2a: free/trial employer that already has job post(s) (same rule as Bug 1).
+    const jobsRes = await sbGet(`jobs?select=id&employer_id=eq.${existingEmp.id}`);
+    const jobCount = Array.isArray(jobsRes.data) ? jobsRes.data.length : 0;
+    if (jobCount >= (existingEmp.job_limit || 1)) {
+      return res.status(409).json({ ok: false, error: 'Free trial allows only 1 active job post. Upgrade to post more.' });
+    }
+  }
+
   // Find or create the employer (real auth account if new) — shared helper.
   const acct = await ensureEmployerAccount({ email, mobile, company, contact, city, execId: id });
   if (acct.error) return res.status(acct.status || 500).json({ ok: false, error: acct.error });
@@ -539,6 +558,9 @@ async function postJob(req, res, body) {
     employer_id: employerId, title, company, location, job_type: jobType, salary,
     skills, phone, description, email, expires_at: expiry.toISOString(),
     posted_by_executive: id, is_free_trial: true,
+    experience: f('experience') || null,
+    application_deadline: b.application_deadline || null,
+    openings: Number(b.openings) || 1,
     pincode: f('pincode') || null, city: city || null, subcity: f('subcity') || null,
   };
   const jr = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
@@ -546,7 +568,11 @@ async function postJob(req, res, body) {
   });
   if (!jr.ok) {
     const jt = await jr.text(); let jd = null; try { jd = JSON.parse(jt); } catch {}
+    // The v32 DB trigger backstops the free-trial limit.
+    if (/JOB_LIMIT_TRIAL/.test(jt)) {
+      return res.status(409).json({ ok: false, error: 'Free trial allows only 1 active job post. Upgrade to post more.' });
+    }
     return res.status(500).json({ ok: false, error: (jd && jd.message) || 'Failed to post job.' });
   }
-  return res.json({ ok: true, employerExisted: existed });
+  return res.json({ ok: true, employerExisted: !!existingEmp });
 }

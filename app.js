@@ -562,14 +562,24 @@ async sendJobAlerts(job) {
   async postJob(job) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + (job.dayLimit || 15));
-    const { data, error } = await sb.from('jobs').insert([{
+    // window.sbQuery is the fetch-based shim (same client as sb.from once installed).
+    const q = window.sbQuery || sb;
+    const { data, error } = await q.from('jobs').insert([{
       employer_id: job.employerId, title: job.title, company: job.company,
       location: job.location, job_type: job.jobType, salary: job.salary,
       experience: job.experience, skills: job.skills, phone: job.phone,
       description: job.description, email: job.email, expires_at: expiryDate.toISOString(),
-      pincode: job.pincode || null, city: job.city || null, subcity: job.subcity || null
+      pincode: job.pincode || null, city: job.city || null, subcity: job.subcity || null,
+      application_deadline: job.application_deadline || null,
+      openings: job.openings || 1
     }]).select().single();
-    if (error) return { ok: false, msg: error.message };
+    if (error) {
+      // The v32 DB trigger raises this when a free-trial employer is over its limit.
+      if (/JOB_LIMIT_TRIAL/.test(error.message || '')) {
+        return { ok: false, msg: 'Free trial allows only 1 active job post. Upgrade to post more.' };
+      }
+      return { ok: false, msg: error.message };
+    }
     return { ok: true, job: data };
   },
   async deleteJob(jobId) { await sb.from('jobs').delete().eq('id', jobId); },
@@ -580,6 +590,91 @@ async sendJobAlerts(job) {
     await sb.from('jobs').update({ expires_at: base.toISOString() }).eq('id', jobId);
   }
 };
+
+// ── Shared Job-posting form (Bug 3) ──
+// Single source of truth for the job fields used by BOTH the employer
+// (post-job.html) and executive (executive-dashboard.html) dashboards.
+// renderInto() injects the canonical fields; collect() reads them back.
+const JobForm = {
+  _inputStyle: 'border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.75rem;font-size:0.88rem;font-family:inherit;outline:none;width:100%;box-sizing:border-box;background:#fff;',
+
+  fieldsHTML() {
+    const s = this._inputStyle;
+    return `
+      <div class="form-row">
+        <div class="fg-form"><label>Job Title *</label><input type="text" id="jf-title" placeholder="e.g. MIS Executive" /></div>
+        <div class="fg-form"><label>Job Type *</label>
+          <select id="jf-type"><option>Full Time</option><option>Part Time</option><option>Contract</option><option>Remote</option></select>
+        </div>
+      </div>
+      <div class="fg-form"><label>Location *</label>
+        <div style="display:grid;grid-template-columns:130px 1fr 1fr;gap:0.5rem;align-items:start;">
+          <input type="text" id="jf-pincode" placeholder="Pincode" maxlength="6" inputmode="numeric" style="${s}"/>
+          <input type="text" id="jf-city" placeholder="City (auto-filled)" style="${s}"/>
+          <select id="jf-subcity" style="${s}"><option value="">Area / Sub-city</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg-form"><label>Salary Range (LPA)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <input type="number" id="jf-salary-min" placeholder="Min" min="0" step="0.5" style="${s}"/>
+            <input type="number" id="jf-salary-max" placeholder="Max" min="0" step="0.5" style="${s}"/>
+          </div>
+        </div>
+        <div class="fg-form"><label>Experience Required</label>
+          <select id="jf-experience"><option>0–1 years (Fresher)</option><option>1–3 years</option><option>3–5 years</option><option>5+ years</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg-form"><label>Application Deadline</label><input type="date" id="jf-deadline" style="${s}"/></div>
+        <div class="fg-form"><label>Number of Openings</label><input type="number" id="jf-openings" min="1" value="1" style="${s}"/></div>
+      </div>
+      <div class="fg-form"><label>Required Skills (comma separated)</label><input type="text" id="jf-skills" placeholder="e.g. Excel, SQL, Power BI" /></div>
+      <div class="fg-form"><label>WhatsApp Contact Number *</label><input type="tel" id="jf-phone" placeholder="10-digit mobile" maxlength="10" /></div>
+      <div class="fg-form"><label>Job Description *</label><textarea id="jf-description" rows="6" placeholder="Describe the role, responsibilities and requirements..."></textarea></div>
+    `;
+  },
+
+  renderInto(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = this.fieldsHTML();
+    if (window.PincodeUtil) PincodeUtil.attach('jf-pincode', 'jf-city', 'jf-subcity');
+  },
+
+  collect() {
+    const v = id => (document.getElementById(id)?.value || '').trim();
+    const city = v('jf-city'), subcity = v('jf-subcity');
+    const min = v('jf-salary-min'), max = v('jf-salary-max');
+    let salary = '';
+    if (min && max) salary = `₹${min}–${max} LPA`;
+    else if (min || max) salary = `₹${min || max} LPA`;
+    return {
+      title: v('jf-title'),
+      jobType: v('jf-type'),
+      pincode: v('jf-pincode'),
+      city, subcity,
+      location: [subcity, city].filter(Boolean).join(', '),
+      salaryMin: min, salaryMax: max, salary,
+      experience: v('jf-experience'),
+      skills: v('jf-skills'),
+      application_deadline: v('jf-deadline') || null,
+      openings: parseInt(v('jf-openings'), 10) || 1,
+      phone: v('jf-phone'),
+      description: v('jf-description'),
+    };
+  },
+
+  // Shared required-field validation. Returns an error string or null.
+  validate(d) {
+    if (!d.title || !d.city || !d.phone || !d.description) {
+      return 'Please fill all required fields (Job Title, Location, WhatsApp number, Description).';
+    }
+    if (!/^\d{10}$/.test(d.phone)) return 'Enter a valid 10-digit WhatsApp number.';
+    return null;
+  }
+};
+window.JobForm = JobForm;
 
 const ApplicationsDB = {
   async apply(candidateId, jobId) {
