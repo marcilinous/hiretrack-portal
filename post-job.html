@@ -23,41 +23,9 @@
     </div>
     <div class="alert alert-error" id="err-msg"></div>
     <div class="alert alert-success" id="success-msg"></div>
-    <div class="form-row">
-      <div class="fg-form"><label>Job Title *</label><input type="text" id="job-title" placeholder="e.g. MIS Executive" /></div>
-      <div class="fg-form"><label>Company Name *</label><input type="text" id="company" placeholder="Your company name" /></div>
-    </div>
-    <div class="form-row">
-      <div class="fg-form"><label>Location *</label>
-        <div style="display:grid;grid-template-columns:130px 1fr 1fr;gap:0.5rem;align-items:start;">
-          <div>
-            <input type="text" id="loc-pincode" placeholder="Pincode" maxlength="6"
-                   inputmode="numeric"
-                   style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.75rem;font-size:0.88rem;font-family:inherit;outline:none;"
-                   oninput="handleJobPincode(this.value)"/>
-            <div id="loc-status" style="font-size:0.7rem;color:#94a3b8;margin-top:3px;min-height:14px;"></div>
-          </div>
-          <input type="text" id="location" placeholder="City (auto-filled)" required
-                 style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.75rem;font-size:0.88rem;font-family:inherit;outline:none;width:100%;"/>
-          <select id="loc-subcity"
-                  style="border:1.5px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.75rem;font-size:0.88rem;font-family:inherit;outline:none;width:100%;background:#fff;">
-            <option value="">Area / Sub-city</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg-form"><label>Job Type *</label>
-        <select id="job-type"><option>Full Time</option><option>Contract</option><option>Remote</option><option>Part Time</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="fg-form"><label>Salary Range</label><input type="text" id="salary" placeholder="e.g. ₹4–6 LPA" /></div>
-      <div class="fg-form"><label>Experience Required</label>
-        <select id="experience"><option>0–1 years (Fresher)</option><option>1–3 years</option><option>3–5 years</option><option>5+ years</option></select>
-      </div>
-    </div>
-    <div class="fg-form"><label>Required Skills (comma separated)</label><input type="text" id="skills" placeholder="e.g. Excel, SQL, Power BI" /></div>
-    <div class="fg-form"><label>WhatsApp Contact Number *</label><input type="tel" id="phone" placeholder="10-digit mobile" maxlength="10" /></div>
-    <div class="fg-form"><label>Job Description *</label><textarea id="description" rows="6" placeholder="Describe the role, responsibilities and requirements..."></textarea></div>
+    <div class="fg-form"><label>Company Name *</label><input type="text" id="company" placeholder="Your company name" /></div>
+    <!-- Shared job fields (JobForm — identical to the executive dashboard) -->
+    <div id="jf-container"></div>
     <div class="fg-form"><label>Contact Email *</label><input type="email" id="email" placeholder="hr@yourcompany.com" /></div>
     <button class="btn-primary" onclick="submitJob()">Post Job for Free</button>
   </div>
@@ -71,45 +39,62 @@
   document.getElementById('navbar').innerHTML = renderNavbar('postjob');
   const employer = Session.getEmployer();
   if (!employer) { sessionStorage.setItem('redirect_after_employer_login','post-job.html'); window.location.href='employer-auth.html'; }
-  else { document.getElementById('company').value=employer.company; document.getElementById('email').value=employer.email; document.getElementById('phone').value=employer.mobile||''; }
+
+  // Render the shared job fields, then prefill employer context.
+  JobForm.renderInto('jf-container');
+  if (employer) {
+    document.getElementById('company').value = employer.company || '';
+    document.getElementById('email').value = employer.email || '';
+    const phoneEl = document.getElementById('jf-phone'); if (phoneEl) phoneEl.value = employer.mobile || '';
+  }
 
   async function generateJD() {
     const input=document.getElementById('ai-jd-input').value.trim(); if(!input) return;
     const box=document.getElementById('ai-jd-response'); box.style.display='block';
     box.innerHTML='<span class="ai-loading">Writing job description...</span>';
     const answer=await callGroq(`Write a professional job description for: "${input}". Format: Role Summary (2 lines), Key Responsibilities (4 bullet points), Required Skills (4 items). Plain text only, no markdown.`);
-    box.textContent=answer; document.getElementById('description').value=answer;
+    box.textContent=answer; document.getElementById('jf-description').value=answer;
   }
 
   async function submitJob() {
-    const title=document.getElementById('job-title').value.trim();
     const company=document.getElementById('company').value.trim();
-    const location=document.getElementById('location').value;
-    const jobType=document.getElementById('job-type').value;
-    const salary=document.getElementById('salary').value.trim();
-    const experience=document.getElementById('experience').value;
-    const skills=document.getElementById('skills').value.trim();
-    const phone=document.getElementById('phone').value.trim();
-    const description=document.getElementById('description').value.trim();
     const email=document.getElementById('email').value.trim();
+    const d=JobForm.collect();
     const errEl=document.getElementById('err-msg'); const successEl=document.getElementById('success-msg');
     errEl.style.display='none'; successEl.style.display='none';
-    const locData=getLocationData();if(!locData.city){errEl.textContent='Please enter a valid pincode or city.';errEl.style.display='block';return;}
-    if(!title||!company||!description||!email||!phone){errEl.textContent='Please fill all required fields.';errEl.style.display='block';return;}
-    if(phone.length!==10||!/^\d+$/.test(phone)){errEl.textContent='Enter a valid 10-digit WhatsApp number.';errEl.style.display='block';return;}
 
-    // Check plan limit
+    const fieldErr = JobForm.validate(d);
+    if (fieldErr) { errEl.textContent=fieldErr; errEl.style.display='block'; return; }
+    if (!company || !email) { errEl.textContent='Please enter your company name and contact email.'; errEl.style.display='block'; return; }
+
+    // ── Bug 1: free-trial employers are limited to job_limit TOTAL jobs (any
+    // status). Counting all jobs (not just active) stops the delist-and-repost
+    // loophole. Non-trial plans keep the active-count behaviour. ──
     const jobLimit = employer.job_limit || 1;
-    const myJobs = await JobsDB.getEmployerJobs(employer.id);
-    const activeJobs = myJobs.filter(j => !j.delisted && (!j.expires_at || new Date() < new Date(j.expires_at)));
-    if (activeJobs.length >= jobLimit) {
-      errEl.innerHTML=`⚠️ Your <strong>${employer.plan||'free'}</strong> plan allows only <strong>${jobLimit} active job${jobLimit>1?'s':''}</strong>. <a href="pricing.html" style="color:#3b82f6;font-weight:700;">Upgrade →</a>`;
-      errEl.style.display='block'; return;
+    if (employer.is_free_trial) {
+      const q = window.sbQuery || sb;
+      const { data: allJobs } = await q.from('jobs').select('id').eq('employer_id', employer.id);
+      if ((allJobs || []).length >= jobLimit) {
+        errEl.innerHTML=`⚠️ Free trial allows only <strong>${jobLimit} active job post${jobLimit>1?'s':''}</strong>. <a href="pricing.html" style="color:#3b82f6;font-weight:700;">Upgrade to post more →</a>`;
+        errEl.style.display='block'; return;
+      }
+    } else {
+      const myJobs = await JobsDB.getEmployerJobs(employer.id);
+      const activeJobs = myJobs.filter(j => !j.delisted && (!j.expires_at || new Date() < new Date(j.expires_at)));
+      if (activeJobs.length >= jobLimit) {
+        errEl.innerHTML=`⚠️ Your <strong>${employer.plan||'free'}</strong> plan allows only <strong>${jobLimit} active job${jobLimit>1?'s':''}</strong>. <a href="pricing.html" style="color:#3b82f6;font-weight:700;">Upgrade →</a>`;
+        errEl.style.display='block'; return;
+      }
     }
 
     const btn=document.querySelector('.btn-primary'); btn.textContent='Posting...'; btn.disabled=true;
-    const locFull=getLocationData();const locationFull=[locFull.subcity,locFull.city].filter(Boolean).join(', ')||location;
-    const result=await JobsDB.postJob({title,company,location:locationFull,pincode:locFull.pincode,city:locFull.city,subcity:locFull.subcity,jobType,salary,experience,skills,phone,description,email,employerId:employer.id,dayLimit:employer.day_limit||15});
+    const result=await JobsDB.postJob({
+      title:d.title, company, location:d.location, pincode:d.pincode, city:d.city, subcity:d.subcity,
+      jobType:d.jobType, salary:d.salary, experience:d.experience, skills:d.skills,
+      application_deadline:d.application_deadline, openings:d.openings,
+      phone:d.phone, description:d.description, email,
+      employerId:employer.id, dayLimit:employer.day_limit||15
+    });
     if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Post Job for Free';btn.disabled=false;return;}
     successEl.textContent='✅ Job posted successfully! It is now live on HireTrack.'; successEl.style.display='block';
     btn.textContent='Posted ✓';
@@ -120,63 +105,20 @@
       body: JSON.stringify({
         to: employer.email,
         contactName: employer.contact_name || employer.company,
-        jobTitle: title,
+        jobTitle: d.title,
         company,
-        location: locationFull,
-        jobType,
-        salary,
+        location: d.location,
+        jobType: d.jobType,
+        salary: d.salary,
         dayLimit: employer.day_limit || 15
       })
     }).catch(() => {});
     fetch('/api/email?action=trigger-alerts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, company, location: locationFull, salary, jobType, skills, jobId: result.job?.id })
+      body: JSON.stringify({ title: d.title, company, location: d.location, salary: d.salary, jobType: d.jobType, skills: d.skills, jobId: result.job?.id })
     }).catch(() => {});
     setTimeout(()=>window.location.href='employer-dashboard.html',1500);
-  }
-
-  // ── Pincode auto-fetch for job posting ──
-  async function handleJobPincode(val) {
-    val = val.replace(/\D/g,'');
-    if (val.length !== 6) return;
-    const statusEl = document.getElementById('loc-status');
-    const cityEl = document.getElementById('location');
-    const subcityEl = document.getElementById('loc-subcity');
-    statusEl.textContent = '🔍 Looking up...';
-    statusEl.style.color = '#94a3b8';
-    try {
-      const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
-      const data = await res.json();
-      if (data[0]?.Status !== 'Error' && data[0]?.PostOffice?.length) {
-        const po = data[0].PostOffice;
-        cityEl.value = po[0].District || po[0].Division || '';
-        cityEl.style.borderColor = '#22c55e';
-        setTimeout(() => cityEl.style.borderColor = '', 2000);
-        const areas = [...new Set(po.map(p => p.Name))];
-        subcityEl.innerHTML = areas.map(a => `<option value="${a}">${a}</option>`).join('');
-        subcityEl.disabled = false;
-        statusEl.textContent = `✅ ${po[0].State}`;
-        statusEl.style.color = '#22c55e';
-      } else {
-        statusEl.textContent = '⚠️ Not found — enter manually';
-        statusEl.style.color = '#f59e0b';
-        cityEl.removeAttribute('readonly');
-        subcityEl.disabled = false;
-      }
-    } catch(e) {
-      statusEl.textContent = '⚠️ Enter city manually';
-      statusEl.style.color = '#f59e0b';
-    }
-  }
-
-  // ── Extended validation with location ──
-  function getLocationData() {
-    return {
-      pincode: document.getElementById('loc-pincode')?.value?.trim() || '',
-      city: document.getElementById('location')?.value?.trim() || '',
-      subcity: document.getElementById('loc-subcity')?.value?.trim() || '',
-    };
   }
 
 </script>
