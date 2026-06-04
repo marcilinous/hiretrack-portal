@@ -134,6 +134,14 @@
       <!-- Shared job fields (JobForm — identical to the employer post-job page) -->
       <div id="jf-container"></div>
 
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin:0.5rem 0 1rem;">
+        <button type="button" id="exec-aijd-btn" onclick="generateExecJD()"
+          style="background:#eef2ff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:10px;padding:0.6rem 1rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">
+          ✨ Write Description with AI
+        </button>
+        <span id="exec-aijd-status" style="font-size:0.8rem;color:#94a3b8;"></span>
+      </div>
+
       <button class="btn-primary" onclick="postJobForEmployer()">🚀 Post Job (7-Day Free Trial)</button>
     </div>
   </div>
@@ -521,6 +529,21 @@
           ${e.is_free_trial?'🎁 Free Trial':e.plan.charAt(0).toUpperCase()+e.plan.slice(1)}
         </span>
       </div>`).join('');
+  }
+
+  // AI: write the Job Description from the fields entered above (shared JobForm).
+  async function generateExecJD() {
+    const btn = document.getElementById('exec-aijd-btn');
+    const status = document.getElementById('exec-aijd-status');
+    const d = JobForm.collect();
+    if (!d.title) { status.style.color = '#f59e0b'; status.textContent = 'Enter a Job Title first.'; return; }
+    const prev = btn.textContent;
+    btn.disabled = true; btn.textContent = '✍️ Writing…';
+    status.style.color = '#94a3b8'; status.textContent = 'AI is writing the description…';
+    const r = await JobForm.generateDescription();
+    if (r.ok) { status.style.color = '#22c55e'; status.textContent = '✅ Description generated — review and edit below.'; }
+    else { status.style.color = '#ef4444'; status.textContent = r.msg || 'Could not generate description.'; }
+    btn.disabled = false; btn.textContent = prev;
   }
 
   async function postJobForEmployer() {

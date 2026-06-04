@@ -672,6 +672,33 @@ const JobForm = {
     }
     if (!/^\d{10}$/.test(d.phone)) return 'Enter a valid 10-digit WhatsApp number.';
     return null;
+  },
+
+  // AI: write the Job Description from the fields already entered in the form.
+  // Uses callGroq (defined in app.js) and writes the result into #jf-description.
+  async generateDescription() {
+    const d = this.collect();
+    if (!d.title) return { ok: false, msg: 'Enter a Job Title first.' };
+    if (typeof callGroq !== 'function') return { ok: false, msg: 'AI is unavailable right now.' };
+
+    const details = [
+      `Job Title: ${d.title}`,
+      d.jobType ? `Job Type: ${d.jobType}` : '',
+      d.location ? `Location: ${d.location}` : '',
+      d.salary ? `Salary: ${d.salary}` : '',
+      d.experience ? `Experience Required: ${d.experience}` : '',
+      d.skills ? `Required Skills: ${d.skills}` : '',
+      (d.openings && d.openings > 1) ? `Number of Openings: ${d.openings}` : ''
+    ].filter(Boolean).join('\n');
+
+    const prompt = `Write a professional job description based on these details:\n${details}\n\n` +
+      `Format: Role Summary (2 lines), Key Responsibilities (4 bullet points), Required Skills (4 items). Plain text only, no markdown.`;
+
+    const answer = await callGroq(prompt);
+    if (!answer || /^Error:/i.test(answer)) return { ok: false, msg: answer || 'Could not generate description.' };
+    const descEl = document.getElementById('jf-description');
+    if (descEl) descEl.value = answer;
+    return { ok: true, text: answer };
   }
 };
 window.JobForm = JobForm;
