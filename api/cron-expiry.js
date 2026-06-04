@@ -134,7 +134,7 @@ function buildReminderHtml(jobTitle, company, daysLeft, expiryDate) {
   </div>
 
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 }
@@ -179,7 +179,7 @@ function buildPlanRenewalHtml(contactName, company, plan, expiryDate) {
   </div>
 
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 }

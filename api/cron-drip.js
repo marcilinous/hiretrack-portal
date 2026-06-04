@@ -140,7 +140,7 @@ function buildNudgeHtml(firstName, city, skills, jobtitle) {
     </p>` : ''}
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 }
@@ -178,7 +178,7 @@ function buildJobPicksHtml(firstName, jobs) {
     </div>
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
     · <a href="https://www.hiretrack.co.in/job-alerts.html" style="color:#94a3b8;">Manage alerts</a>
   </div>
 </div>`;

@@ -153,7 +153,7 @@ async function sendJobPostedConfirmation(req, res, body) {
     </p>
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 
@@ -217,7 +217,7 @@ async function notifyEmployer(req, res, body) {
     <p style="font-size:0.8rem;color:#94a3b8;text-align:center;margin:0;">You're receiving this because you have an active job posting on HireTrack.</p>
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 
@@ -301,7 +301,7 @@ async function notifyCandidate(req, res, body) {
     </p>
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 
@@ -406,7 +406,7 @@ function buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobTy
     </p>
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
   </div>
 </div>`;
 }
@@ -493,7 +493,7 @@ function buildWelcomeHtml(firstName, city, skills) {
   </div>
 
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
-    © 2025 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
+    © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
     · <a href="https://www.hiretrack.co.in/job-alerts.html" style="color:#94a3b8;">Manage alerts</a>
   </div>
 </div>`;
