@@ -437,33 +437,47 @@ const EmployerAuth = {
 window.EmployerAuth = EmployerAuth;
 
 // ── SESSION & AUTH STATE SYNCHRONIZATION ──
+// Rehydrate the cached profile from a real Supabase session. Restores by role,
+// and — if role metadata is missing — probes both tables by id so a valid
+// session always restores the profile (otherwise page guards bounce to login).
+async function restoreProfile(user) {
+  if (!user || !user.id) return;
+  const role = user.user_metadata?.role;
+  if (role === 'candidate') {
+    const { data } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+    if (data) { Session.setCandidate(data); Session.clearEmployer(); }
+    return;
+  }
+  if (role === 'employer') {
+    const { data } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+    if (data) { Session.setEmployer(data); Session.clearCandidate(); }
+    return;
+  }
+  // Role metadata missing — try employer, then candidate.
+  const { data: emp } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
+  if (emp) { Session.setEmployer(emp); Session.clearCandidate(); return; }
+  const { data: cand } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
+  if (cand) { Session.setCandidate(cand); Session.clearEmployer(); }
+}
+
+// Returns true while a valid (token-bearing) Supabase session is still in storage.
+function hasLiveSession() {
+  try {
+    const s = window.sbQuery && window.sbQuery.readSession && window.sbQuery.readSession();
+    return !!(s && s.access_token);
+  } catch (e) { return false; }
+}
+
 async function syncSession() {
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      const user = session.user;
-      const role = user.user_metadata?.role;
-      if (role === 'candidate') {
-        const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
-        if (candidate) {
-          Session.setCandidate(candidate);
-          Session.clearEmployer();
-        }
-      } else if (role === 'employer') {
-        const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-        if (employer) {
-          Session.setEmployer(employer);
-          Session.clearCandidate();
-        }
-      }
-    } else {
-      // Employers authenticate against the employers table (custom auth) and have
-      // NO Supabase Auth session, so a null getSession() must NOT clear their
-      // sessionStorage login — doing so bounced them straight back to the login
-      // page. Only candidates (real Supabase Auth) are cleared when their session
-      // is gone.
+    if (!session || !session.user) {
+      // No Supabase session → only clear the candidate cache (never blindly clear
+      // the employer cache here).
       Session.clearCandidate();
+      return;
     }
+    await restoreProfile(session.user);
   } catch (e) {
     console.error('syncSession error:', e);
   }
@@ -476,25 +490,18 @@ async function syncSession() {
 window.htSessionReady = syncSession();
 
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (session) {
-    const user = session.user;
-    const role = user.user_metadata?.role;
-    if (role === 'candidate') {
-      const { data: candidate } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
-      if (candidate) {
-        Session.setCandidate(candidate);
-        Session.clearEmployer();
-      }
-    } else if (role === 'employer') {
-      const { data: employer } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-      if (employer) {
-        Session.setEmployer(employer);
-        Session.clearCandidate();
-      }
-    }
+  if (session && session.user) {
+    await restoreProfile(session.user);
   } else if (event === 'SIGNED_OUT') {
-    Session.clearCandidate();
-    Session.clearEmployer();
+    // Only clear if the session is genuinely gone. supabase-js can emit a spurious
+    // SIGNED_OUT on load (e.g. a refresh-token rotation race with the REST shim's
+    // own refresh); if a valid token is still in storage, keep the user signed in —
+    // this was causing a logout on every page refresh. A real logout removes the
+    // token first (see EmployerAuth/CandidateAuth.logout), so this still clears then.
+    if (!hasLiveSession()) {
+      Session.clearCandidate();
+      Session.clearEmployer();
+    }
   }
 });
 
