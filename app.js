@@ -437,27 +437,20 @@ const EmployerAuth = {
 window.EmployerAuth = EmployerAuth;
 
 // ── SESSION & AUTH STATE SYNCHRONIZATION ──
-// Rehydrate the cached profile from a real Supabase session. Restores by role,
-// and — if role metadata is missing — probes both tables by id so a valid
-// session always restores the profile (otherwise page guards bounce to login).
+// Rehydrate cached profiles from the real Supabase session. Restores whichever
+// profile row(s) exist for this auth user (keyed by id) and NEVER cross-clears the
+// other profile. (Cross-clearing was the logout-on-refresh bug: for an account
+// whose auth role is 'candidate' but which also has an employer row — e.g. the same
+// email used for both — the async restore ran the candidate branch and called
+// Session.clearEmployer(), wiping ht_employer from sessionStorage; the next refresh
+// then found it empty and bounced to login. Each page guard reads only the profile
+// it needs, so setting both is harmless.)
 async function restoreProfile(user) {
   if (!user || !user.id) return;
-  const role = user.user_metadata?.role;
-  if (role === 'candidate') {
-    const { data } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
-    if (data) { Session.setCandidate(data); Session.clearEmployer(); }
-    return;
-  }
-  if (role === 'employer') {
-    const { data } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-    if (data) { Session.setEmployer(data); Session.clearCandidate(); }
-    return;
-  }
-  // Role metadata missing — try employer, then candidate.
   const { data: emp } = await sb.from('employers').select('*').eq('id', user.id).maybeSingle();
-  if (emp) { Session.setEmployer(emp); Session.clearCandidate(); return; }
+  if (emp) Session.setEmployer(emp);
   const { data: cand } = await sb.from('candidates').select('*').eq('id', user.id).maybeSingle();
-  if (cand) { Session.setCandidate(cand); Session.clearEmployer(); }
+  if (cand) Session.setCandidate(cand);
 }
 
 // Returns true while a valid (token-bearing) Supabase session is still in storage.
