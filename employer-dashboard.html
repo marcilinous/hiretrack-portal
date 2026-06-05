@@ -299,6 +299,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<div id="expiry-banner" style="display:none;background:#fef9c3;border-bottom:1.5px solid #fde047;color:#854d0e;padding:0.75rem 1.5rem;font-size:0.88rem;text-align:center;">
+  <span id="expiry-banner-text"></span>
+  <a href="pricing.html" style="margin-left:0.5rem;background:#10b981;color:#fff;text-decoration:none;padding:0.35rem 0.9rem;border-radius:8px;font-weight:700;font-size:0.8rem;">Renew Now</a>
+</div>
+
 <!-- Stats -->
 <div class="stats-section">
   <div class="stats-inner">
@@ -308,6 +313,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="stat-card s-orange"><strong id="s-shortlisted">0</strong><span>Shortlisted</span></div>
     <div class="stat-card s-green"><strong id="s-hired">0</strong><span>Hired</span></div>
     <div class="stat-card s-gray"><strong id="s-days">—</strong><span>Plan Expires</span></div>
+  </div>
+</div>
+
+<!-- Plan & Billing -->
+<div class="billing-section" style="max-width:1200px;margin:1.25rem auto 0;padding:0 1.5rem;">
+  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem 1.5rem;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:center;">
+    <div style="flex:1;min-width:220px;">
+      <div style="font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;">Plan &amp; Billing</div>
+      <div style="display:flex;flex-wrap:wrap;gap:1.4rem;align-items:center;">
+        <div><div style="font-size:0.7rem;color:#94a3b8;">Current Plan</div><div id="bill-plan" style="font-size:1rem;font-weight:800;color:#0f172a;">—</div></div>
+        <div><div style="font-size:0.7rem;color:#94a3b8;">Job Slots</div><div id="bill-slots" style="font-size:1rem;font-weight:800;color:#0f172a;">—</div></div>
+        <div><div style="font-size:0.7rem;color:#94a3b8;">Plan Expires</div><div id="bill-expiry" style="font-size:1rem;font-weight:800;color:#0f172a;">—</div></div>
+        <div><span id="bill-status"></span></div>
+      </div>
+      <div id="bill-addons" style="font-size:0.78rem;color:#16a34a;margin-top:0.6rem;display:none;"></div>
+    </div>
+    <div id="bill-actions" style="display:flex;gap:0.5rem;flex-wrap:wrap;"></div>
   </div>
 </div>
 
@@ -433,6 +455,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div id="cp-modal" style="display:none;"></div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/sb-rest-shim.js"></script>
 <script src="app.js?v=6"></script>
@@ -482,6 +505,86 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     renderJobs();
     populateSelects();
     _initMsgBubble();
+    renderBilling();
+  }
+
+  // ── Plan & Billing ──
+  function _badgeCss(bg, fg) { return `display:inline-block;background:${bg};color:${fg};padding:3px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;`; }
+  function _actBtn(bg) { return `display:inline-block;background:${bg};color:#fff;text-decoration:none;padding:0.55rem 1.1rem;border-radius:9px;font-size:0.82rem;font-weight:700;`; }
+
+  async function renderBilling() {
+    const plan = employer.plan || 'free';
+    const isFree = plan === 'free';
+    const slots = employer.job_limit || 1;
+    const now = new Date();
+    const active = myJobs.filter(j => !j.delisted && (!j.expires_at || now < new Date(j.expires_at))).length;
+    const planEnd = employer.plan_expires_at ? new Date(employer.plan_expires_at) : null;
+    const expired = planEnd && planEnd < now;
+    const daysLeft = planEnd ? Math.ceil((planEnd - now) / (1000*60*60*24)) : null;
+
+    let addonCount = 0;
+    try {
+      const q = window.sbQuery || sb;
+      const { data: addons } = await q.from('addon_posts').select('id,valid_until').eq('employer_id', employer.id);
+      addonCount = (addons || []).filter(a => new Date(a.valid_until) > now).length;
+    } catch (e) {}
+
+    const label = isFree ? (employer.is_free_trial ? 'Free Trial' : 'Free') : (plan.charAt(0).toUpperCase() + plan.slice(1));
+    document.getElementById('bill-plan').textContent = label;
+    document.getElementById('bill-slots').textContent = `${active} / ${slots + addonCount} used`;
+    document.getElementById('bill-expiry').textContent = planEnd ? planEnd.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
+
+    const st = document.getElementById('bill-status');
+    if (expired) st.style.cssText = _badgeCss('#fee2e2', '#b91c1c'), st.textContent = 'Expired';
+    else if (daysLeft !== null && daysLeft <= 5) st.style.cssText = _badgeCss('#fef9c3', '#854d0e'), st.textContent = 'Expiring Soon';
+    else st.style.cssText = _badgeCss('#dcfce7', '#15803d'), st.textContent = 'Active';
+
+    const addonEl = document.getElementById('bill-addons');
+    if (addonCount > 0) { addonEl.style.display = 'block'; addonEl.textContent = `You have ${addonCount} add-on post${addonCount>1?'s':''} available (valid until plan expiry).`; }
+    else addonEl.style.display = 'none';
+
+    let html = `<a href="pricing.html" style="${_actBtn('#10b981')}">Upgrade Plan</a>`;
+    if (expired) html += `<a href="pricing.html" style="${_actBtn('#0f172a')}">Renew Plan</a>`;
+    else if (['basic','growth','pro'].includes(plan)) html += `<button onclick="buyAddonDash()" style="${_actBtn('#0f172a')}border:none;cursor:pointer;font-family:inherit;">Add Post — ₹199</button>`;
+    document.getElementById('bill-actions').innerHTML = html;
+
+    const banner = document.getElementById('expiry-banner');
+    if (expired) {
+      document.getElementById('expiry-banner-text').textContent = '⚠️ Your plan has expired. Renew now to keep posting jobs.';
+      banner.style.display = 'block';
+    } else if (daysLeft !== null && daysLeft <= 5) {
+      document.getElementById('expiry-banner-text').textContent = `⚠️ Your plan expires in ${daysLeft} day${daysLeft!==1?'s':''}. Renew now to avoid losing your active job listings.`;
+      banner.style.display = 'block';
+    }
+  }
+
+  async function buyAddonDash() {
+    if (!['basic','growth','pro'].includes(employer.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
+    let rzpKey, orderId;
+    try {
+      const r = await fetch('/api/payments?action=addon-order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ employerId: employer.id }) });
+      const cfg = await r.json();
+      if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order failed');
+      rzpKey = cfg.key; orderId = cfg.orderId;
+    } catch (e) { showToast('Payment service unavailable. Please try again.'); return; }
+    const options = {
+      key: rzpKey, amount: (199 + Math.round(199 * 0.18)) * 100, currency: 'INR', order_id: orderId,
+      name: 'HireTrack', description: 'Add-on Job Post', image: 'https://www.hiretrack.co.in/og-image.png',
+      prefill: { name: employer.contact_name, email: employer.email, contact: employer.mobile },
+      theme: { color: '#10b981' },
+      handler: async function(response) {
+        try {
+          const vr = await fetch('/api/payments?action=addon-verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, employerId: employer.id }) });
+          const result = await vr.json();
+          if (result.ok) { showToast('✅ Add-on added! Redirecting to post your job…'); setTimeout(() => window.location.href = 'post-job.html', 1500); }
+          else { showToast(result.error || 'Add-on activation failed. Contact support.'); }
+        } catch (e) { showToast('Payment received but activation failed. Contact support.'); }
+      },
+      modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', () => showToast('Payment failed. Please try again.'));
+    rzp.open();
   }
 
   async function _initMsgBubble() {

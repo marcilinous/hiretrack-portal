@@ -461,8 +461,11 @@ async function ensureEmployerAccount({ email, mobile, company, contact, city, ex
   const uid = ad.id || (ad.user && ad.user.id);
   if (!uid) return { error: 'Account creation returned no id.', status: 500 };
 
-  const trial = new Date(); trial.setDate(trial.getDate() + 7);
-  const fields = { company, contact_name: contact, mobile, city: city || '', industry: 'Other', plan: 'free', job_limit: 1, day_limit: 7, referred_by: execId, is_free_trial: true, free_trial_expires_at: trial.toISOString() };
+  const now = new Date();
+  const trial = new Date(now); trial.setDate(trial.getDate() + 7);
+  // Exec-only free plan: plan='free' for 7 days (plan_expires_at = plan_end; job_limit = 1 slot;
+  // is_free_trial flags it). free_trial_expires_at kept for back-compat.
+  const fields = { company, contact_name: contact, mobile, city: city || '', industry: 'Other', plan: 'free', job_limit: 1, day_limit: 7, referred_by: execId, is_free_trial: true, plan_start: now.toISOString(), plan_expires_at: trial.toISOString(), free_trial_expires_at: trial.toISOString() };
   const pr = await fetch(`${SUPABASE_URL}/rest/v1/employers?id=eq.${uid}`, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(fields) });
   let pd = null; { const t = await pr.text(); try { pd = JSON.parse(t); } catch {} }
   if (pr.ok && !(Array.isArray(pd) ? pd[0] : pd)) {
@@ -568,11 +571,17 @@ async function postJob(req, res, body) {
   });
   if (!jr.ok) {
     const jt = await jr.text(); let jd = null; try { jd = JSON.parse(jt); } catch {}
-    // The v32 DB trigger backstops the free-trial limit.
-    if (/JOB_LIMIT_TRIAL/.test(jt)) {
-      return res.status(409).json({ ok: false, error: 'Free trial allows only 1 active job post. Upgrade to post more.' });
+    // The v33 DB trigger backstops the slot cap.
+    if (/JOB_SLOTS_FULL|JOB_LIMIT_TRIAL/.test(jt)) {
+      return res.status(409).json({ ok: false, error: 'This employer has used all their job slots. Upgrade their plan or add a post.' });
     }
     return res.status(500).json({ ok: false, error: (jd && jd.message) || 'Failed to post job.' });
+  }
+
+  // New free-trial employer → schedule an exec reminder for the day before expiry.
+  if (!existingEmp) {
+    const remind = new Date(); remind.setDate(remind.getDate() + 6); // plan_end (now+7d) − 1 day
+    await createReminder(id, 'plan_expiry', `${company} free trial expires tomorrow. Call to convert.`, remind.toISOString(), null).catch(() => {});
   }
   return res.json({ ok: true, employerExisted: !!existingEmp });
 }

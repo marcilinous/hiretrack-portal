@@ -577,13 +577,9 @@ async sendJobAlerts(job) {
       application_deadline: job.application_deadline || null,
       openings: job.openings || 1
     }]).select().single();
-    if (error) {
-      // The v32 DB trigger raises this when a free-trial employer is over its limit.
-      if (/JOB_LIMIT_TRIAL/.test(error.message || '')) {
-        return { ok: false, msg: 'Free trial allows only 1 active job post. Upgrade to post more.' };
-      }
-      return { ok: false, msg: error.message };
-    }
+    // The v33 trigger raises JOB_SLOTS_FULL when over the slot cap; callers
+    // (post-job.html) detect that and show the upgrade / add-on modal.
+    if (error) return { ok: false, msg: error.message };
     return { ok: true, job: data };
   },
   async deleteJob(jobId) { await sb.from('jobs').delete().eq('id', jobId); },
