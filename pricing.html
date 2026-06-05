@@ -31,11 +31,38 @@
 .pricing-hero { background:linear-gradient(135deg,#0f172a,#1e293b); padding:3rem 2rem; text-align:center; color:#fff; }
 .pricing-hero h1 { font-size:2rem; font-weight:800; margin-bottom:0.5rem; }
 .pricing-hero p { color:#94a3b8; font-size:0.95rem; }
-.pricing-wrap { max-width:960px; margin:3rem auto; padding:0 1rem; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; }
+.pricing-wrap { max-width:1140px; margin:3rem auto 1.5rem; padding:0 1rem; display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
 .plan-card { background:#fff; border-radius:16px; padding:1.75rem; border:2px solid #e2e8f0; position:relative; transition:all 0.2s; display:flex; flex-direction:column; }
 .plan-card:hover { border-color:#3b82f6; box-shadow:0 8px 32px rgba(59,130,246,0.1); transform:translateY(-4px); }
 .plan-card.popular { border-color:#3b82f6; }
-.popular-badge { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#3b82f6; color:#fff; padding:3px 16px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.popular-badge { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#10b981; color:#fff; padding:3px 16px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.coming-badge { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#94a3b8; color:#fff; padding:3px 16px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.plan-card.popular { border-color:#10b981; }
+.plan-card.coming { opacity:0.88; }
+.btn-emerald { background:#10b981; color:#fff; }
+.btn-emerald:hover { background:#059669; }
+.btn-disabled { background:#e2e8f0; color:#64748b; cursor:not-allowed; }
+.gst-note { font-size:0.68rem; color:#94a3b8; margin-top:0.4rem; text-align:center; }
+.addon-wrap { max-width:1140px; margin:0 auto 2.5rem; padding:0 1rem; }
+.addon-card { border:2px dashed #10b981; border-radius:16px; padding:1.5rem 1.75rem; display:flex; flex-wrap:wrap; align-items:center; gap:1rem; background:#f0fdf4; }
+.addon-card .addon-info { flex:1; min-width:220px; }
+.addon-card h3 { font-size:1.05rem; font-weight:800; color:#0f172a; margin:0 0 0.2rem; }
+.addon-card p { font-size:0.83rem; color:#475569; margin:0 0 0.2rem; }
+.addon-card .addon-cond { font-size:0.74rem; color:#94a3b8; }
+.addon-card .addon-price { font-size:1.6rem; font-weight:800; color:#10b981; white-space:nowrap; }
+.addon-card .addon-price span { font-size:0.8rem; font-weight:600; color:#64748b; }
+.addon-card .btn-plan { width:auto; padding:0.75rem 1.5rem; }
+.compare-wrap { max-width:880px; margin:0 auto 3rem; padding:0 1rem; }
+.compare-wrap h2 { font-size:1.3rem; font-weight:800; text-align:center; margin-bottom:1rem; color:#0f172a; }
+.compare-table { width:100%; border-collapse:collapse; font-size:0.85rem; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; }
+.compare-table th { background:#0f172a; color:#fff; padding:0.7rem 0.9rem; text-align:center; font-size:0.8rem; }
+.compare-table th:first-child { text-align:left; }
+.compare-table td { padding:0.65rem 0.9rem; border-bottom:1px solid #f1f5f9; text-align:center; color:#334155; }
+.compare-table td:first-child { text-align:left; font-weight:600; color:#0f172a; }
+.compare-table tr:last-child td { border-bottom:none; }
+.compare-table .cy { color:#16a34a; font-weight:800; }
+.compare-table .cn { color:#cbd5e1; }
+@media(max-width:560px){ .addon-card{ flex-direction:column; align-items:flex-start; } .compare-table{ font-size:0.78rem; } }
 .exec-badge { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#7c3aed; color:#fff; padding:3px 16px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
 .plan-icon { font-size:1.8rem; margin-bottom:0.5rem; }
 .plan-name { font-size:1rem; font-weight:800; color:#0f172a; margin-bottom:0.2rem; }
@@ -110,25 +137,43 @@
 
 <div class="pricing-wrap">
 
-  <!-- STARTER -->
+  <!-- BASIC -->
+  <div class="plan-card">
+    <div class="plan-icon">🚀</div>
+    <div class="plan-name">Basic</div>
+    <div id="basic-badge"></div>
+    <div class="plan-price">₹499 <span>/ month</span></div>
+    <div class="plan-desc">For getting started</div>
+    <ul class="plan-features">
+      <li><span class="feat-yes">✓</span> 1 active job post</li>
+      <li><span class="feat-yes">✓</span> Standard candidate applications</li>
+      <li><span class="feat-yes">✓</span> Employer dashboard access</li>
+      <li><span class="feat-yes">✓</span> 30-day listing</li>
+      <li><span class="feat-no">✗</span> AI matching</li>
+      <li><span class="feat-no">✗</span> Hot job boost</li>
+    </ul>
+    <button class="btn-plan btn-starter" id="btn-basic" onclick="buyPlan('basic',499)">Get Started — ₹499</button>
+    <div class="gst-note">+ 18% GST</div>
+  </div>
+
+  <!-- GROWTH -->
   <div class="plan-card popular">
     <div class="popular-badge">⭐ Most Popular</div>
-    <div class="plan-icon">🚀</div>
-    <div class="plan-name">Starter</div>
-    <div id="starter-badge"></div>
-    <div class="plan-price">₹499 <span>/ month</span></div>
-    <div class="plan-desc">For growing businesses</div>
+    <div class="plan-icon">📈</div>
+    <div class="plan-name">Growth</div>
+    <div id="growth-badge"></div>
+    <div class="plan-price">₹999 <span>/ month</span></div>
+    <div class="plan-desc">For growing teams</div>
     <ul class="plan-features">
-      <li><span class="feat-yes">✓</span> 3 active job postings</li>
-      <li><span class="feat-yes">✓</span> 30 days listing duration</li>
-      <li><span class="feat-yes">✓</span> Unlimited applications</li>
-      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
-      <li><span class="feat-yes">✓</span> Email notifications</li>
-      <li><span class="feat-yes">✓</span> Resume downloads</li>
-      <li><span class="feat-no">✗</span> Priority support</li>
-      <li><span class="feat-no">✗</span> Dedicated account manager</li>
+      <li><span class="feat-yes">✓</span> 3 active job posts</li>
+      <li><span class="feat-yes">✓</span> AI Match Score (top candidates)</li>
+      <li><span class="feat-yes">✓</span> 2 Hot Job boosts/month</li>
+      <li><span class="feat-yes">✓</span> CSV export</li>
+      <li><span class="feat-yes">✓</span> Standard dashboard</li>
+      <li><span class="feat-no">✗</span> WhatsApp Apply</li>
     </ul>
-    <button class="btn-plan btn-starter" id="btn-starter" onclick="buyPlan('starter',499)">Get Started — ₹499</button>
+    <button class="btn-plan btn-emerald" id="btn-growth" onclick="buyPlan('growth',999)">Start Growth — ₹999</button>
+    <div class="gst-note">+ 18% GST</div>
   </div>
 
   <!-- PRO -->
@@ -136,41 +181,64 @@
     <div class="plan-icon">💼</div>
     <div class="plan-name">Pro</div>
     <div id="pro-badge"></div>
-    <div class="plan-price">₹999 <span>/ month</span></div>
+    <div class="plan-price">₹2,499 <span>/ month</span></div>
     <div class="plan-desc">For high-volume hiring</div>
     <ul class="plan-features">
-      <li><span class="feat-yes">✓</span> 8 active job postings</li>
-      <li><span class="feat-yes">✓</span> 60 days listing duration</li>
-      <li><span class="feat-yes">✓</span> Unlimited applications</li>
-      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
-      <li><span class="feat-yes">✓</span> Email notifications</li>
-      <li><span class="feat-yes">✓</span> Resume downloads</li>
+      <li><span class="feat-yes">✓</span> 6 active job posts</li>
+      <li><span class="feat-yes">✓</span> Unlimited AI shortlisting</li>
+      <li><span class="feat-yes">✓</span> 5 Hot Job boosts/month</li>
+      <li><span class="feat-yes">✓</span> WhatsApp Apply (coming soon)</li>
+      <li><span class="feat-yes">✓</span> Bulk resume download</li>
       <li><span class="feat-yes">✓</span> Priority support</li>
-      <li><span class="feat-no">✗</span> Dedicated account manager</li>
     </ul>
-    <button class="btn-plan btn-pro" id="btn-pro" onclick="buyPlan('pro',999)">Get Started — ₹999</button>
+    <button class="btn-plan btn-pro" id="btn-pro" onclick="buyPlan('pro',2499)">Go Pro — ₹2,499</button>
+    <div class="gst-note">+ 18% GST</div>
   </div>
 
   <!-- ENTERPRISE -->
-  <div class="plan-card">
+  <div class="plan-card coming">
+    <div class="coming-badge">Coming Soon</div>
     <div class="plan-icon">🏢</div>
     <div class="plan-name">Enterprise</div>
-    <div id="enterprise-badge"></div>
-    <div class="plan-price">₹2,499 <span>/ month</span></div>
+    <div class="plan-price">₹5,999 <span>/ month</span></div>
     <div class="plan-desc">For large hiring teams</div>
     <ul class="plan-features">
-      <li><span class="feat-yes">✓</span> Unlimited job postings</li>
-      <li><span class="feat-yes">✓</span> 90 days listing duration</li>
-      <li><span class="feat-yes">✓</span> Unlimited applications</li>
-      <li><span class="feat-yes">✓</span> WhatsApp notifications</li>
-      <li><span class="feat-yes">✓</span> Email notifications</li>
-      <li><span class="feat-yes">✓</span> Resume downloads</li>
-      <li><span class="feat-yes">✓</span> Priority support</li>
+      <li><span class="feat-yes">✓</span> 20 active job posts</li>
+      <li><span class="feat-yes">✓</span> Everything in Pro</li>
       <li><span class="feat-yes">✓</span> Dedicated account manager</li>
+      <li><span class="feat-yes">✓</span> Custom integrations</li>
     </ul>
-    <button class="btn-plan btn-enterprise" id="btn-enterprise" onclick="buyPlan('enterprise',2499)">Get Started — ₹2,499</button>
+    <a class="btn-plan btn-disabled" href="mailto:hello@hiretrack.co.in?subject=HireTrack%20Enterprise%20Waitlist" style="display:block;text-align:center;text-decoration:none;line-height:1.4;">Join Waitlist</a>
   </div>
 
+</div>
+
+<!-- ADD-ON -->
+<div class="addon-wrap">
+  <div class="addon-card">
+    <div class="addon-info">
+      <h3>Need one more post?</h3>
+      <p>Add a job post to your existing plan — ₹199 per post.</p>
+      <p class="addon-cond">Valid until your current plan expires · Available only for active Basic, Growth or Pro subscribers</p>
+    </div>
+    <div class="addon-price">₹199 <span>/ post</span></div>
+    <button class="btn-plan btn-emerald" id="btn-addon" onclick="buyAddon()">Buy Add-on Post — ₹199</button>
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div class="compare-wrap">
+  <h2>Compare Plans</h2>
+  <table class="compare-table">
+    <tr><th>Feature</th><th>Basic</th><th>Growth</th><th>Pro</th></tr>
+    <tr><td>Monthly Price</td><td>₹499</td><td>₹999</td><td>₹2,499</td></tr>
+    <tr><td>Active Job Posts</td><td>1</td><td>3</td><td>6</td></tr>
+    <tr><td>AI Candidate Matching</td><td class="cn">✗</td><td class="cy">✓</td><td class="cy">✓</td></tr>
+    <tr><td>Hot Job Boosts</td><td class="cn">✗</td><td>2/month</td><td>5/month</td></tr>
+    <tr><td>CSV Export</td><td class="cn">✗</td><td class="cy">✓</td><td class="cy">✓</td></tr>
+    <tr><td>Bulk Resume Download</td><td class="cn">✗</td><td class="cn">✗</td><td class="cy">✓</td></tr>
+    <tr><td>Priority Support</td><td class="cn">✗</td><td class="cn">✗</td><td class="cy">✓</td></tr>
+  </table>
 </div>
 
 <!-- Trial note -->
@@ -264,10 +332,11 @@
   document.getElementById('navbar').innerHTML = renderNavbar('pricing');
 
   const PLANS = {
-    free:       { name:'Free',       jobs:1,   days:15,  price:0    },
-    starter:    { name:'Starter',    jobs:3,   days:30,  price:499  },
-    pro:        { name:'Pro',        jobs:8,   days:60,  price:999  },
-    enterprise: { name:'Enterprise', jobs:999, days:90,  price:2499 }
+    free:       { name:'Free',       jobs:1,  days:7,   price:0    },
+    basic:      { name:'Basic',      jobs:1,  days:30,  price:499  },
+    growth:     { name:'Growth',     jobs:3,  days:30,  price:999  },
+    pro:        { name:'Pro',        jobs:6,  days:30,  price:2499 },
+    enterprise: { name:'Enterprise', jobs:20, days:30,  price:5999 }
   };
 
   function getEmployerCurrentPlan() {
@@ -281,10 +350,10 @@
   function updateUI() {
     const employer = Session.getEmployer();
     const currentPlan = getEmployerCurrentPlan();
-    const planOrder = ['free','starter','pro','enterprise'];
+    const planOrder = ['free','basic','growth','pro','enterprise'];
     const currIdx = planOrder.indexOf(currentPlan);
 
-    ['starter','pro','enterprise'].forEach(plan => {
+    ['basic','growth','pro'].forEach(plan => {
       const badge = document.getElementById(`${plan}-badge`);
       const btn = document.getElementById(`btn-${plan}`);
       if (!badge || !btn) return;
@@ -355,9 +424,78 @@
         email: employer.email,
         contact: employer.mobile
       },
-      theme: { color: '#3b82f6' },
+      theme: { color: '#10b981' },
       handler: async function(response) {
         await activatePlan(employer, planName, response, subtotal, gst, total);
+      },
+      modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', () => showToast('Payment failed. Please try again.'));
+    rzp.open();
+  }
+
+  // ── Add-on post (₹199) — only for active paid subscribers ──
+  async function buyAddon() {
+    const employer = Session.getEmployer();
+    if (!employer) {
+      sessionStorage.setItem('redirect_after_employer_login', 'pricing.html');
+      window.location.href = 'employer-auth.html';
+      return;
+    }
+    if (!['basic','growth','pro'].includes(getEmployerCurrentPlan())) {
+      showToast('Add-on posts require an active Basic, Growth or Pro plan.');
+      return;
+    }
+    const btn = document.getElementById('btn-addon');
+    const orig = btn.textContent; btn.textContent = 'Processing...'; btn.disabled = true;
+
+    let rzpKey, orderId;
+    try {
+      const r = await fetch('/api/payments?action=addon-order', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employerId: employer.id })
+      });
+      const cfg = await r.json();
+      if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order failed');
+      rzpKey = cfg.key; orderId = cfg.orderId;
+    } catch (e) {
+      showToast('Payment service unavailable. Please try again.');
+      btn.textContent = orig; btn.disabled = false; return;
+    }
+    btn.textContent = orig; btn.disabled = false;
+
+    const options = {
+      key: rzpKey,
+      amount: (199 + Math.round(199 * 0.18)) * 100,
+      currency: 'INR',
+      order_id: orderId,
+      name: 'HireTrack',
+      description: 'Add-on Job Post',
+      image: 'https://www.hiretrack.co.in/og-image.png',
+      prefill: { name: employer.contact_name, email: employer.email, contact: employer.mobile },
+      theme: { color: '#10b981' },
+      handler: async function(response) {
+        try {
+          const vr = await fetch('/api/payments?action=addon-verify', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              employerId: employer.id
+            })
+          });
+          const result = await vr.json();
+          if (result.ok) {
+            showToast('✅ Add-on post added! Redirecting to post your job…');
+            setTimeout(() => window.location.href = 'post-job.html', 1500);
+          } else {
+            showToast(result.error || 'Add-on activation failed. Contact support@hiretrack.co.in');
+          }
+        } catch (e) {
+          showToast('Payment received but activation failed. Contact support@hiretrack.co.in');
+        }
       },
       modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
     };

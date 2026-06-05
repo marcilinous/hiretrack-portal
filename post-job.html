@@ -32,6 +32,7 @@
   </div>
 </div>
 <footer><p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/pincode.js"></script>
 <script src="/js/sb-rest-shim.js"></script>
@@ -72,25 +73,9 @@
     if (fieldErr) { errEl.textContent=fieldErr; errEl.style.display='block'; return; }
     if (!company || !email) { errEl.textContent='Please enter your company name and contact email.'; errEl.style.display='block'; return; }
 
-    // ── Bug 1: free-trial employers are limited to job_limit TOTAL jobs (any
-    // status). Counting all jobs (not just active) stops the delist-and-repost
-    // loophole. Non-trial plans keep the active-count behaviour. ──
-    const jobLimit = employer.job_limit || 1;
-    if (employer.is_free_trial) {
-      const q = window.sbQuery || sb;
-      const { data: allJobs } = await q.from('jobs').select('id').eq('employer_id', employer.id);
-      if ((allJobs || []).length >= jobLimit) {
-        errEl.innerHTML=`⚠️ Free trial allows only <strong>${jobLimit} active job post${jobLimit>1?'s':''}</strong>. <a href="pricing.html" style="color:#3b82f6;font-weight:700;">Upgrade to post more →</a>`;
-        errEl.style.display='block'; return;
-      }
-    } else {
-      const myJobs = await JobsDB.getEmployerJobs(employer.id);
-      const activeJobs = myJobs.filter(j => !j.delisted && (!j.expires_at || new Date() < new Date(j.expires_at)));
-      if (activeJobs.length >= jobLimit) {
-        errEl.innerHTML=`⚠️ Your <strong>${employer.plan||'free'}</strong> plan allows only <strong>${jobLimit} active job${jobLimit>1?'s':''}</strong>. <a href="pricing.html" style="color:#3b82f6;font-weight:700;">Upgrade →</a>`;
-        errEl.style.display='block'; return;
-      }
-    }
+    // ── Slot enforcement: an active plan with a free slot (or a valid add-on). ──
+    const gate = await canPostJob(employer);
+    if (!gate.allowed) { showSlotModal(gate); return; }
 
     const btn=document.querySelector('.btn-primary'); btn.textContent='Posting...'; btn.disabled=true;
     const result=await JobsDB.postJob({
@@ -100,7 +85,11 @@
       phone:d.phone, description:d.description, email,
       employerId:employer.id, dayLimit:employer.day_limit||15
     });
-    if(!result.ok){errEl.textContent=result.msg;errEl.style.display='block';btn.textContent='Post Job for Free';btn.disabled=false;return;}
+    if(!result.ok){
+      btn.textContent='Post Job for Free'; btn.disabled=false;
+      if(/JOB_SLOTS_FULL/.test(result.msg||'')){ showSlotModal(await canPostJob(employer)); return; }
+      errEl.textContent=result.msg; errEl.style.display='block'; return;
+    }
     successEl.textContent='✅ Job posted successfully! It is now live on HireTrack.'; successEl.style.display='block';
     btn.textContent='Posted ✓';
     // Fire-and-forget: job posted confirmation to employer + candidate alerts
@@ -124,6 +113,84 @@
       body: JSON.stringify({ title: d.title, company, location: d.location, salary: d.salary, jobType: d.jobType, skills: d.skills, jobId: result.job?.id })
     }).catch(() => {});
     setTimeout(()=>window.location.href='employer-dashboard.html',1500);
+  }
+
+  // ── Slot gate: active plan + a free slot (plan job_limit + valid add-ons). ──
+  async function canPostJob(emp) {
+    const now = new Date();
+    if (!emp.plan || (emp.plan === 'free' && !emp.is_free_trial)) return { allowed:false, reason:'no_plan' };
+    if (emp.plan_expires_at && new Date(emp.plan_expires_at) < now) return { allowed:false, reason:'plan_expired' };
+    const q = window.sbQuery || sb;
+    const { data: jobs } = await q.from('jobs').select('id,expires_at').eq('employer_id', emp.id).eq('delisted', false);
+    const active = (jobs || []).filter(j => !j.expires_at || new Date(j.expires_at) > now).length;
+    const { data: addons } = await q.from('addon_posts').select('id,valid_until').eq('employer_id', emp.id);
+    const validAddons = (addons || []).filter(a => new Date(a.valid_until) > now).length;
+    const planSlots = emp.job_limit || 1;
+    if (active < planSlots + validAddons) return { allowed:true };
+    return { allowed:false, reason:'slots_full', slots: planSlots, addons: validAddons };
+  }
+
+  function showSlotModal(gate) {
+    document.getElementById('slot-modal')?.remove();
+    const emp = employer || Session.getEmployer() || {};
+    const paid = ['basic','growth','pro'].includes(emp.plan);
+    let title, msg, buttons;
+    const upgrade = `<a href="/pricing.html" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:0.7rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.9rem;">Upgrade Plan →</a>`;
+    if (gate.reason === 'no_plan') {
+      title = 'Purchase a plan to post jobs';
+      msg = 'Choose a plan to start posting jobs on HireTrack. Plans start at ₹499/month.';
+      buttons = `<a href="/pricing.html" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:0.7rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.9rem;">View Plans →</a>`;
+    } else if (gate.reason === 'plan_expired') {
+      title = 'Your plan has expired';
+      msg = 'Renew your plan to continue posting jobs. Your existing listings and applicant data are preserved.';
+      buttons = `<a href="/pricing.html" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:0.7rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.9rem;">Renew Plan →</a>`;
+    } else {
+      title = 'All job slots in use';
+      msg = `Your ${emp.plan || 'current'} plan allows ${gate.slots} active job post${gate.slots>1?'s':''}${gate.addons?` (+${gate.addons} add-on)`:''}. Upgrade your plan${paid?' or add one post for ₹199':''}.`;
+      buttons = upgrade + (paid ? ` <button onclick="buyAddonAndPost()" style="background:#0f172a;color:#fff;border:none;padding:0.7rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:inherit;">Add 1 Post — ₹199</button>` : '');
+    }
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="slot-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)this.remove()">
+        <div style="background:#fff;border-radius:16px;padding:2rem;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.2);text-align:center;" onclick="event.stopPropagation()">
+          <div style="font-size:2.2rem;margin-bottom:0.5rem;">🚀</div>
+          <h3 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem;">${title}</h3>
+          <p style="font-size:0.88rem;color:#64748b;margin:0 0 1.4rem;line-height:1.6;">${msg}</p>
+          <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">${buttons}</div>
+          <button onclick="document.getElementById('slot-modal').remove()" style="margin-top:1rem;background:none;border:none;color:#94a3b8;font-size:0.82rem;cursor:pointer;font-family:inherit;">Cancel</button>
+        </div>
+      </div>`);
+  }
+
+  // Buy a ₹199 add-on, then post immediately (requires an active paid plan).
+  async function buyAddonAndPost() {
+    const emp = Session.getEmployer();
+    document.getElementById('slot-modal')?.remove();
+    if (!['basic','growth','pro'].includes(emp.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
+    let rzpKey, orderId;
+    try {
+      const r = await fetch('/api/payments?action=addon-order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ employerId: emp.id }) });
+      const cfg = await r.json();
+      if (!cfg.ok || !cfg.key || !cfg.orderId) throw new Error(cfg.error || 'Order failed');
+      rzpKey = cfg.key; orderId = cfg.orderId;
+    } catch (e) { showToast('Payment service unavailable. Please try again.'); return; }
+    const options = {
+      key: rzpKey, amount: (199 + Math.round(199 * 0.18)) * 100, currency: 'INR', order_id: orderId,
+      name: 'HireTrack', description: 'Add-on Job Post', image: 'https://www.hiretrack.co.in/og-image.png',
+      prefill: { name: emp.contact_name, email: emp.email, contact: emp.mobile },
+      theme: { color: '#10b981' },
+      handler: async function(response) {
+        try {
+          const vr = await fetch('/api/payments?action=addon-verify', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, employerId: emp.id }) });
+          const result = await vr.json();
+          if (result.ok) { showToast('✅ Add-on added! Posting your job…'); submitJob(); }
+          else { showToast(result.error || 'Add-on activation failed. Contact support.'); }
+        } catch (e) { showToast('Payment received but activation failed. Contact support.'); }
+      },
+      modal: { ondismiss: function() { showToast('Payment cancelled.'); } }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', () => showToast('Payment failed. Please try again.'));
+    rzp.open();
   }
 
 </script>

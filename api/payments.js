@@ -9,15 +9,16 @@ const CORS = (res) => {
 };
 
 const EMPLOYER_PLANS_ORDER = {
-  starter:    { price: 499 },
-  pro:        { price: 999 },
-  enterprise: { price: 2499 }
+  basic:  { price: 499 },
+  growth: { price: 999 },
+  pro:    { price: 2499 }
 };
 const EMPLOYER_PLANS_VERIFY = {
-  starter:    { jobs: 3,   days: 30 },
-  pro:        { jobs: 8,   days: 60 },
-  enterprise: { jobs: 999, days: 90 }
+  basic:  { jobs: 1, days: 30 },
+  growth: { jobs: 3, days: 30 },
+  pro:    { jobs: 6, days: 30 }
 };
+const ADDON_PRICE = 199; // ₹ per add-on job post
 
 export default async function handler(req, res) {
   CORS(res);
@@ -35,6 +36,8 @@ export default async function handler(req, res) {
       case 'candidate-verify': return await candidateVerify(req, res, body);
       case 'employer-order':   return await employerOrder(req, res, body);
       case 'employer-verify':  return await employerVerify(req, res, body);
+      case 'addon-order':      return await addonOrder(req, res, body);
+      case 'addon-verify':     return await addonVerify(req, res, body);
       case 'boost-order':      return await boostOrder(req, res, body);
       case 'boost-verify':     return await boostVerify(req, res, body);
       case 'paylink-info':     return await paylinkInfo(req, res, body);
@@ -143,19 +146,87 @@ async function employerVerify(req, res, body) {
   }
 
   const plan = EMPLOYER_PLANS_VERIFY[planName];
-  const planExpiresAt = new Date();
-  planExpiresAt.setDate(planExpiresAt.getDate() + 30);
+  const now = new Date();
+  const planExpiresAt = new Date(now);
+  planExpiresAt.setDate(planExpiresAt.getDate() + plan.days);
   const planExpiresISO = planExpiresAt.toISOString();
 
   const upd = await fetch(`${SUPABASE_URL}/rest/v1/employers?id=eq.${employerId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}`, 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ plan: planName, payment_id: razorpay_payment_id, plan_expires_at: planExpiresISO, job_limit: plan.jobs, day_limit: plan.days })
+    body: JSON.stringify({ plan: planName, payment_id: razorpay_payment_id, plan_start: now.toISOString(), plan_expires_at: planExpiresISO, job_limit: plan.jobs, day_limit: plan.days, is_free_trial: false })
   });
   if (!upd.ok) { const err = await upd.text(); console.error('Supabase employer update failed:', err); return res.status(500).json({ ok: false, error: 'Failed to activate plan' }); }
 
+  // Record the payment (best-effort; the plan is already active above).
+  await fetch(`${SUPABASE_URL}/rest/v1/employer_payments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}`, 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ employer_id: employerId, razorpay_order_id, razorpay_payment_id, plan: planName, amount: EMPLOYER_PLANS_ORDER[planName]?.price || null, is_addon: false, status: 'success' })
+  }).catch(() => {});
+
   console.log(`Plan ${planName} activated for employer ${employerId} until ${planExpiresISO}`);
   return res.status(200).json({ ok: true, plan_expires_at: planExpiresISO, job_limit: plan.jobs, day_limit: plan.days });
+}
+
+// ── Add-on job post order (₹199 + GST) ─────────────────────────────────────
+async function addonOrder(req, res, body) {
+  const KEY_ID = process.env.RAZORPAY_KEY_ID;
+  const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+  if (!KEY_ID || !KEY_SECRET) return res.status(500).json({ ok: false, error: 'Payment not configured' });
+
+  const subtotal = ADDON_PRICE;
+  const total = subtotal + Math.round(subtotal * 0.18);
+
+  const auth = Buffer.from(`${KEY_ID}:${KEY_SECRET}`).toString('base64');
+  const r = await fetch('https://api.razorpay.com/v1/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${auth}` },
+    body: JSON.stringify({ amount: total * 100, currency: 'INR', receipt: `ht_addon_${Date.now()}`, notes: { product: 'employer_addon_post' } })
+  });
+  const order = await r.json();
+  if (!order.id) return res.status(500).json({ ok: false, error: order.error?.description || 'Order creation failed' });
+  return res.status(200).json({ ok: true, key: KEY_ID, orderId: order.id });
+}
+
+// ── Add-on job post verify — requires an active paid plan ──────────────────
+async function addonVerify(req, res, body) {
+  const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!KEY_SECRET || !SERVICE_KEY) return res.status(500).json({ ok: false, error: 'Server not configured' });
+
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature, employerId } = body || {};
+  if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !employerId) {
+    return res.status(400).json({ ok: false, error: 'Missing fields' });
+  }
+
+  const digest = crypto.createHmac('sha256', KEY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`).digest('hex');
+  if (digest !== razorpay_signature) {
+    console.error('Add-on signature mismatch', razorpay_payment_id);
+    return res.status(400).json({ ok: false, error: 'Payment verification failed' });
+  }
+
+  // Add-ons are only valid on top of an active paid plan.
+  const emp = await sbGetOne(`employers?select=plan,plan_expires_at&id=eq.${employerId}&limit=1`, SERVICE_KEY);
+  if (!emp) return res.status(404).json({ ok: false, error: 'Employer not found' });
+  const paidActive = ['basic', 'growth', 'pro'].includes(emp.plan)
+    && emp.plan_expires_at && new Date(emp.plan_expires_at) > new Date();
+  if (!paidActive) {
+    return res.status(400).json({ ok: false, error: 'Add-on posts require an active Basic, Growth or Pro plan.' });
+  }
+
+  await sbPost('addon_posts', {
+    employer_id: employerId, payment_id: razorpay_payment_id, amount: ADDON_PRICE,
+    valid_until: emp.plan_expires_at, is_used: false,
+  }, SERVICE_KEY);
+  await sbPost('employer_payments', {
+    employer_id: employerId, razorpay_order_id, razorpay_payment_id, plan: emp.plan,
+    amount: ADDON_PRICE, is_addon: true, status: 'success',
+  }, SERVICE_KEY).catch(() => {});
+
+  console.log(`Add-on post purchased for employer ${employerId} (${razorpay_payment_id})`);
+  return res.status(200).json({ ok: true, valid_until: emp.plan_expires_at });
 }
 
 // ── Executive payment links (slug = unguessable capability) ────────────────
