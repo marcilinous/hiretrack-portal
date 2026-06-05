@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://www.hiretrack.co.in/post-job.html">
 <style>body{padding-top:64px;}</style>
 <title>Post a Job — HireTrack</title>
 <link rel="manifest" href="/manifest.json">
@@ -30,7 +31,7 @@
     <button class="btn-primary" onclick="submitJob()">Post Job for Free</button>
   </div>
 </div>
-<footer><p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
+<footer><p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/pincode.js"></script>
 <script src="/js/sb-rest-shim.js"></script>
@@ -126,5 +127,6 @@
   }
 
 </script>
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>

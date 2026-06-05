@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://www.hiretrack.co.in/employer-dashboard.html">
 <style>body{padding-top:0!important;}</style>
 <title>Employer Dashboard — HireTrack</title>
 <link rel="manifest" href="/manifest.json">
@@ -1301,9 +1302,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </nav>
   </div>
   <div class="ht-footer-bottom">
-    <p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+    <p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
   </div>
 </footer>
 
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>

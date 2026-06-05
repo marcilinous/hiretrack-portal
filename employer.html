@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://www.hiretrack.co.in/employer.html">
 <title>Employer Profile — HireTrack</title>
 <meta name="description" content="View jobs posted by this employer on HireTrack.">
 <meta name="robots" content="index, follow">
@@ -349,7 +350,7 @@ body { padding-top: 64px; background: #f8fafc; }
     </nav>
   </div>
   <div class="ht-footer-bottom">
-    <p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+    <p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
   </div>
 </footer>
 
@@ -546,5 +547,6 @@ function timeAgoLocal(isoStr) {
   return new Date(isoStr).toLocaleDateString('en-IN');
 }
 </script>
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>

@@ -9,6 +9,7 @@
 <meta property="og:title" content="WhatsApp Apply — The Future of Job Applications in India">
 <meta property="og:description" content="Why WhatsApp is becoming the preferred job application channel in India and how it helps candidates.">
 <meta property="og:url" content="https://www.hiretrack.co.in/blog/whatsapp-apply-future-job-applications-india.html">
+<meta property="og:image" content="https://www.hiretrack.co.in/og-image.png">
 <meta property="og:type" content="article">
 <link rel="canonical" href="https://www.hiretrack.co.in/blog/whatsapp-apply-future-job-applications-india.html">
 <link rel="stylesheet" href="../style.css">
@@ -152,7 +153,7 @@ body{padding-top:64px;}
     </nav>
   </div>
   <div class="ht-footer-bottom">
-    <p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+    <p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
   </div>
 </footer>
 
@@ -160,5 +161,6 @@ body{padding-top:64px;}
 <script src="/js/sb-rest-shim.js"></script>
 <script src="../app.js"></script>
 <script>document.getElementById('navbar').innerHTML = renderNavbar('blog');</script>
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>

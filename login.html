@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login — HireTrack</title>
+<link rel="canonical" href="https://www.hiretrack.co.in/login.html">
+<title>Login to HireTrack | India's SME Job Portal</title>
+<meta name="description" content="Sign in to your HireTrack account to apply for jobs, track applications and manage your profile.">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="stylesheet" href="style.css">
@@ -28,7 +30,7 @@
     <a href="employer-auth.html" style="display:block;text-align:center;background:var(--gray2);color:var(--navy);padding:0.75rem;border-radius:10px;font-weight:600;font-size:0.9rem;">Login as Employer →</a>
   </div>
 </div>
-<footer><p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
+<footer><p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/sb-rest-shim.js"></script>
 <script src="app.js?v=6"></script>
@@ -129,5 +131,6 @@
   }
 
 </script>
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>
