@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://www.hiretrack.co.in/job.html">
 
 <!-- Dynamic meta — overwritten by JS once job is loaded -->
 <title>Job Details — HireTrack</title>
@@ -249,7 +250,7 @@ body { padding-top: 64px; background: #f8fafc; }
   <div id="similar-jobs"></div>
 </div>
 
-<footer><p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
+<footer><p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/sb-rest-shim.js"></script>
@@ -634,5 +635,6 @@ function isJobExpired(job) {
   return new Date() > new Date(job.expires_at);
 }
 </script>
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>

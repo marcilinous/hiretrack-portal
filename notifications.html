@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://www.hiretrack.co.in/notifications.html">
 <style>
 body { padding-top:50px !important; }
 .topbar { position:fixed; top:0; left:0; right:0; z-index:150; background:#0f172a; display:flex; align-items:center; padding:0 1rem; height:50px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
@@ -362,8 +363,9 @@ function esc(s) {
     </nav>
   </div>
   <div class="ht-footer-bottom">
-    <p>© 2026 <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+    <p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
   </div>
 </footer>
+<script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>
