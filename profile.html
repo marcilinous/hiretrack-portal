@@ -286,6 +286,62 @@ body { padding-top:50px !important; }
 .pjf-sh-apply { flex:1; background:#2563eb; color:#fff; border:none; padding:0.75rem; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; font-family:inherit; }
 .pjf-sh-reset { background:#f1f5f9; color:#374151; border:none; padding:0.75rem 1.1rem; border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
+/* ── Browse Jobs tab — redesigned (profile-scoped) ── */
+#view-jobs { max-width:900px; margin:0 auto; }
+.pjf-bar { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 4px rgba(15,23,42,0.05); padding:0.85rem 1rem; margin-bottom:1rem; align-items:center; }
+.pjf-kw { flex:0 0 58%; min-width:200px; }
+.pjf-count-bar { width:100%; font-size:0.78rem; color:#64748b; font-weight:600; margin-top:0.55rem; min-height:1em; }
+/* job card */
+.pj-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 4px rgba(15,23,42,0.05); padding:1.1rem 1.25rem; margin-bottom:16px; transition:border-color 0.18s, box-shadow 0.18s; }
+.pj-card:hover { border-color:#93c5fd; box-shadow:0 4px 18px rgba(59,130,246,0.1); }
+.pj-top { display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem; }
+.pj-left { flex:1; min-width:0; }
+.pj-title { font-size:18px; font-weight:800; color:#0f172a; line-height:1.3; margin-bottom:0.3rem; }
+.pj-sub { font-size:0.8rem; color:#64748b; display:flex; flex-wrap:wrap; align-items:center; gap:0 0.35rem; }
+.pj-sub .sep { color:#cbd5e1; }
+.pj-right { display:flex; align-items:center; gap:0.4rem; flex-shrink:0; }
+.pj-match { display:inline-flex; align-items:center; gap:3px; font-size:0.7rem; font-weight:800; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.pj-match-high { background:#d1fae5; color:#047857; }
+.pj-match-mid  { background:#dbeafe; color:#1d4ed8; }
+.pj-match-low  { background:#f1f5f9; color:#475569; }
+.pj-save { background:none; border:none; cursor:pointer; font-size:1.05rem; padding:0 2px; line-height:1; opacity:0.45; transition:opacity 0.15s, transform 0.15s; }
+.pj-save:hover { opacity:1; transform:scale(1.12); }
+.pj-save.saved { opacity:1; }
+.pj-chips { display:flex; flex-wrap:wrap; gap:0.4rem; margin:0.7rem 0 0; }
+.pj-chip { font-size:0.72rem; color:#374151; background:#f1f5f9; padding:3px 9px; border-radius:6px; font-weight:500; }
+.pj-skill { font-size:0.67rem; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:8px; font-weight:600; }
+.pj-skill-more { font-size:0.67rem; color:#94a3b8; padding:2px 4px; font-weight:500; align-self:center; }
+.pj-foot { display:flex; align-items:center; justify-content:flex-end; gap:0.6rem; margin-top:0.85rem; padding-top:0.7rem; border-top:1px solid #f1f5f9; }
+.pj-status { font-size:0.7rem; font-weight:700; padding:3px 10px; border-radius:20px; margin-right:auto; }
+.pj-st-applied { background:#eff6ff; color:#1d4ed8; }
+.pj-st-shortlisted { background:#fef3c7; color:#92400e; }
+.pj-st-interview { background:#f5f3ff; color:#6d28d9; }
+.pj-st-hired { background:#dcfce7; color:#15803d; }
+.pj-st-rejected { background:transparent; color:#6b7280; border:1.5px solid #d1d5db; }
+.pj-apply { background:#2563eb; color:#fff; border:none; padding:0.5rem 1.3rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+.pj-apply:hover { background:#1d4ed8; }
+.pj-apply.view { background:#f0f7ff; color:#2563eb; border:1.5px solid #bfdbfe; }
+.pj-share { display:inline-flex; align-items:center; gap:4px; background:none; border:1.5px solid #bbf7d0; color:#16a34a; padding:0.45rem 0.9rem; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.15s; }
+.pj-share:hover { background:#f0fdf4; }
+/* skeleton */
+.pj-skel { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:1.1rem 1.25rem; margin-bottom:16px; }
+.pj-skel-line { height:12px; border-radius:6px; background:linear-gradient(90deg,#eef2f7 25%,#e2e8f0 37%,#eef2f7 63%); background-size:400% 100%; animation:pjShimmer 1.4s ease infinite; margin-bottom:0.6rem; }
+@keyframes pjShimmer { 0%{background-position:100% 0;} 100%{background-position:0 0;} }
+/* empty */
+.pj-empty { text-align:center; padding:3rem 1rem; }
+.pj-empty-ico { font-size:3rem; margin-bottom:0.6rem; }
+.pj-empty h3 { font-size:1rem; font-weight:800; color:#0f172a; margin:0 0 0.3rem; }
+.pj-empty p { font-size:0.85rem; color:#94a3b8; margin:0 0 1rem; }
+.pj-clear-btn { background:#2563eb; color:#fff; border:none; padding:0.55rem 1.3rem; border-radius:9px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; }
+@media(max-width:768px){
+  .pj-card, .pj-skel { padding:1rem 0.85rem; }
+}
+@media(max-width:480px){
+  .pj-foot { flex-direction:column; align-items:stretch; }
+  .pj-apply, .pj-share { width:100%; text-align:center; justify-content:center; }
+  .pj-status { margin-right:0; margin-bottom:0.4rem; text-align:center; }
+}
+
 /* ── Responsive ── */
 @media(max-width:768px) {
   .notif-popover { width:calc(100% - 2rem); left:1rem; right:1rem; border-radius:0 0 14px 14px; }
@@ -469,12 +525,8 @@ body { padding-top:50px !important; }
       <button class="pjf-mobile-btn" id="pjf-mobile-btn">
         ⚙️ Filters <span class="pjf-mobile-badge" id="pjf-mobile-badge" style="display:none;"></span>
       </button>
+      <div id="pjf-count" class="pjf-count-bar"></div>
     </div>
-    <div id="rec-section" style="display:none;margin-bottom:1.25rem;">
-      <div style="font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.6rem;">⭐ Recommended for You</div>
-      <div id="rec-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
-    </div>
-    <div id="pjf-count" style="font-size:0.8rem;color:#64748b;margin-bottom:0.75rem;min-height:1.2em;"></div>
     <div id="bj-container-profile"></div>
   </div>
 
@@ -2110,92 +2162,144 @@ body { padding-top:50px !important; }
       (b.match_score||0) - (a.match_score||0) || new Date(b.posted_at||0) - new Date(a.posted_at||0));
   }
 
-  function renderRecommended() {
-    const section = document.getElementById('rec-section');
-    const list    = document.getElementById('rec-list');
-    if (!section || !list) return;
-
-    const skills = (candidate.skills || []).map(s => s.toLowerCase());
-    if (!skills.length || !_pjfJobs.length) { section.style.display = 'none'; return; }
-
-    const now = new Date();
-    const recs = _pjfJobs
-      .filter(j => {
-        if (j.delisted) return false;
-        if (j.expires_at && new Date(j.expires_at) < now) return false;
-        if (_pjfAppMap[String(j.id)]) return false; // already applied
-        const jobSkills = (Array.isArray(j.skills) ? j.skills : (j.skills||'').split(','))
-          .map(s => s.trim().toLowerCase()).filter(Boolean);
-        const score = skills.filter(s => jobSkills.some(js => js.includes(s) || s.includes(js))).length;
-        j._recScore = score;
-        return score > 0;
-      })
-      .sort((a, b) => b._recScore - a._recScore)
-      .slice(0, 3);
-
-    if (!recs.length) { section.style.display = 'none'; return; }
-
-    section.style.display = 'block';
-    list.innerHTML = recs.map(j => {
-      const matchCount = j._recScore;
-      const skills = (Array.isArray(j.skills) ? j.skills : (j.skills||'').split(',')).slice(0,3).map(s=>s.trim()).filter(Boolean);
-      return `<a href="/job.html?id=${j.id}" target="_blank" style="display:block;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.85rem 1rem;text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#93c5fd'" onmouseout="this.style.borderColor='#e2e8f0'">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:0.9rem;font-weight:800;color:#0f172a;margin-bottom:0.2rem;">${esc(j.title)}</div>
-            <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.4rem;">🏢 ${esc(j.company)}${j.location?` · 📍 ${esc(j.location)}`:''}${j.salary?` · 💰 ${esc(j.salary)}`:''}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">${skills.map(s=>`<span style="background:#eff6ff;color:#1d4ed8;font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:8px;">${esc(s)}</span>`).join('')}</div>
-          </div>
-          <div style="flex-shrink:0;text-align:right;">
-            <div style="background:#dcfce7;color:#15803d;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;">${matchCount} skill match${matchCount>1?'es':''}</div>
-          </div>
-        </div>
-      </a>`;
-    }).join('');
+  // ── Profile-local job-card renderer (keeps the shared js/browse-jobs.js untouched) ──
+  function _pjfMatchBadge(score) {
+    if (score == null) return '';
+    const s = Math.round(score);
+    if (s < 30) return '';                                                   // hide below 30%
+    if (s >= 80) return `<span class="pj-match pj-match-high">🔥 ${s}% match</span>`;
+    if (s >= 50) return `<span class="pj-match pj-match-mid">⚡ ${s}% match</span>`;
+    return `<span class="pj-match pj-match-low">${s}% match</span>`;
   }
+  function _pjfTimeAgo(d) {
+    if (!d) return '';
+    const secs = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
+    if (secs < 3600)  { const m = Math.max(1, Math.floor(secs/60));  return m === 1 ? '1 min ago'  : `${m} mins ago`; }
+    if (secs < 86400) { const h = Math.floor(secs/3600);             return h === 1 ? '1 hour ago' : `${h} hours ago`; }
+    const days = Math.floor(secs/86400);
+    if (days < 30) return days === 1 ? '1 day ago' : `${days} days ago`;
+    const mo = Math.floor(days/30); return mo === 1 ? '1 month ago' : `${mo} months ago`;
+  }
+  function _pjfSkills(job) {
+    if (Array.isArray(job.skills) && job.skills.length) return job.skills;
+    if (Array.isArray(job.tags)   && job.tags.length)   return job.tags;
+    if (typeof job.skills === 'string' && job.skills.trim()) return job.skills.split(',').map(s=>s.trim()).filter(Boolean);
+    return [];
+  }
+  function _pjfBuildCard(job) {
+    const jid = String(job.id);
+    const status = _pjfAppMap[jid];
+    const isSaved = _pjfSavedIds && _pjfSavedIds.has(jid);
+    const allSkills = _pjfSkills(job);
+    const skills = allSkills.slice(0, 5);
+    const extra = allSkills.length > 5 ? allSkills.length - 5 : 0;
+    const badge = _pjfMatchBadge(job.match_score);
+    const jobType = job.job_type || job.type;
+    const posted = job.posted_at ? _pjfTimeAgo(job.posted_at) : (job.posted || '');
+    const saveBtn = `<button class="pj-save ${isSaved?'saved':''}" data-action="save" data-jid="${jid}" data-saved="${isSaved?'1':''}" title="${isSaved?'Remove from saved':'Save job'}">🔖</button>`;
+    const statusBadge = status ? `<span class="pj-status pj-st-${esc(status.toLowerCase())}">${esc(status)}</span>` : '';
+    const applyBtn = status
+      ? `<button class="pj-apply view" data-action="view" data-jid="${jid}">View Application</button>`
+      : `<button class="pj-apply" data-action="apply" data-jid="${jid}">Apply</button>`;
+    const chips = [
+      job.salary ? `<span class="pj-chip">💰 ${esc(job.salary)}</span>` : '',
+      job.experience ? `<span class="pj-chip">🎯 ${esc(job.experience)}</span>` : '',
+      jobType ? `<span class="pj-chip">${esc(jobType)}</span>` : '',
+      ...skills.map(s => `<span class="pj-skill">${esc(s)}</span>`),
+      extra ? `<span class="pj-skill-more">+${extra} more</span>` : ''
+    ].filter(Boolean).join('');
+    return `<div class="pj-card" data-jid="${jid}">
+      <div class="pj-top">
+        <div class="pj-left">
+          <div class="pj-title">${esc(job.title)}</div>
+          <div class="pj-sub"><span>${esc(job.company || '')}</span>${job.location?`<span class="sep">·</span><span>📍 ${esc(job.location)}</span>`:''}${posted?`<span class="sep">·</span><span>${esc(posted)}</span>`:''}</div>
+        </div>
+        <div class="pj-right">${badge}${saveBtn}</div>
+      </div>
+      <div class="pj-chips">${chips}</div>
+      <div class="pj-foot">
+        ${statusBadge}
+        ${applyBtn}
+        <button class="pj-share" data-action="share" data-jid="${jid}" title="Share on WhatsApp">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.122 1.532 5.857L.057 23.925l6.235-1.635A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.494-5.193-1.355l-.372-.22-3.7.971 1.008-3.573-.242-.383A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Share
+        </button>
+      </div>
+    </div>`;
+  }
+
+  let _pjfCardMap = new Map();
+  let _pjfDelegated = false;
+  function _pjfRenderCards(container, jobs) {
+    _pjfCardMap = new Map(jobs.map(j => [String(j.id), j]));
+    if (!jobs.length) {
+      container.innerHTML = `<div class="pj-empty"><div class="pj-empty-ico">🔍</div><h3>No jobs match your filters</h3><p>Try adjusting or clearing your filters to see more roles.</p><button class="pj-clear-btn" onclick="_pjfClearFilters()">Clear filters</button></div>`;
+      return;
+    }
+    container.innerHTML = jobs.map(_pjfBuildCard).join('');
+    if (!_pjfDelegated) {
+      _pjfDelegated = true;
+      container.addEventListener('click', e => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const jid = btn.dataset.jid;
+        const job = _pjfCardMap.get(jid);
+        const action = btn.dataset.action;
+        if (action === 'apply' && job) {
+          const wa = encodeURIComponent(`Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`);
+          window.ApplyModal.open(job, {
+            isLoggedIn: true,
+            applicationStatus: _pjfAppMap[jid] || null,
+            onApply: () => profileApplyJob(jid, job),
+            onWhatsApp: () => whatsappApply(job.phone, wa),
+          });
+        } else if (action === 'view') {
+          location.hash = '#applications';
+        } else if (action === 'share' && job) {
+          const url = `https://www.hiretrack.co.in/job.html?id=${jid}`;
+          const text = `🔥 *${job.title}* at *${job.company || ''}*${job.location ? '\n📍 ' + job.location : ''}${job.salary ? ' | 💰 ' + job.salary : ''}\n\nApply on HireTrack 👉 ${url}`;
+          window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        } else if (action === 'save') {
+          _pjfToggleSave(jid, btn.dataset.saved === '1', btn);
+        }
+      });
+    }
+  }
+  async function _pjfToggleSave(jid, isSaved, btn) {
+    if (isSaved) {
+      _pjfSavedIds.delete(jid);
+      btn.dataset.saved = ''; btn.classList.remove('saved');
+      await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jid);
+      showToast('Removed from saved jobs');
+    } else {
+      _pjfSavedIds.add(jid);
+      btn.dataset.saved = '1'; btn.classList.add('saved');
+      await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: jid }]);
+      showToast('Saved! View in Saved Jobs →');
+    }
+  }
+  function _pjfClearFilters() {
+    _pjf.keyword=''; _pjf.locations=[]; _pjf.jobTypes=[]; _pjf.expBand=''; _pjf.salBand=''; _pjf.recency='any'; _pjf.minMatch=0; _pjf.sort='match';
+    const kw = document.getElementById('pjf-kw'); if (kw) kw.value='';
+    document.querySelectorAll('#view-jobs .pjf-chip').forEach(c => c.classList.remove('pjf-chip-active'));
+    document.querySelectorAll('#view-jobs .pjf-dd-panel input[type=checkbox]').forEach(c => c.checked = false);
+    const lbl = (id,t)=>{ const el=document.getElementById(id); if(el) el.textContent=t; };
+    lbl('pfchip-loc','📍 Location'); lbl('pfchip-type','Job Type'); lbl('pfchip-exp','Experience'); lbl('pfchip-sal','Salary'); lbl('pfchip-rec','Any time'); lbl('pfchip-match','Match %'); lbl('pfchip-sort','Best Match');
+    _pjfVisible = PJF_PAGE;
+    _renderPjf();
+  }
+  window._pjfClearFilters = _pjfClearFilters;
 
   function _renderPjf() {
     if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
     const container = document.getElementById('bj-container-profile');
     if (!container) return;
-    renderRecommended();
     const sorted  = _pjfSort(_pjfDeriveFiltered());
     const countEl = document.getElementById('pjf-count');
-    if (countEl) countEl.textContent = sorted.length + ' job' + (sorted.length !== 1 ? 's' : '') + ' found';
+    if (countEl) countEl.textContent = sorted.length + ' result' + (sorted.length !== 1 ? 's' : '') + ' found';
     const page    = sorted.slice(0, _pjfVisible);
     const hasMore = _pjfVisible < sorted.length;
-    window.BrowseJobs.render(container, page, {
-      applicationStatusMap: _pjfAppMap,
-      isLoggedIn: true,
-      savedJobIds: _pjfSavedIds,
-      onApplyClick: (jid, job) => {
-        const wa = encodeURIComponent(
-          `Hi, I found your job posting for *${job.title}* at *${job.company}* on HireTrack. I would like to apply.`
-        );
-        window.ApplyModal.open(job, {
-          isLoggedIn: true,
-          applicationStatus: _pjfAppMap[String(jid)] || null,
-          onApply: () => profileApplyJob(jid, job),
-          onWhatsApp: () => whatsappApply(job.phone, wa),
-        });
-      },
-      onViewApplicationClick: () => { location.hash = '#applications'; },
-      onSaveToggle: async (jid, isSaved, btn) => {
-        if (isSaved) {
-          _pjfSavedIds.delete(jid);
-          btn.dataset.saved = '';
-          btn.classList.remove('bj-saved');
-          await sb.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', jid);
-          showToast('Removed from saved jobs');
-        } else {
-          _pjfSavedIds.add(jid);
-          btn.dataset.saved = '1';
-          btn.classList.add('bj-saved');
-          await sb.from('saved_jobs').insert([{ candidate_id: candidate.id, job_id: jid }]);
-          showToast('Saved! View in Saved Jobs →');
-        }
-      },
-    });
+    _pjfRenderCards(container, page);
     if (hasMore) {
       _pjfTeardown = window.BrowseJobs.setupInfiniteScroll(container, async () => {
         _pjfVisible += PJF_PAGE;
@@ -2211,7 +2315,13 @@ body { padding-top:50px !important; }
     _pjfVisible = PJF_PAGE;
     if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
     if (!_pjfLoaded) {
-      container.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8;">Loading jobs…</div>';
+      const skel = `<div class="pj-skel">
+        <div class="pj-skel-line" style="width:55%;height:16px;"></div>
+        <div class="pj-skel-line" style="width:35%;"></div>
+        <div class="pj-skel-line" style="width:85%;margin-top:0.9rem;"></div>
+        <div class="pj-skel-line" style="width:45%;margin-bottom:0;"></div>
+      </div>`;
+      container.innerHTML = skel.repeat(3);
       try {
         [_pjfJobs, _pjfAppMap, _pjfSavedIds] = await Promise.all([
           window.BrowseJobs.fetchForCandidate(candidate.id),
