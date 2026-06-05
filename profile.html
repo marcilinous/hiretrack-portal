@@ -30,6 +30,8 @@ body { padding-top:50px !important; }
 
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
+.content.content-wide { max-width:1280px; }
+@media(max-width:767px){ .content.content-wide { padding:0 1rem; } }
 
 /* ── Profile Score ── */
 .score-wrap { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
@@ -287,7 +289,35 @@ body { padding-top:50px !important; }
 .pjf-sh-reset { background:#f1f5f9; color:#374151; border:none; padding:0.75rem 1.1rem; border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
 
 /* ── Browse Jobs tab — redesigned (profile-scoped) ── */
-#view-jobs { max-width:900px; margin:0 auto; }
+#view-jobs { max-width:1280px; margin:0 auto; }
+/* 3-column layout */
+.pj-layout { display:grid; grid-template-columns:240px 1fr 240px; gap:20px; max-width:1280px; margin:0 auto; padding:20px 0; align-items:start; }
+.pj-col-left, .pj-col-right { position:sticky; top:80px; align-self:start; display:flex; flex-direction:column; gap:1rem; }
+.pj-col-center { min-width:0; }
+.pj-side-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:14px; padding:1.1rem; box-shadow:0 1px 4px rgba(15,23,42,0.05); }
+.pj-side-title { font-size:0.82rem; font-weight:800; color:#0f172a; }
+.pj-side-avatar { width:64px; height:64px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:800; flex-shrink:0; overflow:hidden; }
+.pj-side-avatar img { width:100%; height:100%; object-fit:cover; }
+.pj-stat-tile { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; padding:0.55rem 0; border-bottom:1px solid #f1f5f9; font-size:0.8rem; color:#475569; }
+.pj-stat-tile:last-child { border-bottom:none; }
+.pj-stat-tile strong { font-size:0.95rem; font-weight:800; color:#0f172a; }
+.pj-skill-row { margin-bottom:0.7rem; }
+.pj-skill-row:last-child { margin-bottom:0; }
+.pj-skill-row-top { display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600; color:#374151; margin-bottom:0.3rem; }
+.pj-demand { color:#16a34a; font-weight:800; font-size:0.74rem; }
+.pj-bar { height:6px; background:#f1f5f9; border-radius:6px; overflow:hidden; }
+.pj-bar-fill { height:100%; border-radius:6px; background:#10b981; }
+.pj-sal-row { display:flex; justify-content:space-between; gap:0.5rem; padding:0.5rem 0; border-bottom:1px solid #f1f5f9; font-size:0.8rem; color:#475569; }
+.pj-sal-row:last-child { border-bottom:none; }
+.pj-sal-row strong { color:#0f172a; font-weight:800; white-space:nowrap; }
+@media(max-width:1023px){
+  .pj-layout { grid-template-columns:minmax(0,1fr) 250px; }
+  .pj-col-left { display:none; }
+}
+@media(max-width:767px){
+  .pj-layout { grid-template-columns:1fr; padding:0; gap:0; }
+  .pj-col-left, .pj-col-right { display:none; }
+}
 .pjf-bar { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 4px rgba(15,23,42,0.05); padding:0.85rem 1rem; margin-bottom:1rem; align-items:center; }
 .pjf-kw { flex:0 0 58%; min-width:200px; }
 .pjf-count-bar { width:100%; font-size:0.78rem; color:#64748b; font-weight:600; margin-top:0.55rem; min-height:1em; }
@@ -452,6 +482,47 @@ body { padding-top:50px !important; }
 
   <!-- VIEW: Browse Jobs (default #jobs) -->
   <div id="view-jobs">
+   <div class="pj-layout">
+    <!-- LEFT: Candidate snapshot -->
+    <aside class="pj-col-left">
+      <div class="pj-side-card">
+        <div style="display:flex;align-items:center;gap:0.8rem;">
+          <div class="pj-side-avatar" id="pjs-avatar">?</div>
+          <div style="min-width:0;">
+            <div id="pjs-name" style="font-size:0.95rem;font-weight:800;color:#0f172a;line-height:1.2;">—</div>
+            <div id="pjs-role" style="font-size:0.78rem;color:#64748b;margin-top:2px;">—</div>
+            <div id="pjs-loc" style="font-size:0.74rem;color:#94a3b8;margin-top:1px;"></div>
+          </div>
+        </div>
+        <div style="height:1px;background:#f1f5f9;margin:0.9rem 0;"></div>
+        <div style="display:flex;align-items:center;gap:0.7rem;">
+          <svg width="46" height="46" viewBox="0 0 46 46" style="flex-shrink:0;">
+            <circle cx="23" cy="23" r="19" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+            <circle id="pjs-ring" cx="23" cy="23" r="19" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4" transform="rotate(-90 23 23)"/>
+          </svg>
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:#0f172a;">Your profile is <span id="pjs-pct">0</span>% complete</div>
+          </div>
+        </div>
+        <a href="#profile" id="pjs-complete-btn" style="display:none;margin-top:0.8rem;text-align:center;background:#10b981;color:#fff;text-decoration:none;padding:0.5rem;border-radius:9px;font-size:0.8rem;font-weight:700;">Complete Profile →</a>
+      </div>
+
+      <div class="pj-side-card">
+        <div class="pj-side-title" style="margin-bottom:0.4rem;">Quick Stats</div>
+        <div class="pj-stat-tile"><span>📨 Applications Sent</span><strong id="pjs-apps">—</strong></div>
+        <div class="pj-stat-tile"><span>🔖 Saved Jobs</span><strong id="pjs-saved">—</strong></div>
+        <div class="pj-stat-tile"><span>👁️ Profile Views</span><strong style="font-size:0.68rem;color:#94a3b8;font-weight:700;">Coming Soon</strong></div>
+      </div>
+
+      <div class="pj-side-card" style="background:linear-gradient(135deg,#ecfdf5,#eff6ff);border-color:#bbf7d0;">
+        <div style="font-size:0.9rem;font-weight:800;color:#0f172a;">⚡ Practice Interview</div>
+        <p style="font-size:0.76rem;color:#64748b;margin:0.3rem 0 0.7rem;">AI-powered prep for your skills.</p>
+        <a href="#pro" style="display:inline-block;background:#0f172a;color:#fff;text-decoration:none;padding:0.45rem 1rem;border-radius:9px;font-size:0.78rem;font-weight:700;">Start Prep →</a>
+      </div>
+    </aside>
+
+    <!-- CENTER: existing search + filters + job cards (unchanged) -->
+    <div class="pj-col-center">
     <div class="pjf-bar">
       <input type="text" id="pjf-kw" class="pjf-kw" placeholder="Search title, skill, company...">
       <div class="pjf-chips">
@@ -528,6 +599,31 @@ body { padding-top:50px !important; }
       <div id="pjf-count" class="pjf-count-bar"></div>
     </div>
     <div id="bj-container-profile"></div>
+    </div>
+
+    <!-- RIGHT: Market insights -->
+    <aside class="pj-col-right">
+      <div class="pj-side-card">
+        <div class="pj-side-title" style="margin-bottom:0.1rem;">🔥 Trending Skills</div>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.8rem;">High demand this month</div>
+        <div class="pj-skill-row"><div class="pj-skill-row-top"><span>Python</span><span class="pj-demand">+24%</span></div><div class="pj-bar"><div class="pj-bar-fill" style="width:100%;"></div></div></div>
+        <div class="pj-skill-row"><div class="pj-skill-row-top"><span>Power BI</span><span class="pj-demand">+18%</span></div><div class="pj-bar"><div class="pj-bar-fill" style="width:75%;"></div></div></div>
+        <div class="pj-skill-row"><div class="pj-skill-row-top"><span>SQL</span><span class="pj-demand">+15%</span></div><div class="pj-bar"><div class="pj-bar-fill" style="width:62%;"></div></div></div>
+        <div class="pj-skill-row"><div class="pj-skill-row-top"><span>Excel Advanced</span><span class="pj-demand">+12%</span></div><div class="pj-bar"><div class="pj-bar-fill" style="width:50%;"></div></div></div>
+        <div class="pj-skill-row"><div class="pj-skill-row-top"><span>Tableau</span><span class="pj-demand">+10%</span></div><div class="pj-bar"><div class="pj-bar-fill" style="width:42%;"></div></div></div>
+      </div>
+
+      <div class="pj-side-card">
+        <div class="pj-side-title" style="margin-bottom:0.1rem;">💰 Salary Range</div>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.8rem;">For your skill set (Bengaluru)</div>
+        <div class="pj-sal-row"><span>MIS Executive</span><strong>₹3–6 LPA</strong></div>
+        <div class="pj-sal-row"><span>Data Analyst</span><strong>₹5–9 LPA</strong></div>
+        <div class="pj-sal-row"><span>Business Analyst</span><strong>₹6–12 LPA</strong></div>
+        <div class="pj-sal-row"><span>BI Developer</span><strong>₹7–14 LPA</strong></div>
+        <div style="font-size:0.68rem;color:#94a3b8;margin-top:0.6rem;">Indicative ranges · updated monthly</div>
+      </div>
+    </aside>
+   </div>
   </div>
 
   <!-- VIEW: My Profile (#profile) -->
@@ -816,6 +912,10 @@ body { padding-top:50px !important; }
       const el = document.getElementById('view-' + v);
       if (el) el.style.display = v === target ? 'block' : 'none';
     });
+
+    // Browse Jobs uses the wide 3-column layout; other tabs stay at 900px.
+    const _contentEl = document.querySelector('.content');
+    if (_contentEl) _contentEl.classList.toggle('content-wide', target === 'jobs');
 
     document.querySelectorAll('.dr-nav-item').forEach(a => {
       const itemView = a.getAttribute('href').replace('#','');
@@ -2290,6 +2390,41 @@ body { padding-top:50px !important; }
   }
   window._pjfClearFilters = _pjfClearFilters;
 
+  // ── Browse Jobs sidebars (candidate snapshot) — in-memory data only, no new DB calls ──
+  function _pjfProfileScorePct() {
+    const skillCount = (candidate.skills || []).length;
+    let s = 0;
+    if (candidate.name && candidate.mobile && candidate.email) s += 15;
+    if (candidate.city) s += 10;
+    if (candidate.jobtitle && candidate.experience) s += 10;
+    if (candidate.about && candidate.about.length >= 50) s += 10;
+    s += (typeof getSkillPts === 'function') ? getSkillPts(skillCount) : (skillCount>=8?20:skillCount>=5?15:skillCount>=3?10:0);
+    if (candidate.resume_url || candidate.resume_data) s += 15;
+    if (candidate.preferred_job_type && candidate.expected_salary && candidate.notice_period) s += 10;
+    s += myApps.length>=5?10:myApps.length>=3?8:myApps.length>=1?5:0;
+    return Math.min(100, s);
+  }
+  function _pjfRenderSidebars() {
+    if (!candidate) return;
+    const av = document.getElementById('pjs-avatar');
+    if (av) {
+      if (candidate.photo_url) av.innerHTML = `<img src="${esc(candidate.photo_url)}" alt="">`;
+      else av.textContent = (candidate.name||'?').split(' ').map(x=>x[0]||'').join('').toUpperCase().slice(0,2) || '?';
+    }
+    const set = (id,t)=>{ const el=document.getElementById(id); if(el) el.textContent=t; };
+    set('pjs-name', candidate.name || '—');
+    set('pjs-role', candidate.jobtitle || 'Job seeker');
+    set('pjs-loc', candidate.city ? '📍 ' + candidate.city : '');
+    const pct = _pjfProfileScorePct();
+    set('pjs-pct', pct);
+    const ring = document.getElementById('pjs-ring');
+    if (ring) { const C = 2 * Math.PI * 19; ring.setAttribute('stroke-dasharray', C.toFixed(1)); ring.setAttribute('stroke-dashoffset', (C - pct/100*C).toFixed(1)); }
+    const cbtn = document.getElementById('pjs-complete-btn');
+    if (cbtn) cbtn.style.display = pct < 80 ? 'block' : 'none';
+    set('pjs-apps', String(myApps ? myApps.length : 0));
+    set('pjs-saved', String(_pjfSavedIds ? _pjfSavedIds.size : 0));
+  }
+
   function _renderPjf() {
     if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
     const container = document.getElementById('bj-container-profile');
@@ -2337,6 +2472,7 @@ body { padding-top:50px !important; }
       _pjfLoaded = true;
     }
     _renderPjf();
+    _pjfRenderSidebars();
   }
 
   async function profileApplyJob(jid, job) {
