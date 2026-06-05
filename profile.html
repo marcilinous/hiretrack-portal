@@ -307,9 +307,19 @@ body { padding-top:50px !important; }
 .pj-demand { color:#16a34a; font-weight:800; font-size:0.74rem; }
 .pj-bar { height:6px; background:#f1f5f9; border-radius:6px; overflow:hidden; }
 .pj-bar-fill { height:100%; border-radius:6px; background:#10b981; }
-.pj-sal-row { display:flex; justify-content:space-between; gap:0.5rem; padding:0.5rem 0; border-bottom:1px solid #f1f5f9; font-size:0.8rem; color:#475569; }
-.pj-sal-row:last-child { border-bottom:none; }
+.pj-sal-row { display:flex; justify-content:space-between; gap:0.5rem; padding:0.5rem 0; font-size:0.8rem; color:#475569; }
 .pj-sal-row strong { color:#0f172a; font-weight:800; white-space:nowrap; }
+.pj-sal-item { margin-bottom:0.7rem; }
+.pj-sal-item:last-child { margin-bottom:0; }
+.pj-sal-item .pj-sal-row { padding:0 0 0.3rem; }
+/* Tips carousel */
+.pj-tip-refresh { background:#f1f5f9; border:none; cursor:pointer; width:24px; height:24px; border-radius:7px; color:#64748b; font-size:0.9rem; line-height:1; display:flex; align-items:center; justify-content:center; transition:background 0.15s, transform 0.3s; flex-shrink:0; }
+.pj-tip-refresh:hover { background:#e2e8f0; color:#0f172a; }
+.pj-tip-refresh:active { transform:rotate(180deg); }
+.pj-tip-text { font-size:0.84rem; color:#334155; line-height:1.5; }
+/* Refer & Earn */
+.pj-refer { background:linear-gradient(135deg,#fef3c7,#fef9c3); border-color:#fde68a; }
+.pj-soon-badge { display:inline-block; font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:#b45309; background:#fff; border:1px solid #fcd34d; padding:2px 8px; border-radius:20px; }
 @media(max-width:1023px){
   .pj-layout { grid-template-columns:minmax(0,1fr) 250px; }
   .pj-col-left { display:none; }
@@ -615,12 +625,25 @@ body { padding-top:50px !important; }
 
       <div class="pj-side-card">
         <div class="pj-side-title" style="margin-bottom:0.1rem;">💰 Salary Range</div>
-        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.8rem;">For your skill set (Bengaluru)</div>
-        <div class="pj-sal-row"><span>MIS Executive</span><strong>₹3–6 LPA</strong></div>
-        <div class="pj-sal-row"><span>Data Analyst</span><strong>₹5–9 LPA</strong></div>
-        <div class="pj-sal-row"><span>Business Analyst</span><strong>₹6–12 LPA</strong></div>
-        <div class="pj-sal-row"><span>BI Developer</span><strong>₹7–14 LPA</strong></div>
-        <div style="font-size:0.68rem;color:#94a3b8;margin-top:0.6rem;">Indicative ranges · updated monthly</div>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.8rem;">For your skill set</div>
+        <div id="pjs-salary">
+          <div class="pj-sal-item"><div class="pj-sal-row"><span>Entry level</span><strong>₹2.5L – ₹5L</strong></div><div class="pj-bar"><div class="pj-bar-fill" style="width:50%;"></div></div></div>
+          <div class="pj-sal-item"><div class="pj-sal-row"><span>Mid level</span><strong>₹5L – ₹10L</strong></div><div class="pj-bar"><div class="pj-bar-fill" style="width:80%;"></div></div></div>
+        </div>
+      </div>
+
+      <div class="pj-side-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.6rem;">
+          <div class="pj-side-title">💡 Job Search Tip</div>
+          <button class="pj-tip-refresh" onclick="_pjNextTip()" title="Next tip" aria-label="Show next tip">↻</button>
+        </div>
+        <div id="pjs-tip" class="pj-tip-text">Profiles with photos get 3x more views</div>
+      </div>
+
+      <div class="pj-side-card pj-refer">
+        <div style="font-weight:800;color:#0f172a;font-size:0.9rem;margin-bottom:0.25rem;">👥 Know someone hiring?</div>
+        <div style="font-size:0.78rem;color:#64748b;margin-bottom:0.7rem;line-height:1.45;">Refer an employer and earn rewards</div>
+        <span class="pj-soon-badge">Coming Soon</span>
       </div>
     </aside>
    </div>
@@ -2423,7 +2446,37 @@ body { padding-top:50px !important; }
     if (cbtn) cbtn.style.display = pct < 80 ? 'block' : 'none';
     set('pjs-apps', String(myApps ? myApps.length : 0));
     set('pjs-saved', String(_pjfSavedIds ? _pjfSavedIds.size : 0));
+    // Salary Range — tailored to the candidate's own skills (presentational only).
+    const salEl = document.getElementById('pjs-salary');
+    if (salEl) {
+      let sk = candidate.skills;
+      if (Array.isArray(sk)) sk = sk.join(',');
+      sk = String(sk || '').toLowerCase();
+      const dataRole = /\b(sql|excel|python)\b/.test(sk);
+      const rows = dataRole
+        ? [['MIS / Data roles', '₹3L – ₹12L', 100]]
+        : [['Entry level', '₹2.5L – ₹5L', 50], ['Mid level', '₹5L – ₹10L', 80]];
+      salEl.innerHTML = rows.map(([label, range, w]) =>
+        `<div class="pj-sal-item"><div class="pj-sal-row"><span>${esc(label)}</span><strong>${range}</strong></div><div class="pj-bar"><div class="pj-bar-fill" style="width:${w}%;"></div></div></div>`
+      ).join('');
+    }
   }
+
+  // Job Search Tip carousel — starts on a random tip each page load; ↻ advances.
+  const _PJ_TIPS = [
+    'Profiles with photos get 3x more views',
+    'Adding 5+ skills improves your match score',
+    'Apply within 24hrs — early applicants get noticed',
+    'Customize your headline for each application',
+    'Follow up after 5 days if no response',
+  ];
+  let _pjTipIdx = Math.floor(Math.random() * _PJ_TIPS.length);
+  function _pjRenderTip() {
+    const el = document.getElementById('pjs-tip');
+    if (el) el.textContent = _PJ_TIPS[((_pjTipIdx % _PJ_TIPS.length) + _PJ_TIPS.length) % _PJ_TIPS.length];
+  }
+  function _pjNextTip() { _pjTipIdx++; _pjRenderTip(); }
+  window._pjNextTip = _pjNextTip;
 
   function _renderPjf() {
     if (_pjfTeardown) { _pjfTeardown(); _pjfTeardown = null; }
@@ -2473,6 +2526,7 @@ body { padding-top:50px !important; }
     }
     _renderPjf();
     _pjfRenderSidebars();
+    _pjRenderTip();
   }
 
   async function profileApplyJob(jid, job) {
