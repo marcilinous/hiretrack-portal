@@ -56,6 +56,22 @@
   html, body { margin:0; }
   body { padding-top:0 !important; }
   .navbar { margin-top:0 !important; top:0 !important; }
+  /* FIX 4 — tighten the gap between the stats row and the employer bar
+     (was ~stats padding-bottom 1.1rem + margin-bottom 1.25rem + bar padding-top 0.75rem). */
+  .hero-left .hero-stats { margin-bottom:16px !important; padding-bottom:0 !important; }
+  .hero-employer-bar { margin-top:0 !important; padding-top:16px !important; }
+  /* FIX 5 — tighten the gap between the employer bar and the AI Assistant card.
+     The .ai-section already has 16px top padding on mobile; the hero's bottom
+     padding was stacking on top of it (~40px total), so zero the hero's. */
+  .hero { padding-bottom:0 !important; }
+  /* FIX 6 — Get a Job / Post a Job: equal width on every phone size. */
+  .hero-ctas { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; }
+  .btn-hero-primary { min-width:0; width:100%; }
+  /* FIX 7 — uniform, compact section spacing. Existing mobile padding was
+     already 1.5rem; this also reins in the testimonials section's inline
+     2.5rem padding (the literal 32px ask would have ENLARGED the others). */
+  .section { padding-top:24px !important; padding-bottom:24px !important; }
+  .section-hd { margin-bottom:1rem; }
 }
 </style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>

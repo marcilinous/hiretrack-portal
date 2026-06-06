@@ -31,7 +31,7 @@ body { padding-top:50px !important; }
 /* ── Content ── */
 .content { max-width:900px; margin:1.5rem auto; padding:0 1.5rem; }
 .content.content-wide { max-width:1280px; }
-@media(max-width:767px){ .content.content-wide { padding:0 1rem; } }
+@media(max-width:767px){ .content.content-wide { padding:0 1rem; margin-top:0; } }
 
 /* ── Profile Score ── */
 .score-wrap { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
@@ -375,12 +375,14 @@ body { padding-top:50px !important; }
 .pj-empty p { font-size:0.85rem; color:#94a3b8; margin:0 0 1rem; }
 .pj-clear-btn { background:#2563eb; color:#fff; border:none; padding:0.55rem 1.3rem; border-radius:9px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:inherit; }
 @media(max-width:768px){
-  .pj-card, .pj-skel { padding:1rem 0.85rem; }
-}
-@media(max-width:480px){
-  .pj-foot { flex-direction:column; align-items:stretch; }
-  .pj-apply, .pj-share { width:100%; text-align:center; justify-content:center; }
-  .pj-status { margin-right:0; margin-bottom:0.4rem; text-align:center; }
+  /* Compact cards */
+  .pj-card, .pj-skel { padding:14px; margin-bottom:10px; }
+  .pj-title { margin-bottom:4px; }            /* title -> meta */
+  .pj-chips { margin-top:8px; }               /* meta -> chips */
+  /* Apply + Share side by side, lighter */
+  .pj-foot { flex-direction:row; align-items:center; gap:8px; margin-top:12px; padding-top:0; border-top:none; }
+  .pj-apply, .pj-share { flex:1; height:40px; font-size:14px; padding:0 0.5rem; display:flex; align-items:center; justify-content:center; gap:4px; }
+  .pj-status { margin-right:0; }
 }
 
 /* ── Responsive ── */
