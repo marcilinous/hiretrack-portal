@@ -50,6 +50,12 @@
 @media(max-width:768px) {
   .testimonials-grid { grid-template-columns:1fr; }
   .hero-trust { display:none; }
+  /* The mobile navbar is position:sticky (in-flow), so it provides its own
+     space — the inherited body padding-top:56px just leaves an empty gap
+     above it. Zero it out so the nav sits flush to the top. */
+  html, body { margin:0; }
+  body { padding-top:0 !important; }
+  .navbar { margin-top:0 !important; top:0 !important; }
 }
 </style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-76H5XQV27B"></script>
