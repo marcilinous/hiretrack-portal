@@ -328,8 +328,9 @@ body { padding-top:50px !important; }
   .pj-layout { grid-template-columns:1fr; padding:0; gap:0; }
   .pj-col-left, .pj-col-right { display:none; }
 }
-.pjf-bar { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 4px rgba(15,23,42,0.05); padding:0.85rem 1rem; margin-bottom:1rem; align-items:center; }
-.pjf-kw { flex:0 0 58%; min-width:200px; }
+/* Sticky/frozen filter bar — search row above the pill row, on every device. */
+.pjf-bar { position:sticky; top:50px; z-index:100; display:flex; flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:0.6rem; background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); padding:12px 16px; margin-bottom:1rem; }
+.pjf-kw { flex:none; width:100%; min-width:0; }
 .pjf-count-bar { width:100%; font-size:0.78rem; color:#64748b; font-weight:600; margin-top:0.55rem; min-height:1em; }
 /* job card */
 .pj-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 4px rgba(15,23,42,0.05); padding:1.1rem 1.25rem; margin-bottom:16px; transition:border-color 0.18s, box-shadow 0.18s; }
@@ -385,8 +386,13 @@ body { padding-top:50px !important; }
 /* ── Responsive ── */
 @media(max-width:768px) {
   .notif-popover { width:calc(100% - 2rem); left:1rem; right:1rem; border-radius:0 0 14px 14px; }
-  .pjf-kw, .pjf-chips { display:none !important; }
-  .pjf-mobile-btn { display:inline-flex; }
+  /* Keep the same search + pills (no collapse); pills scroll horizontally. */
+  .pjf-chips { flex-wrap:nowrap; overflow-x:auto; overflow-y:visible; -webkit-overflow-scrolling:touch; scrollbar-width:none; gap:8px; padding-bottom:2px; }
+  .pjf-chips::-webkit-scrollbar { display:none; }
+  .pjf-chip { flex:0 0 auto; }
+  .pjf-mobile-btn { display:none !important; }
+  /* Open dropdown escapes the horizontal scroller (overflow would clip it). */
+  .pjf-fdd.open .pjf-dd-panel { position:fixed; left:1rem; right:1rem; top:auto; bottom:1rem; min-width:0; max-height:55vh; overflow-y:auto; border-radius:14px; box-shadow:0 -4px 24px rgba(0,0,0,0.18); z-index:495; }
 }
 @media(max-width:680px) { .profile-grid{grid-template-columns:1fr;} .prep-categories{grid-template-columns:1fr 1fr;} }
 @media(max-width:640px) {
