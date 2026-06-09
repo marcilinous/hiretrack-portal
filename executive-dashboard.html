@@ -577,16 +577,19 @@
     });
     if (!d.ok) { errEl.textContent = d.error || 'Failed to post job.'; errEl.style.display='block'; btn.textContent='🚀 Post Job (7-Day Free Trial)'; btn.disabled=false; return; }
 
-    // Send email to employer with login details
-    await fetch('https://api.web3forms.com/submit', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        access_key:'30483d95-3da0-4a00-a262-944b2e82b3b2',
-        subject:`Your job "${jobTitle}" is live on HireTrack! 🎉`,
-        message:`Hi ${empContact},\n\nGreat news! Your job posting is now live on HireTrack!\n\nJob: ${jobTitle}\nLocation: ${jobLocation}\nFree Trial: 7 days\n\nYour login details:\nEmail: ${empEmail}\nPassword: ${empMobile} (your mobile number)\n\nLogin to manage your posting:\nhttps://hiretrack-portal.vercel.app/employer-auth.html\n\nBest regards,\nHireTrack Team`,
-        from_name:'HireTrack Team', email:empEmail, replyto:'anchansachinv99@gmail.com'
-      })
-    });
+    // Send email to employer with login details (best-effort — never let a mail
+    // provider error block the success UI; the job is already posted by here).
+    try {
+      await fetch('https://api.web3forms.com/submit', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          access_key:'30483d95-3da0-4a00-a262-944b2e82b3b2',
+          subject:`Your job "${job.title}" is live on HireTrack! 🎉`,
+          message:`Hi ${empContact},\n\nGreat news! Your job posting is now live on HireTrack!\n\nJob: ${job.title}\nLocation: ${job.location}\nFree Trial: 7 days\n\nYour login details:\nEmail: ${empEmail}\nPassword: ${empMobile} (your mobile number)\n\nLogin to manage your posting:\nhttps://www.hiretrack.co.in/employer-auth.html\n\nBest regards,\nHireTrack Team`,
+          from_name:'HireTrack Team', email:empEmail, replyto:'anchansachinv99@gmail.com'
+        })
+      });
+    } catch (e) { /* email is best-effort */ }
 
     successEl.innerHTML=`✅ Job posted successfully! <strong>${empCompany}</strong> has been registered with a 7-day free trial. Login credentials sent to ${empEmail}.`;
     successEl.style.display='block'; btn.textContent='Posted ✓';
