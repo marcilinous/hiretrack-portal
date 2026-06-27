@@ -258,9 +258,11 @@
     currentEmail = email;
 
     try {
-      // Check if employer exists — only non-sensitive columns (never the password).
-      const { data: employer } = await sb.from('employers').select('id,contact_name,company').eq('email', email).maybeSingle();
-      existingEmployer = employer;
+      // Check if employer exists (runs pre-login as anon). employers is RLS-locked
+      // to owner/relationship, so use the employer_lookup RPC which returns only
+      // id/contact_name/company for the greeting + login-vs-register branch.
+      const { data: rows } = await sb.rpc('employer_lookup', { p_email: email });
+      existingEmployer = (Array.isArray(rows) ? rows[0] : rows) || null;
 
       if (existingEmployer) {
         document.getElementById('welcome-name').textContent = `Welcome back, ${existingEmployer.contact_name.split(' ')[0]}!`;

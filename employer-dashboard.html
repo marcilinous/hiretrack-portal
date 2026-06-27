@@ -1213,11 +1213,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     // Fetch once per tab open; re-filter client-side
     if (!_talentCache) {
       grid.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Loading candidates…</div>';
-      const { data } = await sb.from('candidates')
-        .select('id,name,city,experience,skills,jobtitle,photo_url,profile_photo,mobile,boosted_until')
-        .not('name', 'is', null)
-        .order('boosted_until', { ascending: false, nullsFirst: false })
-        .limit(200);
+      // search_talent() is a SECURITY DEFINER RPC: returns public-safe candidate
+      // fields for browsing, but reveals `mobile` only when this employer has an
+      // active paid plan OR the candidate applied to one of our jobs (gated PII).
+      const { data } = await sb.rpc('search_talent');
       _talentCache = data || [];
     }
 

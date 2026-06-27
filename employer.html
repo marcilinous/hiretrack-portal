@@ -372,7 +372,7 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
 
   // Fetch employer (public-safe fields only — no email/password/mobile)
   const [{ data: employer, error: empErr }, { data: jobs }, { data: reviews }] = await Promise.all([
-    sb.from('employers').select('id,company,contact_name,city,company_logo,plan,plan_expires_at,created_at').eq('id', employerId).single(),
+    sb.from('employers_public').select('id,company,contact_name,city,company_logo,plan,plan_expires_at,created_at').eq('id', employerId).single(),
     sb.from('jobs').select('id,title,location,salary,experience,job_type,skills,posted_at,expires_at,views').eq('employer_id', employerId).eq('delisted', false).order('posted_at', { ascending: false }),
     sb.from('interview_reviews').select('rating,difficulty,got_offer,experience,job_title,created_at').eq('employer_id', employerId).order('created_at', { ascending: false }).limit(50),
   ]);

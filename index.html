@@ -393,7 +393,7 @@
 
     // Live candidate count
     try {
-      const { count } = await sb.from('candidates').select('id', { count: 'exact', head: true });
+      const { count } = await sb.from('candidates_public').select('id', { count: 'exact', head: true });
       if (count > 0) {
         const display = count >= 1000 ? (Math.floor(count / 100) * 100) + '+' : count + '+';
         document.getElementById('stat-cands').textContent = display;

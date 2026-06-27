@@ -251,12 +251,15 @@
 
   // ── DATA HELPERS ──
   async function getCandidates() {
-    const { data } = await sb.from('candidates').select('id,name,email,city,experience,skills,created_at,pro_expires_at').order('created_at',{ascending:false}).limit(200);
-    return data || [];
+    // Read via the service-role API — candidates is RLS-locked (owner/relationship)
+    // once v37 lands, so the browser anon key can't read PII (email) anymore.
+    const r = await adminApi('candidates');
+    return r.ok ? (r.candidates || []) : [];
   }
   async function getEmployers() {
-    const { data } = await sb.from('employers').select('id,company,contact_name,email,city,plan,created_at').order('created_at',{ascending:false}).limit(200);
-    return data || [];
+    // Read via the service-role API — employers is RLS-locked once v37 lands.
+    const r = await adminApi('employers');
+    return r.ok ? (r.employers || []) : [];
   }
   async function getJobs() {
     const { data } = await sb.from('jobs').select('id,title,company,location,job_type,posted_at,expires_at,delisted,employer_id').order('posted_at',{ascending:false}).limit(300);
