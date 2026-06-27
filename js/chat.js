@@ -2,16 +2,20 @@
   'use strict';
 
   // ── State ────────────────────────────────────────────────────────────────────
-  let _convs      = [];
+  let _convs = [];
   let _openConvId = null;
-  let _messages   = [];
-  let _msgIds     = new Set();
-  let _rtChannel  = null;
-  let _stylesInj  = false;
+  let _messages = [];
+  const _msgIds = new Set();
+  let _rtChannel = null;
+  let _stylesInj = false;
 
   // ── Utils ────────────────────────────────────────────────────────────────────
   function esc(s) {
-    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function isPro(candidate) {
@@ -22,14 +26,20 @@
     if (!ts) return '';
     const d = new Date(ts);
     const diffDays = Math.floor((Date.now() - d) / 86400000);
-    if (diffDays === 0) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    if (diffDays === 0)
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7)  return d.toLocaleDateString('en-IN', { weekday: 'short' });
+    if (diffDays < 7) return d.toLocaleDateString('en-IN', { weekday: 'short' });
     return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
   }
 
   function initials(name) {
-    return String(name || '?').split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+    return String(name || '?')
+      .split(' ')
+      .map((x) => x[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   }
 
   // ── Styles ───────────────────────────────────────────────────────────────────
@@ -89,7 +99,11 @@
   // ── DB helpers ───────────────────────────────────────────────────────────────
   async function findOrCreateConv(candidateId, employerId, jobId) {
     const sb = window.sb;
-    let q = sb.from('conversations').select('*').eq('candidate_id', candidateId).eq('employer_id', employerId);
+    let q = sb
+      .from('conversations')
+      .select('*')
+      .eq('candidate_id', candidateId)
+      .eq('employer_id', employerId);
     if (jobId) q = q.eq('job_id', jobId);
     const { data: ex } = await q.maybeSingle();
     if (ex) return ex;
@@ -102,47 +116,74 @@
   }
 
   async function loadMessages(convId) {
-    const { data, error } = await window.sb.from('messages')
-      .select('*').eq('conversation_id', convId).order('created_at', { ascending: true });
+    const { data, error } = await window.sb
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
     if (error) throw error;
     return data || [];
   }
 
   async function sendMsg(convId, senderId, senderType, content) {
     const sb = window.sb;
-    const { data: msg, error } = await sb.from('messages').insert({
-      conversation_id: convId,
-      sender_id:       senderId,
-      sender_type:     senderType,
-      content,
-      message_type:    'text',
-    }).select().single();
+    const { data: msg, error } = await sb
+      .from('messages')
+      .insert({
+        conversation_id: convId,
+        sender_id: senderId,
+        sender_type: senderType,
+        content,
+        message_type: 'text',
+      })
+      .select()
+      .single();
     if (error) throw error;
 
     const unreadField = senderType === 'candidate' ? 'employer_unread' : 'candidate_unread';
-    const { data: cv } = await sb.from('conversations').select(unreadField).eq('id', convId).single();
-    await sb.from('conversations').update({
-      last_message:    content.slice(0, 120),
-      last_message_at: msg.created_at,
-      [unreadField]:   ((cv?.[unreadField]) || 0) + 1,
-    }).eq('id', convId);
+    const { data: cv } = await sb
+      .from('conversations')
+      .select(unreadField)
+      .eq('id', convId)
+      .single();
+    await sb
+      .from('conversations')
+      .update({
+        last_message: content.slice(0, 120),
+        last_message_at: msg.created_at,
+        [unreadField]: (cv?.[unreadField] || 0) + 1,
+      })
+      .eq('id', convId);
 
     return msg;
   }
 
   async function markRead(convId, viewerType) {
     const field = viewerType === 'candidate' ? 'candidate_unread' : 'employer_unread';
-    await window.sb.from('conversations').update({ [field]: 0 }).eq('id', convId);
+    await window.sb
+      .from('conversations')
+      .update({ [field]: 0 })
+      .eq('id', convId);
   }
 
   // ── Realtime ─────────────────────────────────────────────────────────────────
   function subscribe(convId, onMsg) {
-    if (_rtChannel) { window.sb.removeChannel(_rtChannel); _rtChannel = null; }
-    _rtChannel = window.sb.channel('ch-' + convId)
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
-        filter: `conversation_id=eq.${convId}`,
-      }, payload => onMsg(payload.new))
+    if (_rtChannel) {
+      window.sb.removeChannel(_rtChannel);
+      _rtChannel = null;
+    }
+    _rtChannel = window.sb
+      .channel('ch-' + convId)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${convId}`,
+        },
+        (payload) => onMsg(payload.new)
+      )
       .subscribe();
   }
 
@@ -166,7 +207,7 @@
     const el = document.getElementById(listId);
     if (!el) return;
     el.innerHTML = _messages.length
-      ? _messages.map(m => msgBubble(m, myId)).join('')
+      ? _messages.map((m) => msgBubble(m, myId)).join('')
       : '<div style="text-align:center;color:#94a3b8;font-size:0.82rem;padding:1rem;">No messages yet. Say hello!</div>';
     el.scrollTop = el.scrollHeight;
   }
@@ -194,14 +235,18 @@
       inp.style.height = 'auto';
       inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
     });
-    inp.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); btn.click(); }
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        btn.click();
+      }
     });
     btn.addEventListener('click', async () => {
       const text = inp.value.trim();
       if (!text) return;
       btn.disabled = true;
-      inp.value = ''; inp.style.height = 'auto';
+      inp.value = '';
+      inp.style.height = 'auto';
       try {
         const msg = await sendMsg(convId, myId, senderType, text);
         pushMsg(msg);
@@ -214,7 +259,7 @@
       }
     });
 
-    subscribe(convId, msg => {
+    subscribe(convId, (msg) => {
       if (!pushMsg(msg)) return;
       renderMsgs(myId, msgsListId);
     });
@@ -242,8 +287,11 @@
 
     let convs;
     try {
-      const { data, error } = await window.sb.from('conversations')
-        .select('*').eq('candidate_id', candidate.id).order('last_message_at', { ascending: false });
+      const { data, error } = await window.sb
+        .from('conversations')
+        .select('*')
+        .eq('candidate_id', candidate.id)
+        .order('last_message_at', { ascending: false });
       if (error) throw error;
       convs = data || [];
     } catch {
@@ -254,12 +302,17 @@
     // Batch-fetch employer names
     const empMap = {};
     if (convs.length) {
-      const ids = [...new Set(convs.map(c => c.employer_id))];
-      const { data: emps } = await window.sb.from('employers').select('id,company,contact_name').in('id', ids);
-      (emps || []).forEach(e => { empMap[e.id] = e; });
+      const ids = [...new Set(convs.map((c) => c.employer_id))];
+      const { data: emps } = await window.sb
+        .from('employers')
+        .select('id,company,contact_name')
+        .in('id', ids);
+      (emps || []).forEach((e) => {
+        empMap[e.id] = e;
+      });
     }
 
-    _convs = convs.map(c => ({
+    _convs = convs.map((c) => ({
       ...c,
       _empName: empMap[c.employer_id]?.company || empMap[c.employer_id]?.contact_name || 'Employer',
     }));
@@ -269,9 +322,10 @@
   }
 
   function renderCandidateUI(root, candidate) {
-    const items = _convs.map(c => {
-      const unread = c.candidate_unread || 0;
-      return `<div class="ch-conv-item${_openConvId === c.id ? ' ch-active' : ''}" data-cid="${esc(c.id)}">
+    const items = _convs
+      .map((c) => {
+        const unread = c.candidate_unread || 0;
+        return `<div class="ch-conv-item${_openConvId === c.id ? ' ch-active' : ''}" data-cid="${esc(c.id)}">
         <div class="ch-c-av">${esc(initials(c._empName))}</div>
         <div class="ch-c-meta">
           <div class="ch-c-name">${esc(c._empName)}</div>
@@ -282,15 +336,18 @@
           ${unread > 0 ? `<div class="ch-unread">${unread}</div>` : ''}
         </div>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     root.innerHTML = `<div class="ch-wrap">
       <div class="ch-sidebar">
         <div class="ch-sidebar-hd">💬 Messages</div>
         <div class="ch-conv-list" id="ch-conv-list">
-          ${_convs.length
-            ? items
-            : '<div style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;">No conversations yet.<br>Employers will appear here when they message you.</div>'}
+          ${
+            _convs.length
+              ? items
+              : '<div style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;">No conversations yet.<br>Employers will appear here when they message you.</div>'
+          }
         </div>
       </div>
       <div class="ch-thread" id="ch-thread">
@@ -298,10 +355,10 @@
       </div>
     </div>`;
 
-    root.querySelector('#ch-conv-list').addEventListener('click', e => {
+    root.querySelector('#ch-conv-list').addEventListener('click', (e) => {
       const item = e.target.closest('.ch-conv-item');
       if (!item) return;
-      root.querySelectorAll('.ch-conv-item').forEach(el => el.classList.remove('ch-active'));
+      root.querySelectorAll('.ch-conv-item').forEach((el) => el.classList.remove('ch-active'));
       item.classList.add('ch-active');
       selectConv(item.dataset.cid, root, candidate);
     });
@@ -309,9 +366,10 @@
 
   async function selectConv(convId, root, candidate) {
     _openConvId = convId;
-    _messages = []; _msgIds.clear();
+    _messages = [];
+    _msgIds.clear();
 
-    const conv = _convs.find(c => c.id === convId);
+    const conv = _convs.find((c) => c.id === convId);
     const threadEl = root.querySelector('#ch-thread');
     if (!threadEl) return;
 
@@ -319,14 +377,22 @@
 
     try {
       const msgs = await loadMessages(convId);
-      msgs.forEach(m => pushMsg(m));
+      msgs.forEach((m) => pushMsg(m));
     } catch {
       threadEl.innerHTML = `<div class="ch-empty" style="color:#ef4444;">Failed to load messages.</div>`;
       return;
     }
 
     await markRead(convId, 'candidate').catch(() => {});
-    mountThread(threadEl, conv?._empName || 'Employer', null, candidate.id, 'candidate', convId, 'ch-msgs');
+    mountThread(
+      threadEl,
+      conv?._empName || 'Employer',
+      null,
+      candidate.id,
+      'candidate',
+      convId,
+      'ch-msgs'
+    );
     renderMsgs(candidate.id, 'ch-msgs');
   }
 
@@ -339,17 +405,23 @@
 
     let totalUnread = 0;
     try {
-      const { data } = await window.sb.from('conversations')
-        .select('candidate_unread').eq('candidate_id', candidate.id);
+      const { data } = await window.sb
+        .from('conversations')
+        .select('candidate_unread')
+        .eq('candidate_id', candidate.id);
       totalUnread = (data || []).reduce((s, c) => s + (c.candidate_unread || 0), 0);
-    } catch { /* non-critical */ }
+    } catch {
+      /* non-critical */
+    }
 
     const btn = document.createElement('button');
     btn.id = 'ch-bubble';
     btn.className = 'ch-bubble-btn';
     btn.setAttribute('aria-label', 'Messages');
     btn.innerHTML = `💬${totalUnread > 0 ? `<span class="ch-bubble-cnt">${totalUnread}</span>` : ''}`;
-    btn.addEventListener('click', () => { location.hash = 'chat'; });
+    btn.addEventListener('click', () => {
+      location.hash = 'chat';
+    });
     document.body.appendChild(btn);
   }
 
@@ -364,18 +436,25 @@
     let conv, candidateName;
     try {
       conv = await findOrCreateConv(candidateId, employer.id, jobId || null);
-      const { data: c } = await window.sb.from('candidates').select('name').eq('id', candidateId).single();
+      const { data: c } = await window.sb
+        .from('candidates')
+        .select('name')
+        .eq('id', candidateId)
+        .single();
       candidateName = c?.name || 'Candidate';
     } catch {
       container.innerHTML = `<div style="color:#ef4444;padding:1rem;font-size:0.85rem;">Could not open conversation.</div>`;
       return;
     }
 
-    _messages = []; _msgIds.clear();
+    _messages = [];
+    _msgIds.clear();
     try {
       const msgs = await loadMessages(conv.id);
-      msgs.forEach(m => pushMsg(m));
-    } catch { /* show empty */ }
+      msgs.forEach((m) => pushMsg(m));
+    } catch {
+      /* show empty */
+    }
 
     await markRead(conv.id, 'employer').catch(() => {});
 
@@ -384,7 +463,15 @@
     container.innerHTML = '';
     container.appendChild(wrap);
 
-    mountThread(wrap, candidateName, 'Direct message', employer.id, 'employer', conv.id, 'ch-emp-msgs');
+    mountThread(
+      wrap,
+      candidateName,
+      'Direct message',
+      employer.id,
+      'employer',
+      conv.id,
+      'ch-emp-msgs'
+    );
     renderMsgs(employer.id, 'ch-emp-msgs');
   }
 
@@ -392,7 +479,10 @@
   async function initEmployer(containerId, employer) {
     injectStyles();
     _openConvId = null;
-    if (_rtChannel) { window.sb.removeChannel(_rtChannel); _rtChannel = null; }
+    if (_rtChannel) {
+      window.sb.removeChannel(_rtChannel);
+      _rtChannel = null;
+    }
     const root = document.getElementById(containerId);
     if (!root) return;
 
@@ -400,8 +490,10 @@
 
     let convs;
     try {
-      const { data, error } = await window.sb.from('conversations')
-        .select('*').eq('employer_id', employer.id)
+      const { data, error } = await window.sb
+        .from('conversations')
+        .select('*')
+        .eq('employer_id', employer.id)
         .order('last_message_at', { ascending: false });
       if (error) throw error;
       convs = data || [];
@@ -412,20 +504,23 @@
 
     const candMap = {};
     if (convs.length) {
-      const ids = [...new Set(convs.map(c => c.candidate_id))];
+      const ids = [...new Set(convs.map((c) => c.candidate_id))];
       const { data: cands } = await window.sb.from('candidates').select('id,name').in('id', ids);
-      (cands || []).forEach(c => { candMap[c.id] = c; });
+      (cands || []).forEach((c) => {
+        candMap[c.id] = c;
+      });
     }
 
-    _convs = convs.map(c => ({ ...c, _candName: candMap[c.candidate_id]?.name || 'Candidate' }));
+    _convs = convs.map((c) => ({ ...c, _candName: candMap[c.candidate_id]?.name || 'Candidate' }));
     _renderEmployerInbox(root, employer);
     if (_convs.length > 0) _selectEmployerConv(_convs[0].id, root, employer);
   }
 
   function _renderEmployerInbox(root, employer) {
-    const items = _convs.map(c => {
-      const unread = c.employer_unread || 0;
-      return `<div class="ch-conv-item${_openConvId === c.id ? ' ch-active' : ''}" data-cid="${esc(c.id)}">
+    const items = _convs
+      .map((c) => {
+        const unread = c.employer_unread || 0;
+        return `<div class="ch-conv-item${_openConvId === c.id ? ' ch-active' : ''}" data-cid="${esc(c.id)}">
         <div class="ch-c-av">${esc(initials(c._candName))}</div>
         <div class="ch-c-meta">
           <div class="ch-c-name">${esc(c._candName)}</div>
@@ -436,15 +531,18 @@
           ${unread > 0 ? `<div class="ch-unread">${unread}</div>` : ''}
         </div>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     root.innerHTML = `<div class="ch-wrap" style="height:calc(100vh - 220px);">
       <div class="ch-sidebar">
         <div class="ch-sidebar-hd">💬 Messages</div>
         <div class="ch-conv-list" id="ch-ei-list">
-          ${_convs.length
-            ? items
-            : '<div style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;">No conversations yet.<br>Message candidates from the Pipeline or Find Talent tab.</div>'}
+          ${
+            _convs.length
+              ? items
+              : '<div style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.82rem;">No conversations yet.<br>Message candidates from the Pipeline or Find Talent tab.</div>'
+          }
         </div>
       </div>
       <div class="ch-thread" id="ch-ei-thread">
@@ -452,10 +550,10 @@
       </div>
     </div>`;
 
-    root.querySelector('#ch-ei-list').addEventListener('click', e => {
+    root.querySelector('#ch-ei-list').addEventListener('click', (e) => {
       const item = e.target.closest('.ch-conv-item');
       if (!item) return;
-      root.querySelectorAll('.ch-conv-item').forEach(el => el.classList.remove('ch-active'));
+      root.querySelectorAll('.ch-conv-item').forEach((el) => el.classList.remove('ch-active'));
       item.classList.add('ch-active');
       _selectEmployerConv(item.dataset.cid, root, employer);
     });
@@ -463,9 +561,10 @@
 
   async function _selectEmployerConv(convId, root, employer) {
     _openConvId = convId;
-    _messages = []; _msgIds.clear();
+    _messages = [];
+    _msgIds.clear();
 
-    const conv = _convs.find(c => c.id === convId);
+    const conv = _convs.find((c) => c.id === convId);
     const threadEl = root.querySelector('#ch-ei-thread');
     if (!threadEl) return;
 
@@ -473,24 +572,35 @@
 
     try {
       const msgs = await loadMessages(convId);
-      msgs.forEach(m => pushMsg(m));
+      msgs.forEach((m) => pushMsg(m));
     } catch {
       threadEl.innerHTML = `<div class="ch-empty" style="color:#ef4444;">Failed to load messages.</div>`;
       return;
     }
 
     await markRead(convId, 'employer').catch(() => {});
-    const conv2 = _convs.find(c => c.id === convId);
+    const conv2 = _convs.find((c) => c.id === convId);
     if (conv2) conv2.employer_unread = 0;
     root.querySelector(`.ch-conv-item[data-cid="${convId}"] .ch-unread`)?.remove();
 
-    mountThread(threadEl, conv?._candName || 'Candidate', null, employer.id, 'employer', convId, 'ch-ei-msgs');
+    mountThread(
+      threadEl,
+      conv?._candName || 'Candidate',
+      null,
+      employer.id,
+      'employer',
+      convId,
+      'ch-ei-msgs'
+    );
     renderMsgs(employer.id, 'ch-ei-msgs');
   }
 
   // ── Cleanup (call on modal close) ─────────────────────────────────────────────
   function cleanup() {
-    if (_rtChannel) { window.sb.removeChannel(_rtChannel); _rtChannel = null; }
+    if (_rtChannel) {
+      window.sb.removeChannel(_rtChannel);
+      _rtChannel = null;
+    }
   }
 
   // ── Public API ────────────────────────────────────────────────────────────────

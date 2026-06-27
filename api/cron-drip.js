@@ -4,8 +4,9 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
   const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const RESEND_KEY   = process.env.RESEND_API_KEY;
-  if (!SUPABASE_KEY || !RESEND_KEY) return res.status(500).json({ ok: false, error: 'Missing env vars' });
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  if (!SUPABASE_KEY || !RESEND_KEY)
+    return res.status(500).json({ ok: false, error: 'Missing env vars' });
 
   const sb = (path, params = '') =>
     fetch(`${SUPABASE_URL}/rest/v1/${path}${params}`, {
@@ -14,19 +15,20 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json',
       },
-    }).then(r => r.json());
+    }).then((r) => r.json());
 
   const now = Date.now();
 
   // Day 2 window: candidates created 48–72 h ago
-  const d2End   = new Date(now - 48 * 3600 * 1000).toISOString();
+  const d2End = new Date(now - 48 * 3600 * 1000).toISOString();
   const d2Start = new Date(now - 72 * 3600 * 1000).toISOString();
 
   // Day 7 window: candidates created 168–192 h ago
-  const d7End   = new Date(now - 168 * 3600 * 1000).toISOString();
+  const d7End = new Date(now - 168 * 3600 * 1000).toISOString();
   const d7Start = new Date(now - 192 * 3600 * 1000).toISOString();
 
-  let d2Sent = 0, d7Sent = 0;
+  let d2Sent = 0,
+    d7Sent = 0;
 
   // ── Day 2: profile completion nudge ───────────────────────────────────────
   const d2Candidates = await sb(
@@ -63,17 +65,17 @@ export default async function handler(req, res) {
 
   for (const c of Array.isArray(d7Candidates) ? d7Candidates : []) {
     if (!c.email) continue;
-    const candidateSkills = (Array.isArray(c.skills) ? c.skills : []).map(s => s.toLowerCase());
+    const candidateSkills = (Array.isArray(c.skills) ? c.skills : []).map((s) => s.toLowerCase());
     if (!candidateSkills.length) continue;
 
     // Score jobs by skill overlap
     const scored = jobsList
-      .map(j => {
-        const jSkills = (Array.isArray(j.skills) ? j.skills : []).map(s => s.toLowerCase());
-        const overlap = candidateSkills.filter(s => jSkills.includes(s)).length;
+      .map((j) => {
+        const jSkills = (Array.isArray(j.skills) ? j.skills : []).map((s) => s.toLowerCase());
+        const overlap = candidateSkills.filter((s) => jSkills.includes(s)).length;
         return { ...j, overlap };
       })
-      .filter(j => j.overlap > 0)
+      .filter((j) => j.overlap > 0)
       .sort((a, b) => b.overlap - a.overlap)
       .slice(0, 3);
 
@@ -101,8 +103,12 @@ async function sendEmail(key, { to, subject, html }) {
 // ── Day 2 email ────────────────────────────────────────────────────────────
 function buildNudgeHtml(firstName, city, skills, jobtitle) {
   const missing = [];
-  if (!jobtitle)        missing.push({ icon: '💼', text: 'Add your current job title' });
-  if (skills.length < 3) missing.push({ icon: '🎯', text: `Add ${3 - skills.length} more skill${3 - skills.length > 1 ? 's' : ''} (you have ${skills.length})` });
+  if (!jobtitle) missing.push({ icon: '💼', text: 'Add your current job title' });
+  if (skills.length < 3)
+    missing.push({
+      icon: '🎯',
+      text: `Add ${3 - skills.length} more skill${3 - skills.length > 1 ? 's' : ''} (you have ${skills.length})`,
+    });
   // Always suggest photo & resume as bonus items
   missing.push({ icon: '📸', text: 'Upload a profile photo' });
   missing.push({ icon: '📄', text: 'Upload your resume (AI auto-fills your profile)' });
@@ -120,11 +126,16 @@ function buildNudgeHtml(firstName, city, skills, jobtitle) {
 
     <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:1.1rem 1.25rem;margin-bottom:1.5rem;">
       <div style="font-size:0.72rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.85rem;">Finish your profile</div>
-      ${missing.slice(0, 4).map(m => `
+      ${missing
+        .slice(0, 4)
+        .map(
+          (m) => `
       <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.6rem;">
         <span style="font-size:1.1rem;">${m.icon}</span>
         <span style="font-size:0.85rem;color:#1e293b;">${m.text}</span>
-      </div>`).join('')}
+      </div>`
+        )
+        .join('')}
     </div>
 
     <div style="text-align:center;margin-bottom:1.5rem;">
@@ -134,10 +145,14 @@ function buildNudgeHtml(firstName, city, skills, jobtitle) {
       </a>
     </div>
 
-    ${skills.length ? `
+    ${
+      skills.length
+        ? `
     <p style="font-size:0.8rem;color:#64748b;margin:0;">
       You already have <strong>${skills.length} skill${skills.length > 1 ? 's' : ''}</strong> — nice start! Adding ${Math.max(0, 5 - skills.length)} more will unlock more job matches.
-    </p>` : ''}
+    </p>`
+        : ''
+    }
   </div>
   <div style="text-align:center;padding:1rem;font-size:0.75rem;color:#94a3b8;">
     © 2026 HireTrack · <a href="https://www.hiretrack.co.in" style="color:#3b82f6;">hiretrack.co.in</a>
@@ -159,7 +174,9 @@ function buildJobPicksHtml(firstName, jobs) {
       It's been a week since you joined HireTrack. We found <strong>${jobs.length} job${jobs.length > 1 ? 's' : ''}</strong> that match your skills — have a look!
     </p>
 
-    ${jobs.map(j => `
+    ${jobs
+      .map(
+        (j) => `
     <div style="border:1px solid #e2e8f0;border-radius:10px;padding:1rem 1.1rem;margin-bottom:0.85rem;">
       <div style="font-size:0.92rem;font-weight:700;color:#0f172a;margin-bottom:2px;">${j.title}</div>
       <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.5rem;">${j.company}${j.location ? ' · ' + j.location : ''}${j.salary ? ' · ' + j.salary : ''}</div>
@@ -168,7 +185,9 @@ function buildJobPicksHtml(firstName, jobs) {
         <a href="https://www.hiretrack.co.in/job.html?id=${j.id}"
            style="font-size:0.8rem;color:#2563eb;font-weight:600;text-decoration:none;">View & Apply →</a>
       </div>
-    </div>`).join('')}
+    </div>`
+      )
+      .join('')}
 
     <div style="text-align:center;margin-top:1.25rem;">
       <a href="https://www.hiretrack.co.in/jobs.html"

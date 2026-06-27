@@ -1,3 +1,5 @@
+import { rateLimit, clientIp } from './_rate-limit.js';
+
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 const MAX_ALERTS = 50;
 
@@ -13,19 +15,32 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false });
 
   let body = req.body;
-  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      body = {};
+    }
+  }
 
   const action = req.query.action || body?.action;
 
   try {
     switch (action) {
-      case 'send-otp':         return await sendOtp(req, res, body);
-      case 'job-alert':        return await sendJobAlert(req, res, body);
-      case 'job-posted':       return await sendJobPostedConfirmation(req, res, body);
-      case 'notify-employer':  return await notifyEmployer(req, res, body);
-      case 'notify-candidate': return await notifyCandidate(req, res, body);
-      case 'trigger-alerts':   return await triggerAlerts(req, res, body);
-      case 'welcome-candidate': return await welcomeCandidate(req, res, body);
+      case 'send-otp':
+        return await sendOtp(req, res, body);
+      case 'job-alert':
+        return await sendJobAlert(req, res, body);
+      case 'job-posted':
+        return await sendJobPostedConfirmation(req, res, body);
+      case 'notify-employer':
+        return await notifyEmployer(req, res, body);
+      case 'notify-candidate':
+        return await notifyCandidate(req, res, body);
+      case 'trigger-alerts':
+        return await triggerAlerts(req, res, body);
+      case 'welcome-candidate':
+        return await welcomeCandidate(req, res, body);
       default:
         return res.status(400).json({ ok: false, error: `Unknown action: ${action}` });
     }
@@ -39,9 +54,24 @@ export default async function handler(req, res) {
 async function sendOtp(req, res, body) {
   const { destination, otp } = body || {};
   const RESEND_KEY = process.env.RESEND_API_KEY;
-if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service not configured' });
+  if (!RESEND_KEY)
+    return res.status(500).json({ ok: false, error: 'Email service not configured' });
 
   if (!destination || !otp) return res.status(200).json({ ok: false, error: 'Missing fields' });
+
+  // 5 OTPs per hour per destination email, 10 per hour per IP
+  const ip = clientIp(req);
+  const byDest = rateLimit('otp-dest', destination.toLowerCase(), 5, 3600);
+  const byIp = rateLimit('otp-ip', ip, 10, 3600);
+  if (!byDest.ok)
+    return res
+      .status(429)
+      .json({ ok: false, error: `Too many OTP requests. Retry in ${byDest.retryAfter}s.` });
+  if (!byIp.ok)
+    return res.status(429).json({
+      ok: false,
+      error: `Too many requests from your network. Retry in ${byIp.retryAfter}s.`,
+    });
 
   const resendBody = {
     from: 'noreply@hiretrack.co.in',
@@ -54,25 +84,31 @@ if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service 
       </div>
       <p>Valid for 2 minutes. Do not share.</p>
       <p style="color:#94a3b8;font-size:0.75rem;">— HireTrack Team</p>
-    </div>`
+    </div>`,
   };
 
-  console.log('Sending OTP to:', destination, 'with key:', RESEND_KEY.slice(0, 10) + '...');
+  console.log('[email:send-otp] destination:', destination.replace(/(?<=.{3}).(?=.*@)/g, '*'));
 
   const resendResponse = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
-    body: JSON.stringify(resendBody)
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify(resendBody),
   });
 
   const resendText = await resendResponse.text();
-  console.log('Resend OTP status:', resendResponse.status, resendText);
+  console.log('[email:send-otp] resend status:', resendResponse.status);
 
   let resendData;
-  try { resendData = JSON.parse(resendText); } catch { resendData = { error: resendText }; }
+  try {
+    resendData = JSON.parse(resendText);
+  } catch {
+    resendData = { error: resendText };
+  }
 
   if (resendResponse.ok && resendData.id) return res.status(200).json({ ok: true });
-  return res.status(200).json({ ok: false, error: resendData.message || resendData.error || resendText });
+  return res
+    .status(200)
+    .json({ ok: false, error: resendData.message || resendData.error || resendText });
 }
 
 // ── Single job alert email ─────────────────────────────────────────────────
@@ -80,15 +116,21 @@ async function sendJobAlert(req, res, body) {
   const { to, candidateName, jobTitle, company, location, salary, jobType } = body || {};
   const RESEND_KEY = process.env.RESEND_API_KEY;
   if (!RESEND_KEY) return res.status(200).json({ ok: false, error: 'API key not configured' });
-  if (!to || !jobTitle || !company) return res.status(200).json({ ok: false, error: 'Missing required fields' });
+  if (!to || !jobTitle || !company)
+    return res.status(200).json({ ok: false, error: 'Missing required fields' });
 
   const firstName = (candidateName || 'there').split(' ')[0];
   const html = buildJobAlertHtml(firstName, jobTitle, company, location, salary, jobType);
 
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
-    body: JSON.stringify({ from: 'jobs@hiretrack.co.in', to: [to], subject: `🎯 New Job Alert: ${jobTitle} at ${company} — HireTrack`, html })
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify({
+      from: 'jobs@hiretrack.co.in',
+      to: [to],
+      subject: `🎯 New Job Alert: ${jobTitle} at ${company} — HireTrack`,
+      html,
+    }),
   });
   const data = await response.json();
   if (response.ok && data.id) return res.status(200).json({ ok: true });
@@ -105,7 +147,11 @@ async function sendJobPostedConfirmation(req, res, body) {
 
   const firstName = (contactName || 'there').split(' ')[0];
   const expiryDays = dayLimit || 15;
-  const expiryDate = new Date(Date.now() + expiryDays * 864e5).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  const expiryDate = new Date(Date.now() + expiryDays * 864e5).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   const html = `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
@@ -159,13 +205,13 @@ async function sendJobPostedConfirmation(req, res, body) {
 
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
     body: JSON.stringify({
       from: 'jobs@hiretrack.co.in',
       to: [to],
       subject: `✅ Your job "${jobTitle}" is now live on HireTrack`,
-      html
-    })
+      html,
+    }),
   });
   const data = await r.json();
   if (r.ok && data.id) return res.status(200).json({ ok: true });
@@ -177,16 +223,32 @@ async function notifyEmployer(req, res, body) {
   const RESEND_KEY = process.env.RESEND_API_KEY;
   if (!RESEND_KEY) return res.status(200).json({ ok: false, error: 'Not configured' });
 
-  const { employerEmail, company, jobTitle, candidateName, candidateCity, candidateExperience, candidateSkills } = body || {};
-  if (!employerEmail || !jobTitle || !candidateName) return res.status(400).json({ ok: false, error: 'Missing fields' });
+  const {
+    employerEmail,
+    company,
+    jobTitle,
+    candidateName,
+    candidateCity,
+    candidateExperience,
+    candidateSkills,
+  } = body || {};
+  if (!employerEmail || !jobTitle || !candidateName)
+    return res.status(400).json({ ok: false, error: 'Missing fields' });
 
   const skillsArr = Array.isArray(candidateSkills)
     ? candidateSkills
     : typeof candidateSkills === 'string'
-      ? candidateSkills.split(',').map(s => s.trim()).filter(Boolean)
+      ? candidateSkills
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
-  const skillTags = skillsArr.slice(0, 4)
-    .map(s => `<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;display:inline-block;margin:2px;">${s}</span>`)
+  const skillTags = skillsArr
+    .slice(0, 4)
+    .map(
+      (s) =>
+        `<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;display:inline-block;margin:2px;">${s}</span>`
+    )
     .join('');
 
   const html = `
@@ -223,8 +285,13 @@ async function notifyEmployer(req, res, body) {
 
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
-    body: JSON.stringify({ from: 'noreply@hiretrack.co.in', to: [employerEmail], subject: `📬 New application: ${candidateName} applied for ${jobTitle}`, html })
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify({
+      from: 'noreply@hiretrack.co.in',
+      to: [employerEmail],
+      subject: `📬 New application: ${candidateName} applied for ${jobTitle}`,
+      html,
+    }),
   });
   const data = await r.json();
   if (r.ok && data.id) return res.status(200).json({ ok: true });
@@ -234,29 +301,45 @@ async function notifyEmployer(req, res, body) {
 // ── Notify candidate of status change ─────────────────────────────────────
 const STATUS_CONFIG = {
   Shortlisted: {
-    emoji: '🌟', subject: (job, company) => `🌟 You've been shortlisted for ${job} at ${company}!`,
+    emoji: '🌟',
+    subject: (job, company) => `🌟 You've been shortlisted for ${job} at ${company}!`,
     headline: "Great news — you've been shortlisted!",
-    body: (job, company) => `Your application for <strong>${job}</strong> at <strong>${company}</strong> has been reviewed and you've been shortlisted. This is a great step forward!`,
-    color: '#d97706', bg: '#fffbeb', cta: 'Check your notifications →'
+    body: (job, company) =>
+      `Your application for <strong>${job}</strong> at <strong>${company}</strong> has been reviewed and you've been shortlisted. This is a great step forward!`,
+    color: '#d97706',
+    bg: '#fffbeb',
+    cta: 'Check your notifications →',
   },
   Interview: {
-    emoji: '📅', subject: (job, company) => `📅 Interview invite for ${job} at ${company}`,
+    emoji: '📅',
+    subject: (job, company) => `📅 Interview invite for ${job} at ${company}`,
     headline: "You've been selected for an interview!",
-    body: (job, company) => `Congratulations! The employer at <strong>${company}</strong> wants to interview you for <strong>${job}</strong>. Check your messages on HireTrack for details.`,
-    color: '#0891b2', bg: '#ecfeff', cta: 'View your messages →'
+    body: (job, company) =>
+      `Congratulations! The employer at <strong>${company}</strong> wants to interview you for <strong>${job}</strong>. Check your messages on HireTrack for details.`,
+    color: '#0891b2',
+    bg: '#ecfeff',
+    cta: 'View your messages →',
   },
   Hired: {
-    emoji: '🎉', subject: (job, company) => `🎉 Congratulations! You've been hired at ${company}!`,
+    emoji: '🎉',
+    subject: (job, company) => `🎉 Congratulations! You've been hired at ${company}!`,
     headline: "Congratulations — you've been hired!",
-    body: (job, company) => `Amazing news! You've been selected for <strong>${job}</strong> at <strong>${company}</strong>. Your hard work paid off — well done!`,
-    color: '#16a34a', bg: '#f0fdf4', cta: 'View your profile →'
+    body: (job, company) =>
+      `Amazing news! You've been selected for <strong>${job}</strong> at <strong>${company}</strong>. Your hard work paid off — well done!`,
+    color: '#16a34a',
+    bg: '#f0fdf4',
+    cta: 'View your profile →',
   },
   Rejected: {
-    emoji: '📩', subject: (job, company) => `Your application update for ${job} at ${company}`,
+    emoji: '📩',
+    subject: (job, company) => `Your application update for ${job} at ${company}`,
     headline: 'Application update',
-    body: (job, company) => `Thank you for applying for <strong>${job}</strong> at <strong>${company}</strong>. After careful review, they've decided to move forward with other candidates this time. Keep applying — the right opportunity is out there.`,
-    color: '#64748b', bg: '#f8fafc', cta: 'Browse more jobs →'
-  }
+    body: (job, company) =>
+      `Thank you for applying for <strong>${job}</strong> at <strong>${company}</strong>. After careful review, they've decided to move forward with other candidates this time. Keep applying — the right opportunity is out there.`,
+    color: '#64748b',
+    bg: '#f8fafc',
+    cta: 'Browse more jobs →',
+  },
 };
 
 async function notifyCandidate(req, res, body) {
@@ -264,15 +347,19 @@ async function notifyCandidate(req, res, body) {
   if (!RESEND_KEY) return res.status(200).json({ ok: false, error: 'Not configured' });
 
   const { candidateEmail, candidateName, jobTitle, company, status } = body || {};
-  if (!candidateEmail || !jobTitle || !company || !status) return res.status(400).json({ ok: false, error: 'Missing fields' });
+  if (!candidateEmail || !jobTitle || !company || !status)
+    return res.status(400).json({ ok: false, error: 'Missing fields' });
 
   const cfg = STATUS_CONFIG[status];
   if (!cfg) return res.status(200).json({ ok: false, error: 'No email for this status' });
 
   const firstName = (candidateName || 'there').split(' ')[0];
-  const ctaUrl = status === 'Interview' ? 'https://www.hiretrack.co.in/profile.html#chat'
-    : status === 'Rejected' ? 'https://www.hiretrack.co.in/jobs.html'
-    : 'https://www.hiretrack.co.in/profile.html';
+  const ctaUrl =
+    status === 'Interview'
+      ? 'https://www.hiretrack.co.in/profile.html#chat'
+      : status === 'Rejected'
+        ? 'https://www.hiretrack.co.in/jobs.html'
+        : 'https://www.hiretrack.co.in/profile.html';
 
   const html = `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">
@@ -307,8 +394,13 @@ async function notifyCandidate(req, res, body) {
 
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
-    body: JSON.stringify({ from: 'noreply@hiretrack.co.in', to: [candidateEmail], subject: cfg.subject(jobTitle, company), html })
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify({
+      from: 'noreply@hiretrack.co.in',
+      to: [candidateEmail],
+      subject: cfg.subject(jobTitle, company),
+      html,
+    }),
   });
   const data = await r.json();
   if (r.ok && data.id) return res.status(200).json({ ok: true });
@@ -319,14 +411,15 @@ async function notifyCandidate(req, res, body) {
 async function triggerAlerts(req, res, body) {
   const RESEND_KEY = process.env.RESEND_API_KEY;
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-  if (!RESEND_KEY || !SERVICE_KEY) return res.status(200).json({ ok: false, error: 'Not configured' });
+  if (!RESEND_KEY || !SERVICE_KEY)
+    return res.status(200).json({ ok: false, error: 'Not configured' });
 
   const { title, company, location, salary, jobType, skills, jobId } = body || {};
   if (!title || !company) return res.status(400).json({ ok: false, error: 'Missing job fields' });
 
   const r = await fetch(
     `${SUPABASE_URL}/rest/v1/candidates?job_alerts_enabled=eq.true&select=id,name,email,city,skills`,
-    { headers: { 'apikey': SERVICE_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` } }
+    { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
   );
   if (!r.ok) return res.status(500).json({ ok: false, error: 'Failed to fetch candidates' });
   const candidates = await r.json();
@@ -336,19 +429,28 @@ async function triggerAlerts(req, res, body) {
   // skills may arrive as an array or comma-string
   const jobSkillsArr = Array.isArray(skills)
     ? skills
-    : (typeof skills === 'string' ? skills.split(/[\s,]+/) : []);
-  const jobSkills = jobSkillsArr.map(s => s.toLowerCase()).filter(s => s.length > 1);
+    : typeof skills === 'string'
+      ? skills.split(/[\s,]+/)
+      : [];
+  const jobSkills = jobSkillsArr.map((s) => s.toLowerCase()).filter((s) => s.length > 1);
 
-  const matched = candidates.filter(c => {
-    if (!c.email) return false;
-    if (isRemote) return true;
-    const cityMatch = c.city && jobLoc.includes(c.city.toLowerCase());
-    const candSkills = Array.isArray(c.skills)
-      ? c.skills.map(s => s.toLowerCase())
-      : (c.skills || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const skillMatch = jobSkills.length > 0 && candSkills.some(s => jobSkills.some(js => s.includes(js) || js.includes(s)));
-    return cityMatch || skillMatch;
-  }).slice(0, MAX_ALERTS);
+  const matched = candidates
+    .filter((c) => {
+      if (!c.email) return false;
+      if (isRemote) return true;
+      const cityMatch = c.city && jobLoc.includes(c.city.toLowerCase());
+      const candSkills = Array.isArray(c.skills)
+        ? c.skills.map((s) => s.toLowerCase())
+        : (c.skills || '')
+            .split(',')
+            .map((s) => s.trim().toLowerCase())
+            .filter(Boolean);
+      const skillMatch =
+        jobSkills.length > 0 &&
+        candSkills.some((s) => jobSkills.some((js) => s.includes(js) || js.includes(s)));
+      return cityMatch || skillMatch;
+    })
+    .slice(0, MAX_ALERTS);
 
   const jobUrl = jobId
     ? `https://www.hiretrack.co.in/job.html?id=${jobId}`
@@ -360,16 +462,26 @@ async function triggerAlerts(req, res, body) {
       const firstName = (c.name || 'there').split(' ')[0];
       const resp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_KEY}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${RESEND_KEY}` },
         body: JSON.stringify({
           from: 'jobs@hiretrack.co.in',
           to: [c.email],
           subject: `🎯 New Job Alert: ${title} at ${company} — HireTrack`,
-          html: buildJobAlertHtml(firstName, title, company, location || '', salary || 'Negotiable', jobType || '', jobUrl)
-        })
+          html: buildJobAlertHtml(
+            firstName,
+            title,
+            company,
+            location || '',
+            salary || 'Negotiable',
+            jobType || '',
+            jobUrl
+          ),
+        }),
       });
       if (resp.ok) sent++;
-    } catch { /* skip failed sends */ }
+    } catch {
+      /* skip failed sends */
+    }
   }
 
   console.log(`Job alert: "${title}" at ${company} — ${matched.length} matched, ${sent} sent`);
@@ -438,10 +550,26 @@ async function welcomeCandidate(req, res, body) {
 
 function buildWelcomeHtml(firstName, city, skills) {
   const steps = [
-    { icon: '📸', title: 'Add a profile photo',    desc: 'Profiles with photos get 3× more views from employers.' },
-    { icon: '📄', title: 'Upload your resume',      desc: 'Our AI will auto-fill your profile from your CV.' },
-    { icon: '🎯', title: 'Add your top skills',     desc: 'Skills help employers find you and improve your match score.' },
-    { icon: '✍️', title: 'Write a short bio',        desc: 'Tell employers who you are in 2–3 sentences.' },
+    {
+      icon: '📸',
+      title: 'Add a profile photo',
+      desc: 'Profiles with photos get 3× more views from employers.',
+    },
+    {
+      icon: '📄',
+      title: 'Upload your resume',
+      desc: 'Our AI will auto-fill your profile from your CV.',
+    },
+    {
+      icon: '🎯',
+      title: 'Add your top skills',
+      desc: 'Skills help employers find you and improve your match score.',
+    },
+    {
+      icon: '✍️',
+      title: 'Write a short bio',
+      desc: 'Tell employers who you are in 2–3 sentences.',
+    },
   ];
 
   return `
@@ -459,14 +587,18 @@ function buildWelcomeHtml(firstName, city, skills) {
 
     <div style="background:#f8fafc;border-radius:12px;padding:1.25rem;margin-bottom:1.75rem;">
       <div style="font-size:0.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1rem;">Complete these 4 steps</div>
-      ${steps.map((s, i) => `
+      ${steps
+        .map(
+          (s, i) => `
       <div style="display:flex;gap:0.9rem;align-items:flex-start;margin-bottom:${i < steps.length - 1 ? '1rem' : '0'};">
         <div style="width:36px;height:36px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">${s.icon}</div>
         <div>
           <div style="font-size:0.88rem;font-weight:700;color:#0f172a;margin-bottom:2px;">${s.title}</div>
           <div style="font-size:0.8rem;color:#64748b;">${s.desc}</div>
         </div>
-      </div>`).join('')}
+      </div>`
+        )
+        .join('')}
     </div>
 
     <div style="text-align:center;margin-bottom:1.75rem;">
@@ -476,11 +608,21 @@ function buildWelcomeHtml(firstName, city, skills) {
       </a>
     </div>
 
-    ${skills.length ? `
+    ${
+      skills.length
+        ? `
     <div style="background:#f0fdf4;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
       <div style="font-size:0.78rem;font-weight:700;color:#15803d;margin-bottom:0.5rem;">✅ Skills already on your profile</div>
-      <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">${skills.slice(0, 8).map(s => `<span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;">${s}</span>`).join('')}</div>
-    </div>` : ''}
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">${skills
+        .slice(0, 8)
+        .map(
+          (s) =>
+            `<span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;">${s}</span>`
+        )
+        .join('')}</div>
+    </div>`
+        : ''
+    }
 
     <div style="border-top:1px solid #f1f5f9;padding-top:1.25rem;">
       <p style="font-size:0.82rem;color:#475569;margin:0 0 0.5rem;font-weight:600;">While your profile loads up:</p>

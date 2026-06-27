@@ -51,17 +51,19 @@
     el.setAttribute('aria-modal', 'true');
     el.innerHTML =
       '<div class="am-box" id="am-box">' +
-        '<button class="am-close" id="am-close" aria-label="Close">&#10005;</button>' +
-        '<div class="am-title"   id="am-title"></div>' +
-        '<div class="am-company" id="am-company"></div>' +
-        '<div class="am-meta"    id="am-meta"></div>' +
-        '<div class="am-skills"  id="am-skills"></div>' +
-        '<div class="am-desc"    id="am-desc"></div>' +
-        '<div class="am-actions" id="am-actions"></div>' +
+      '<button class="am-close" id="am-close" aria-label="Close">&#10005;</button>' +
+      '<div class="am-title"   id="am-title"></div>' +
+      '<div class="am-company" id="am-company"></div>' +
+      '<div class="am-meta"    id="am-meta"></div>' +
+      '<div class="am-skills"  id="am-skills"></div>' +
+      '<div class="am-desc"    id="am-desc"></div>' +
+      '<div class="am-actions" id="am-actions"></div>' +
       '</div>';
     document.body.appendChild(el);
 
-    el.addEventListener('click', function (e) { if (e.target === el) close(); });
+    el.addEventListener('click', function (e) {
+      if (e.target === el) close();
+    });
     el.querySelector('#am-close').addEventListener('click', close);
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && el.classList.contains('am-open')) close();
@@ -85,7 +87,12 @@
   function open(job, opts) {
     if (!job) return;
     opts = opts || {};
-    const { isLoggedIn = false, applicationStatus = null, onApply = null, onWhatsApp = null } = opts;
+    const {
+      isLoggedIn = false,
+      applicationStatus = null,
+      onApply = null,
+      onWhatsApp = null,
+    } = opts;
 
     injectStyles();
     const backdrop = getOrCreateBackdrop();
@@ -95,37 +102,53 @@
     document.getElementById('am-company').textContent = '🏢 ' + (job.company || '');
 
     const metaParts = [
-      job.location              ? '<span class="am-meta-item">📍 ' + escapeHtml(job.location) + '</span>' : '',
-      job.salary                ? '<span class="am-meta-item">💰 ' + escapeHtml(job.salary) + '</span>' : '',
-      job.experience            ? '<span class="am-meta-item">🎯 ' + escapeHtml(job.experience) + '</span>' : '',
-      (job.job_type || job.type) ? '<span class="am-meta-item">' + escapeHtml(job.job_type || job.type) + '</span>' : '',
+      job.location ? '<span class="am-meta-item">📍 ' + escapeHtml(job.location) + '</span>' : '',
+      job.salary ? '<span class="am-meta-item">💰 ' + escapeHtml(job.salary) + '</span>' : '',
+      job.experience
+        ? '<span class="am-meta-item">🎯 ' + escapeHtml(job.experience) + '</span>'
+        : '',
+      job.job_type || job.type
+        ? '<span class="am-meta-item">' + escapeHtml(job.job_type || job.type) + '</span>'
+        : '',
     ];
     document.getElementById('am-meta').innerHTML = metaParts.join('');
 
-    const skills = Array.isArray(job.tags)   ? job.tags
-                 : Array.isArray(job.skills) ? job.skills
-                 : typeof job.skills === 'string' ? job.skills.split(',').map(function (s) { return s.trim(); }).filter(Boolean)
-                 : [];
-    document.getElementById('am-skills').innerHTML =
-      skills.slice(0, 8).map(function (s) { return '<span class="tag">' + escapeHtml(s) + '</span>'; }).join('');
+    const skills = Array.isArray(job.tags)
+      ? job.tags
+      : Array.isArray(job.skills)
+        ? job.skills
+        : typeof job.skills === 'string'
+          ? job.skills
+              .split(',')
+              .map(function (s) {
+                return s.trim();
+              })
+              .filter(Boolean)
+          : [];
+    document.getElementById('am-skills').innerHTML = skills
+      .slice(0, 8)
+      .map(function (s) {
+        return '<span class="tag">' + escapeHtml(s) + '</span>';
+      })
+      .join('');
 
     document.getElementById('am-desc').textContent =
       job.description || 'Contact employer for full job description.';
 
     // ── Actions (built without inline handlers) ──
-    var actEl = document.getElementById('am-actions');
+    const actEl = document.getElementById('am-actions');
     actEl.innerHTML = '';
 
     if (isLoggedIn) {
       if (applicationStatus) {
-        var appliedBtn = document.createElement('button');
+        const appliedBtn = document.createElement('button');
         appliedBtn.className = 'btn-apply applied';
         appliedBtn.style.cssText = 'flex:1;padding:0.8rem;';
         appliedBtn.disabled = true;
         appliedBtn.textContent = '✓ ' + applicationStatus;
         actEl.appendChild(appliedBtn);
       } else if (onApply) {
-        var applyBtn = document.createElement('button');
+        const applyBtn = document.createElement('button');
         applyBtn.className = 'btn-apply';
         applyBtn.style.cssText = 'flex:1;padding:0.8rem;';
         applyBtn.textContent = 'Apply Now';
@@ -144,7 +167,7 @@
         actEl.appendChild(applyBtn);
       }
     } else {
-      var signinBtn = document.createElement('button');
+      const signinBtn = document.createElement('button');
       signinBtn.className = 'btn-apply';
       signinBtn.style.cssText = 'flex:1;padding:0.8rem;';
       signinBtn.textContent = 'Sign in to apply';
@@ -156,7 +179,7 @@
     }
 
     if (job.phone && onWhatsApp) {
-      var waBtn = document.createElement('button');
+      const waBtn = document.createElement('button');
       waBtn.className = 'btn-whatsapp';
       waBtn.textContent = '💬 WhatsApp';
       waBtn.addEventListener('click', onWhatsApp);
@@ -165,7 +188,11 @@
 
     // Fire-and-forget view count increment
     if (job.employer_id && window.sb) {
-      window.sb.from('jobs').update({ views: (job.views || 0) + 1 }).eq('id', job.id).then(function () {});
+      window.sb
+        .from('jobs')
+        .update({ views: (job.views || 0) + 1 })
+        .eq('id', job.id)
+        .then(function () {});
     }
 
     backdrop.classList.add('am-open');
@@ -173,10 +200,10 @@
   }
 
   function close() {
-    var el = document.getElementById(BACKDROP_ID);
+    const el = document.getElementById(BACKDROP_ID);
     if (el) el.classList.remove('am-open');
     document.body.style.overflow = '';
   }
 
-  window.ApplyModal = { open: open, close: close };
+  window.ApplyModal = { open, close };
 })();
