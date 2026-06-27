@@ -18,7 +18,9 @@ test.describe('Public job browse (jobs.html)', () => {
     await expect(jobCard).toBeVisible({ timeout: 15_000 });
   });
 
-  test('keyword filter narrows results', async ({ page }) => {
+  test('keyword filter narrows results', async ({ page, isMobile }) => {
+    // #f-kw is the desktop filter bar — hidden on mobile viewports
+    test.skip(isMobile, 'Desktop-only filter bar, hidden on mobile');
     await page.goto('/jobs.html');
 
     // Wait for initial load
