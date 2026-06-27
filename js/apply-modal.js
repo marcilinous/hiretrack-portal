@@ -136,19 +136,19 @@
       job.description || 'Contact employer for full job description.';
 
     // ── Actions (built without inline handlers) ──
-    var actEl = document.getElementById('am-actions');
+    const actEl = document.getElementById('am-actions');
     actEl.innerHTML = '';
 
     if (isLoggedIn) {
       if (applicationStatus) {
-        var appliedBtn = document.createElement('button');
+        const appliedBtn = document.createElement('button');
         appliedBtn.className = 'btn-apply applied';
         appliedBtn.style.cssText = 'flex:1;padding:0.8rem;';
         appliedBtn.disabled = true;
         appliedBtn.textContent = '✓ ' + applicationStatus;
         actEl.appendChild(appliedBtn);
       } else if (onApply) {
-        var applyBtn = document.createElement('button');
+        const applyBtn = document.createElement('button');
         applyBtn.className = 'btn-apply';
         applyBtn.style.cssText = 'flex:1;padding:0.8rem;';
         applyBtn.textContent = 'Apply Now';
@@ -167,7 +167,7 @@
         actEl.appendChild(applyBtn);
       }
     } else {
-      var signinBtn = document.createElement('button');
+      const signinBtn = document.createElement('button');
       signinBtn.className = 'btn-apply';
       signinBtn.style.cssText = 'flex:1;padding:0.8rem;';
       signinBtn.textContent = 'Sign in to apply';
@@ -179,7 +179,7 @@
     }
 
     if (job.phone && onWhatsApp) {
-      var waBtn = document.createElement('button');
+      const waBtn = document.createElement('button');
       waBtn.className = 'btn-whatsapp';
       waBtn.textContent = '💬 WhatsApp';
       waBtn.addEventListener('click', onWhatsApp);
@@ -200,10 +200,10 @@
   }
 
   function close() {
-    var el = document.getElementById(BACKDROP_ID);
+    const el = document.getElementById(BACKDROP_ID);
     if (el) el.classList.remove('am-open');
     document.body.style.overflow = '';
   }
 
-  window.ApplyModal = { open: open, close: close };
+  window.ApplyModal = { open, close };
 })();

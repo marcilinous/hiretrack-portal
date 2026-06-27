@@ -65,7 +65,7 @@
       );
     }
     function result(data, error) {
-      return { data: data, error: error || null };
+      return { data, error: error || null };
     }
 
     // Manual refresh-token grant — the real client's auto-refresh may be deadlocked,
@@ -125,7 +125,7 @@
           prefer.push(st.want ? 'return=representation' : 'return=minimal');
         }
         if (prefer.length) headers['Prefer'] = prefer.join(',');
-        const fetchOpts = { method: st.method, headers: headers };
+        const fetchOpts = { method: st.method, headers };
         if (st.body != null) fetchOpts.body = JSON.stringify(st.body);
 
         let resp;

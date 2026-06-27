@@ -5,7 +5,7 @@
   let _convs = [];
   let _openConvId = null;
   let _messages = [];
-  let _msgIds = new Set();
+  const _msgIds = new Set();
   let _rtChannel = null;
   let _stylesInj = false;
 
