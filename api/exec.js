@@ -10,6 +10,7 @@
 // Optional env: EXEC_SIGNUP_CODE (defaults to the legacy 'HIRETRACK2025').
 
 import crypto from 'node:crypto';
+import { rateLimit, clientIp } from './_rate-limit.js';
 
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 const TOKEN_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -119,6 +120,11 @@ async function doLogin(req, res, body) {
   const password = body?.password || '';
   if (!email || !password) return res.status(400).json({ ok: false, error: 'Email and password required.' });
 
+  // 10 login attempts per 15 minutes per IP to prevent brute-force
+  const ip = clientIp(req);
+  const limit = rateLimit('exec-login', ip, 10, 900);
+  if (!limit.ok) return res.status(429).json({ ok: false, error: `Too many login attempts. Retry in ${limit.retryAfter}s.` });
+
   // Case-insensitive email match (ilike with no wildcards = exact, case-insensitive)
   const { data } = await sbGet(`executives?select=*&email=ilike.${encodeURIComponent(email)}&limit=1`);
   const exec = Array.isArray(data) ? data[0] : null;
@@ -159,7 +165,8 @@ async function doRegister(req, res, body) {
     return res.status(409).json({ ok: false, error: 'Email already registered.' });
   }
 
-  const row = { name, email, mobile, password: hashPassword(password), secret_code: secret, is_active: true };
+  // secret_code verified above against env var — store only a hash so plaintext never rests in DB
+  const row = { name, email, mobile, password: hashPassword(password), secret_code: hashPassword(secret), is_active: true };
   const r = await fetch(`${SUPABASE_URL}/rest/v1/executives`, {
     method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(row),
   });

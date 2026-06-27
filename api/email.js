@@ -1,3 +1,5 @@
+import { rateLimit, clientIp } from './_rate-limit.js';
+
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 const MAX_ALERTS = 50;
 
@@ -39,9 +41,16 @@ export default async function handler(req, res) {
 async function sendOtp(req, res, body) {
   const { destination, otp } = body || {};
   const RESEND_KEY = process.env.RESEND_API_KEY;
-if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service not configured' });
+  if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service not configured' });
 
   if (!destination || !otp) return res.status(200).json({ ok: false, error: 'Missing fields' });
+
+  // 5 OTPs per hour per destination email, 10 per hour per IP
+  const ip = clientIp(req);
+  const byDest = rateLimit('otp-dest', destination.toLowerCase(), 5, 3600);
+  const byIp   = rateLimit('otp-ip', ip, 10, 3600);
+  if (!byDest.ok) return res.status(429).json({ ok: false, error: `Too many OTP requests. Retry in ${byDest.retryAfter}s.` });
+  if (!byIp.ok)   return res.status(429).json({ ok: false, error: `Too many requests from your network. Retry in ${byIp.retryAfter}s.` });
 
   const resendBody = {
     from: 'noreply@hiretrack.co.in',
@@ -57,7 +66,7 @@ if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service 
     </div>`
   };
 
-  console.log('Sending OTP to:', destination, 'with key:', RESEND_KEY.slice(0, 10) + '...');
+  console.log('[email:send-otp] destination:', destination.replace(/(?<=.{3}).(?=.*@)/g, '*'));
 
   const resendResponse = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -66,7 +75,7 @@ if (!RESEND_KEY) return res.status(500).json({ ok: false, error: 'Email service 
   });
 
   const resendText = await resendResponse.text();
-  console.log('Resend OTP status:', resendResponse.status, resendText);
+  console.log('[email:send-otp] resend status:', resendResponse.status);
 
   let resendData;
   try { resendData = JSON.parse(resendText); } catch { resendData = { error: resendText }; }

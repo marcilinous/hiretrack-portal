@@ -1,3 +1,5 @@
+import { rateLimit, clientIp } from './_rate-limit.js';
+
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 
 const CORS = (res) => {
@@ -64,6 +66,11 @@ export default async function handler(req, res) {
 }
 
 async function doLogin(req, res, body) {
+  // 5 attempts per 15 minutes per IP to prevent brute-force on the admin password
+  const ip = clientIp(req);
+  const limit = rateLimit('admin-login', ip, 5, 900);
+  if (!limit.ok) return res.status(429).json({ ok: false, error: `Too many login attempts. Retry in ${limit.retryAfter}s.` });
+
   const { password } = body || {};
   if (!password || password !== process.env.ADMIN_SECRET) {
     return res.status(401).json({ ok: false, error: 'Invalid password' });

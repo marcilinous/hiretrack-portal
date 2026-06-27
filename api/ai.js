@@ -1,4 +1,5 @@
 import https from 'https';
+import { rateLimit, clientIp } from './_rate-limit.js';
 
 // Per-instance daily rate limiter for interview prep (3 sessions/day per candidate)
 const _prepMap = new Map();
@@ -25,6 +26,21 @@ export default async function handler(req, res) {
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (!GROQ_API_KEY) return res.status(200).json({ answer: 'API key not configured.' });
+
+    // Global IP-based rate limit: 30 AI calls/hour per client
+    const ip = clientIp(req);
+    const ipLimit = rateLimit('ai-ip', ip, 30, 3600);
+    if (!ipLimit.ok) {
+      return res.status(429).json({ answer: `AI rate limit reached. Retry in ${ipLimit.retryAfter}s.`, error: 'rate_limited' });
+    }
+
+    // Resume parsing: 10/hour per IP (more expensive calls)
+    if (action === 'parse-resume') {
+      const parseLimit = rateLimit('ai-parse', ip, 10, 3600);
+      if (!parseLimit.ok) {
+        return res.status(429).json({ ok: false, error: `Resume parsing limit reached. Retry in ${parseLimit.retryAfter}s.` });
+      }
+    }
 
     // ── Resume parsing ──
     if (action === 'parse-resume') {
