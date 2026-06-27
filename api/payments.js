@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 }
 
 // ── Candidate Pro order (₹49) ──────────────────────────────────────────────
-async function candidateOrder(req, res, body) {
+async function candidateOrder(req, res, _body) {
   const KEY_ID = process.env.RAZORPAY_KEY_ID;
   const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
   if (!KEY_ID || !KEY_SECRET) return res.status(500).json({ ok: false, error: 'Payment not configured' });
@@ -170,7 +170,7 @@ async function employerVerify(req, res, body) {
 }
 
 // ── Add-on job post order (₹199 + GST) ─────────────────────────────────────
-async function addonOrder(req, res, body) {
+async function addonOrder(req, res, _body) {
   const KEY_ID = process.env.RAZORPAY_KEY_ID;
   const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
   if (!KEY_ID || !KEY_SECRET) return res.status(500).json({ ok: false, error: 'Payment not configured' });
@@ -324,7 +324,7 @@ async function paylinkVerify(req, res, body) {
 }
 
 // ── Profile boost order (₹99) ─────────────────────────────────────────────
-async function boostOrder(req, res, body) {
+async function boostOrder(req, res, _body) {
   const KEY_ID = process.env.RAZORPAY_KEY_ID;
   const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
   if (!KEY_ID || !KEY_SECRET) return res.status(500).json({ ok: false, error: 'Payment not configured' });

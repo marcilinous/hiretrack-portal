@@ -79,18 +79,6 @@ async function doLogin(req, res, body) {
 }
 
 async function getStats(req, res) {
-  const [candidates, employers, jobs, apps, paidEmployers] = await Promise.all([
-    sbQuery('candidates?select=count', { headers: { ...sbHeaders(), Prefer: 'count=exact', Range: '0-0' } }),
-    sbQuery('employers?select=count', { headers: { ...sbHeaders(), Prefer: 'count=exact', Range: '0-0' } }),
-    sbQuery('jobs?select=count&delisted=eq.false', { headers: { ...sbHeaders(), Prefer: 'count=exact', Range: '0-0' } }),
-    sbQuery('applications?select=count', { headers: { ...sbHeaders(), Prefer: 'count=exact', Range: '0-0' } }),
-    sbQuery('employers?select=count&plan=neq.free&plan=not.is.null', { headers: { ...sbHeaders(), Prefer: 'count=exact', Range: '0-0' } }),
-  ]);
-
-  // PostgREST returns count in Content-Range header; fall back to row count
-  const count = (d) => Array.isArray(d) ? d.length : 0;
-
-  // Fetch actual counts via a simpler approach
   const [cands, emps, js, aps, paid] = await Promise.all([
     sbQuery('candidates?select=id'),
     sbQuery('employers?select=id'),
@@ -121,7 +109,7 @@ async function getStats(req, res) {
 }
 
 async function getJobs(req, res, body) {
-  const { page = 0, search = '', filter = 'all' } = body || {};
+  const { page = 0, filter = 'all' } = body || {};
   const limit = 30;
   const offset = page * limit;
 
@@ -133,7 +121,7 @@ async function getJobs(req, res, body) {
 
   // Attach application counts
   const ids = Array.isArray(jobs) ? jobs.map(j => j.id) : [];
-  let appCounts = {};
+  const appCounts = {};
   if (ids.length) {
     const apps = await sbQuery(`applications?select=job_id&job_id=in.(${ids.join(',')})`);
     if (Array.isArray(apps)) {
@@ -160,7 +148,7 @@ async function getEmployers(req, res, body) {
 
   // Job counts per employer
   const ids = Array.isArray(employers) ? employers.map(e => e.id) : [];
-  let jobCounts = {};
+  const jobCounts = {};
   if (ids.length) {
     const jobs = await sbQuery(`jobs?select=employer_id&employer_id=in.(${ids.join(',')})&delisted=eq.false`);
     if (Array.isArray(jobs)) {

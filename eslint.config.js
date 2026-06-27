@@ -22,6 +22,12 @@ export default [
         FormData: 'readonly',
         URL: 'readonly',
         URLSearchParams: 'readonly',
+        // Browser APIs used in js/ modules
+        IntersectionObserver: 'readonly',
+        atob: 'readonly',
+        location: 'readonly',
+        // Global helpers defined in app.js and used across modules
+        showToast: 'readonly',
         // Node globals (used in api/ serverless functions)
         process: 'readonly',
         Buffer: 'readonly',
@@ -30,9 +36,11 @@ export default [
     rules: {
       // Errors
       'no-undef': 'error',
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // caughtErrors:'none' so catch(e) clauses are never flagged for unused e
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       'no-console': 'off',               // console.log/error is fine in serverless
-      'eqeqeq': ['error', 'always'],
+      // null:'ignore' allows the idiomatic `x == null` (checks null AND undefined)
+      'eqeqeq': ['error', 'always', { null: 'ignore' }],
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-new-func': 'error',

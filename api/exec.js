@@ -76,7 +76,7 @@ export function verifyExecToken(token) {
 function execToken(exec) {
   return signToken({ exec_id: exec.id, email: exec.email, name: exec.name, exp: Date.now() + TOKEN_TTL });
 }
-function stripExec(e) { if (!e) return null; const { password, secret_code, ...safe } = e; return safe; }
+function stripExec(e) { if (!e) return null; const { password: _password, secret_code: _secret_code, ...safe } = e; return safe; }
 
 export default async function handler(req, res) {
   CORS(res);
