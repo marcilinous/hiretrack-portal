@@ -37,24 +37,20 @@ export default async function handler(req, res) {
     const ip = clientIp(req);
     const ipLimit = rateLimit('ai-ip', ip, 30, 3600);
     if (!ipLimit.ok) {
-      return res
-        .status(429)
-        .json({
-          answer: `AI rate limit reached. Retry in ${ipLimit.retryAfter}s.`,
-          error: 'rate_limited',
-        });
+      return res.status(429).json({
+        answer: `AI rate limit reached. Retry in ${ipLimit.retryAfter}s.`,
+        error: 'rate_limited',
+      });
     }
 
     // Resume parsing: 10/hour per IP (more expensive calls)
     if (action === 'parse-resume') {
       const parseLimit = rateLimit('ai-parse', ip, 10, 3600);
       if (!parseLimit.ok) {
-        return res
-          .status(429)
-          .json({
-            ok: false,
-            error: `Resume parsing limit reached. Retry in ${parseLimit.retryAfter}s.`,
-          });
+        return res.status(429).json({
+          ok: false,
+          error: `Resume parsing limit reached. Retry in ${parseLimit.retryAfter}s.`,
+        });
       }
     }
 

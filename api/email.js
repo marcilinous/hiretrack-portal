@@ -68,12 +68,10 @@ async function sendOtp(req, res, body) {
       .status(429)
       .json({ ok: false, error: `Too many OTP requests. Retry in ${byDest.retryAfter}s.` });
   if (!byIp.ok)
-    return res
-      .status(429)
-      .json({
-        ok: false,
-        error: `Too many requests from your network. Retry in ${byIp.retryAfter}s.`,
-      });
+    return res.status(429).json({
+      ok: false,
+      error: `Too many requests from your network. Retry in ${byIp.retryAfter}s.`,
+    });
 
   const resendBody = {
     from: 'noreply@hiretrack.co.in',

@@ -885,24 +885,20 @@ async function postJob(req, res, body) {
       existingEmp.plan !== 'free' &&
       (!existingEmp.plan_expires_at || new Date(existingEmp.plan_expires_at) > new Date());
     if (paidActive) {
-      return res
-        .status(409)
-        .json({
-          ok: false,
-          error:
-            'This employer already has an active plan. Direct them to post from their own dashboard.',
-        });
+      return res.status(409).json({
+        ok: false,
+        error:
+          'This employer already has an active plan. Direct them to post from their own dashboard.',
+      });
     }
     // 2a: free/trial employer that already has job post(s) (same rule as Bug 1).
     const jobsRes = await sbGet(`jobs?select=id&employer_id=eq.${existingEmp.id}`);
     const jobCount = Array.isArray(jobsRes.data) ? jobsRes.data.length : 0;
     if (jobCount >= (existingEmp.job_limit || 1)) {
-      return res
-        .status(409)
-        .json({
-          ok: false,
-          error: 'Free trial allows only 1 active job post. Upgrade to post more.',
-        });
+      return res.status(409).json({
+        ok: false,
+        error: 'Free trial allows only 1 active job post. Upgrade to post more.',
+      });
     }
   }
 
@@ -948,12 +944,10 @@ async function postJob(req, res, body) {
     } catch {}
     // The v33 DB trigger backstops the slot cap.
     if (/JOB_SLOTS_FULL|JOB_LIMIT_TRIAL/.test(jt)) {
-      return res
-        .status(409)
-        .json({
-          ok: false,
-          error: 'This employer has used all their job slots. Upgrade their plan or add a post.',
-        });
+      return res.status(409).json({
+        ok: false,
+        error: 'This employer has used all their job slots. Upgrade their plan or add a post.',
+      });
     }
     return res.status(500).json({ ok: false, error: (jd && jd.message) || 'Failed to post job.' });
   }

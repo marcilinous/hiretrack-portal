@@ -255,14 +255,12 @@ async function employerVerify(req, res, body) {
   }).catch(() => {});
 
   console.log(`Plan ${planName} activated for employer ${employerId} until ${planExpiresISO}`);
-  return res
-    .status(200)
-    .json({
-      ok: true,
-      plan_expires_at: planExpiresISO,
-      job_limit: plan.jobs,
-      day_limit: plan.days,
-    });
+  return res.status(200).json({
+    ok: true,
+    plan_expires_at: planExpiresISO,
+    job_limit: plan.jobs,
+    day_limit: plan.days,
+  });
 }
 
 // ── Add-on job post order (₹199 + GST) ─────────────────────────────────────
@@ -405,15 +403,13 @@ async function paylinkInfo(req, res, body) {
     );
     company = ref ? ref.company || ref.name || '' : '';
   }
-  return res
-    .status(200)
-    .json({
-      ok: true,
-      amount: link.amount,
-      validity_days: link.validity_days,
-      is_paid: link.is_paid,
-      company,
-    });
+  return res.status(200).json({
+    ok: true,
+    amount: link.amount,
+    validity_days: link.validity_days,
+    is_paid: link.is_paid,
+    company,
+  });
 }
 
 async function paylinkOrder(req, res, body) {
