@@ -24,13 +24,13 @@
     if (!date) return '';
     const d = date instanceof Date ? date : new Date(date);
     const secs = Math.floor((Date.now() - d.getTime()) / 1000);
-    if (secs < 60)   return 'just now';
+    if (secs < 60) return 'just now';
     const mins = Math.floor(secs / 60);
-    if (mins < 60)   return mins === 1 ? '1 minute ago'  : `${mins} minutes ago`;
+    if (mins < 60) return mins === 1 ? '1 minute ago' : `${mins} minutes ago`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24)  return hours === 1 ? '1 hour ago'   : `${hours} hours ago`;
+    if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
     const days = Math.floor(hours / 24);
-    if (days < 30)   return days === 1 ? '1 day ago'     : `${days} days ago`;
+    if (days < 30) return days === 1 ? '1 day ago' : `${days} days ago`;
     const months = Math.floor(days / 30);
     if (months < 12) return months === 1 ? '1 month ago' : `${months} months ago`;
     const years = Math.floor(months / 12);
@@ -47,7 +47,7 @@
 
   // Per-container store so event delegation always reads the latest render's data
   const _containerStore = new WeakMap(); // containerEl → { jobMap, options }
-  const _listenersSet   = new WeakSet(); // containers with a delegation listener already attached
+  const _listenersSet = new WeakSet(); // containers with a delegation listener already attached
 
   // ─────────────────────────────────────────
   // Band-matching (mirrors jobs.html logic exactly)
@@ -57,24 +57,24 @@
     const e = (job.experience || '').toLowerCase();
     if (!e) return true;
     if (band === 'fresher') return /fresher|0|1\s*year/.test(e);
-    if (band === '1-3')     return /[1-3]\s*(year|yr)/.test(e);
-    if (band === '3-5')     return /[3-5]\s*(year|yr)/.test(e);
-    if (band === '5+')      return /[5-9]\s*(year|yr)|10/.test(e);
+    if (band === '1-3') return /[1-3]\s*(year|yr)/.test(e);
+    if (band === '3-5') return /[3-5]\s*(year|yr)/.test(e);
+    if (band === '5+') return /[5-9]\s*(year|yr)|10/.test(e);
     return true;
   }
 
   function matchSalary(job, band) {
-    const sal = (job.salary || '');
+    const sal = job.salary || '';
     // Match integers and decimals, e.g. "₹3.5–8 LPA" → ["3.5", "8"]
     const nums = sal.match(/\d+(?:\.\d+)?/g);
     if (!nums || !nums.length) return true; // unknown salary always passes
-    const low  = parseFloat(nums[0]);
+    const low = parseFloat(nums[0]);
     const high = parseFloat(nums[nums.length - 1]);
     // Range-overlap: job range [low, high] overlaps filter band
-    if (band === '0-3')  return low  <  3;
-    if (band === '3-6')  return low  <  6 && high >= 3;
-    if (band === '6-10') return low  < 10 && high >= 6;
-    if (band === '10+')  return high >= 10;
+    if (band === '0-3') return low < 3;
+    if (band === '3-6') return low < 6 && high >= 3;
+    if (band === '6-10') return low < 10 && high >= 6;
+    if (band === '10+') return high >= 10;
     return true;
   }
 
@@ -84,10 +84,13 @@
 
   function getSkills(job) {
     if (Array.isArray(job.skills_arr) && job.skills_arr.length) return job.skills_arr;
-    if (Array.isArray(job.tags)       && job.tags.length)       return job.tags;
-    if (Array.isArray(job.skills)     && job.skills.length)     return job.skills;
+    if (Array.isArray(job.tags) && job.tags.length) return job.tags;
+    if (Array.isArray(job.skills) && job.skills.length) return job.skills;
     if (typeof job.skills === 'string' && job.skills.trim())
-      return job.skills.split(',').map(s => s.trim()).filter(Boolean);
+      return job.skills
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     return [];
   }
 
@@ -309,7 +312,7 @@
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
-    const jobs = (data || []).map(j => ({ ...j, type: j.job_type }));
+    const jobs = (data || []).map((j) => ({ ...j, type: j.job_type }));
     return { jobs, hasMore: jobs.length === limit };
   }
 
@@ -319,13 +322,14 @@
 
   async function fetchForCandidate(candidateId) {
     const cached = _cache[candidateId];
-    if (cached && (Date.now() - cached.ts) < CACHE_TTL) {
+    if (cached && Date.now() - cached.ts < CACHE_TTL) {
       return cached.jobs;
     }
 
     try {
-      const { data: rpcRows, error: rpcErr } = await window.sb
-        .rpc('match_jobs_for_candidate', { p_candidate_id: candidateId });
+      const { data: rpcRows, error: rpcErr } = await window.sb.rpc('match_jobs_for_candidate', {
+        p_candidate_id: candidateId,
+      });
 
       if (rpcErr) throw rpcErr;
       if (!rpcRows || !rpcRows.length) {
@@ -336,7 +340,7 @@
       // Build score map: { jobId → match_score }
       // RPC may return 'id' or 'job_id' depending on function definition
       const scoreMap = {};
-      rpcRows.forEach(r => {
+      rpcRows.forEach((r) => {
         const jid = r.id ?? r.job_id;
         if (jid != null) scoreMap[String(jid)] = r.match_score;
       });
@@ -357,7 +361,7 @@
       if (jobErr) throw jobErr;
 
       // Merge and sort: match_score desc, then posted_at desc
-      const merged = (fullJobs || []).map(j => ({
+      const merged = (fullJobs || []).map((j) => ({
         ...j,
         type: j.job_type,
         match_score: scoreMap[String(j.id)] ?? 0,
@@ -389,7 +393,9 @@
 
       if (error) throw error;
       const map = {};
-      (data || []).forEach(a => { map[String(a.job_id)] = a.status; });
+      (data || []).forEach((a) => {
+        map[String(a.job_id)] = a.status;
+      });
       return map;
     } catch (e) {
       console.warn('BrowseJobs.fetchApplicationStatuses error:', e);
@@ -402,26 +408,19 @@
   // ─────────────────────────────────────────
 
   function applyClientFilters(jobs, filters = {}) {
-    const {
-      keyword,
-      locations,
-      jobTypes,
-      experienceBands,
-      salaryBands,
-      recency,
-      minMatchScore,
-    } = filters;
+    const { keyword, locations, jobTypes, experienceBands, salaryBands, recency, minMatchScore } =
+      filters;
 
     // Recency cutoff timestamp
     let cutoff = null;
     if (recency === '24h') cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    else if (recency === '7d')  cutoff = Date.now() - 7  * 24 * 60 * 60 * 1000;
+    else if (recency === '7d') cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     else if (recency === '30d') cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
-    return jobs.filter(j => {
+    return jobs.filter((j) => {
       const skills = getSkills(j);
-      const hay   = [j.title || '', j.company || '', ...skills].join(' ').toLowerCase();
-      const jloc  = (j.location || '').toLowerCase();
+      const hay = [j.title || '', j.company || '', ...skills].join(' ').toLowerCase();
+      const jloc = (j.location || '').toLowerCase();
       const jtype = (j.job_type || j.type || '').toLowerCase();
 
       // keyword
@@ -431,22 +430,22 @@
 
       // locations (any match in the multi-select set)
       if (locations && locations.length) {
-        if (!locations.some(l => jloc.includes(l.toLowerCase()))) return false;
+        if (!locations.some((l) => jloc.includes(l.toLowerCase()))) return false;
       }
 
       // jobTypes
       if (jobTypes && jobTypes.length) {
-        if (!jobTypes.some(t => jtype.includes(t.toLowerCase()))) return false;
+        if (!jobTypes.some((t) => jtype.includes(t.toLowerCase()))) return false;
       }
 
       // experienceBands (mirrors jobs.html matchExp)
       if (experienceBands && experienceBands.length) {
-        if (!experienceBands.some(b => matchExp(j, b))) return false;
+        if (!experienceBands.some((b) => matchExp(j, b))) return false;
       }
 
       // salaryBands
       if (salaryBands && salaryBands.length) {
-        if (!salaryBands.some(b => matchSalary(j, b))) return false;
+        if (!salaryBands.some((b) => matchSalary(j, b))) return false;
       }
 
       // recency
@@ -468,25 +467,26 @@
   // ─────────────────────────────────────────
 
   const STATUS_BADGE_CLASS = {
-    Applied:     'bj-badge-applied',
+    Applied: 'bj-badge-applied',
     Shortlisted: 'bj-badge-shortlisted',
-    Interview:   'bj-badge-interview',
-    Hired:       'bj-badge-hired',
-    Rejected:    'bj-badge-rejected',
+    Interview: 'bj-badge-interview',
+    Hired: 'bj-badge-hired',
+    Rejected: 'bj-badge-rejected',
   };
 
   function buildCardHtml(job, applicationStatusMap, isLoggedIn, savedJobIds) {
-    const jid     = String(job.id);
-    const status  = applicationStatusMap[jid];
+    const jid = String(job.id);
+    const status = applicationStatusMap[jid];
     const isSaved = savedJobIds && savedJobIds.has(jid);
-    const skills  = getSkills(job);
+    const skills = getSkills(job);
     const display = skills.slice(0, 5);
-    const extra   = skills.length > 5 ? skills.length - 5 : 0;
+    const extra = skills.length > 5 ? skills.length - 5 : 0;
 
     // Match bubble — only if match_score is present
-    const matchBubble = (job.match_score != null)
-      ? `<span class="bj-match-bubble">⚡ ${Math.round(job.match_score)}% match</span>`
-      : '<span></span>';
+    const matchBubble =
+      job.match_score != null
+        ? `<span class="bj-match-bubble">⚡ ${Math.round(job.match_score)}% match</span>`
+        : '<span></span>';
 
     // Status badge
     const statusBadge = status
@@ -501,7 +501,7 @@
     // Skill chips
     const skillsHtml = display.length
       ? `<div class="bj-skills">
-          ${display.map(s => `<span class="bj-skill-chip">${escapeHtml(s)}</span>`).join('')}
+          ${display.map((s) => `<span class="bj-skill-chip">${escapeHtml(s)}</span>`).join('')}
           ${extra ? `<span class="bj-skill-more">+${extra} more</span>` : ''}
         </div>`
       : '';
@@ -516,8 +516,8 @@
       btnHtml = `<button class="bj-btn bj-btn-apply" data-action="apply" data-jid="${jid}">Apply</button>`;
     }
 
-    const postedAgo = job.posted_at ? timeAgo(job.posted_at) : (job.posted || '');
-    const jobType   = job.job_type || job.type;
+    const postedAgo = job.posted_at ? timeAgo(job.posted_at) : job.posted || '';
+    const jobType = job.job_type || job.type;
 
     return `<div class="bj-job-card" data-jid="${jid}">
   <div class="bj-card-top">
@@ -533,9 +533,9 @@
     <span>${escapeHtml(postedAgo)}</span>
   </div>
   <div class="bj-details">
-    ${job.salary    ? `<span class="bj-detail-chip">💰 ${escapeHtml(job.salary)}</span>`      : ''}
-    ${job.experience? `<span class="bj-detail-chip">🎯 ${escapeHtml(job.experience)}</span>`  : ''}
-    ${jobType       ? `<span class="bj-detail-chip">${escapeHtml(jobType)}</span>`            : ''}
+    ${job.salary ? `<span class="bj-detail-chip">💰 ${escapeHtml(job.salary)}</span>` : ''}
+    ${job.experience ? `<span class="bj-detail-chip">🎯 ${escapeHtml(job.experience)}</span>` : ''}
+    ${jobType ? `<span class="bj-detail-chip">${escapeHtml(jobType)}</span>` : ''}
   </div>
   ${skillsHtml}
   <div class="bj-card-foot">
@@ -562,26 +562,36 @@
 
     // Build a lookup map and update the per-container store (used by event delegation)
     const jobMap = new Map();
-    jobs.forEach(j => jobMap.set(String(j.id), j));
-    _containerStore.set(containerEl, { jobMap, options: { applicationStatusMap, isLoggedIn, savedJobIds, onApplyClick, onViewApplicationClick, onSaveToggle } });
+    jobs.forEach((j) => jobMap.set(String(j.id), j));
+    _containerStore.set(containerEl, {
+      jobMap,
+      options: {
+        applicationStatusMap,
+        isLoggedIn,
+        savedJobIds,
+        onApplyClick,
+        onViewApplicationClick,
+        onSaveToggle,
+      },
+    });
 
     // Attach delegation listener only once per container element
     if (!_listenersSet.has(containerEl)) {
       _listenersSet.add(containerEl);
-      containerEl.addEventListener('click', e => {
+      containerEl.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         const stored = _containerStore.get(containerEl);
         if (!stored) return;
 
         const action = btn.dataset.action;
-        const jid    = btn.dataset.jid;
-        const job    = stored.jobMap.get(jid);
-        const opts   = stored.options;
+        const jid = btn.dataset.jid;
+        const job = stored.jobMap.get(jid);
+        const opts = stored.options;
 
-        if (action === 'apply'  && opts.onApplyClick)            opts.onApplyClick(jid, job);
-        if (action === 'view'   && opts.onViewApplicationClick)  opts.onViewApplicationClick(jid);
-        if (action === 'save'   && opts.onSaveToggle) {
+        if (action === 'apply' && opts.onApplyClick) opts.onApplyClick(jid, job);
+        if (action === 'view' && opts.onViewApplicationClick) opts.onViewApplicationClick(jid);
+        if (action === 'save' && opts.onSaveToggle) {
           const isSaved = btn.dataset.saved === '1';
           opts.onSaveToggle(jid, isSaved, btn);
         }
@@ -590,7 +600,7 @@
           window.location.href = 'login.html';
         }
         if (action === 'share' && job) {
-          const url  = `https://www.hiretrack.co.in/job.html?id=${jid}`;
+          const url = `https://www.hiretrack.co.in/job.html?id=${jid}`;
           const text = `🔥 *${job.title}* at *${job.company || ''}*${job.location ? '\n📍 ' + job.location : ''}${job.salary ? ' | 💰 ' + job.salary : ''}\n\nApply on HireTrack 👉 ${url}`;
           window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
@@ -599,12 +609,13 @@
 
     // Render
     if (!jobs.length) {
-      containerEl.innerHTML = '<div class="bj-empty"><div class="bj-empty-icon">🔍</div><p>No jobs match your filters.</p></div>';
+      containerEl.innerHTML =
+        '<div class="bj-empty"><div class="bj-empty-icon">🔍</div><p>No jobs match your filters.</p></div>';
       return;
     }
 
     containerEl.innerHTML = jobs
-      .map(j => buildCardHtml(j, applicationStatusMap, isLoggedIn, savedJobIds))
+      .map((j) => buildCardHtml(j, applicationStatusMap, isLoggedIn, savedJobIds))
       .join('');
   }
 
@@ -623,35 +634,41 @@
 
     let fetching = false;
 
-    const observer = new IntersectionObserver(async entries => {
-      if (!entries[0].isIntersecting || fetching) return;
-      fetching = true;
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        if (!entries[0].isIntersecting || fetching) return;
+        fetching = true;
 
-      const loader = document.createElement('div');
-      loader.className = 'loading-more';
-      loader.textContent = 'Loading…';
-      sentinel.insertAdjacentElement('beforebegin', loader);
+        const loader = document.createElement('div');
+        loader.className = 'loading-more';
+        loader.textContent = 'Loading…';
+        sentinel.insertAdjacentElement('beforebegin', loader);
 
-      try {
-        const result = await fetchNext();
-        loader.remove();
-        if (!result || !result.hasMore) {
+        try {
+          const result = await fetchNext();
+          loader.remove();
+          if (!result || !result.hasMore) {
+            observer.disconnect();
+            sentinel.remove();
+          }
+        } catch (e) {
+          loader.remove();
           observer.disconnect();
           sentinel.remove();
+        } finally {
+          fetching = false;
         }
-      } catch (e) {
-        loader.remove();
-        observer.disconnect();
-        sentinel.remove();
-      } finally {
-        fetching = false;
-      }
-    }, { rootMargin: '200px' });
+      },
+      { rootMargin: '200px' }
+    );
 
     observer.observe(sentinel);
 
     // Return a teardown function so callers can disconnect manually (e.g., on filter change)
-    return () => { observer.disconnect(); sentinel.remove(); };
+    return () => {
+      observer.disconnect();
+      sentinel.remove();
+    };
   }
 
   // ─────────────────────────────────────────
@@ -666,5 +683,4 @@
     render,
     setupInfiniteScroll,
   };
-
 })();

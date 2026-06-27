@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   const now = new Date();
   // Window: jobs expiring 2–3 days from now → each job falls in this window exactly once per daily cron
   const windowStart = new Date(now.getTime() + 2 * 864e5).toISOString();
-  const windowEnd   = new Date(now.getTime() + 3 * 864e5).toISOString();
+  const windowEnd = new Date(now.getTime() + 3 * 864e5).toISOString();
 
   const r = await fetch(
     `${SUPABASE_URL}/rest/v1/jobs?expires_at=gt.${windowStart}&expires_at=lte.${windowEnd}&delisted=eq.false&select=id,title,company,email,expires_at`,
@@ -31,7 +31,9 @@ export default async function handler(req, res) {
     if (!job.email) continue;
     const daysLeft = Math.round((new Date(job.expires_at) - now) / 864e5);
     const expiryDate = new Date(job.expires_at).toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'long', year: 'numeric'
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
     });
 
     const emailRes = await fetch('https://api.resend.com/emails', {
@@ -41,8 +43,8 @@ export default async function handler(req, res) {
         from: 'jobs@hiretrack.co.in',
         to: [job.email],
         subject: `⏳ Your job "${job.title}" expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''} — HireTrack`,
-        html: buildReminderHtml(job.title, job.company, daysLeft, expiryDate)
-      })
+        html: buildReminderHtml(job.title, job.company, daysLeft, expiryDate),
+      }),
     }).catch(() => null);
 
     if (emailRes?.ok) sent++;
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
 
   // ── Plan renewal warnings ──
   const planWindowStart = new Date(now.getTime() + 3 * 864e5).toISOString();
-  const planWindowEnd   = new Date(now.getTime() + 4 * 864e5).toISOString();
+  const planWindowEnd = new Date(now.getTime() + 4 * 864e5).toISOString();
 
   const pr = await fetch(
     `${SUPABASE_URL}/rest/v1/employers?plan_expires_at=gt.${planWindowStart}&plan_expires_at=lte.${planWindowEnd}&plan=neq.free&select=id,company,contact_name,email,plan,plan_expires_at`,
@@ -62,10 +64,12 @@ export default async function handler(req, res) {
   let planSent = 0;
   if (pr?.ok) {
     const employers = await pr.json();
-    for (const emp of (Array.isArray(employers) ? employers : [])) {
+    for (const emp of Array.isArray(employers) ? employers : []) {
       if (!emp.email) continue;
       const expiryDate = new Date(emp.plan_expires_at).toLocaleDateString('en-IN', {
-        day: 'numeric', month: 'long', year: 'numeric'
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
       });
       const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -74,21 +78,29 @@ export default async function handler(req, res) {
           from: 'jobs@hiretrack.co.in',
           to: [emp.email],
           subject: `Your HireTrack ${emp.plan} plan expires in 3 days — renew to keep hiring`,
-          html: buildPlanRenewalHtml(emp.contact_name || emp.company, emp.company, emp.plan, expiryDate)
-        })
+          html: buildPlanRenewalHtml(
+            emp.contact_name || emp.company,
+            emp.company,
+            emp.plan,
+            expiryDate
+          ),
+        }),
       }).catch(() => null);
       if (emailRes?.ok) planSent++;
     }
     console.log(`cron-expiry: ${employers.length} plans expiring, ${planSent} renewal emails sent`);
   }
 
-  return res.status(200).json({ ok: true, jobs: { total: jobs.length, sent }, plans: { sent: planSent } });
+  return res
+    .status(200)
+    .json({ ok: true, jobs: { total: jobs.length, sent }, plans: { sent: planSent } });
 }
 
 function buildReminderHtml(jobTitle, company, daysLeft, expiryDate) {
-  const urgency = daysLeft <= 1
-    ? { color: '#dc2626', bg: '#fef2f2', border: '#fca5a5', label: 'Expires Tomorrow!' }
-    : { color: '#d97706', bg: '#fffbeb', border: '#fcd34d', label: `${daysLeft} Days Left` };
+  const urgency =
+    daysLeft <= 1
+      ? { color: '#dc2626', bg: '#fef2f2', border: '#fca5a5', label: 'Expires Tomorrow!' }
+      : { color: '#d97706', bg: '#fffbeb', border: '#fcd34d', label: `${daysLeft} Days Left` };
 
   return `
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;">

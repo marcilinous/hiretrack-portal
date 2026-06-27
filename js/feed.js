@@ -9,17 +9,17 @@
 (function () {
   'use strict';
 
-  const PAGE_SIZE    = 10;
+  const PAGE_SIZE = 10;
   const PREVIEW_SIZE = 5;
-  const CACHE_TTL    = 5 * 60 * 1000; // 5 min — matches BrowseJobs convention
+  const CACHE_TTL = 5 * 60 * 1000; // 5 min — matches BrowseJobs convention
 
   const TYPE_META = {
-    general:      { label: '💬 Post',         color: '#64748b', bg: '#f1f5f9' },
-    job:          { label: '💼 Job Share',     color: '#2563eb', bg: '#dbeafe' },
-    hiring:       { label: '🏢 Now Hiring',    color: '#c2410c', bg: '#ffedd5' },
-    open_to_work: { label: '🟢 Open to Work',  color: '#138808', bg: '#dcfce7' },
-    hired:        { label: '🎉 Got Hired',     color: '#7c3aed', bg: '#ede9fe' },
-    tip:          { label: '💡 Career Tip',    color: '#0369a1', bg: '#e0f2fe' },
+    general: { label: '💬 Post', color: '#64748b', bg: '#f1f5f9' },
+    job: { label: '💼 Job Share', color: '#2563eb', bg: '#dbeafe' },
+    hiring: { label: '🏢 Now Hiring', color: '#c2410c', bg: '#ffedd5' },
+    open_to_work: { label: '🟢 Open to Work', color: '#138808', bg: '#dcfce7' },
+    hired: { label: '🎉 Got Hired', color: '#7c3aed', bg: '#ede9fe' },
+    tip: { label: '💡 Career Tip', color: '#0369a1', bg: '#e0f2fe' },
   };
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -37,18 +37,24 @@
   function timeAgo(ts) {
     const diff = Date.now() - new Date(ts).getTime();
     const m = Math.floor(diff / 60000);
-    if (m < 1)  return 'just now';
+    if (m < 1) return 'just now';
     if (m < 60) return `${m}m ago`;
     const h = Math.floor(m / 60);
     if (h < 24) return `${h}h ago`;
     const d = Math.floor(h / 24);
-    if (d < 7)  return `${d}d ago`;
+    if (d < 7) return `${d}d ago`;
     return new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   }
 
   function nameInitials(name) {
     if (!name) return '?';
-    return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    return name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase();
   }
 
   // ── CSS ────────────────────────────────────────────────────────────────────
@@ -71,8 +77,8 @@
 
       /* Avatars */
       '.fd-av{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.88rem;font-weight:800;color:#fff;overflow:hidden;object-fit:cover;}',
-      '.fd-av--cand{background:linear-gradient(135deg,#ff9933,#e67e22);}',    /* saffron */
-      '.fd-av--company{background:linear-gradient(135deg,#138808,#0a5c00);}', /* India green */
+      '.fd-av--cand{background:linear-gradient(135deg,#ff9933,#e67e22);}' /* saffron */,
+      '.fd-av--company{background:linear-gradient(135deg,#138808,#0a5c00);}' /* India green */,
       '.fd-av--me{background:linear-gradient(135deg,#ff9933,#c2410c);}',
 
       /* Post type pills */
@@ -135,11 +141,11 @@
 
       /* Mobile */
       '@media(max-width:600px){',
-        '.fd-composer-btm{flex-direction:column;align-items:stretch;}',
-        '.fd-post-btn{width:100%;text-align:center;order:0;}',
-        '.fd-char-count{order:1;text-align:right;}',
-        '.fd-pills{order:2;}',
-        '.fd-pill{font-size:0.7rem;padding:0.25rem 0.6rem;}',
+      '.fd-composer-btm{flex-direction:column;align-items:stretch;}',
+      '.fd-post-btn{width:100%;text-align:center;order:0;}',
+      '.fd-char-count{order:1;text-align:right;}',
+      '.fd-pills{order:2;}',
+      '.fd-pill{font-size:0.7rem;padding:0.25rem 0.6rem;}',
       '}',
     ].join('');
     document.head.appendChild(s);
@@ -147,21 +153,23 @@
 
   // ── Module state (singleton — one full feed per page) ─────────────────────
 
-  let _posts        = [];
-  let _offset       = 0;
-  let _hasMore      = true;
-  let _myLikedIds   = new Set();
-  let _candidate    = null;
-  let _loading      = false;
+  let _posts = [];
+  let _offset = 0;
+  let _hasMore = true;
+  let _myLikedIds = new Set();
+  let _candidate = null;
+  let _loading = false;
   let _selectedType = 'general';
-  let _lastLoad     = 0;
+  let _lastLoad = 0;
 
   // ── Data ───────────────────────────────────────────────────────────────────
 
   async function fetchPage() {
     const { data, error } = await window.sb
       .from('feed_posts')
-      .select('id,author_name,author_avatar,author_type,post_type,content,like_count,flag_count,created_at')
+      .select(
+        'id,author_name,author_avatar,author_type,post_type,content,like_count,flag_count,created_at'
+      )
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .range(_offset, _offset + PAGE_SIZE - 1);
@@ -188,8 +196,10 @@
         .select('post_id')
         .eq('user_id', _candidate.id)
         .in('post_id', postIds);
-      (data || []).forEach(r => _myLikedIds.add(r.post_id));
-    } catch (_) { /* non-fatal */ }
+      (data || []).forEach((r) => _myLikedIds.add(r.post_id));
+    } catch (_) {
+      /* non-fatal */
+    }
   }
 
   // ── HTML builders ──────────────────────────────────────────────────────────
@@ -206,63 +216,61 @@
     if (!_candidate) {
       return (
         '<div class="fd-signin-cta">' +
-          '<p>Share career updates, tips, and wins with the HireTrack community.</p>' +
-          '<a href="login.html">Sign in to post →</a>' +
+        '<p>Share career updates, tips, and wins with the HireTrack community.</p>' +
+        '<a href="login.html">Sign in to post →</a>' +
         '</div>'
       );
     }
     return (
       '<div class="fd-composer" id="fd-composer">' +
-        '<div class="fd-composer-top">' +
-          `<div class="fd-av fd-av--me">${escapeHtml(nameInitials(_candidate.name))}</div>` +
-          '<textarea id="fd-compose-ta" class="fd-compose-ta"' +
-            ' placeholder="Share a win, career tip, or what you\'re looking for…"' +
-            ' maxlength="1500" rows="3" aria-label="Write a post"></textarea>' +
-        '</div>' +
-        '<div class="fd-composer-btm">' +
-          '<div class="fd-pills" id="fd-pills">' +
-            '<button class="fd-pill fd-pill--active" data-type="general">💬 General</button>' +
-            '<button class="fd-pill" data-type="open_to_work">🟢 Open to Work</button>' +
-            '<button class="fd-pill" data-type="tip">💡 Career Tip</button>' +
-            '<button class="fd-pill" data-type="hired">🎉 Got Hired</button>' +
-            '<button class="fd-pill" data-type="job">💼 Job Share</button>' +
-            '<button class="fd-pill" data-type="hiring">🏢 Hiring</button>' +
-          '</div>' +
-          '<span class="fd-char-count" id="fd-char-count">0 / 1500</span>' +
-          '<button class="fd-post-btn" id="fd-post-btn">Post</button>' +
-        '</div>' +
+      '<div class="fd-composer-top">' +
+      `<div class="fd-av fd-av--me">${escapeHtml(nameInitials(_candidate.name))}</div>` +
+      '<textarea id="fd-compose-ta" class="fd-compose-ta"' +
+      ' placeholder="Share a win, career tip, or what you\'re looking for…"' +
+      ' maxlength="1500" rows="3" aria-label="Write a post"></textarea>' +
+      '</div>' +
+      '<div class="fd-composer-btm">' +
+      '<div class="fd-pills" id="fd-pills">' +
+      '<button class="fd-pill fd-pill--active" data-type="general">💬 General</button>' +
+      '<button class="fd-pill" data-type="open_to_work">🟢 Open to Work</button>' +
+      '<button class="fd-pill" data-type="tip">💡 Career Tip</button>' +
+      '<button class="fd-pill" data-type="hired">🎉 Got Hired</button>' +
+      '<button class="fd-pill" data-type="job">💼 Job Share</button>' +
+      '<button class="fd-pill" data-type="hiring">🏢 Hiring</button>' +
+      '</div>' +
+      '<span class="fd-char-count" id="fd-char-count">0 / 1500</span>' +
+      '<button class="fd-post-btn" id="fd-post-btn">Post</button>' +
+      '</div>' +
       '</div>'
     );
   }
 
   function renderCard(post, { interactive = true } = {}) {
-    const meta   = TYPE_META[post.post_type] || TYPE_META.general;
-    const liked  = _myLikedIds.has(post.id);
+    const meta = TYPE_META[post.post_type] || TYPE_META.general;
+    const liked = _myLikedIds.has(post.id);
     const avatar = _avatarHtml(post);
-    const foot   = interactive
-      ? (
-          `<button class="fd-like-btn${liked ? ' fd-liked' : ''}" data-id="${escapeHtml(post.id)}" aria-label="${liked ? 'Unlike' : 'Like'} this post">` +
-            `${liked ? '❤️' : '🤍'} <span class="fd-lc">${post.like_count || 0}</span>` +
-          `</button>` +
-          `<button class="fd-flag-btn" data-id="${escapeHtml(post.id)}" title="Report post" aria-label="Report post">⚑</button>`
-        )
+    const foot = interactive
+      ? `<button class="fd-like-btn${liked ? ' fd-liked' : ''}" data-id="${escapeHtml(post.id)}" aria-label="${liked ? 'Unlike' : 'Like'} this post">` +
+        `${liked ? '❤️' : '🤍'} <span class="fd-lc">${post.like_count || 0}</span>` +
+        `</button>` +
+        `<button class="fd-flag-btn" data-id="${escapeHtml(post.id)}" title="Report post" aria-label="Report post">⚑</button>`
       : `<span class="fd-like-count">🤍 ${post.like_count || 0}</span>`;
 
     return (
       `<article class="fd-card" data-post-id="${escapeHtml(post.id)}">` +
-        '<div class="fd-card-head">' +
-          avatar +
-          '<div class="fd-card-meta">' +
-            `<div class="fd-card-name">${escapeHtml(post.author_name)}</div>` +
-            '<div class="fd-card-sub">' +
-              `<span class="fd-type-badge" style="color:${meta.color};background:${meta.bg};">${meta.label}</span>` +
-              '<span class="fd-dot">·</span>' +
-              `<time class="fd-time" datetime="${escapeHtml(post.created_at)}">${timeAgo(post.created_at)}</time>` +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        `<p class="fd-card-body">${escapeHtml(post.content)}</p>` +
-        `<div class="fd-card-foot">${foot}</div>` +
+      '<div class="fd-card-head">' +
+      avatar +
+      '<div class="fd-card-meta">' +
+      `<div class="fd-card-name">${escapeHtml(post.author_name)}</div>` +
+      '<div class="fd-card-sub">' +
+      `<span class="fd-type-badge" style="color:${meta.color};background:${meta.bg};">${meta.label}</span>` +
+      '<span class="fd-dot">·</span>' +
+      `<time class="fd-time" datetime="${escapeHtml(post.created_at)}">${timeAgo(post.created_at)}</time>` +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      `<p class="fd-card-body">${escapeHtml(post.content)}</p>` +
+      `<div class="fd-card-foot">${foot}</div>` +
       '</article>'
     );
   }
@@ -273,9 +281,10 @@
     const list = document.getElementById('fd-list');
     if (!list) return;
     if (!_posts.length) {
-      list.innerHTML = '<div class="fd-empty">No posts yet — be the first to share something! 🚀</div>';
+      list.innerHTML =
+        '<div class="fd-empty">No posts yet — be the first to share something! 🚀</div>';
     } else {
-      list.innerHTML = _posts.map(p => renderCard(p, { interactive: true })).join('');
+      list.innerHTML = _posts.map((p) => renderCard(p, { interactive: true })).join('');
     }
   }
 
@@ -283,10 +292,12 @@
     const wrap = document.getElementById('fd-more-wrap');
     if (!wrap) return;
     if (_hasMore) {
-      wrap.innerHTML = '<div style="text-align:center;margin:1.25rem 0;"><button class="fd-load-more-btn" id="fd-load-more">Load more posts</button></div>';
+      wrap.innerHTML =
+        '<div style="text-align:center;margin:1.25rem 0;"><button class="fd-load-more-btn" id="fd-load-more">Load more posts</button></div>';
       document.getElementById('fd-load-more').addEventListener('click', _loadMore);
     } else if (_posts.length > 0) {
-      wrap.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:0.85rem;">You\'re all caught up! 🙌</div>';
+      wrap.innerHTML =
+        '<div style="text-align:center;padding:1.5rem;color:#94a3b8;font-size:0.85rem;">You\'re all caught up! 🙌</div>';
     } else {
       wrap.innerHTML = '';
     }
@@ -295,9 +306,9 @@
   function _buildContainer(container) {
     container.innerHTML =
       '<div class="fd-wrap">' +
-        renderComposer() +
-        '<div id="fd-list"><div class="fd-loading">Loading feed…</div></div>' +
-        '<div id="fd-more-wrap"></div>' +
+      renderComposer() +
+      '<div id="fd-list"><div class="fd-loading">Loading feed…</div></div>' +
+      '<div id="fd-more-wrap"></div>' +
       '</div>';
     _wireComposer();
     _wireList();
@@ -308,10 +319,12 @@
   function _wireComposer() {
     const pills = document.getElementById('fd-pills');
     if (pills) {
-      pills.addEventListener('click', e => {
+      pills.addEventListener('click', (e) => {
         const pill = e.target.closest('.fd-pill');
         if (!pill) return;
-        document.querySelectorAll('#fd-pills .fd-pill').forEach(p => p.classList.remove('fd-pill--active'));
+        document
+          .querySelectorAll('#fd-pills .fd-pill')
+          .forEach((p) => p.classList.remove('fd-pill--active'));
         pill.classList.add('fd-pill--active');
         _selectedType = pill.dataset.type || 'general';
       });
@@ -332,11 +345,16 @@
   function _wireList() {
     const list = document.getElementById('fd-list');
     if (!list) return;
-    list.addEventListener('click', e => {
+    list.addEventListener('click', (e) => {
       const likeBtn = e.target.closest('.fd-like-btn');
-      if (likeBtn) { _handleLike(likeBtn); return; }
+      if (likeBtn) {
+        _handleLike(likeBtn);
+        return;
+      }
       const flagBtn = e.target.closest('.fd-flag-btn');
-      if (flagBtn) { _handleFlag(flagBtn); }
+      if (flagBtn) {
+        _handleFlag(flagBtn);
+      }
     });
   }
 
@@ -344,27 +362,38 @@
 
   async function _handlePost() {
     if (!_candidate) return;
-    const ta  = document.getElementById('fd-compose-ta');
+    const ta = document.getElementById('fd-compose-ta');
     const content = (ta ? ta.value : '').trim();
-    if (!content) { if (ta) ta.focus(); return; }
+    if (!content) {
+      if (ta) ta.focus();
+      return;
+    }
 
     const btn = document.getElementById('fd-post-btn');
     btn.disabled = true;
     btn.textContent = 'Posting…';
 
     try {
-      const { data, error } = await window.sb.from('feed_posts').insert([{
-        author_id:     _candidate.id,
-        author_type:   'candidate',
-        author_name:   _candidate.name || 'Anonymous',
-        author_avatar: _candidate.photo_url || null,
-        post_type:     _selectedType,
-        content,
-      }]).select().single();
+      const { data, error } = await window.sb
+        .from('feed_posts')
+        .insert([
+          {
+            author_id: _candidate.id,
+            author_type: 'candidate',
+            author_name: _candidate.name || 'Anonymous',
+            author_avatar: _candidate.photo_url || null,
+            post_type: _selectedType,
+            content,
+          },
+        ])
+        .select()
+        .single();
 
       if (error) throw error;
 
-      if (ta) { ta.value = ''; }
+      if (ta) {
+        ta.value = '';
+      }
       const cc = document.getElementById('fd-char-count');
       if (cc) cc.textContent = '0 / 1500';
 
@@ -388,7 +417,7 @@
     }
 
     const postId = btn.dataset.id;
-    const post   = _posts.find(p => p.id === postId);
+    const post = _posts.find((p) => p.id === postId);
     if (!post) return;
 
     btn.disabled = true;
@@ -397,20 +426,27 @@
     try {
       if (wasLiked) {
         const { error } = await window.sb
-          .from('feed_likes').delete()
-          .eq('post_id', postId).eq('user_id', _candidate.id);
+          .from('feed_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', _candidate.id);
         if (error) throw error;
         post.like_count = Math.max(0, (post.like_count || 0) - 1);
         _myLikedIds.delete(postId);
       } else {
         const { error } = await window.sb
-          .from('feed_likes').insert([{ post_id: postId, user_id: _candidate.id }]);
+          .from('feed_likes')
+          .insert([{ post_id: postId, user_id: _candidate.id }]);
         if (error) throw error;
         post.like_count = (post.like_count || 0) + 1;
         _myLikedIds.add(postId);
       }
       // Sync count to DB — fire-and-forget
-      window.sb.from('feed_posts').update({ like_count: post.like_count }).eq('id', postId).then(() => {});
+      window.sb
+        .from('feed_posts')
+        .update({ like_count: post.like_count })
+        .eq('id', postId)
+        .then(() => {});
     } catch (err) {
       console.error('Like failed:', err);
     } finally {
@@ -430,19 +466,22 @@
     }
 
     const postId = btn.dataset.id;
-    const post   = _posts.find(p => p.id === postId);
+    const post = _posts.find((p) => p.id === postId);
     if (!post) return;
 
     btn.disabled = true;
     post.flag_count = (post.flag_count || 0) + 1;
-    const autoHide  = post.flag_count >= 3;
+    const autoHide = post.flag_count >= 3;
 
     try {
-      const { error } = await window.sb.from('feed_posts').update({
-        flag_count: post.flag_count,
-        is_flagged: true,
-        ...(autoHide ? { is_hidden: true } : {}),
-      }).eq('id', postId);
+      const { error } = await window.sb
+        .from('feed_posts')
+        .update({
+          flag_count: post.flag_count,
+          is_flagged: true,
+          ...(autoHide ? { is_hidden: true } : {}),
+        })
+        .eq('id', postId);
       if (error) throw error;
 
       btn.textContent = '✓ Reported';
@@ -450,7 +489,7 @@
 
       // If auto-hidden, remove from local list
       if (autoHide) {
-        _posts = _posts.filter(p => p.id !== postId);
+        _posts = _posts.filter((p) => p.id !== postId);
         _renderList();
         _wireList();
       }
@@ -468,7 +507,7 @@
 
     try {
       const page = await fetchPage();
-      await fetchMyLikes(page.map(p => p.id));
+      await fetchMyLikes(page.map((p) => p.id));
       _posts = _posts.concat(page);
       _hasMore = page.length === PAGE_SIZE;
       _offset += page.length;
@@ -479,7 +518,8 @@
       console.error('Feed fetch failed:', err);
       const list = document.getElementById('fd-list');
       if (list && !_posts.length) {
-        list.innerHTML = '<div class="fd-error">Failed to load feed. <button onclick="Feed._retry()" style="background:none;border:none;color:#c2410c;cursor:pointer;font-weight:700;font-family:inherit;">Retry</button></div>';
+        list.innerHTML =
+          '<div class="fd-error">Failed to load feed. <button onclick="Feed._retry()" style="background:none;border:none;color:#c2410c;cursor:pointer;font-weight:700;font-family:inherit;">Retry</button></div>';
       }
     } finally {
       _loading = false;
@@ -510,12 +550,12 @@
     }
 
     // Cold start or TTL expired
-    _posts        = [];
-    _offset       = 0;
-    _hasMore      = true;
-    _myLikedIds   = new Set();
+    _posts = [];
+    _offset = 0;
+    _hasMore = true;
+    _myLikedIds = new Set();
     _selectedType = 'general';
-    _loading      = false;
+    _loading = false;
 
     _buildContainer(container);
     await _loadMore();
@@ -537,19 +577,21 @@
     try {
       const posts = await fetchPreviewPosts();
       if (!posts.length) {
-        container.innerHTML = '<div class="fd-wrap"><div class="fd-empty">No posts yet. Be the first!</div></div>';
+        container.innerHTML =
+          '<div class="fd-wrap"><div class="fd-empty">No posts yet. Be the first!</div></div>';
         return;
       }
       const candidate = window.Session ? window.Session.getCandidate() : null;
-      const feedUrl   = candidate ? 'profile.html#feed' : 'login.html';
+      const feedUrl = candidate ? 'profile.html#feed' : 'login.html';
       container.innerHTML =
         '<div class="fd-wrap">' +
-          posts.map(p => renderCard(p, { interactive: false })).join('') +
-          `<div class="fd-preview-cta"><a href="${feedUrl}">See all posts on the Feed →</a></div>` +
+        posts.map((p) => renderCard(p, { interactive: false })).join('') +
+        `<div class="fd-preview-cta"><a href="${feedUrl}">See all posts on the Feed →</a></div>` +
         '</div>';
     } catch (err) {
       console.error('Feed preview failed:', err);
-      container.innerHTML = '<div class="fd-wrap"><div class="fd-error">Could not load feed preview.</div></div>';
+      container.innerHTML =
+        '<div class="fd-wrap"><div class="fd-error">Could not load feed preview.</div></div>';
     }
   }
 

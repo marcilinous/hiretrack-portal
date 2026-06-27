@@ -1,8 +1,10 @@
 /**
  * Public job browse — unauthenticated happy path.
  *
- * These tests hit the live site (or BASE_URL env) and verify that core
- * read-only surfaces load correctly with no auth required.
+ * Selectors are based on the actual jobs.html DOM:
+ *   - Job cards:    .bj-job-card  (rendered by browse-jobs.js)
+ *   - Search input: #f-kw  (desktop filter bar)
+ *   - Detail modal: #am-backdrop  (injected by apply-modal.js)
  */
 import { test, expect } from '@playwright/test';
 
@@ -11,28 +13,26 @@ test.describe('Public job browse (jobs.html)', () => {
     await page.goto('/jobs.html');
     await expect(page).toHaveTitle(/HireTrack/i);
 
-    // At least one job card should render within 10 s
-    const jobCard = page.locator('[data-job-id], .job-card, .job-item').first();
-    await expect(jobCard).toBeVisible({ timeout: 10_000 });
+    // At least one job card should render within 15 s (Supabase fetch)
+    const jobCard = page.locator('.bj-job-card').first();
+    await expect(jobCard).toBeVisible({ timeout: 15_000 });
   });
 
   test('keyword filter narrows results', async ({ page }) => {
     await page.goto('/jobs.html');
 
-    const searchInput = page
-      .getByPlaceholder(/search/i)
-      .or(page.getByPlaceholder(/job title/i))
-      .first();
-    await expect(searchInput).toBeVisible({ timeout: 8_000 });
+    // Wait for initial load
+    await expect(page.locator('.bj-job-card').first()).toBeVisible({ timeout: 15_000 });
+
+    const searchInput = page.locator('#f-kw');
+    await expect(searchInput).toBeVisible({ timeout: 5_000 });
     await searchInput.fill('developer');
     await searchInput.press('Enter');
 
-    // Wait for results to refresh (loading indicator disappears or new cards appear)
-    await page.waitForTimeout(2_000);
+    // Wait for re-render (debounce + network)
+    await page.waitForTimeout(3_000);
 
-    // Page should still have job listings (not an error state)
-    const errorMsg = page.getByText(/no jobs found|error loading/i);
-    // It's okay if there are genuinely no results, but there should be no crash
+    // Page should still be functional — no crash
     const bodyText = await page.locator('body').innerText();
     expect(bodyText).not.toMatch(/TypeError|undefined is not/i);
   });
@@ -40,15 +40,13 @@ test.describe('Public job browse (jobs.html)', () => {
   test('job detail modal opens on card click', async ({ page }) => {
     await page.goto('/jobs.html');
 
-    const firstCard = page.locator('[data-job-id], .job-card, .job-item').first();
-    await expect(firstCard).toBeVisible({ timeout: 10_000 });
+    const firstCard = page.locator('.bj-job-card').first();
+    await expect(firstCard).toBeVisible({ timeout: 15_000 });
     await firstCard.click();
 
-    // Modal or detail panel should appear
-    const modal = page
-      .locator('.modal, [role="dialog"], .job-detail-panel, .apply-modal')
-      .first();
-    await expect(modal).toBeVisible({ timeout: 5_000 });
+    // apply-modal.js injects #am-backdrop and adds .am-open when a card is clicked
+    const modal = page.locator('#am-backdrop');
+    await expect(modal).toHaveClass(/am-open/, { timeout: 5_000 });
   });
 
   test('no console errors on load', async ({ page }) => {
@@ -67,9 +65,9 @@ test.describe('Public job browse (jobs.html)', () => {
         !e.includes('favicon') &&
         !e.includes('analytics') &&
         !e.includes('gtag') &&
-        !e.includes('Failed to load resource') // 3rd-party CDN
+        !e.includes('Failed to load resource')
     );
-    expect(critical, `Console errors: ${critical.join('\n')}`).toHaveLength(0);
+    expect(critical, `Console errors:\n${critical.join('\n')}`).toHaveLength(0);
   });
 });
 
