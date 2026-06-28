@@ -384,7 +384,9 @@
 
   async function deleteCandidate(id) {
     if (!confirm('Delete this candidate account? This cannot be undone.')) return;
-    await sb.from('candidates').delete().eq('id', id);
+    // Service-role API — candidates has no RLS DELETE policy, so the anon key can't.
+    const r = await adminApi('candidate-delete', { id });
+    if (!r.ok) { toast('Delete failed.'); return; }
     renderCandidatesTable(); toast('Candidate deleted!');
   }
 
@@ -411,8 +413,9 @@
 
   async function deleteEmployer(id) {
     if (!confirm('Delete this employer and all their jobs? This cannot be undone.')) return;
-    await sb.from('jobs').delete().eq('employer_id', id);
-    await sb.from('employers').delete().eq('id', id);
+    // Service-role API — employers/jobs deletes are blocked for the anon key under RLS.
+    const r = await adminApi('employer-delete', { id });
+    if (!r.ok) { toast('Delete failed.'); return; }
     renderEmployersTable(); toast('Employer deleted!');
   }
 
