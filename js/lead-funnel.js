@@ -87,6 +87,17 @@
         return 'Please use your company email (not a personal one).';
       return null;
     },
+    pincode(v) {
+      const s = (v || '').trim();
+      if (!/^\d{6}$/.test(s)) return 'Enter a valid 6-digit pincode.';
+      return null;
+    },
+    city(v) {
+      const s = (v || '').trim();
+      if (s.length < 2) return 'City is required.';
+      return null;
+    },
+    // subcity is optional (some pincodes resolve to a single area) — not validated.
   };
 
   // ── State ────────────────────────────────────────────────────────────────────
@@ -131,6 +142,9 @@
 .lqf-badge{font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;
   background:linear-gradient(135deg,#2563eb,#7c3aed);padding:3px 8px;border-radius:999px;}
 .lqf-field{margin-bottom:1.15rem;}
+.lqf-row{display:grid;grid-template-columns:1fr 1fr;gap:0 .85rem;}
+.lqf-input[disabled]{background:#f8fafc;color:#94a3b8;cursor:not-allowed;}
+select.lqf-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M6 8 0 1.4 1.4 0 6 4.6 10.6 0 12 1.4z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.2rem;}
 .lqf-label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem;}
 .lqf-input{width:100%;box-sizing:border-box;border:1.5px solid var(--lqf-line);border-radius:10px;
   padding:.8rem .9rem;font-size:.95rem;font-family:inherit;color:var(--lqf-ink);transition:border-color .15s,box-shadow .15s;}
@@ -158,7 +172,7 @@
   font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;}
 .lqf-pill{display:inline-block;font-size:.72rem;font-weight:700;color:#475569;background:#f1f5f9;
   border-radius:999px;padding:4px 12px;margin-bottom:1rem;}
-@media (max-width:560px){ .lqf-card{padding:1.6rem;border-radius:16px;} .lqf-title{font-size:1.3rem;} }
+@media (max-width:560px){ .lqf-card{padding:1.6rem;border-radius:16px;} .lqf-title{font-size:1.3rem;} .lqf-row{grid-template-columns:1fr;} }
 `;
     const el = document.createElement('style');
     el.id = 'lqf-styles';
@@ -249,13 +263,39 @@
 
   // ── Step 2A: Standard flow ───────────────────────────────────────────────────
   function renderStandard() {
+    // A field whose control is a plain text input.
     const field = (id, label, type, placeholder, hint) =>
-      h('div', { class: 'lqf-field' }, [
-        h('label', { class: 'lqf-label', for: 'lqf-' + id, text: label }),
+      fieldWith(
+        id,
+        label,
         h('input', { class: 'lqf-input', id: 'lqf-' + id, type, placeholder, autocomplete: 'on' }),
+        hint
+      );
+
+    // A field wrapping any control node (input or select).
+    function fieldWith(id, label, control, hint) {
+      return h('div', { class: 'lqf-field' }, [
+        h('label', { class: 'lqf-label', for: 'lqf-' + id, text: label }),
+        control,
         hint ? h('div', { class: 'lqf-hint', text: hint }) : null,
         h('div', { class: 'lqf-err', id: 'lqf-err-' + id }),
       ]);
+    }
+
+    // City + sub-city are derived dynamically from the pincode via PincodeUtil
+    // (India Post API) — the same mechanism used across signup / post-job.
+    const cityInput = h('input', {
+      class: 'lqf-input',
+      id: 'lqf-city',
+      type: 'text',
+      placeholder: 'Auto-filled from pincode',
+      autocomplete: 'off',
+    });
+    const subcitySelect = h(
+      'select',
+      { class: 'lqf-input', id: 'lqf-subcity', disabled: 'disabled' },
+      [h('option', { value: '', text: 'Area / locality (optional)' })]
+    );
 
     const form = h(
       'form',
@@ -271,6 +311,17 @@
           'priya@acme.com',
           'Use your company email — we send a secure sign-in link.'
         ),
+        field(
+          'pincode',
+          'Pincode',
+          'text',
+          '560001',
+          'Enter your 6-digit pincode — city & area fill in automatically.'
+        ),
+        h('div', { class: 'lqf-row' }, [
+          fieldWith('city', 'City', cityInput),
+          fieldWith('subcity', 'Area / locality', subcitySelect),
+        ]),
         h('button', { class: 'lqf-btn', type: 'submit', id: 'lqf-submit', text: 'Get started →' }),
         h('div', { class: 'lqf-trust' }, [
           h('span', { text: '🔒' }),
@@ -278,6 +329,10 @@
         ]),
       ]
     );
+
+    // Wire the dynamic pincode → city/sub-city lookup once the fields are in the DOM
+    // (mirrors how the React spec would run this in a useEffect on mount).
+    setTimeout(initPincode, 0);
 
     return h('div', null, [
       stepDots(2),
@@ -302,6 +357,12 @@
     if (err) err.textContent = msg || '';
   }
 
+  // Dynamic city/sub-city from pincode (India Post API via the shared PincodeUtil).
+  function initPincode() {
+    if (typeof window.PincodeUtil === 'undefined') return;
+    window.PincodeUtil.attach('lqf-pincode', 'lqf-city', 'lqf-subcity');
+  }
+
   async function onStandardSubmit(e) {
     e.preventDefault();
     if (state.submitting) return;
@@ -310,6 +371,9 @@
       name: document.getElementById('lqf-name').value,
       company: document.getElementById('lqf-company').value,
       workEmail: document.getElementById('lqf-workEmail').value,
+      pincode: document.getElementById('lqf-pincode').value,
+      city: document.getElementById('lqf-city').value,
+      subcity: document.getElementById('lqf-subcity').value,
     };
 
     let firstBad = null;
@@ -339,6 +403,9 @@
           name: values.name.trim(),
           company: values.company.trim(),
           workEmail: values.workEmail.trim().toLowerCase(),
+          pincode: values.pincode.trim(),
+          city: values.city.trim(),
+          subcity: values.subcity.trim(),
           annualVolume: state.selected.id,
         }),
       });
