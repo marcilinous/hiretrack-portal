@@ -116,6 +116,11 @@ const PincodeUtil = {
   }
 };
 
+// Expose on window. A top-level `const` is NOT attached to window — it's only
+// reachable as a bareword global — so consumers that reference `window.PincodeUtil`
+// (e.g. js/lead-funnel.js) would otherwise see `undefined` and skip the lookup.
+window.PincodeUtil = PincodeUtil;
+
 /**
  * ARCHITECTURE NOTE — How to map Pincodes to Cities/Sub-cities:
  * 
