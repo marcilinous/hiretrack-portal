@@ -63,6 +63,10 @@ export default async function handler(req, res) {
         return await delistJob(req, res, body);
       case 'relist':
         return await relistJob(req, res, body);
+      case 'candidate-delete':
+        return await deleteCandidateRow(req, res, body);
+      case 'employer-delete':
+        return await deleteEmployerRow(req, res, body);
       case 'applications':
         return await getApplicationsList(req, res);
       case 'application-update':
@@ -164,11 +168,11 @@ async function getJobs(req, res, body) {
 }
 
 async function getEmployers(req, res, body) {
-  const { page = 0, filter = 'all' } = body || {};
-  const limit = 30;
-  const offset = page * limit;
+  const { page = 0, filter = 'all', limit = 200 } = body || {};
+  const lim = Math.min(Math.max(parseInt(limit, 10) || 200, 1), 500);
+  const offset = page * lim;
 
-  let qs = `employers?select=id,company,contact_name,email,city,plan,plan_expires_at,created_at&order=created_at.desc&limit=${limit}&offset=${offset}`;
+  let qs = `employers?select=id,company,contact_name,email,city,plan,plan_expires_at,created_at&order=created_at.desc&limit=${lim}&offset=${offset}`;
   if (filter === 'paid') qs += '&plan=neq.free';
   if (filter === 'free') qs += '&plan=eq.free';
 
@@ -198,12 +202,14 @@ async function getEmployers(req, res, body) {
 }
 
 async function getCandidates(req, res, body) {
-  const { page = 0 } = body || {};
-  const limit = 30;
-  const offset = page * limit;
+  const { page = 0, limit = 200 } = body || {};
+  const lim = Math.min(Math.max(parseInt(limit, 10) || 200, 1), 500);
+  const offset = page * lim;
 
+  // Service key → admin may see contact PII (email). The browser anon key cannot
+  // read these columns once v37 RLS lands; admin reads must go through this API.
   const candidates = await sbQuery(
-    `candidates?select=id,name,city,jobtitle,experience,skills,created_at,boosted_until&order=created_at.desc&limit=${limit}&offset=${offset}`
+    `candidates?select=id,name,email,city,jobtitle,experience,skills,created_at,boosted_until,pro_expires_at&order=created_at.desc&limit=${lim}&offset=${offset}`
   );
 
   return res.json({ ok: true, candidates: Array.isArray(candidates) ? candidates : [] });
@@ -230,6 +236,38 @@ async function relistJob(req, res, body) {
     method: 'PATCH',
     headers: sbHeaders(),
     body: JSON.stringify({ delisted: false }),
+  });
+
+  return res.json({ ok: r.ok });
+}
+
+// ── Candidate / employer deletion (RLS has no DELETE policy — service role only) ──
+
+async function deleteCandidateRow(req, res, body) {
+  const { id } = body || {};
+  if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/candidates?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: sbHeaders(),
+  });
+
+  return res.json({ ok: r.ok });
+}
+
+async function deleteEmployerRow(req, res, body) {
+  const { id } = body || {};
+  if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+
+  // Mirror the prior admin behavior: remove the employer's jobs first, then the
+  // employer row.
+  await fetch(`${SUPABASE_URL}/rest/v1/jobs?employer_id=eq.${id}`, {
+    method: 'DELETE',
+    headers: sbHeaders(),
+  });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/employers?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: sbHeaders(),
   });
 
   return res.json({ ok: r.ok });

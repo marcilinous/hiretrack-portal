@@ -314,9 +314,11 @@ document.getElementById('navbar').innerHTML = renderNavbar('');
     return;
   }
 
-  // Fetch public-safe fields only — no email, mobile, resume data
+  // Fetch public-safe fields only — no email, mobile, resume data.
+  // candidates_public is a view exposing only non-sensitive columns (the base
+  // candidates table is owner/relationship-locked via RLS).
   const { data: c, error } = await sb
-    .from('candidates')
+    .from('candidates_public')
     .select('id,name,jobtitle,city,experience,current_company,preferred_job_type,notice_period,expected_salary,about,skills,photo_url,created_at,boosted_until')
     .eq('id', candidateId)
     .single();

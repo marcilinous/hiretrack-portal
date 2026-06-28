@@ -20,7 +20,7 @@ HireTrack ([hiretrack.co.in](https://hiretrack.co.in)) is a jobs-first professio
 | Database | Supabase Postgres (project `pdjnpqyzayidthpfmvjk`) |
 | Storage | Supabase Storage (`profile-photos`, `resumes` buckets, public with anon INSERT) |
 | Hosting | Vercel (`hiretrack-portal` project, auto-deploys from `main`) |
-| Auth | Custom (passwords stored in `candidates`/`employers` tables) — Supabase Auth migration is future work |
+| Auth | Supabase Auth (GoTrue) — email+password and email OTP. Credentials live in `auth.users` (bcrypt); a `handle_new_user()` trigger syncs new signups into `candidates`/`employers`. Migrated from custom auth in v20. |
 | AI | Groq LLaMA via `api/ai.js` proxy (JSON mode for quizzes, chat mode for career assistant) |
 | Payments | Razorpay (currently in test mode) |
 | Email | Resend (pending integration) |
@@ -326,17 +326,16 @@ Justification: codebases are diverging; separation lets each iterate independent
 
 ## 9. Future Work (post-roadmap)
 
-### Supabase Auth migration (priority: high once user base grows)
+### Supabase Auth migration (DONE)
 
-Current state: custom auth, passwords stored in `candidates` / `employers` tables, no RLS on user data. Anyone with the anon key could in theory write anywhere — the only protection is app-level logic. Acceptable for current scale; unacceptable beyond a few hundred users.
+Completed across v20–v35. The app no longer uses custom table-stored passwords:
+1. **v20** — migrated all existing candidates/employers into `auth.users` (bcrypt), added the `handle_new_user()` trigger that syncs new GoTrue signups into the profile tables, and enabled RLS with `auth.uid()` policies.
+2. Frontend uses GoTrue end-to-end (`app.js`: `signUp`, `signInWithPassword`, `signInWithOtp`, `verifyOtp`, `resetPasswordForEmail`, `updateUser`).
+3. **v22** dropped `NOT NULL` on the legacy `password` columns; **v29** scrubbed them to NULL.
+4. **v26 / v30 / v31** consolidated RLS policies (candidates, employers, jobs, applications, notifications, saved_jobs, conversations, messages, feed_*). Service-role-only CRM tables (`executives`, `callback_requests`, …) are RLS-on / no-policy, accessed via the service key in `api/*.js`.
+5. **v35** dropped the dead `password` columns entirely.
 
-Plan:
-1. Add Supabase Auth signup flow alongside existing flow (dual-write for new users)
-2. Migrate existing users: email password reset triggered by HireTrack, users set new Supabase Auth password on next login
-3. Once 90%+ migrated, enable RLS on `candidates`, `employers`, `jobs`, `applications`, `feed_posts`, etc., with policies scoped to `auth.uid()`
-4. Remove the legacy password columns
-
-This is a multi-week project. Don't start until Phase 4 is solid.
+**Remaining hardening (in progress):** the `candidates`/`employers` `SELECT` policies were `USING (true)` (full public read of PII). Being tightened to owner + relationship reads, with public-safe views (`candidates_public`, `employers_public`) and a `search_talent` RPC that gates candidate mobile behind a paid employer plan or an existing application. See v36/v37.
 
 ### Orphan storage cleanup
 
@@ -385,6 +384,8 @@ Major architecture decisions and their rationale. New decisions appended to `doc
 | 2026 | Storage with UUID paths | Sidesteps RLS upsert complications; orphan cleanup is cheap |
 | 2026 | Single canonical visibility filter `delisted=false AND status='active'` | Eliminates the dual-column inconsistency that caused profile.html and jobs.html to show different job sets |
 | 2026 | Match score counts job skills satisfied (capped at 100%) | Semantically correct: % of job's required skills the candidate has |
+| 2026 | Migrated to Supabase Auth + RLS (v20–v35) | Custom table-stored passwords were unscalable and unsafe; GoTrue + `auth.uid()` RLS scopes data access to the logged-in user |
+| 2026 | Candidate/employer PII served via public-safe views + gated RPC, base tables owner+relationship only | `USING (true)` exposed every email/mobile to any anon-key holder; views expose only safe columns, `search_talent` reveals mobile only to paid/applied employers |
 
 ---
 
