@@ -62,6 +62,9 @@ function validate(body) {
     .trim()
     .toLowerCase();
   const annualVolume = String(body?.annualVolume || body?.annual_volume || '').trim();
+  const pincode = String(body?.pincode || '').trim();
+  const city = String(body?.city || '').trim();
+  const subcity = String(body?.subcity || '').trim();
 
   if (name.length < 2) return { ok: false, error: 'Please enter your full name.' };
   if (company.length < 2) return { ok: false, error: 'Please enter your company name.' };
@@ -72,6 +75,10 @@ function validate(body) {
     return { ok: false, error: 'Please use your company email address (not a personal one).' };
   }
 
+  if (!/^\d{6}$/.test(pincode))
+    return { ok: false, error: 'Please enter a valid 6-digit pincode.' };
+  if (city.length < 2) return { ok: false, error: 'Please enter your city.' };
+
   const segment = VOLUME_TO_SEGMENT[annualVolume];
   if (!segment) return { ok: false, error: 'Please select how many roles you hire annually.' };
   // 50+ books via Cal.com; it should never POST here.
@@ -81,7 +88,16 @@ function validate(body) {
 
   return {
     ok: true,
-    data: { name, company, work_email: workEmail, annual_volume: annualVolume, segment },
+    data: {
+      name,
+      company,
+      work_email: workEmail,
+      annual_volume: annualVolume,
+      segment,
+      pincode,
+      city,
+      subcity: subcity || null,
+    },
   };
 }
 
