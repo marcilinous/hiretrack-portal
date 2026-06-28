@@ -3,7 +3,7 @@
 // Autonomous SEO/GEO blog automation for hiretrack.co.in.
 //
 // Daily pipeline (pg_cron → this function; see cron.sql):
-//   1. Pick a HireTrack-relevant topic (Bengaluru SME hiring / Data-MIS market),
+//   1. Pick a HireTrack-relevant topic (Bengaluru SME hiring across multiple domains),
 //      rotated by date.
 //   2. Generate the post with Groq in JSON mode → { title, metaDescription,
 //      keyTakeaways[], bodyHtml, faqs[] }. GEO-first: answer-first intro, a data
@@ -47,13 +47,13 @@ const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile"; // matches api/ai.js
 
 const TOPICS: Topic[] = [
-  { category: "Hiring Trends", angle: "Hyper-local SME hiring trends in Bengaluru this quarter" },
-  { category: "Data Careers", angle: "Data Analyst job market and salaries in Bengaluru" },
-  { category: "MIS Careers", angle: "MIS Executive demand and skills in Karnataka SMEs" },
-  { category: "SME Hiring", angle: "How Bengaluru SMEs hire faster and cheaper than big job boards" },
-  { category: "Salary Insights", angle: "Entry-level vs mid-level Data/MIS salaries across Bengaluru" },
-  { category: "Skills", angle: "Excel, SQL and Power BI skills employers want in Bengaluru" },
-  { category: "Local Markets", angle: "Hiring hotspots: Whitefield, Electronic City and Koramangala SMEs" },
+  { category: "Tech & Data", angle: "In-demand software development, IT support, and Data Analyst skills for Bengaluru SMEs" },
+  { category: "Sales & Marketing", angle: "How Bengaluru startups and SMEs are hiring local sales executives and digital marketing talent" },
+  { category: "Operations", angle: "SME hiring trends for office administrators, customer support, and operations managers in Karnataka" },
+  { category: "Hiring Strategy", angle: "How small businesses in Bengaluru can speed up recruitment without huge job board fees" },
+  { category: "Salary Insights", angle: "Entry-level vs mid-level salary expectations across different industries in Bengaluru SMEs" },
+  { category: "HR Advice", angle: "Best practices for screening, interviewing, and onboarding new employees quickly in a fast-paced SME" },
+  { category: "Local Markets", angle: "Top hiring hotspots: Whitefield, Electronic City, and Koramangala SME business growth trends" },
 ];
 
 function logError(stage: string, err: unknown): void {
@@ -103,7 +103,7 @@ async function generateArticle(apiKey: string, topic: Topic, prettyDate: string)
   const system = [
     "You are an expert SEO + GEO (Generative Engine Optimization) writer for HireTrack",
     "(hiretrack.co.in), a jobs-first platform for India's SME hiring market, focused on",
-    "Bengaluru/Karnataka and Data Analyst / MIS roles.",
+    "Bengaluru/Karnataka across multiple business domains like Tech, Sales, Operations, HR, and Administration.",
     "",
     "Return a single JSON object (no markdown, no commentary) with EXACTLY these keys:",
     '  "title": string (<= 60 chars, compelling, keyword-rich)',
@@ -117,7 +117,7 @@ async function generateArticle(apiKey: string, topic: Topic, prettyDate: string)
     "- NO Tailwind / utility classes, NO inline styles, NO <h1>, NO <html>/<head>/<body>, NO markdown.",
     "- The FIRST element must be a <p> that directly answers the topic in 2-3 sentences (for AI snippets).",
     "- Include at least one <table> with realistic data (e.g. role, salary range, demand) and one <ul>.",
-    "- ~550-650 words. Specific to Bengaluru/Karnataka SMEs and the Data/MIS market. Mention HireTrack once or twice.",
+    "- ~550-650 words. Specific to Bengaluru/Karnataka SMEs and the specified topic category. Mention HireTrack once or twice.",
     "- Frame numbers as typical/estimated ranges, not official statistics.",
     "faqs: real questions a hiring manager or job seeker would ask, with concise factual answers.",
   ].join("\n");
@@ -300,7 +300,7 @@ ${article.bodyHtml}
 ${faqSection}
   <div class="ht-cta">
     <h2 style="border:none;margin:0 0 0.5rem;">Hiring in Bengaluru?</h2>
-    <p>Post a job free and reach Data/MIS talent across Karnataka on HireTrack.</p>
+    <p>Post a job free and reach top talent across Karnataka on HireTrack.</p>
     <a href="/employer-auth.html">Post a Job →</a>
   </div>
 </div>
