@@ -93,6 +93,29 @@ export default async function handler(req, res) {
     console.error('sitemap DB error:', e.message);
   }
 
+  // Auto-published blog posts (seo-blog-autopublish logs each into blog_posts) —
+  // emitted dynamically so new posts are crawled without editing this file.
+  let blogUrls = '';
+  try {
+    const sb = createClient(SB_URL, SB_SERVICE_KEY);
+    const { data: posts } = await sb
+      .from('blog_posts')
+      .select('url, published_at')
+      .order('published_at', { ascending: false })
+      .limit(2000);
+
+    if (posts && posts.length > 0) {
+      blogUrls = posts
+        .map((p) => {
+          const loc = String(p.url).startsWith('http') ? p.url : `${BASE}${p.url}`;
+          return `  <url>\n    <loc>${esc(loc)}</loc>\n    <lastmod>${toW3CDate(p.published_at)}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`;
+        })
+        .join('\n');
+    }
+  } catch (e) {
+    console.error('sitemap blog error:', e.message);
+  }
+
   const staticUrls = STATIC_PAGES.map(
     (p) =>
       `  <url>\n    <loc>${BASE}${p.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`
@@ -102,6 +125,7 @@ export default async function handler(req, res) {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticUrls}
 ${jobUrls}
+${blogUrls}
 </urlset>`;
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
