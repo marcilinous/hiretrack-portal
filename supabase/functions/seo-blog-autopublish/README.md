@@ -37,12 +37,25 @@ curl -i -X POST \
   https://pdjnpqyzayidthpfmvjk.supabase.co/functions/v1/seo-blog-autopublish
 ```
 
-## Notes
+## Prerequisite migration
 
-- Generated pages load the **Tailwind CDN** so the AI's Tailwind utility classes
-  render on this otherwise no-build static site. To match the existing hand-written
-  posts visually instead, swap `buildPage()` to use the site's `style.css`
-  `.article-wrap` / `.article-hero` classes and have the prompt emit those.
-- The post is reachable by URL + included via JSON-LD, but it is **not** auto-added
-  to `blog.html` or `sitemap.xml` — wire those in if you want it in the index/sitemap.
-- Re-running on the same day overwrites that day's file (idempotent via the file SHA).
+Apply `migrations/v40_blog_posts.sql` (creates `public.blog_posts`, public-read /
+service-role-write). The function logs each post there; the sitemap and the blog
+index read from it.
+
+## SEO / GEO design
+
+- **No orphan pages.** After committing to GitHub, the function inserts the post
+  into `blog_posts`. `api/sitemap.js` emits a `<url>` for every row, and
+  `blog.html` renders the latest posts as cards — so each post is crawlable and
+  internally linked automatically.
+- **GEO-first content.** The Groq prompt runs in JSON mode and returns a title,
+  meta description, a **Key Takeaways** TL;DR, semantic-HTML body (answer-first
+  intro, data table, bulleted list) and an FAQ set. The page renders a visible FAQ
+  plus **BlogPosting + FAQPage JSON-LD** so AI engines (Google AI Overviews,
+  Perplexity, ChatGPT) can cite it.
+- **Site-native styling.** Pages use the site's `../style.css` + the standard
+  `.article-hero` / `.article-wrap` classes (no render-blocking Tailwind CDN), so
+  they match the hand-written posts and keep Core Web Vitals clean.
+- Re-running on the same day overwrites that day's file (file-SHA idempotent) and
+  upserts the `blog_posts` row (`on_conflict=slug`).

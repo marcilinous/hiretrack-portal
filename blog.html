@@ -85,7 +85,7 @@
   <p>Free resources to help you find better jobs, earn more, and grow your career in India.</p>
 </div>
 <div class="blog-wrap">
-  <div class="blog-grid">
+  <div class="blog-grid" id="blog-grid">
     <a class="blog-card" href="blog/mis-executive-salary-india-2026.html">
       <div class="blog-card-img" style="background:linear-gradient(135deg,#78350f,#92400e);">📊</div>
       <div class="blog-card-body">
@@ -264,6 +264,65 @@
 <script src="/js/sb-rest-shim.js"></script>
 <script src="app.js?v=6"></script>
 <script>document.getElementById('navbar').innerHTML = renderNavbar('blog');</script>
+<script>
+  // Dynamic blog index — prepend auto-published posts (from the blog_posts table,
+  // written by the seo-blog-autopublish Edge Function) ahead of the curated static
+  // cards. Creates internal links automatically for SEO + discovery.
+  (async function () {
+    const grid = document.getElementById('blog-grid');
+    if (!grid || typeof sb === 'undefined') return;
+    try {
+      const { data: posts } = await sb
+        .from('blog_posts')
+        .select('title,url,description,category,published_at')
+        .order('published_at', { ascending: false })
+        .limit(12);
+      if (!posts || !posts.length) return;
+
+      const THEME = {
+        'Hiring Trends':   { emoji: '📈', bg: '#1e3a5f,#0f172a', cat: '#dbeafe,#1d4ed8' },
+        'Data Careers':    { emoji: '📊', bg: '#78350f,#92400e', cat: '#fef3c7,#92400e' },
+        'MIS Careers':     { emoji: '🗂️', bg: '#312e81,#4338ca', cat: '#e0e7ff,#4338ca' },
+        'SME Hiring':      { emoji: '🏢', bg: '#064e3b,#047857', cat: '#d1fae5,#047857' },
+        'Salary Insights': { emoji: '💰', bg: '#7c2d12,#9a3412', cat: '#ffedd5,#9a3412' },
+        'Skills':          { emoji: '🧠', bg: '#155e75,#0e7490', cat: '#cffafe,#0e7490' },
+        'Local Markets':   { emoji: '📍', bg: '#3f3f46,#18181b', cat: '#e4e4e7,#3f3f46' },
+      };
+      const esc = (s) =>
+        String(s == null ? '' : s).replace(/[&<>"]/g, (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+        );
+      const fmt = (d) => {
+        try {
+          return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (e) {
+          return '';
+        }
+      };
+
+      const html = posts
+        .map((p) => {
+          const t = THEME[p.category] || { emoji: '📰', bg: '#1e3a5f,#0f172a', cat: '#dbeafe,#1d4ed8' };
+          const [cbg, ccolor] = t.cat.split(',');
+          const href = String(p.url || '').replace(/^\//, '');
+          return `<a class="blog-card" href="${esc(href)}">
+          <div class="blog-card-img" style="background:linear-gradient(135deg,${t.bg});">${t.emoji}</div>
+          <div class="blog-card-body">
+            <span class="blog-cat" style="background:${cbg};color:${ccolor};">${esc(p.category || 'Insights')}</span>
+            <h2>${esc(p.title)}</h2>
+            <p>${esc(p.description || '')}</p>
+            <div class="blog-meta"><span>${esc(fmt(p.published_at))}</span></div>
+          </div>
+        </a>`;
+        })
+        .join('');
+
+      grid.insertAdjacentHTML('afterbegin', html);
+    } catch (e) {
+      console.error('blog index load failed:', e); // static cards remain
+    }
+  })();
+</script>
 <script>(function(){var _cy=document.getElementById("copy-year");if(_cy)_cy.textContent=new Date().getFullYear();})();</script>
 </body>
 </html>
