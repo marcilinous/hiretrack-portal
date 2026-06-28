@@ -1254,7 +1254,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     grid.innerHTML = `<div class="talent-grid">${results.slice(0,60).map(c => {
       const boosted = c.boosted_until && new Date() < new Date(c.boosted_until);
       const initials = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
-      const photoSrc = c.photo_url || c.profile_photo;
+      const photoSrc = c.photo_url;
       const skills = Array.isArray(c.skills) ? c.skills : (c.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
       const waMsg = encodeURIComponent(`Hi ${c.name}, I'm ${employer.contact_name} from ${employer.company}. I found your profile on HireTrack and would like to connect about a job opportunity.`);
       return `<div class="tc${boosted?' tc-boosted':''}">

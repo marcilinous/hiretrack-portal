@@ -26,7 +26,7 @@ DROP VIEW IF EXISTS public.candidates_public;
 CREATE VIEW public.candidates_public AS
   SELECT id, name, jobtitle, city, experience, current_company,
          preferred_job_type, notice_period, expected_salary, about,
-         skills, photo_url, profile_photo, created_at, boosted_until
+         skills, photo_url, created_at, boosted_until
   FROM public.candidates
   WHERE name IS NOT NULL;
 
@@ -83,9 +83,8 @@ RETURNS TABLE (
   jobtitle      text,
   city          text,
   experience    text,
-  skills        jsonb,
+  skills        text[],
   photo_url     text,
-  profile_photo text,
   boosted_until timestamptz,
   mobile        text
 )
@@ -96,7 +95,7 @@ SET search_path = public
 AS $$
   SELECT
     c.id, c.name, c.jobtitle, c.city, c.experience,
-    c.skills, c.photo_url, c.profile_photo, c.boosted_until,
+    c.skills, c.photo_url, c.boosted_until,
     CASE
       WHEN public._employer_can_see_contact(auth.uid(), c.id) THEN c.mobile
       ELSE NULL
