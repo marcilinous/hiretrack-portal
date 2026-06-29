@@ -9,14 +9,20 @@ const CORS = (res) => {
 };
 
 const EMPLOYER_PLANS_ORDER = {
-  basic: { price: 499 },
-  growth: { price: 999 },
-  pro: { price: 2499 },
+  starter:      { price: 499  },
+  growth:       { price: 999  },
+  pro:          { price: 1499 },
+  pro_plus:     { price: 2499 },
+  enterprise_a: { price: 4999 },
+  enterprise_b: { price: 9999 },
 };
 const EMPLOYER_PLANS_VERIFY = {
-  basic: { jobs: 1, days: 30 },
-  growth: { jobs: 3, days: 30 },
-  pro: { jobs: 6, days: 30 },
+  starter:      { jobs: 1, days: 10, unlocks: 10  },
+  growth:       { jobs: 3, days: 25, unlocks: 25  },
+  pro:          { jobs: 3, days: 30, unlocks: 35  },
+  pro_plus:     { jobs: 5, days: 30, unlocks: 50  },
+  enterprise_a: { jobs: 5, days: 30, unlocks: 100 },
+  enterprise_b: { jobs: 9, days: 30, unlocks: 150 },
 };
 const ADDON_PRICE = 199; // ₹ per add-on job post
 
@@ -225,6 +231,7 @@ async function employerVerify(req, res, body) {
       plan_expires_at: planExpiresISO,
       job_limit: plan.jobs,
       day_limit: plan.days,
+      day_unlock_limit: plan.unlocks,
       is_free_trial: false,
     }),
   });
@@ -260,6 +267,7 @@ async function employerVerify(req, res, body) {
     plan_expires_at: planExpiresISO,
     job_limit: plan.jobs,
     day_limit: plan.days,
+    day_unlock_limit: plan.unlocks,
   });
 }
 
@@ -320,13 +328,13 @@ async function addonVerify(req, res, body) {
   );
   if (!emp) return res.status(404).json({ ok: false, error: 'Employer not found' });
   const paidActive =
-    ['basic', 'growth', 'pro'].includes(emp.plan) &&
+    ['starter', 'growth', 'pro', 'pro_plus', 'enterprise_a', 'enterprise_b'].includes(emp.plan) &&
     emp.plan_expires_at &&
     new Date(emp.plan_expires_at) > new Date();
   if (!paidActive) {
     return res
       .status(400)
-      .json({ ok: false, error: 'Add-on posts require an active Basic, Growth or Pro plan.' });
+      .json({ ok: false, error: 'Add-on posts require an active paid plan.' });
   }
 
   await sbPost(
