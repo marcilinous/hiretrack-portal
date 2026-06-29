@@ -584,7 +584,7 @@ function renderCards() {
         </div>
         ${showDirectEnterprisePay
           ? `<button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}','pay')">${directPayLabel}</button>
-             <button class="plan-cta-btn" style="margin-top:8px;background:transparent;border:1.5px solid ${isActive ? '#64748b' : '#e2e8f0'};color:${isActive ? '#cbd5e1' : '#64748b'};" onclick="handleCta(event,'${plan.id}','sales')">📞 Contact Sales Manager</button>`
+             <button class="plan-cta-btn" style="margin-top:8px;background:transparent;border:1.5px solid ${isActive ? '#64748b' : '#e2e8f0'};color:${isActive ? '#cbd5e1' : '#64748b'};" onclick="handleCta(event,'${plan.id}','sales')">📞 Request Callback</button>`
           : `<button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}')">${ctaLabel}</button>`}
       </div>`;
   }).join('');
