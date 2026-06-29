@@ -178,6 +178,15 @@
     <button id="btn-view-table" onclick="setView('table')">Compare All</button>
   </div>
 
+  <!-- Billing-cycle toggle (only affects monthly plans: Pro, Pro+, Enterprise) -->
+  <div id="cycle-toggle" style="display:flex;justify-content:center;align-items:center;gap:10px;margin:-12px 0 24px;font-size:13px;font-weight:600;color:#64748b;">
+    <span id="cycle-label-monthly" style="color:#0f172a;">Monthly</span>
+    <button id="cycle-switch" onclick="toggleBillingCycle()" aria-label="Toggle billing cycle" style="position:relative;width:46px;height:24px;border-radius:24px;border:none;background:#cbd5e1;cursor:pointer;padding:0;transition:background 0.15s;">
+      <span id="cycle-knob" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:transform 0.15s;"></span>
+    </button>
+    <span id="cycle-label-annual">Annual <span style="background:#dcfce7;color:#15803d;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700;margin-left:4px;">2 MONTHS FREE</span></span>
+  </div>
+
   <!-- Cards view -->
   <div id="view-cards">
     <div class="plan-cards-row" id="plan-cards-row"></div>
@@ -406,9 +415,40 @@ const PLANS = [
 ];
 
 const PAID_PLANS = ['starter','growth','pro','pro_plus','enterprise_a','enterprise_b'];
+// Annual billing applies only to true monthly plans (Starter is 10d, Growth is 25d).
+const ANNUAL_ELIGIBLE = new Set(['pro','pro_plus','enterprise_a','enterprise_b']);
+const ANNUAL_MONTHS = 10; // 12-month commit at 10-month price = 2 months free
 
 let activePlanId = 'pro_plus';
 let currentView = 'cards';
+let billingCycle = 'monthly'; // 'monthly' | 'annual'
+
+function displayPrice(plan) {
+  if (billingCycle === 'annual' && ANNUAL_ELIGIBLE.has(plan.id)) {
+    return plan.price * ANNUAL_MONTHS;
+  }
+  return plan.price;
+}
+
+function displayPeriod(plan) {
+  if (billingCycle === 'annual' && ANNUAL_ELIGIBLE.has(plan.id)) return '/ year';
+  return plan.period;
+}
+
+function toggleBillingCycle() {
+  billingCycle = billingCycle === 'monthly' ? 'annual' : 'monthly';
+  const sw = document.getElementById('cycle-switch');
+  const knob = document.getElementById('cycle-knob');
+  const lm = document.getElementById('cycle-label-monthly');
+  const la = document.getElementById('cycle-label-annual');
+  const isAnnual = billingCycle === 'annual';
+  sw.style.background = isAnnual ? '#10b981' : '#cbd5e1';
+  knob.style.transform = isAnnual ? 'translateX(22px)' : 'translateX(0)';
+  lm.style.color = isAnnual ? '#64748b' : '#0f172a';
+  la.style.color = isAnnual ? '#0f172a' : '#64748b';
+  renderCards();
+  if (currentView === 'table') renderTable();
+}
 
 function fmt(n) {
   return '₹' + n.toLocaleString('en-IN');
@@ -444,15 +484,25 @@ function renderCards() {
     const currentTag = isCurrent ? `<div class="current-plan-tag">✓ Current Plan</div>` : '';
     const ctaLabel = isCurrent ? 'Current Plan' : plan.cta;
     const ctaStyle = isActive ? `background:${plan.color};` : '';
+    const isAnnualView = billingCycle === 'annual';
+    const annualEligible = ANNUAL_ELIGIBLE.has(plan.id);
+    const priceShown = displayPrice(plan);
+    const periodShown = displayPeriod(plan);
+    const annualHint = isAnnualView && !annualEligible
+      ? `<div class="plan-note-small" style="color:#94a3b8;">Annual billing not available on this plan</div>`
+      : (isAnnualView && annualEligible
+          ? `<div class="plan-note-small" style="color:#15803d;">Save ${fmt(plan.price * 2)} vs monthly</div>`
+          : '');
     return `
       <div class="${classes}" onclick="selectPlan('${plan.id}')" data-plan="${plan.id}">
         ${badgeHtml}
         <div class="plan-tier">${plan.name}</div>
         ${currentTag}
         <div class="plan-price-row">
-          <span class="plan-price-amt">${fmt(plan.price)}</span>
-          <span class="plan-price-per">${plan.period}</span>
+          <span class="plan-price-amt">${fmt(priceShown)}</span>
+          <span class="plan-price-per">${periodShown}</span>
         </div>
+        ${annualHint}
         ${plan.note ? `<div class="plan-note-small">${plan.note}</div>` : ''}
         <div class="plan-features-mini">
           <div class="plan-feat-group"><div class="feat-label">Active Job Posts</div><div class="feat-val">${plan.jobsLabel}</div></div>
@@ -507,7 +557,7 @@ function renderTable() {
     <thead>
       <tr>
         <th>Feature</th>
-        ${PLANS.map(p => `<th>${p.name}<div class="th-price">${fmt(p.price)}</div></th>`).join('')}
+        ${PLANS.map(p => `<th>${p.name}<div class="th-price">${fmt(displayPrice(p))} ${displayPeriod(p)}</div></th>`).join('')}
       </tr>
     </thead>
     <tbody>
@@ -530,6 +580,14 @@ function handleCta(e, planId) {
   if (!plan) return;
   if (plan.enterpriseOnly) {
     window.location.href = 'mailto:sales@hiretrack.co.in?subject=HireTrack%20Enterprise%20Enquiry';
+    return;
+  }
+  // Annual checkout currently routes through the monthly Razorpay order at the
+  // monthly price — backend annual-cycle support lands in a follow-up commit.
+  // For now, force monthly checkout and surface a hint if user picked annual.
+  if (billingCycle === 'annual' && ANNUAL_ELIGIBLE.has(planId)) {
+    showToast('Annual billing — our sales team will reach out to set it up.');
+    window.location.href = `mailto:sales@hiretrack.co.in?subject=Annual%20billing%20-%20${encodeURIComponent(plan.name)}%20plan`;
     return;
   }
   buyPlan(planId, plan.price);
