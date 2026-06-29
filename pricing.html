@@ -231,7 +231,7 @@
     <h2>Need a custom plan?</h2>
     <p>Our sales team can help you find the right fit — volume pricing, custom unlock limits, dedicated onboarding, and more.</p>
     <div class="contact-sales-btns">
-      <a href="mailto:sales@hiretrack.co.in" class="btn-sales-email">✉ sales@hiretrack.co.in</a>
+      <button onclick="openEnterpriseForm(null)" class="btn-sales-email" style="border:none;cursor:pointer;font-family:inherit;">✉ Talk to Sales</button>
       <a href="tel:+91XXXXXXXXXX" class="btn-sales-call">📞 Call Sales Team</a>
     </div>
   </div>
@@ -262,6 +262,68 @@
   </div>
 
 </div><!-- /pricing-page -->
+
+<!-- Enterprise Contact Modal -->
+<div class="invoice-overlay" id="enterprise-modal">
+  <div class="invoice-box" style="max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+      <h2 style="font-size:1.2rem;font-weight:800;color:#0f172a;margin:0;">Talk to Sales</h2>
+      <button onclick="closeEnterpriseForm()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#64748b;">✕</button>
+    </div>
+    <p id="ent-subtitle" style="font-size:0.85rem;color:#64748b;margin:0 0 1.2rem;">Tell us about your hiring needs and we'll reach out within one business day.</p>
+
+    <form id="enterprise-form" onsubmit="submitEnterpriseForm(event)" style="display:flex;flex-direction:column;gap:0.75rem;">
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:4px;">Your Name *</label>
+        <input id="ent-name" type="text" required style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;box-sizing:border-box;" placeholder="Riya Sharma">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:4px;">Company *</label>
+        <input id="ent-company" type="text" required style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;box-sizing:border-box;" placeholder="Acme Pvt Ltd">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:4px;">Work Email *</label>
+        <input id="ent-email" type="email" required style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;box-sizing:border-box;" placeholder="riya@acme.com">
+        <div style="font-size:0.7rem;color:#94a3b8;margin-top:3px;">Personal email addresses are not accepted.</div>
+      </div>
+
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:6px;">How should we contact you?</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="ent-pref-row">
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.78rem;padding:0.55rem 0.5rem;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;justify-content:center;background:#fff;">
+            <input type="radio" name="ent-pref" value="email" checked onchange="updateEntPref()" style="margin:0;"> Email
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.78rem;padding:0.55rem 0.5rem;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;justify-content:center;background:#fff;">
+            <input type="radio" name="ent-pref" value="callback" onchange="updateEntPref()" style="margin:0;"> Callback
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:0.78rem;padding:0.55rem 0.5rem;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;justify-content:center;background:#fff;">
+            <input type="radio" name="ent-pref" value="calendar" onchange="updateEntPref()" style="margin:0;"> Book a slot
+          </label>
+        </div>
+      </div>
+
+      <div id="ent-callback-wrap" style="display:none;">
+        <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:4px;">When should we call?</label>
+        <input id="ent-callback-at" type="datetime-local" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;box-sizing:border-box;">
+      </div>
+
+      <div id="ent-calendar-wrap" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.85rem 1rem;font-size:0.82rem;color:#15803d;">
+        We'll send a Cal.com booking link to your work email so you can pick any slot that works for you.
+      </div>
+
+      <div id="ent-error" style="display:none;font-size:0.78rem;color:#b91c1c;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:0.5rem 0.75rem;"></div>
+
+      <button id="ent-submit" type="submit" style="margin-top:0.5rem;background:#8b5cf6;color:#fff;border:none;padding:0.85rem;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">Send Enquiry</button>
+    </form>
+
+    <div id="ent-success" style="display:none;text-align:center;padding:1rem 0;">
+      <div style="width:56px;height:56px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;font-size:1.5rem;">✅</div>
+      <h3 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0 0 0.3rem;">Thank you!</h3>
+      <p style="font-size:0.85rem;color:#64748b;margin:0 0 1.2rem;">Our sales team will reach out within one business day.</p>
+      <button onclick="closeEnterpriseForm()" style="background:#0f172a;color:#fff;border:none;padding:0.7rem 1.6rem;border-radius:10px;font-weight:700;font-size:0.88rem;cursor:pointer;font-family:inherit;">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- Invoice Modal -->
 <div class="invoice-overlay" id="invoice-modal">
@@ -589,18 +651,127 @@ function handleCta(e, planId) {
   const plan = PLANS.find(p => p.id === planId);
   if (!plan) return;
   if (plan.enterpriseOnly) {
-    window.location.href = 'mailto:sales@hiretrack.co.in?subject=HireTrack%20Enterprise%20Enquiry';
+    openEnterpriseForm(plan);
     return;
   }
-  // Annual checkout currently routes through the monthly Razorpay order at the
-  // monthly price — backend annual-cycle support lands in a follow-up commit.
-  // For now, force monthly checkout and surface a hint if user picked annual.
   if (billingCycle === 'annual' && ANNUAL_ELIGIBLE.has(planId)) {
-    showToast('Annual billing — our sales team will reach out to set it up.');
-    window.location.href = `mailto:sales@hiretrack.co.in?subject=Annual%20billing%20-%20${encodeURIComponent(plan.name)}%20plan`;
+    openAnnualChoice(plan);
     return;
   }
   buyPlan(planId, plan.price);
+}
+
+// ── Annual billing cycle-choice modal ──
+function openAnnualChoice(plan) {
+  const monthly = plan.price;
+  const annual = plan.price * ANNUAL_MONTHS;
+  const savings = plan.price * 2;
+  document.getElementById('annual-modal')?.remove();
+  const html = `
+    <div class="invoice-overlay show" id="annual-modal" onclick="if(event.target===this)this.remove()">
+      <div class="invoice-box" style="max-width:480px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <h2 style="font-size:1.15rem;font-weight:800;color:#0f172a;margin:0;">${plan.name} — Annual Billing</h2>
+          <button onclick="document.getElementById('annual-modal').remove()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#64748b;">✕</button>
+        </div>
+        <p style="font-size:0.85rem;color:#64748b;margin:0 0 1.2rem;">Choose how you'd like to be billed. Both options auto-renew and you can cancel anytime from your dashboard.</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <label style="border:2px solid #e2e8f0;border-radius:12px;padding:1rem 1.1rem;cursor:pointer;display:flex;align-items:flex-start;gap:12px;" onclick="this.querySelector('input').checked=true">
+            <input type="radio" name="ann-cycle" value="monthly" checked style="margin:5px 0 0;">
+            <div style="flex:1;">
+              <div style="font-size:0.95rem;font-weight:800;color:#0f172a;">Monthly EMI</div>
+              <div style="font-size:0.82rem;color:#64748b;margin:2px 0 6px;">${fmt(monthly)}/month auto-charged for 12 months</div>
+              <div style="font-size:0.78rem;color:#475569;">No upfront commitment beyond 1 month. Total over 1 year: <strong>${fmt(monthly * 12)}</strong></div>
+            </div>
+          </label>
+          <label style="border:2px solid #10b981;border-radius:12px;padding:1rem 1.1rem;cursor:pointer;display:flex;align-items:flex-start;gap:12px;background:#f0fdf4;" onclick="this.querySelector('input').checked=true">
+            <input type="radio" name="ann-cycle" value="annual" style="margin:5px 0 0;">
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:0.95rem;font-weight:800;color:#0f172a;">Annual Upfront</span>
+                <span style="background:#10b981;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;">SAVE ${fmt(savings)}</span>
+              </div>
+              <div style="font-size:0.82rem;color:#64748b;margin:2px 0 6px;">${fmt(annual)} one-time, then auto-renews yearly</div>
+              <div style="font-size:0.78rem;color:#15803d;font-weight:600;">2 months free vs monthly billing</div>
+            </div>
+          </label>
+        </div>
+
+        <div id="ann-error" style="display:none;font-size:0.78rem;color:#b91c1c;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:0.5rem 0.75rem;margin-top:1rem;"></div>
+
+        <button id="ann-submit" onclick="startSubscription('${plan.id}')" style="margin-top:1.2rem;width:100%;background:#8b5cf6;color:#fff;border:none;padding:0.9rem;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">Continue to Payment →</button>
+        <p style="font-size:0.7rem;color:#94a3b8;text-align:center;margin:0.75rem 0 0;">Powered by Razorpay · GST applied at checkout</p>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function startSubscription(planId) {
+  const employer = Session.getEmployer();
+  if (!employer) {
+    sessionStorage.setItem('redirect_after_employer_login', 'pricing.html');
+    window.location.href = 'employer-auth.html';
+    return;
+  }
+  const cycle = document.querySelector('input[name="ann-cycle"]:checked')?.value || 'monthly';
+  const errBox = document.getElementById('ann-error');
+  const btn = document.getElementById('ann-submit');
+  errBox.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Setting up subscription…';
+
+  let cfg;
+  try {
+    const r = await fetch('/api/subscription?action=create', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employerId: employer.id, planId, cycle })
+    });
+    cfg = await r.json();
+    if (!cfg.ok) throw new Error(cfg.error || 'Subscription create failed');
+  } catch (e) {
+    errBox.textContent = e.message;
+    errBox.style.display = '';
+    btn.disabled = false; btn.textContent = 'Continue to Payment →';
+    return;
+  }
+
+  btn.disabled = false; btn.textContent = 'Continue to Payment →';
+
+  const options = {
+    key: cfg.key,
+    subscription_id: cfg.subscription_id,
+    name: 'HireTrack',
+    description: `${PLANS.find(p=>p.id===planId).name} Plan — ${cycle === 'monthly' ? 'Monthly EMI' : 'Annual Upfront'}`,
+    image: 'https://www.hiretrack.co.in/og-image.png',
+    prefill: { name: employer.contact_name, email: employer.email, contact: employer.mobile },
+    theme: { color: '#8b5cf6' },
+    handler: async function(response) {
+      try {
+        const vr = await fetch('/api/subscription?action=activate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_subscription_id: response.razorpay_subscription_id,
+            razorpay_signature: response.razorpay_signature,
+            employerId: employer.id
+          })
+        });
+        const result = await vr.json();
+        if (!result.ok) throw new Error(result.error || 'Verification failed');
+        document.getElementById('annual-modal')?.remove();
+        showToast(`✅ ${PLANS.find(p=>p.id===planId).name} annual plan activated!`);
+        const updated = { ...employer, plan: planId, plan_expires_at: result.plan_expires_at };
+        Session.setEmployer(updated);
+        setTimeout(() => window.location.href = 'employer-dashboard.html', 1500);
+      } catch (e) {
+        showToast('Payment captured — activation pending. Contact support if not active in 5 min.');
+      }
+    },
+    modal: { ondismiss: function() { showToast('Subscription setup cancelled.'); } }
+  };
+  const rzp = new Razorpay(options);
+  rzp.on('payment.failed', () => showToast('Payment failed. Please try again.'));
+  rzp.open();
 }
 
 async function buyPlan(planId, amount) {
@@ -780,6 +951,67 @@ function showInvoice(employer, planId, paymentId, subtotal, gst, total, expiresA
 }
 
 document.getElementById('invoice-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
+
+// ── Enterprise contact form ──
+let _entPlanId = null;
+function openEnterpriseForm(plan) {
+  _entPlanId = plan ? plan.id : null;
+  const subtitle = plan
+    ? `Interested in ${plan.name} (${fmt(plan.price)}${plan.period}). Tell us about your hiring needs and we'll set up your account.`
+    : `Tell us about your hiring needs and we'll reach out within one business day.`;
+  document.getElementById('ent-subtitle').textContent = subtitle;
+  document.getElementById('enterprise-form').style.display = '';
+  document.getElementById('ent-success').style.display = 'none';
+  document.getElementById('ent-error').style.display = 'none';
+  document.getElementById('enterprise-modal').classList.add('show');
+}
+
+function closeEnterpriseForm() {
+  document.getElementById('enterprise-modal').classList.remove('show');
+}
+
+function updateEntPref() {
+  const pref = document.querySelector('input[name="ent-pref"]:checked')?.value || 'email';
+  document.getElementById('ent-callback-wrap').style.display = pref === 'callback' ? '' : 'none';
+  document.getElementById('ent-calendar-wrap').style.display = pref === 'calendar' ? '' : 'none';
+}
+
+async function submitEnterpriseForm(e) {
+  e.preventDefault();
+  const errBox = document.getElementById('ent-error');
+  errBox.style.display = 'none';
+  const submitBtn = document.getElementById('ent-submit');
+  submitBtn.disabled = true; submitBtn.textContent = 'Sending…';
+
+  const payload = {
+    name: document.getElementById('ent-name').value.trim(),
+    company: document.getElementById('ent-company').value.trim(),
+    workEmail: document.getElementById('ent-email').value.trim(),
+    contactPref: document.querySelector('input[name="ent-pref"]:checked')?.value || 'email',
+    callbackAt: document.getElementById('ent-callback-at').value || null,
+    planInterest: _entPlanId || 'general',
+  };
+
+  try {
+    const r = await fetch('/api/enterprise-lead', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Submission failed');
+    document.getElementById('enterprise-form').style.display = 'none';
+    document.getElementById('ent-success').style.display = '';
+  } catch (e) {
+    errBox.textContent = e.message;
+    errBox.style.display = '';
+  } finally {
+    submitBtn.disabled = false; submitBtn.textContent = 'Send Enquiry';
+  }
+}
+
+document.getElementById('enterprise-modal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('show');
 });
 

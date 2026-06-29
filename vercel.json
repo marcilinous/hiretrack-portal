@@ -4,8 +4,9 @@
     { "source": "/pay/:slug", "destination": "/pay.html?slug=:slug" }
   ],
   "crons": [
-    { "path": "/api/cron-expiry", "schedule": "0 3 * * *" },
-    { "path": "/api/cron-drip",   "schedule": "30 3 * * *" }
+    { "path": "/api/cron-expiry",       "schedule": "0 3 * * *" },
+    { "path": "/api/cron-drip",         "schedule": "30 3 * * *" },
+    { "path": "/api/cron-boost-expiry", "schedule": "0 4 * * *" }
   ],
   "headers": [
     {
