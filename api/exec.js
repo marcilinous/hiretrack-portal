@@ -294,7 +294,7 @@ async function getCallbacks(req, res) {
   const active = await sbGet('executives?select=id&is_active=eq.true');
   const isSolo = Array.isArray(active.data) && active.data.length === 1;
   const cols =
-    'id,name,company,mobile,preferred_time,message,status,notes,called_at,converted_referral_id,created_at,assigned_to';
+    'id,name,company,mobile,email,plan_interest,source,preferred_time,message,status,notes,called_at,converted_referral_id,created_at,assigned_to';
   const path = isSolo
     ? `callback_requests?select=${cols}&order=created_at.desc`
     : `callback_requests?select=${cols}&assigned_to=eq.${id}&order=created_at.desc`;
@@ -479,10 +479,18 @@ async function submitCallback(req, res, body) {
     mobile = f('mobile');
   const preferred_time = f('preferred_time'),
     message = f('message');
+  const email = f('email').toLowerCase();
+  const plan_interest = f('plan_interest');
+  const sourceRaw = f('source') || 'callback_page';
+  const source = ['callback_page', 'pricing_enterprise', 'pricing_general'].includes(sourceRaw)
+    ? sourceRaw
+    : 'callback_page';
   if (!name || !company || !mobile)
     return res.status(400).json({ ok: false, error: 'Name, company and mobile are required.' });
   if (!/^\d{10}$/.test(mobile))
     return res.status(400).json({ ok: false, error: 'Enter a valid 10-digit mobile.' });
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return res.status(400).json({ ok: false, error: 'Enter a valid email.' });
 
   // Round-robin across active executives (server-side; rotates off the last assignment).
   let assigned = null;
@@ -509,7 +517,10 @@ async function submitCallback(req, res, body) {
       name,
       company,
       mobile,
-      preferred_time: preferred_time || null,
+      email: email || null,
+      plan_interest: plan_interest || null,
+      source,
+      preferred_time: preferred_time || 'ASAP',
       message: message || null,
       status: 'yet_to_call',
       assigned_to: assigned ? assigned.id : null,

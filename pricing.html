@@ -231,7 +231,7 @@
     <h2>Need a custom plan?</h2>
     <p>Our sales team can help you find the right fit — volume pricing, custom unlock limits, dedicated onboarding, and more.</p>
     <div class="contact-sales-btns">
-      <button onclick="openEnterpriseForm(null)" class="btn-sales-email" style="border:none;cursor:pointer;font-family:inherit;">✉ Talk to Sales</button>
+      <button onclick="openEnterpriseForm(null)" class="btn-sales-email" style="border:none;cursor:pointer;font-family:inherit;">📞 Request Callback</button>
       <a href="tel:+91XXXXXXXXXX" class="btn-sales-call">📞 Call Sales Team</a>
     </div>
   </div>
@@ -267,7 +267,7 @@
 <div class="invoice-overlay" id="enterprise-modal">
   <div class="invoice-box" style="max-width:480px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-      <h2 style="font-size:1.2rem;font-weight:800;color:#0f172a;margin:0;">Talk to Sales</h2>
+      <h2 style="font-size:1.2rem;font-weight:800;color:#0f172a;margin:0;">Request a Callback</h2>
       <button onclick="closeEnterpriseForm()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#64748b;">✕</button>
     </div>
     <p id="ent-subtitle" style="font-size:0.85rem;color:#64748b;margin:0 0 1.2rem;">Tell us about your hiring needs and we'll reach out within one business day.</p>
@@ -285,6 +285,10 @@
         <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:4px;">Work Email *</label>
         <input id="ent-email" type="email" required style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;box-sizing:border-box;" placeholder="riya@acme.com">
         <div style="font-size:0.7rem;color:#94a3b8;margin-top:3px;">Personal email addresses are not accepted.</div>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:#334155;display:block;margin-bottom:4px;">Mobile *</label>
+        <input id="ent-mobile" type="tel" required pattern="\d{10}" maxlength="10" style="width:100%;padding:0.6rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.88rem;font-family:inherit;box-sizing:border-box;" placeholder="10-digit mobile number">
       </div>
 
       <div>
@@ -457,7 +461,7 @@ const PLANS = [
     unlocksLabel: '100 / day',
     matching: 'AI + Alerts',
     perks: ['Everything in Pro+', 'Boosted listings (10/mo)', 'ATS integration', 'Custom branding', 'SLA guarantee', 'Invoice billing'],
-    cta: 'Contact Sales',
+    cta: 'Request Callback',
     highlighted: false,
     enterpriseOnly: true,
   },
@@ -475,7 +479,7 @@ const PLANS = [
     unlocksLabel: '150 / day',
     matching: 'AI + Alerts + API',
     perks: ['Everything in Enterprise A', '9 active job posts', 'API access', 'Dedicated account manager', 'Priority support SLA', 'Volume discount on unlocks'],
-    cta: 'Contact Sales',
+    cta: 'Request Callback',
     highlighted: false,
     enterpriseOnly: true,
     note: 'Custom plans available',
@@ -552,6 +556,11 @@ function renderCards() {
     const currentTag = isCurrent ? `<div class="current-plan-tag">✓ Current Plan</div>` : '';
     const ctaLabel = isCurrent ? 'Current Plan' : plan.cta;
     const ctaStyle = isActive ? `background:${plan.color};` : '';
+    // Logged-in employers on Enterprise A/B get a direct-pay primary CTA plus
+    // a secondary "Contact Sales Manager" link. Anon users still see only the
+    // contact form CTA (since payment requires being signed in).
+    const showDirectEnterprisePay = plan.enterpriseOnly && !!Session.getEmployer();
+    const directPayLabel = isCurrent ? 'Current Plan' : `Go ${plan.name}`;
     const isAnnualView = billingCycle === 'annual';
     const annualEligible = ANNUAL_ELIGIBLE.has(plan.id);
     const priceShown = displayPrice(plan);
@@ -577,7 +586,10 @@ function renderCards() {
           <div class="plan-feat-group"><div class="feat-label">Contact Unlocks</div><div class="feat-val">${plan.unlocksLabel}</div></div>
           <div class="plan-feat-group"><div class="feat-label">Candidate Matching</div><div class="feat-val">${plan.matching}</div></div>
         </div>
-        <button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}')">${ctaLabel}</button>
+        ${showDirectEnterprisePay
+          ? `<button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}','pay')">${directPayLabel}</button>
+             <button class="plan-cta-btn" style="margin-top:8px;background:transparent;border:1.5px solid ${isActive ? '#64748b' : '#e2e8f0'};color:${isActive ? '#cbd5e1' : '#64748b'};" onclick="handleCta(event,'${plan.id}','sales')">📞 Request Callback</button>`
+          : `<button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}')">${ctaLabel}</button>`}
       </div>`;
   }).join('');
   renderDetailPanel();
@@ -646,11 +658,17 @@ function selectPlan(planId) {
   renderCards();
 }
 
-function handleCta(e, planId) {
+function handleCta(e, planId, mode) {
   e.stopPropagation();
   const plan = PLANS.find(p => p.id === planId);
   if (!plan) return;
-  if (plan.enterpriseOnly) {
+  // Logged-in employer chose "Contact Sales Manager" on an Enterprise card
+  if (mode === 'sales') {
+    openEnterpriseForm(plan);
+    return;
+  }
+  // Enterprise card, no explicit mode (anon visitor) → contact form
+  if (plan.enterpriseOnly && mode !== 'pay') {
     openEnterpriseForm(plan);
     return;
   }
@@ -985,17 +1003,31 @@ async function submitEnterpriseForm(e) {
   const submitBtn = document.getElementById('ent-submit');
   submitBtn.disabled = true; submitBtn.textContent = 'Sending…';
 
+  const contactPref = document.querySelector('input[name="ent-pref"]:checked')?.value || 'email';
+  const callbackAt = document.getElementById('ent-callback-at').value || '';
+  const mobile = document.getElementById('ent-mobile').value.replace(/\D/g, '');
+  const email = document.getElementById('ent-email').value.trim();
+  const planInterest = _entPlanId || 'general';
+
+  // Compose a message that gives the executive useful context on the dashboard
+  const msgParts = [`Contact preference: ${contactPref}`];
+  if (contactPref === 'callback' && callbackAt) msgParts.push(`Preferred slot: ${callbackAt}`);
+  if (contactPref === 'calendar') msgParts.push('Wants a Cal.com booking link.');
+  msgParts.push(`Plan interest: ${_entPlanId ? PLANS.find(p=>p.id===_entPlanId)?.name : 'General enquiry'}`);
+
   const payload = {
     name: document.getElementById('ent-name').value.trim(),
     company: document.getElementById('ent-company').value.trim(),
-    workEmail: document.getElementById('ent-email').value.trim(),
-    contactPref: document.querySelector('input[name="ent-pref"]:checked')?.value || 'email',
-    callbackAt: document.getElementById('ent-callback-at').value || null,
-    planInterest: _entPlanId || 'general',
+    mobile,
+    email,
+    plan_interest: planInterest,
+    source: _entPlanId ? 'pricing_enterprise' : 'pricing_general',
+    preferred_time: contactPref === 'callback' && callbackAt ? callbackAt : 'ASAP',
+    message: msgParts.join(' · '),
   };
 
   try {
-    const r = await fetch('/api/leads?action=enterprise', {
+    const r = await fetch('/api/exec?action=callback-submit', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });

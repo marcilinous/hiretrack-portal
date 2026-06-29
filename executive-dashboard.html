@@ -308,7 +308,8 @@
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
           <div class="cb-info">
             <h4>${esc(c.name)}${c.company ? ' — ' + esc(c.company) : ''}</h4>
-            <p>📞 ${esc(c.mobile || '')} · 📅 ${when}</p>
+            <p>📞 ${esc(c.mobile || '')}${c.email ? ' · ✉ ' + esc(c.email) : ''} · 📅 ${when}</p>
+            ${c.source && c.source !== 'callback_page' ? `<p style="margin-top:3px;"><span style="display:inline-block;background:#ede9fe;color:#5b21b6;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">${c.source === 'pricing_enterprise' ? 'Enterprise' : 'Pricing Page'}${c.plan_interest && c.plan_interest !== 'general' ? ' · ' + esc(c.plan_interest) : ''}</span></p>` : ''}
             ${c.message ? `<p style="margin-top:4px;color:var(--gray5);font-style:italic;">"${esc(c.message)}"</p>` : ''}
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
