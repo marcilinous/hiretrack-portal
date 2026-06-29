@@ -1276,7 +1276,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const orig = btnEl.innerHTML;
     btnEl.innerHTML = '⏳ Boosting…';
     try {
-      const r = await fetch('/api/boost-job?action=boost', {
+      const r = await fetch('/api/quotas?action=boost', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employerId: emp.id, jobId })
       });
@@ -1315,7 +1315,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const emp = employer || Session.getEmployer();
     if (!emp) return;
     try {
-      const r = await fetch('/api/unlock?action=status', {
+      const r = await fetch('/api/quotas?action=unlock-status', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employerId: emp.id })
       });
@@ -1363,7 +1363,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const orig = btnEl.innerHTML;
     btnEl.innerHTML = '⏳ Unlocking…';
     try {
-      const r = await fetch('/api/unlock?action=reveal', {
+      const r = await fetch('/api/quotas?action=unlock-reveal', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employerId: emp.id, candidateId })
       });

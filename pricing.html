@@ -995,7 +995,7 @@ async function submitEnterpriseForm(e) {
   };
 
   try {
-    const r = await fetch('/api/enterprise-lead', {
+    const r = await fetch('/api/leads?action=enterprise', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
