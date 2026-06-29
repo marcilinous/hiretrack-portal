@@ -9,18 +9,18 @@ const CORS = (res) => {
 };
 
 const EMPLOYER_PLANS_ORDER = {
-  starter:      { price: 499  },
-  growth:       { price: 999  },
-  pro:          { price: 1499 },
-  pro_plus:     { price: 2499 },
+  starter: { price: 499 },
+  growth: { price: 999 },
+  pro: { price: 1499 },
+  pro_plus: { price: 2499 },
   enterprise_a: { price: 4999 },
   enterprise_b: { price: 9999 },
 };
 const EMPLOYER_PLANS_VERIFY = {
-  starter:      { jobs: 1, days: 10, unlocks: 10  },
-  growth:       { jobs: 3, days: 25, unlocks: 25  },
-  pro:          { jobs: 3, days: 30, unlocks: 35  },
-  pro_plus:     { jobs: 5, days: 30, unlocks: 50  },
+  starter: { jobs: 1, days: 10, unlocks: 10 },
+  growth: { jobs: 3, days: 25, unlocks: 25 },
+  pro: { jobs: 3, days: 30, unlocks: 35 },
+  pro_plus: { jobs: 5, days: 30, unlocks: 50 },
   enterprise_a: { jobs: 5, days: 30, unlocks: 100 },
   enterprise_b: { jobs: 9, days: 30, unlocks: 150 },
 };
@@ -332,9 +332,7 @@ async function addonVerify(req, res, body) {
     emp.plan_expires_at &&
     new Date(emp.plan_expires_at) > new Date();
   if (!paidActive) {
-    return res
-      .status(400)
-      .json({ ok: false, error: 'Add-on posts require an active paid plan.' });
+    return res.status(400).json({ ok: false, error: 'Add-on posts require an active paid plan.' });
   }
 
   await sbPost(
