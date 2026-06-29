@@ -552,6 +552,11 @@ function renderCards() {
     const currentTag = isCurrent ? `<div class="current-plan-tag">✓ Current Plan</div>` : '';
     const ctaLabel = isCurrent ? 'Current Plan' : plan.cta;
     const ctaStyle = isActive ? `background:${plan.color};` : '';
+    // Logged-in employers on Enterprise A/B get a direct-pay primary CTA plus
+    // a secondary "Contact Sales Manager" link. Anon users still see only the
+    // contact form CTA (since payment requires being signed in).
+    const showDirectEnterprisePay = plan.enterpriseOnly && !!Session.getEmployer();
+    const directPayLabel = isCurrent ? 'Current Plan' : `Go ${plan.name}`;
     const isAnnualView = billingCycle === 'annual';
     const annualEligible = ANNUAL_ELIGIBLE.has(plan.id);
     const priceShown = displayPrice(plan);
@@ -577,7 +582,10 @@ function renderCards() {
           <div class="plan-feat-group"><div class="feat-label">Contact Unlocks</div><div class="feat-val">${plan.unlocksLabel}</div></div>
           <div class="plan-feat-group"><div class="feat-label">Candidate Matching</div><div class="feat-val">${plan.matching}</div></div>
         </div>
-        <button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}')">${ctaLabel}</button>
+        ${showDirectEnterprisePay
+          ? `<button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}','pay')">${directPayLabel}</button>
+             <button class="plan-cta-btn" style="margin-top:8px;background:transparent;border:1.5px solid ${isActive ? '#64748b' : '#e2e8f0'};color:${isActive ? '#cbd5e1' : '#64748b'};" onclick="handleCta(event,'${plan.id}','sales')">📞 Contact Sales Manager</button>`
+          : `<button class="plan-cta-btn" style="${ctaStyle}" onclick="handleCta(event,'${plan.id}')">${ctaLabel}</button>`}
       </div>`;
   }).join('');
   renderDetailPanel();
@@ -646,11 +654,17 @@ function selectPlan(planId) {
   renderCards();
 }
 
-function handleCta(e, planId) {
+function handleCta(e, planId, mode) {
   e.stopPropagation();
   const plan = PLANS.find(p => p.id === planId);
   if (!plan) return;
-  if (plan.enterpriseOnly) {
+  // Logged-in employer chose "Contact Sales Manager" on an Enterprise card
+  if (mode === 'sales') {
+    openEnterpriseForm(plan);
+    return;
+  }
+  // Enterprise card, no explicit mode (anon visitor) → contact form
+  if (plan.enterpriseOnly && mode !== 'pay') {
     openEnterpriseForm(plan);
     return;
   }
