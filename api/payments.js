@@ -17,12 +17,12 @@ const EMPLOYER_PLANS_ORDER = {
   enterprise_b: { price: 9999 },
 };
 const EMPLOYER_PLANS_VERIFY = {
-  starter: { jobs: 1, days: 10, unlocks: 10 },
-  growth: { jobs: 3, days: 25, unlocks: 25 },
-  pro: { jobs: 3, days: 30, unlocks: 35 },
-  pro_plus: { jobs: 5, days: 30, unlocks: 50 },
-  enterprise_a: { jobs: 5, days: 30, unlocks: 100 },
-  enterprise_b: { jobs: 9, days: 30, unlocks: 150 },
+  starter: { jobs: 1, days: 10, unlocks: 10, boosts: 0 },
+  growth: { jobs: 3, days: 25, unlocks: 25, boosts: 2 },
+  pro: { jobs: 3, days: 30, unlocks: 35, boosts: 3 },
+  pro_plus: { jobs: 5, days: 30, unlocks: 50, boosts: 5 },
+  enterprise_a: { jobs: 5, days: 30, unlocks: 100, boosts: 10 },
+  enterprise_b: { jobs: 9, days: 30, unlocks: 150, boosts: 999 },
 };
 const ADDON_PRICE = 199; // ₹ per add-on job post
 
@@ -232,6 +232,7 @@ async function employerVerify(req, res, body) {
       job_limit: plan.jobs,
       day_limit: plan.days,
       day_unlock_limit: plan.unlocks,
+      month_boost_limit: plan.boosts,
       is_free_trial: false,
     }),
   });
@@ -268,6 +269,7 @@ async function employerVerify(req, res, body) {
     job_limit: plan.jobs,
     day_limit: plan.days,
     day_unlock_limit: plan.unlocks,
+    month_boost_limit: plan.boosts,
   });
 }
 
