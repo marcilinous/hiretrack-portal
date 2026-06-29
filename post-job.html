@@ -133,7 +133,7 @@
   function showSlotModal(gate) {
     document.getElementById('slot-modal')?.remove();
     const emp = employer || Session.getEmployer() || {};
-    const paid = ['basic','growth','pro'].includes(emp.plan);
+    const paid = ['starter','basic','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(emp.plan);
     let title, msg, buttons;
     const upgrade = `<a href="/pricing.html" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:0.7rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.9rem;">Upgrade Plan →</a>`;
     if (gate.reason === 'no_plan') {
@@ -165,7 +165,7 @@
   async function buyAddonAndPost() {
     const emp = Session.getEmployer();
     document.getElementById('slot-modal')?.remove();
-    if (!['basic','growth','pro'].includes(emp.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
+    if (!['starter','basic','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(emp.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
     let rzpKey, orderId;
     try {
       const r = await fetch('/api/payments?action=addon-order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ employerId: emp.id }) });

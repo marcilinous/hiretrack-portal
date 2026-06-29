@@ -426,7 +426,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button onclick="searchTalent()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.57rem 1.25rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Search</button>
       </div>
     </div>
-    <div id="talent-count" style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+      <div id="talent-count" style="font-size:0.78rem;color:#64748b;"></div>
+      <div id="unlock-counter" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.45rem 0.85rem;font-size:0.78rem;font-weight:700;color:#15803d;white-space:nowrap;">
+        🔓 <span id="unlock-counter-text">— / —</span> unlocks today
+      </div>
+    </div>
     <div id="talent-grid"></div>
   </div>
 
@@ -545,7 +550,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     let html = `<a href="pricing.html" style="${_actBtn('#10b981')}">Upgrade Plan</a>`;
     if (expired) html += `<a href="pricing.html" style="${_actBtn('#0f172a')}">Renew Plan</a>`;
-    else if (['basic','growth','pro'].includes(plan)) html += `<button onclick="buyAddonDash()" style="${_actBtn('#0f172a')}border:none;cursor:pointer;font-family:inherit;">Add Post — ₹199</button>`;
+    else if (['starter','basic','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(plan)) html += `<button onclick="buyAddonDash()" style="${_actBtn('#0f172a')}border:none;cursor:pointer;font-family:inherit;">Add Post — ₹199</button>`;
     document.getElementById('bill-actions').innerHTML = html;
 
     const banner = document.getElementById('expiry-banner');
@@ -559,7 +564,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
 
   async function buyAddonDash() {
-    if (!['basic','growth','pro'].includes(employer.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
+    if (!['starter','basic','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(employer.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
     let rzpKey, orderId;
     try {
       const r = await fetch('/api/payments?action=addon-order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ employerId: employer.id }) });
@@ -617,7 +622,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     document.getElementById('tab-'+tab).style.display = 'block';
     btn.classList.add('active');
     if (tab === 'analytics') renderAnalytics();
-    if (tab === 'talent') { _talentCache = null; searchTalent(); }
+    if (tab === 'talent') { _talentCache = null; searchTalent(); refreshUnlockCounter(); }
   }
 
   async function renderAnalytics() {
@@ -1201,6 +1206,62 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   // ── BULK WA ──
   // ── Find Talent ──
   let _talentCache = null;
+  const _unlockedContacts = {}; // candidateId -> { mobile, email }
+
+  async function refreshUnlockCounter() {
+    const emp = employer || Session.getEmployer();
+    if (!emp) return;
+    try {
+      const r = await fetch('/api/unlock?action=status', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employerId: emp.id })
+      });
+      const d = await r.json();
+      const box = document.getElementById('unlock-counter');
+      const txt = document.getElementById('unlock-counter-text');
+      if (!box || !txt) return;
+      if (d.ok && d.plan_active && d.day_unlock_limit > 0) {
+        txt.textContent = `${d.used_today} / ${d.day_unlock_limit}`;
+        box.style.display = '';
+        if (d.remaining === 0) {
+          box.style.background = '#fef2f2';
+          box.style.borderColor = '#fca5a5';
+          box.style.color = '#b91c1c';
+        }
+      } else {
+        box.style.display = 'none';
+      }
+    } catch (e) { /* counter is non-critical */ }
+  }
+
+  async function revealContact(candidateId, btnEl) {
+    const emp = employer || Session.getEmployer();
+    if (!emp) return;
+    btnEl.disabled = true;
+    const orig = btnEl.innerHTML;
+    btnEl.innerHTML = '⏳ Unlocking…';
+    try {
+      const r = await fetch('/api/unlock?action=reveal', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employerId: emp.id, candidateId })
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        showToast(d.error || 'Unlock failed.');
+        btnEl.innerHTML = orig; btnEl.disabled = false;
+        if (d.remaining === 0) {
+          setTimeout(() => { if (confirm('Daily unlock limit reached. Upgrade plan?')) window.location.href = '/pricing.html'; }, 200);
+        }
+        return;
+      }
+      _unlockedContacts[candidateId] = d.candidate;
+      refreshUnlockCounter();
+      searchTalent();
+    } catch (e) {
+      showToast('Unlock service unavailable.');
+      btnEl.innerHTML = orig; btnEl.disabled = false;
+    }
+  }
 
   async function searchTalent() {
     const kw   = (document.getElementById('t-kw')?.value || '').trim().toLowerCase();
@@ -1256,7 +1317,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       const initials = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       const photoSrc = c.photo_url;
       const skills = Array.isArray(c.skills) ? c.skills : (c.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const unlocked = _unlockedContacts[c.id];
+      const mobile = unlocked?.mobile || c.mobile;
       const waMsg = encodeURIComponent(`Hi ${c.name}, I'm ${employer.contact_name} from ${employer.company}. I found your profile on HireTrack and would like to connect about a job opportunity.`);
+      const contactBtn = mobile
+        ? `<button class="tc-btn tc-btn-wa" onclick="window.open('https://wa.me/91${mobile}?text=${waMsg}','_blank')">WhatsApp</button>`
+        : `<button class="tc-btn tc-btn-wa" style="background:#0f172a;color:#fff;" onclick="revealContact('${c.id}',this)">🔓 Unlock Contact</button>`;
       return `<div class="tc${boosted?' tc-boosted':''}">
         <div class="tc-top">
           <div class="tc-avatar">${photoSrc?`<img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover;" />`:`${initials}`}</div>
@@ -1268,7 +1334,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="tc-meta">📍 ${c.city||'—'} · 🎯 ${c.experience||'—'}</div>
         ${skills.length?`<div class="tc-skills">${skills.slice(0,5).map(s=>`<span class="tc-skill">${s}</span>`).join('')}${skills.length>5?`<span class="tc-skill" style="background:#f1f5f9;color:#64748b;">+${skills.length-5}</span>`:''}</div>`:''}
         <div class="tc-btns">
-          ${c.mobile?`<button class="tc-btn tc-btn-wa" onclick="window.open('https://wa.me/91${c.mobile}?text=${waMsg}','_blank')">WhatsApp</button>`:''}
+          ${contactBtn}
           <button class="tc-btn tc-btn-chat" onclick="openTalentChat('${c.id}')">💬 Message</button>
         </div>
       </div>`;

@@ -45,7 +45,7 @@ CREATE POLICY "employer_unlock_log_select"
   ON employer_unlock_log FOR SELECT
   USING (
     employer_id = (
-      SELECT id FROM employers WHERE auth_uid = auth.uid() LIMIT 1
+      SELECT id FROM employers WHERE id = auth.uid() LIMIT 1
     )
   );
 
@@ -54,6 +54,6 @@ CREATE POLICY "employer_unlock_log_insert"
   ON employer_unlock_log FOR INSERT
   WITH CHECK (
     employer_id = (
-      SELECT id FROM employers WHERE auth_uid = auth.uid() LIMIT 1
+      SELECT id FROM employers WHERE id = auth.uid() LIMIT 1
     )
   );
