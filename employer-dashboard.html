@@ -384,6 +384,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
     </div>
 
+    <!-- Unlock-usage chart (last 30 days) -->
+    <div id="an-unlock" style="display:none;margin-bottom:1.5rem;">
+      <p class="an-section-title">Contact Unlocks — Last 30 Days</p>
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.1rem 1.2rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.5rem;">
+          <div id="an-unlock-summary" style="font-size:0.82rem;color:#64748b;">Loading…</div>
+          <div id="an-unlock-today" style="font-size:0.78rem;font-weight:700;color:#15803d;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.3rem 0.7rem;display:none;"></div>
+        </div>
+        <div id="an-unlock-chart" style="display:flex;align-items:flex-end;gap:3px;height:120px;border-bottom:1px solid #e2e8f0;padding-bottom:4px;"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:4px;">
+          <span id="an-unlock-from">—</span>
+          <span id="an-unlock-to">today</span>
+        </div>
+      </div>
+    </div>
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
       <p class="an-section-title" style="margin-bottom:0;">Per-Job Performance</p>
       <div style="display:flex;gap:0.5rem;">
@@ -426,7 +442,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button onclick="searchTalent()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:0.57rem 1.25rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Search</button>
       </div>
     </div>
-    <div id="talent-count" style="font-size:0.78rem;color:#64748b;margin-bottom:0.75rem;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+      <div id="talent-count" style="font-size:0.78rem;color:#64748b;"></div>
+      <div id="unlock-counter" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.45rem 0.85rem;font-size:0.78rem;font-weight:700;color:#15803d;white-space:nowrap;">
+        🔓 <span id="unlock-counter-text">— / —</span> unlocks today
+      </div>
+    </div>
     <div id="talent-grid"></div>
   </div>
 
@@ -545,7 +566,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     let html = `<a href="pricing.html" style="${_actBtn('#10b981')}">Upgrade Plan</a>`;
     if (expired) html += `<a href="pricing.html" style="${_actBtn('#0f172a')}">Renew Plan</a>`;
-    else if (['basic','growth','pro'].includes(plan)) html += `<button onclick="buyAddonDash()" style="${_actBtn('#0f172a')}border:none;cursor:pointer;font-family:inherit;">Add Post — ₹199</button>`;
+    else if (['starter','basic','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(plan)) html += `<button onclick="buyAddonDash()" style="${_actBtn('#0f172a')}border:none;cursor:pointer;font-family:inherit;">Add Post — ₹199</button>`;
     document.getElementById('bill-actions').innerHTML = html;
 
     const banner = document.getElementById('expiry-banner');
@@ -559,7 +580,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   }
 
   async function buyAddonDash() {
-    if (!['basic','growth','pro'].includes(employer.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
+    if (!['starter','basic','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(employer.plan)) { showToast('Add-on posts require an active paid plan.'); return; }
     let rzpKey, orderId;
     try {
       const r = await fetch('/api/payments?action=addon-order', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ employerId: employer.id }) });
@@ -617,7 +638,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     document.getElementById('tab-'+tab).style.display = 'block';
     btn.classList.add('active');
     if (tab === 'analytics') renderAnalytics();
-    if (tab === 'talent') { _talentCache = null; searchTalent(); }
+    if (tab === 'talent') { _talentCache = null; searchTalent(); refreshUnlockCounter(); }
   }
 
   async function renderAnalytics() {
@@ -797,6 +818,49 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         chartEl.innerHTML = '<span style="color:#94a3b8;font-size:0.78rem;">Trend data unavailable — run migration v15.</span>';
       }
     }
+
+    await renderUnlockChart();
+  }
+
+  async function renderUnlockChart() {
+    const wrap = document.getElementById('an-unlock');
+    if (!wrap) return;
+    if (!employer || !['starter','growth','pro','pro_plus','enterprise_a','enterprise_b'].includes(employer.plan)) {
+      wrap.style.display = 'none';
+      return;
+    }
+    wrap.style.display = 'block';
+    const chartEl = document.getElementById('an-unlock-chart');
+    const sumEl = document.getElementById('an-unlock-summary');
+    const todayEl = document.getElementById('an-unlock-today');
+    chartEl.innerHTML = '<span style="color:#94a3b8;font-size:0.78rem;">Loading…</span>';
+    try {
+      const { data, error } = await sb.rpc('unlock_usage_daily');
+      if (error) throw error;
+      const rows = data || [];
+      const total = rows.reduce((s, r) => s + Number(r.unlocks || 0), 0);
+      const today = rows.length ? Number(rows[rows.length - 1].unlocks || 0) : 0;
+      const limit = employer.day_unlock_limit || 0;
+      sumEl.textContent = `${total} unlocks in the last 30 days · ${Math.round(total / 30 * 10) / 10} / day average`;
+      if (limit > 0) {
+        todayEl.style.display = 'inline-block';
+        todayEl.textContent = `Today: ${today} / ${limit}`;
+      } else {
+        todayEl.style.display = 'none';
+      }
+      const max = Math.max(...rows.map(r => Number(r.unlocks || 0)), 1);
+      const BAR_H = 110;
+      chartEl.innerHTML = rows.map(r => {
+        const v = Number(r.unlocks || 0);
+        const h = v === 0 ? 0 : Math.max(2, Math.round(v / max * BAR_H));
+        const dayLabel = new Date(r.day).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;" title="${dayLabel}: ${v} unlock${v===1?'':'s'}"><div style="width:100%;background:${v>0?'#10b981':'#f1f5f9'};height:${h}px;border-radius:3px 3px 0 0;"></div></div>`;
+      }).join('');
+      const from = rows[0] ? new Date(rows[0].day) : null;
+      if (from) document.getElementById('an-unlock-from').textContent = from.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    } catch (e) {
+      chartEl.innerHTML = '<span style="color:#94a3b8;font-size:0.78rem;">Analytics unavailable — run migration v44.</span>';
+    }
   }
 
   // ── CSV EXPORT ──
@@ -869,14 +933,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       const pillText = isDelisted ? 'Delisted' : isExpired ? 'Expired' : 'Active';
       const hired = apps.filter(a => a.status === 'Hired').length;
       const shortlisted = apps.filter(a => a.status === 'Shortlisted').length;
+      const isBoosted = job.boosted_until && new Date(job.boosted_until) > new Date();
+      const boostBadge = isBoosted ? '<span class="boost-badge" style="margin-left:6px;">⚡ Boosted</span>' : '';
 
-      return `<div class="job-card">
+      return `<div class="job-card${isBoosted ? ' kcard-boosted' : ''}">
         <div class="job-card-body">
           <div class="job-card-top">
             <div class="job-title-wrap">
               <div class="job-title">
                 ${job.title}
                 <span class="status-pill ${pillClass}">${pillText}</span>
+                ${boostBadge}
               </div>
               <div class="job-meta-row">
                 <span>📍 ${job.location}</span>
@@ -901,6 +968,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           ${isExpired ? `<button class="act act-repost" onclick="repostJob('${job.id}')">🔁 Repost</button>` : ''}
           ${!isExpired && plan !== 'free' ? `<button class="act act-extend" onclick="extendJob('${job.id}','${job.expires_at||''}')">⏳ Extend 15d</button>` : ''}
           ${!isExpired && plan === 'free' ? `<button class="act act-extend" onclick="upgradePrompt()" title="Upgrade to extend">⏳ Extend 🔒</button>` : ''}
+          ${!isDelisted && !isExpired ? (isBoosted
+            ? `<button class="act" style="background:#fef3c7;color:#92400e;border-color:#fcd34d;cursor:default;" title="Already boosted">⚡ Boosted</button>`
+            : `<button class="act" style="background:#fffbeb;color:#d97706;border-color:#fcd34d;" onclick="boostJob('${job.id}',this)">⚡ Boost (5d)</button>`) : ''}
           <button class="act act-delete" onclick="deleteJob('${job.id}')">🗑 Delete</button>
         </div>
       </div>`;
@@ -1198,9 +1268,128 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     const a = document.createElement('a'); a.href = data.resume_data; a.download = data.resume_name || name; a.click();
   }
 
+  async function boostJob(jobId, btnEl) {
+    const emp = employer || Session.getEmployer();
+    if (!emp) return;
+    if (!confirm('Use one of your monthly boosts to highlight this job as "Urgent Hiring" for 5 days?')) return;
+    btnEl.disabled = true;
+    const orig = btnEl.innerHTML;
+    btnEl.innerHTML = '⏳ Boosting…';
+    try {
+      const r = await fetch('/api/quotas?action=boost', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employerId: emp.id, jobId })
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        btnEl.innerHTML = orig; btnEl.disabled = false;
+        if (d.remaining === 0) {
+          showUpgradeModal({
+            title: 'Monthly boost limit reached',
+            message: `You've used ${d.used_this_month} of ${d.month_boost_limit} Hot Job boosts this month. Boosts reset on the 1st of each month.`,
+            currentPlan: emp.plan,
+            suggestion: 'Pro+ includes 5 boosts/month, Enterprise A includes 10.'
+          });
+        } else {
+          showToast(d.error || 'Boost failed.');
+        }
+        return;
+      }
+      // Update local job state and re-render
+      const job = myJobs.find(j => j.id === jobId);
+      if (job) job.boosted_until = d.boosted_until;
+      showToast(`✅ Job boosted for 5 days! (${d.used_this_month}/${d.month_boost_limit} used this month)`);
+      renderJobs();
+    } catch(e) {
+      showToast('Boost service unavailable.');
+      btnEl.innerHTML = orig; btnEl.disabled = false;
+    }
+  }
+
   // ── BULK WA ──
   // ── Find Talent ──
   let _talentCache = null;
+  const _unlockedContacts = {}; // candidateId -> { mobile, email }
+
+  async function refreshUnlockCounter() {
+    const emp = employer || Session.getEmployer();
+    if (!emp) return;
+    try {
+      const r = await fetch('/api/quotas?action=unlock-status', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employerId: emp.id })
+      });
+      const d = await r.json();
+      const box = document.getElementById('unlock-counter');
+      const txt = document.getElementById('unlock-counter-text');
+      if (!box || !txt) return;
+      if (d.ok && d.plan_active && d.day_unlock_limit > 0) {
+        txt.textContent = `${d.used_today} / ${d.day_unlock_limit}`;
+        box.style.display = '';
+        if (d.remaining === 0) {
+          box.style.background = '#fef2f2';
+          box.style.borderColor = '#fca5a5';
+          box.style.color = '#b91c1c';
+        }
+      } else {
+        box.style.display = 'none';
+      }
+    } catch (e) { /* counter is non-critical */ }
+  }
+
+  function showUpgradeModal({title, message, currentPlan, suggestion}) {
+    document.getElementById('upgrade-modal')?.remove();
+    const html = `
+      <div id="upgrade-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1500;display:flex;align-items:center;justify-content:center;padding:1rem;" onclick="if(event.target===this)this.remove()">
+        <div style="background:#fff;border-radius:16px;padding:2rem;max-width:440px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.25);text-align:center;" onclick="event.stopPropagation()">
+          <div style="font-size:2.4rem;margin-bottom:0.6rem;">⬆️</div>
+          <h3 style="font-size:1.15rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem;">${title}</h3>
+          <p style="font-size:0.9rem;color:#475569;margin:0 0 1.2rem;line-height:1.55;">${message}</p>
+          ${suggestion ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.2rem;font-size:0.82rem;color:#15803d;font-weight:600;">💡 ${suggestion}</div>` : ''}
+          ${currentPlan ? `<div style="font-size:0.78rem;color:#64748b;margin-bottom:1rem;">Currently on <strong style="color:#0f172a;">${currentPlan}</strong> plan</div>` : ''}
+          <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">
+            <a href="/pricing.html" style="background:#10b981;color:#fff;text-decoration:none;padding:0.75rem 1.5rem;border-radius:10px;font-weight:700;font-size:0.9rem;">View Plans →</a>
+            <button onclick="document.getElementById('upgrade-modal').remove()" style="background:#f1f5f9;color:#334155;border:none;padding:0.75rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:inherit;">Not Now</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  async function revealContact(candidateId, btnEl) {
+    const emp = employer || Session.getEmployer();
+    if (!emp) return;
+    btnEl.disabled = true;
+    const orig = btnEl.innerHTML;
+    btnEl.innerHTML = '⏳ Unlocking…';
+    try {
+      const r = await fetch('/api/quotas?action=unlock-reveal', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employerId: emp.id, candidateId })
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        btnEl.innerHTML = orig; btnEl.disabled = false;
+        if (d.remaining === 0) {
+          showUpgradeModal({
+            title: 'Daily unlock limit reached',
+            message: `You've used ${d.used_today} of ${d.day_unlock_limit} contact unlocks today. Quota resets at midnight UTC, or upgrade to a higher plan for more daily unlocks.`,
+            currentPlan: emp.plan,
+            suggestion: 'Pro+ includes 50 unlocks/day, Enterprise A 100/day.'
+          });
+        } else {
+          showToast(d.error || 'Unlock failed.');
+        }
+        return;
+      }
+      _unlockedContacts[candidateId] = d.candidate;
+      refreshUnlockCounter();
+      searchTalent();
+    } catch (e) {
+      showToast('Unlock service unavailable.');
+      btnEl.innerHTML = orig; btnEl.disabled = false;
+    }
+  }
 
   async function searchTalent() {
     const kw   = (document.getElementById('t-kw')?.value || '').trim().toLowerCase();
@@ -1256,7 +1445,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       const initials = (c.name||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
       const photoSrc = c.photo_url;
       const skills = Array.isArray(c.skills) ? c.skills : (c.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const unlocked = _unlockedContacts[c.id];
+      const mobile = unlocked?.mobile || c.mobile;
       const waMsg = encodeURIComponent(`Hi ${c.name}, I'm ${employer.contact_name} from ${employer.company}. I found your profile on HireTrack and would like to connect about a job opportunity.`);
+      const contactBtn = mobile
+        ? `<button class="tc-btn tc-btn-wa" onclick="window.open('https://wa.me/91${mobile}?text=${waMsg}','_blank')">WhatsApp</button>`
+        : `<button class="tc-btn tc-btn-wa" style="background:#0f172a;color:#fff;" onclick="revealContact('${c.id}',this)">🔓 Unlock Contact</button>`;
       return `<div class="tc${boosted?' tc-boosted':''}">
         <div class="tc-top">
           <div class="tc-avatar">${photoSrc?`<img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover;" />`:`${initials}`}</div>
@@ -1268,7 +1462,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="tc-meta">📍 ${c.city||'—'} · 🎯 ${c.experience||'—'}</div>
         ${skills.length?`<div class="tc-skills">${skills.slice(0,5).map(s=>`<span class="tc-skill">${s}</span>`).join('')}${skills.length>5?`<span class="tc-skill" style="background:#f1f5f9;color:#64748b;">+${skills.length-5}</span>`:''}</div>`:''}
         <div class="tc-btns">
-          ${c.mobile?`<button class="tc-btn tc-btn-wa" onclick="window.open('https://wa.me/91${c.mobile}?text=${waMsg}','_blank')">WhatsApp</button>`:''}
+          ${contactBtn}
           <button class="tc-btn tc-btn-chat" onclick="openTalentChat('${c.id}')">💬 Message</button>
         </div>
       </div>`;

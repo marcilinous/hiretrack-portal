@@ -13,6 +13,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, error: 'Missing env vars' });
   }
 
+  // ── Job-boost expiry sweep (runs first; quick PATCH, no email side effects) ──
+  const boostStats = await clearExpiredBoosts(SERVICE_KEY);
+
   const now = new Date();
   // Window: jobs expiring 2–3 days from now → each job falls in this window exactly once per daily cron
   const windowStart = new Date(now.getTime() + 2 * 864e5).toISOString();
@@ -91,9 +94,56 @@ export default async function handler(req, res) {
     console.log(`cron-expiry: ${employers.length} plans expiring, ${planSent} renewal emails sent`);
   }
 
-  return res
-    .status(200)
-    .json({ ok: true, jobs: { total: jobs.length, sent }, plans: { sent: planSent } });
+  return res.status(200).json({
+    ok: true,
+    jobs: { total: jobs.length, sent },
+    plans: { sent: planSent },
+    boosts: boostStats,
+  });
+}
+
+// Daily sweep: clear jobs.boosted_until once the 5-day window elapsed, and
+// defensively clear boosts for employers whose plan has expired. Merged in
+// from cron-boost-expiry to stay under Vercel's 12-function Hobby cap.
+async function clearExpiredBoosts(SERVICE_KEY) {
+  const SB_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
+  const headers = {
+    apikey: SERVICE_KEY,
+    Authorization: `Bearer ${SERVICE_KEY}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation',
+  };
+  const nowIso = new Date().toISOString();
+  const elapsedRes = await fetch(
+    `${SB_URL}/rest/v1/jobs?boosted_until=lt.${encodeURIComponent(nowIso)}&select=id`,
+    { method: 'PATCH', headers, body: JSON.stringify({ boosted_until: null }) }
+  );
+  const elapsedRows = elapsedRes.ok ? await elapsedRes.json().catch(() => []) : [];
+
+  const stillBoostedRes = await fetch(
+    `${SB_URL}/rest/v1/jobs?boosted_until=not.is.null&select=id,employer_id,employers(plan,plan_expires_at)`,
+    { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+  );
+  const stillBoosted = stillBoostedRes.ok ? await stillBoostedRes.json().catch(() => []) : [];
+  const planExpiredIds = stillBoosted
+    .filter((j) => {
+      const emp = j.employers || {};
+      if (!emp.plan || emp.plan === 'free') return true;
+      if (!emp.plan_expires_at) return true;
+      return new Date(emp.plan_expires_at) <= new Date();
+    })
+    .map((j) => j.id);
+  let planExpiredCleared = 0;
+  if (planExpiredIds.length) {
+    const idList = planExpiredIds.map(encodeURIComponent).join(',');
+    const clrRes = await fetch(`${SB_URL}/rest/v1/jobs?id=in.(${idList})`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ boosted_until: null }),
+    });
+    if (clrRes.ok) planExpiredCleared = planExpiredIds.length;
+  }
+  return { elapsed_cleared: elapsedRows.length, plan_expired_cleared: planExpiredCleared };
 }
 
 function buildReminderHtml(jobTitle, company, daysLeft, expiryDate) {
