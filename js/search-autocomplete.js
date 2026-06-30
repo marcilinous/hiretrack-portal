@@ -14,18 +14,40 @@
 
 (function () {
   const ROLES = [
-    'Data Analyst', 'MIS Executive', 'HR Executive', 'Sales Executive',
-    'Business Analyst', 'Digital Marketing', 'Content Writer',
-    'Full Stack Developer', 'Customer Support', 'Operations Manager',
-    'Accounts Executive', 'Software Engineer', 'Product Manager',
-    'Data Entry Operator', 'Telecaller', 'Back Office Executive',
-    'Admin Assistant', 'Graphic Designer', 'UI/UX Designer',
+    'Data Analyst',
+    'MIS Executive',
+    'HR Executive',
+    'Sales Executive',
+    'Business Analyst',
+    'Digital Marketing',
+    'Content Writer',
+    'Full Stack Developer',
+    'Customer Support',
+    'Operations Manager',
+    'Accounts Executive',
+    'Software Engineer',
+    'Product Manager',
+    'Data Entry Operator',
+    'Telecaller',
+    'Back Office Executive',
+    'Admin Assistant',
+    'Graphic Designer',
+    'UI/UX Designer',
     'DevOps Engineer',
   ];
 
   const LOCATIONS = [
-    'Bengaluru', 'Mumbai', 'Delhi', 'Hyderabad', 'Pune', 'Chennai',
-    'Kolkata', 'Ahmedabad', 'Mysuru', 'Mangaluru', 'Remote',
+    'Bengaluru',
+    'Mumbai',
+    'Delhi',
+    'Hyderabad',
+    'Pune',
+    'Chennai',
+    'Kolkata',
+    'Ahmedabad',
+    'Mysuru',
+    'Mangaluru',
+    'Remote',
   ];
 
   const POPULAR = [
@@ -110,8 +132,7 @@
 
     function popular() {
       const list = POPULAR.map(
-        (p) =>
-          `<div class="ht-ac-item" role="option"><span class="ic">⭐</span>${p}</div>`
+        (p) => `<div class="ht-ac-item" role="option"><span class="ic">⭐</span>${p}</div>`
       ).join('');
       return {
         html: `<div class="ht-ac-section">Popular searches</div>${list}`,
@@ -144,14 +165,20 @@
         });
       }
       if (!ordered.length) {
-        render(`<div class="ht-ac-empty">No matches — press Enter to search "${escapeHtml(q)}"</div>`, []);
+        render(
+          `<div class="ht-ac-empty">No matches — press Enter to search "${escapeHtml(q)}"</div>`,
+          []
+        );
         return;
       }
       render(parts.join(''), ordered);
     }
 
     function escapeHtml(s) {
-      return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      return String(s).replace(
+        /[&<>"]/g,
+        (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+      );
     }
 
     function highlight() {

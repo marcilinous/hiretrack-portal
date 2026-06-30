@@ -28,7 +28,9 @@ function parseKey() {
   try {
     key = JSON.parse(raw);
   } catch (e) {
-    throw new Error('GOOGLE_INDEXING_API_KEY must be a JSON string of the service-account credentials.');
+    throw new Error(
+      'GOOGLE_INDEXING_API_KEY must be a JSON string of the service-account credentials.'
+    );
   }
   if (!key.client_email || !key.private_key) {
     throw new Error('Service-account JSON is missing client_email or private_key.');
@@ -62,7 +64,9 @@ async function getAccessToken() {
   const toSign = `${header}.${claimsB64}`;
   const signer = crypto.createSign('RSA-SHA256');
   signer.update(toSign);
-  const sig = signer.sign(key.private_key).toString('base64')
+  const sig = signer
+    .sign(key.private_key)
+    .toString('base64')
     .replace(/=+$/, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_');
