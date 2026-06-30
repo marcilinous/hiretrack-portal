@@ -1,0 +1,48 @@
+name: Regenerate static job + company pages
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+  # Run hourly so newly-posted jobs hit Google within an hour
+  schedule:
+    - cron: '0 * * * *'
+  # Also rebuild when source HTML / scripts change
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate-*.js'
+      - 'api/sitemap.js'
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate static pages
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SITE_BASE_URL: https://www.hiretrack.co.in
+        run: |
+          node scripts/generate-job-pages.js
+          node scripts/generate-company-pages.js || true
+          node scripts/generate-homepage-data.js || true
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name  "hiretrack-bot"
+          git config user.email "bot@hiretrack.co.in"
+          git add jobs/ companies/ jobs-redirect-map.json homepage-data.json || true
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(ssg): regenerate static job/company pages"
+            git push
+          else
+            echo "No changes."
+          fi

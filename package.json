@@ -10,7 +10,12 @@
     "format:check": "prettier --check api/ js/",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "generate:jobs": "node scripts/generate-job-pages.js",
+    "generate:companies": "node scripts/generate-company-pages.js",
+    "generate:homepage": "node scripts/generate-homepage-data.js",
+    "generate:all": "npm run generate:jobs && npm run generate:companies && npm run generate:homepage",
+    "build": "npm run generate:all || true"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",

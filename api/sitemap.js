@@ -8,7 +8,7 @@ const BASE = 'https://www.hiretrack.co.in';
 const STATIC_PAGES = [
   { loc: '/', priority: '1.0', changefreq: 'daily' },
   { loc: '/jobs.html', priority: '0.9', changefreq: 'hourly' },
-  { loc: '/employer.html', priority: '0.8', changefreq: 'weekly' },
+  { loc: '/for-employers.html', priority: '0.8', changefreq: 'weekly' },
   { loc: '/companies.html', priority: '0.7', changefreq: 'weekly' },
   { loc: '/jobs/bengaluru.html', priority: '0.8', changefreq: 'weekly' },
   { loc: '/jobs/hyderabad.html', priority: '0.8', changefreq: 'weekly' },

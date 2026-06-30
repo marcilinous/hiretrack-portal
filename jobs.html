@@ -225,7 +225,9 @@
   <a href="/jobs/bengaluru.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">Jobs in Bengaluru</a> |
   <a href="/jobs/hyderabad.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">Jobs in Hyderabad</a> |
   <a href="/jobs/mumbai.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">Jobs in Mumbai</a> |
-  <a href="/blog/mis-executive-salary-india-2025.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">MIS Executive Salary Guide</a>
+  <a href="/jobs/walk-in-jobs-india.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">Walk-in Jobs</a> |
+  <a href="/jobs/remote-jobs-india.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">Remote Jobs</a> |
+  <a href="/blog/mis-executive-salary-india-2025.html" style="color:#3b82f6;font-weight:600;text-decoration:none;">MIS Salary Guide</a>
 </p>
 
 <!-- ══ Filter Bar ══ -->
@@ -260,6 +262,7 @@
       <button class="type-pill" data-type="Contract">Contract</button>
       <button class="type-pill" data-type="Remote">Remote</button>
       <button class="type-pill" data-type="Part Time">Part Time</button>
+      <button class="type-pill" data-type="Walk-in">Walk-in</button>
     </div>
 
     <!-- Experience -->
@@ -412,7 +415,6 @@
     </div>
     <nav class="ht-nav-links">
       <a href="about.html">About</a><span class="ht-sep">·</span>
-      <a href="careers.html">Careers</a><span class="ht-sep">·</span>
       <a href="contact.html">Contact Us</a><span class="ht-sep">·</span>
       <a href="pricing.html">Pricing</a><span class="ht-sep">·</span>
       <a href="interview-tips.html">Interview Tips</a><span class="ht-sep">·</span>
@@ -431,6 +433,25 @@
 <script src="/js/sb-rest-shim.js"></script>
 <script src="app.js?v=6"></script>
 <script src="js/browse-jobs.js?v=6"></script>
+<script src="/js/search-autocomplete.js"></script>
+<script>
+  // Wire role/city autocomplete to the existing keyword filter input.
+  document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('f-kw');
+    if (!input || !window.SearchAutocomplete) return;
+    SearchAutocomplete.attach({
+      input: input,
+      onSelect: function () {
+        // Trigger the same path as typing + pressing Enter — BrowseJobs already
+        // listens for input events on #f-kw to re-filter the visible list.
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      },
+      onSearch: function () {
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      },
+    });
+  });
+</script>
 <script src="js/apply-modal.js?v=6"></script>
 <script>
 document.getElementById('navbar').innerHTML = renderNavbar('jobs');
