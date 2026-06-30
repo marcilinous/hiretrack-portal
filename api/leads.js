@@ -8,29 +8,6 @@ import { rateLimit, clientIp } from './_rate-limit.js';
 
 const SUPABASE_URL = 'https://pdjnpqyzayidthpfmvjk.supabase.co';
 
-// Free/personal mailbox providers — rejected so the funnel captures corporate leads.
-const FREE_EMAIL_DOMAINS = new Set([
-  'gmail.com',
-  'googlemail.com',
-  'yahoo.com',
-  'yahoo.co.in',
-  'ymail.com',
-  'rediffmail.com',
-  'hotmail.com',
-  'outlook.com',
-  'live.com',
-  'msn.com',
-  'icloud.com',
-  'me.com',
-  'aol.com',
-  'proton.me',
-  'protonmail.com',
-  'zoho.com',
-  'gmx.com',
-  'mail.com',
-  'yandex.com',
-]);
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const VOLUME_TO_SEGMENT = {
@@ -68,12 +45,7 @@ function validate(body) {
 
   if (name.length < 2) return { ok: false, error: 'Please enter your full name.' };
   if (company.length < 2) return { ok: false, error: 'Please enter your company name.' };
-  if (!EMAIL_RE.test(workEmail)) return { ok: false, error: 'Please enter a valid work email.' };
-
-  const domain = workEmail.split('@')[1] || '';
-  if (FREE_EMAIL_DOMAINS.has(domain)) {
-    return { ok: false, error: 'Please use your company email address (not a personal one).' };
-  }
+  if (!EMAIL_RE.test(workEmail)) return { ok: false, error: 'Please enter a valid email.' };
 
   if (!/^\d{6}$/.test(pincode))
     return { ok: false, error: 'Please enter a valid 6-digit pincode.' };
@@ -118,10 +90,7 @@ function validateEnterprise(body) {
 
   if (name.length < 2) return { ok: false, error: 'Please enter your full name.' };
   if (company.length < 2) return { ok: false, error: 'Please enter your company name.' };
-  if (!EMAIL_RE.test(workEmail)) return { ok: false, error: 'Please enter a valid work email.' };
-  const domain = workEmail.split('@')[1] || '';
-  if (FREE_EMAIL_DOMAINS.has(domain))
-    return { ok: false, error: 'Please use your company email address (not a personal one).' };
+  if (!EMAIL_RE.test(workEmail)) return { ok: false, error: 'Please enter a valid email.' };
   if (!ALLOWED_PREF.has(contactPref)) return { ok: false, error: 'Invalid contact preference.' };
 
   let callbackAt = null;

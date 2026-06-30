@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Find jobs at India's growing SMEs. MIS, IT, HR, Sales roles in Bengaluru, Hyderabad, Mumbai. Free to apply. Join 500+ candidates.">
+  <meta name="description" content="Find jobs at India's growing SMEs. MIS, IT, HR, Sales roles in Bengaluru, Hyderabad, Mumbai. Free to apply. AI interview prep included.">
   <meta name="keywords" content="jobs in india, job portal india, SME jobs india, MIS jobs, IT jobs india, HR jobs, sales jobs india, jobs bengaluru hyderabad mumbai">
   <meta name="author" content="HireTrack">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://www.hiretrack.co.in/index.html">
   <!-- Open Graph (WhatsApp, LinkedIn previews) -->
   <meta property="og:title" content="HireTrack | Job Portal for India's SMEs | Bengaluru & Pan India">
-  <meta property="og:description" content="Find jobs at India's growing SMEs. MIS, IT, HR, Sales roles in Bengaluru, Hyderabad, Mumbai. Free to apply. Join 500+ candidates.">
+  <meta property="og:description" content="Find jobs at India's growing SMEs. MIS, IT, HR, Sales roles in Bengaluru, Hyderabad, Mumbai. Free to apply. AI interview prep included.">
   <meta property="og:url" content="https://www.hiretrack.co.in/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="HireTrack">
@@ -19,7 +19,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="HireTrack | Job Portal for India's SMEs | Bengaluru & Pan India">
-  <meta name="twitter:description" content="Find jobs at India's growing SMEs. MIS, IT, HR, Sales roles in Bengaluru, Hyderabad, Mumbai. Free to apply. Join 500+ candidates.">
+  <meta name="twitter:description" content="Find jobs at India's growing SMEs. MIS, IT, HR, Sales roles in Bengaluru, Hyderabad, Mumbai. Free to apply. AI interview prep included.">
   <meta name="twitter:image" content="https://www.hiretrack.co.in/og-image.png">
 <title>HireTrack | Job Portal for India's SMEs | Bengaluru & Pan India</title>
 <link rel="manifest" href="/manifest.json">
@@ -38,17 +38,15 @@
 .companies-strip-inner { display:flex; gap:0.65rem; flex-wrap:wrap; }
 .co-chip { background:#f1f5f9; border:1.5px solid #e2e8f0; border-radius:20px; padding:5px 16px; font-size:0.82rem; font-weight:600; color:#374151; white-space:nowrap; }
 
-/* Testimonials */
-.testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
-.testimonial-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
-.t-stars { color:#f59e0b; font-size:1rem; letter-spacing:2px; }
-.t-quote { font-size:0.88rem; color:#334155; line-height:1.65; margin:0; flex:1; font-style:italic; }
-.t-author { display:flex; align-items:center; gap:10px; }
-.t-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; color:#fff; flex-shrink:0; }
-.t-name { font-size:0.85rem; font-weight:700; color:#0f172a; }
-.t-role { font-size:0.75rem; color:#64748b; }
+/* Why HireTrack feature grid */
+.features-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; }
+.feature-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; gap:0.6rem; }
+.feature-card .feature-icon { font-size:1.75rem; line-height:1; }
+.feature-card h3 { font-size:1rem; font-weight:800; color:#0f172a; margin:0; }
+.feature-card p { font-size:0.88rem; color:#475569; line-height:1.6; margin:0; }
+@media(max-width:980px) { .features-grid { grid-template-columns:repeat(2,1fr); } }
 @media(max-width:768px) {
-  .testimonials-grid { grid-template-columns:1fr; }
+  .features-grid { grid-template-columns:1fr; }
   .hero-trust { display:none; }
   /* The mobile navbar is position:sticky (in-flow), so it provides its own
      space — the inherited body padding-top:56px just leaves an empty gap
@@ -136,11 +134,11 @@
 
       <!-- Badge — centered above heading -->
       <div class="hero-badge-wrap">
-        <div class="hero-badge">🎯 India&#39;s Fastest Growing Job Portal</div>
+        <div class="hero-badge">🎯 Jobs at India&#39;s Growing SMEs</div>
       </div>
 
-      <h1>Find <span>Your Dream Job</span><br>Across India</h1>
-      <p>Connecting talented professionals with top opportunities in every industry.</p>
+      <h1>Find Jobs at <span>Companies That Actually</span><br>Grow Your Career</h1>
+      <p>HireTrack connects you with India&#39;s best small and mid-size companies. MIS, IT, HR, Sales roles in Bengaluru and across India. Free to apply.</p>
 
       <!-- Search -->
       <div class="search-wrap">
@@ -152,8 +150,8 @@
 
       <!-- Primary CTAs — Candidate + Employer -->
       <div class="hero-ctas">
-        <a href="signup.html" class="btn-hero-primary">🚀 Get a Job</a>
-        <a href="employer-auth.html" class="btn-hero-primary btn-hero-employer">👔 Post a Job</a>
+        <a href="signup.html" class="btn-hero-primary">🚀 Find Jobs</a>
+        <a href="employer-auth.html" class="btn-hero-primary btn-hero-employer">👔 Hire Talent</a>
       </div>
 
       <!-- Stats -->
@@ -232,51 +230,34 @@
   </div>
 </div>
 
-<!-- ── Testimonials ── -->
-<div class="section" style="background:linear-gradient(180deg,#f8fafc,#fff);border-radius:0;padding-top:2.5rem;padding-bottom:2.5rem;max-width:100%;margin:0;">
+<!-- ── Why HireTrack ── -->
+<section id="why-hiretrack" class="section" style="background:linear-gradient(180deg,#f8fafc,#fff);border-radius:0;padding-top:2.5rem;padding-bottom:2.5rem;max-width:100%;margin:0;">
 <div style="max-width:1100px;margin:0 auto;padding:0 1rem;">
-  <div class="section-hd"><h2>Stories from HireTrack Users</h2></div>
-  <div class="testimonials-grid">
-
-    <div class="testimonial-card">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"Got my first interview call within 3 days of creating my profile. The AI interview prep helped me nail the technical round. Placed at a great company in Bengaluru!"</p>
-      <div class="t-author">
-        <div class="t-avatar" style="background:linear-gradient(135deg,#6d28d9,#3b82f6);">PS</div>
-        <div>
-          <div class="t-name">Priya S.</div>
-          <div class="t-role">Data Analyst · Bengaluru</div>
-        </div>
-      </div>
+  <div class="section-hd"><h2>Why Job Seekers Choose HireTrack</h2></div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🎯</span>
+      <h3>Built for India's SMEs</h3>
+      <p>We focus on jobs at growing companies — the 63 million SMEs that the big portals ignore. Real jobs, real companies, real growth.</p>
     </div>
-
-    <div class="testimonial-card">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"Posted our first job on HireTrack and had 18 qualified applications within 24 hours. The candidate quality was much better than what we've seen on bigger portals."</p>
-      <div class="t-author">
-        <div class="t-avatar" style="background:linear-gradient(135deg,#059669,#0ea5e9);">RM</div>
-        <div>
-          <div class="t-name">Rahul M.</div>
-          <div class="t-role">HR Manager · Mumbai</div>
-        </div>
-      </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🆓</span>
+      <h3>100% Free to Apply</h3>
+      <p>No hidden charges. Browse jobs, apply, get interview prep — all free. No payment needed to find your next role.</p>
     </div>
-
-    <div class="testimonial-card">
-      <div class="t-stars">★★★★★</div>
-      <p class="t-quote">"Had been applying elsewhere for months with no luck. HireTrack matched me to a role in my city — I got placed as an MIS Executive in just 2 weeks. Completely free!"</p>
-      <div class="t-author">
-        <div class="t-avatar" style="background:linear-gradient(135deg,#d97706,#f59e0b);">AR</div>
-        <div>
-          <div class="t-name">Anjali R.</div>
-          <div class="t-role">MIS Executive · Hyderabad</div>
-        </div>
-      </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🤖</span>
+      <h3>AI Interview Prep</h3>
+      <p>Practice with AI-generated questions based on real job descriptions. Walk into your interview confident and prepared.</p>
     </div>
-
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🏙️</span>
+      <h3>Bengaluru-First, India-Wide</h3>
+      <p>Started in Bengaluru with deep local employer connections. Now expanding across India's major cities.</p>
+    </div>
   </div>
 </div>
-</div>
+</section>
 
 <!-- ── Community Feed Preview ── -->
 <div class="section">
@@ -473,23 +454,12 @@
 </div>
 <footer class="ht-footer">
   <div class="ht-footer-top">
-    <p class="ht-follow-label">Follow Us</p>
-    <div class="ht-underline"></div>
     <div class="ht-socials">
-      <a class="ht-social" href="#" title="Facebook">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.234 2.686.234v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="LinkedIn">
+      <a class="ht-social" href="https://www.linkedin.com/company/hiretrack-india/" target="_blank" rel="noopener" title="LinkedIn" aria-label="HireTrack on LinkedIn">
         <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
       </a>
-      <a class="ht-social" href="#" title="Twitter / X">
+      <a class="ht-social" href="https://x.com/hiretrack_in" target="_blank" rel="noopener" title="Twitter / X" aria-label="HireTrack on X">
         <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="YouTube">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </a>
-      <a class="ht-social" href="#" title="Instagram">
-        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
       </a>
     </div>
     <nav class="ht-nav-links">
@@ -506,7 +476,8 @@
     </nav>
   </div>
   <div class="ht-footer-bottom">
-    <p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
+    <p class="ht-address" style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin:0 0 0.35rem;">📍 Bengaluru, Karnataka, India</p>
+<p>© <span id="copy-year">2026</span> <span>HireTrack</span> — Find Jobs Across India. Built with ❤️ in Bengaluru.</p>
   </div>
     </footer>
 
