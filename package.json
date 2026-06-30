@@ -14,8 +14,7 @@
     "generate:jobs": "node scripts/generate-job-pages.js",
     "generate:companies": "node scripts/generate-company-pages.js",
     "generate:homepage": "node scripts/generate-homepage-data.js",
-    "generate:all": "npm run generate:jobs && npm run generate:companies && npm run generate:homepage",
-    "build": "npm run generate:all || true"
+    "generate:all": "npm run generate:jobs && npm run generate:companies && npm run generate:homepage"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",
