@@ -2,11 +2,16 @@ User-agent: *
 Allow: /
 
 Disallow: /admin/
+Disallow: /api/
 Disallow: /employer-auth.html
 Disallow: /login.html
 Disallow: /signup.html
-Disallow: /dashboard.html
-Disallow: /executive-dashboard.html
+Disallow: /reset-password.html
+Disallow: /callback.html
 Disallow: /executive.html
+Disallow: /executive-dashboard.html
+Disallow: /employer-dashboard.html
+Disallow: /employer-messages.html
+Disallow: /notifications.html
 
 Sitemap: https://www.hiretrack.co.in/sitemap.xml

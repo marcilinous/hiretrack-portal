@@ -3,6 +3,10 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/pay/:slug", "destination": "/pay.html?slug=:slug" }
   ],
+  "redirects": [
+    { "source": "/culture.html", "destination": "/about.html", "permanent": true },
+    { "source": "/careers.html", "destination": "/about.html", "permanent": true }
+  ],
   "crons": [
     { "path": "/api/cron-expiry", "schedule": "0 3 * * *" },
     { "path": "/api/cron-drip",   "schedule": "30 3 * * *" }
@@ -25,6 +29,12 @@
       "source": "/js/(.*).js",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/jobs-redirect-map.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=3600" }
       ]
     },
     {

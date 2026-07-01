@@ -39,30 +39,6 @@
     },
   ];
 
-  // Free/personal mailboxes are rejected — the funnel exists to capture corporate
-  // intent, so a gmail/yahoo address fails the "work email" check.
-  const FREE_EMAIL_DOMAINS = new Set([
-    'gmail.com',
-    'googlemail.com',
-    'yahoo.com',
-    'yahoo.co.in',
-    'ymail.com',
-    'rediffmail.com',
-    'hotmail.com',
-    'outlook.com',
-    'live.com',
-    'msn.com',
-    'icloud.com',
-    'me.com',
-    'aol.com',
-    'proton.me',
-    'protonmail.com',
-    'zoho.com',
-    'gmx.com',
-    'mail.com',
-    'yandex.com',
-  ]);
-
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // ── Validation schema (Zod-equivalent) ───────────────────────────────────────
@@ -81,10 +57,7 @@
     },
     workEmail(v) {
       const s = (v || '').trim().toLowerCase();
-      if (!EMAIL_RE.test(s)) return 'Please enter a valid work email.';
-      const domain = s.split('@')[1] || '';
-      if (FREE_EMAIL_DOMAINS.has(domain))
-        return 'Please use your company email (not a personal one).';
+      if (!EMAIL_RE.test(s)) return 'Please enter a valid email.';
       return null;
     },
     pincode(v) {
@@ -306,10 +279,10 @@ select.lqf-input{appearance:none;-webkit-appearance:none;background-image:url("d
         field('company', 'Company name', 'text', 'Acme Technologies Pvt Ltd'),
         field(
           'workEmail',
-          'Work email',
+          'Your work or business email',
           'email',
-          'priya@acme.com',
-          'Use your company email — we send a secure sign-in link.'
+          'you@example.com',
+          'We send a secure sign-in link here.'
         ),
         field(
           'pincode',
