@@ -46,14 +46,61 @@ interface GroqResponse {
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "llama-3.3-70b-versatile"; // matches api/ai.js
 
-const TOPICS: Topic[] = [
-  { category: "Tech & Data", angle: "In-demand software development, IT support, and Data Analyst skills for Bengaluru SMEs" },
-  { category: "Sales & Marketing", angle: "How Bengaluru startups and SMEs are hiring local sales executives and digital marketing talent" },
-  { category: "Operations", angle: "SME hiring trends for office administrators, customer support, and operations managers in Karnataka" },
-  { category: "Hiring Strategy", angle: "How small businesses in Bengaluru can speed up recruitment without huge job board fees" },
-  { category: "Salary Insights", angle: "Entry-level vs mid-level salary expectations across different industries in Bengaluru SMEs" },
-  { category: "HR Advice", angle: "Best practices for screening, interviewing, and onboarding new employees quickly in a fast-paced SME" },
-  { category: "Local Markets", angle: "Top hiring hotspots: Whitefield, Electronic City, and Koramangala SME business growth trends" },
+// Topic diversity: instead of a fixed 7-topic weekly rotation (which repeats the
+// same angle every 7 days → duplicate-content/cannibalization risk), we combine a
+// category with rotating facets (role focus, framing, locality). The differing
+// prime offsets make the combination cycle over hundreds of days before repeating,
+// and generateArticle also passes recent titles to the model to avoid overlap.
+const CATEGORIES = [
+  "Tech & Data",
+  "Sales & Marketing",
+  "Operations",
+  "Hiring Strategy",
+  "Salary Insights",
+  "HR Advice",
+  "Local Markets",
+];
+
+const ROLE_FOCUS = [
+  "Data Analyst",
+  "MIS Executive",
+  "back-office operations",
+  "field sales",
+  "digital marketing",
+  "customer support",
+  "accountant",
+  "HR generalist",
+  "telecaller",
+  "warehouse & logistics",
+  "software developer",
+  "office administrator",
+];
+
+const FRAMINGS = [
+  "salary benchmarks",
+  "in-demand skills",
+  "hiring timeline and costs",
+  "interview and screening tips",
+  "where to find candidates",
+  "retention and onboarding",
+  "fresher vs experienced trade-offs",
+  "part-time and gig hiring",
+  "this quarter's demand shifts",
+];
+
+const LOCALITIES = [
+  "Whitefield",
+  "Electronic City",
+  "Koramangala",
+  "HSR Layout",
+  "Indiranagar",
+  "Marathahalli",
+  "Jayanagar",
+  "Yelahanka",
+  "JP Nagar",
+  "Hebbal",
+  "Bellandur",
+  "BTM Layout",
 ];
 
 function logError(stage: string, err: unknown): void {
@@ -75,8 +122,36 @@ function istDayOfYear(): number {
   return Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 0)) / 86400000);
 }
 
-function pickTopic(): Topic {
-  return TOPICS[istDayOfYear() % TOPICS.length];
+// Build a distinct daily topic by combining a category with rotating facets.
+function buildTopic(): Topic {
+  const d = istDayOfYear();
+  const category = CATEGORIES[d % CATEGORIES.length];
+  const role = ROLE_FOCUS[(d * 5 + 2) % ROLE_FOCUS.length];
+  const framing = FRAMINGS[(d * 7 + 3) % FRAMINGS.length];
+  const locality = LOCALITIES[(d * 3 + 1) % LOCALITIES.length];
+  const angle =
+    `${framing} for ${role} roles in Bengaluru SMEs, with a local lens on ${locality} ` +
+    `(${category.toLowerCase()})`;
+  return { category, angle };
+}
+
+// Recent titles so the model can deliberately avoid repeating them. Non-fatal.
+async function fetchRecentTitles(limit = 25): Promise<string[]> {
+  const sbUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!sbUrl || !serviceKey) return [];
+  try {
+    const resp = await fetch(
+      `${sbUrl}/rest/v1/blog_posts?select=title&order=published_at.desc&limit=${limit}`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (!resp.ok) return [];
+    const rows = (await resp.json()) as Array<{ title?: string }>;
+    return rows.map((r) => String(r.title ?? "")).filter(Boolean);
+  } catch (err) {
+    logError("recent_titles", err);
+    return [];
+  }
 }
 
 // UTF-8 safe Base64 (GitHub requires Base64-encoded content).
@@ -99,7 +174,12 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-async function generateArticle(apiKey: string, topic: Topic, prettyDate: string): Promise<Article> {
+async function generateArticle(
+  apiKey: string,
+  topic: Topic,
+  prettyDate: string,
+  recentTitles: string[],
+): Promise<Article> {
   const system = [
     "You are an expert SEO + GEO (Generative Engine Optimization) writer for HireTrack",
     "(hiretrack.co.in), a jobs-first platform for India's SME hiring market, focused on",
@@ -120,9 +200,18 @@ async function generateArticle(apiKey: string, topic: Topic, prettyDate: string)
     "- ~550-650 words. Specific to Bengaluru/Karnataka SMEs and the specified topic category. Mention HireTrack once or twice.",
     "- Frame numbers as typical/estimated ranges, not official statistics.",
     "faqs: real questions a hiring manager or job seeker would ask, with concise factual answers.",
+    "",
+    "AVOID DUPLICATION: your title AND overall angle must be clearly distinct from our",
+    "recent posts (different role/skill/locality/framing) — not a rephrase of an existing one.",
   ].join("\n");
 
-  const user = `Topic category: ${topic.category}\nTopic angle: ${topic.angle}\nToday: ${prettyDate}\nReturn the JSON now.`;
+  const avoid = recentTitles.length
+    ? `\n\nRecent post titles to NOT repeat or closely echo:\n${recentTitles.map((t) => `- ${t}`).join("\n")}`
+    : "";
+  const user =
+    `Topic category: ${topic.category}\nTopic angle: ${topic.angle}\nToday: ${prettyDate}` +
+    avoid +
+    `\nWrite a fresh, specific post on this angle and return the JSON now.`;
 
   const resp = await fetch(GROQ_URL, {
     method: "POST",
@@ -412,15 +501,16 @@ Deno.serve(async (req: Request) => {
   const prettyDate = new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric",
   }).format(new Date());
-  const topic = pickTopic();
+  const topic = buildTopic();
   const slug = `post-${isoDate}`;
   const path = `blog/${slug}.html`;
   const canonical = `${origin}/${path}`;
 
-  // 1 + 2. Generate.
+  // 1 + 2. Generate (feed recent titles so the model avoids repeating angles).
+  const recentTitles = await fetchRecentTitles();
   let article: Article;
   try {
-    article = await generateArticle(groqKey, topic, prettyDate);
+    article = await generateArticle(groqKey, topic, prettyDate, recentTitles);
   } catch (err) {
     logError("groq", err);
     return json(502, { ok: false, error: "AI generation failed" });
