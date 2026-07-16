@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="canonical" href="https://www.hiretrack.co.in/job.html">
+<link id="canonical-link" rel="canonical" href="https://www.hiretrack.co.in/job.html">
 
 <!-- Dynamic meta — overwritten by JS once job is loaded -->
 <title>Job Details — HireTrack</title>
@@ -13,14 +13,16 @@
 <!-- Open Graph -->
 <meta property="og:type"        content="website">
 <meta property="og:site_name"   content="HireTrack">
-<meta property="og:url"         content="">
+<meta property="og:url"         content="https://www.hiretrack.co.in/job.html">
 <meta property="og:title"       content="Job Details — HireTrack">
 <meta property="og:description" content="Find MIS, Data, Excel and SQL jobs in Karnataka on HireTrack.">
+<meta property="og:image"       content="https://www.hiretrack.co.in/og-image.png">
 
 <!-- Twitter card -->
-<meta name="twitter:card"        content="summary">
+<meta name="twitter:card"        content="summary_large_image">
 <meta name="twitter:title"       content="Job Details — HireTrack">
 <meta name="twitter:description" content="Find MIS, Data, Excel and SQL jobs in Karnataka on HireTrack.">
+<meta name="twitter:image"       content="https://www.hiretrack.co.in/og-image.png">
 
 <!-- JSON-LD placeholder (replaced by JS) -->
 <script id="ld-json" type="application/ld+json">{}</script>
@@ -288,6 +290,10 @@ document.getElementById('navbar').innerHTML = renderNavbar('jobs');
   setMeta('property', 'og:url', pageUrl);
   setMeta('name', 'twitter:title', pageTitle);
   setMeta('name', 'twitter:description', pageDesc);
+  // Canonical: one canonical per job ID so Google stops folding every job page
+  // into the bare /job.html URL.
+  const canonical = document.getElementById('canonical-link') || document.querySelector('link[rel="canonical"]');
+  if (canonical) canonical.href = pageUrl;
 
   document.getElementById('bc-title').textContent = job.title;
 
